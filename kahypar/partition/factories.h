@@ -24,7 +24,14 @@
 #include "kahypar/meta/static_double_dispatch_factory.h"
 #include "kahypar/meta/static_multi_dispatch_factory.h"
 #include "kahypar/meta/typelist.h"
+#include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/ml_coarsener.h"
+#include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -45,6 +52,21 @@ using RefinerFactory = meta::Factory<RefinementAlgorithm,
 
 using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
                                                  IInitialPartitioner* (*)(Hypergraph&, Context&)>;
+
+using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
+                                      CommunityPolicies, AcceptancePolicies>;
+
+using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
+                                                                ICoarsener,
+                                                                RatingPolicies>;
+
+using FullCoarseningDispatcher = meta::StaticMultiDispatchFactory<FullVertexPairCoarsener,
+                                                                  ICoarsener,
+                                                                  RatingPolicies>;
+
+using LazyCoarseningDispatcher = meta::StaticMultiDispatchFactory<LazyVertexPairCoarsener,
+                                                                  ICoarsener,
+                                                                  RatingPolicies>;
 
 using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
                                                                    IRefiner,

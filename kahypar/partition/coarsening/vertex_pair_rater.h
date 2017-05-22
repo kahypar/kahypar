@@ -29,41 +29,42 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-template <typename _RatingType,
-          class _TieBreakingPolicy,
-          class _AcceptancePolicy = BestRatingWithRandomTieBreaking<_TieBreakingPolicy>,
-          class _NodeWeightPenalty = MultiplicativePenalty>
-class HeavyEdgeRater {
+template <class ScorePolicy = HeavyEdgeScore,
+          class HeavyNodePenaltyPolicy = MultiplicativePenalty,
+          class CommunityPolicy = UseCommunityStructure,
+          class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          typename RatingType = RatingType>
+class VertexPairRater {
  private:
   static constexpr bool debug = false;
-  using AcceptancePolicy = _AcceptancePolicy;
-  using NodeWeightPenalty = _NodeWeightPenalty;
 
-  class HeavyEdgeRating {
+  class VertexPairRating {
  public:
-    HeavyEdgeRating(HypernodeID trgt, RatingType val, bool is_valid) :
+    VertexPairRating(HypernodeID trgt, RatingType val, bool is_valid) :
       target(trgt),
       value(val),
       valid(is_valid) { }
 
-    HeavyEdgeRating() :
+    VertexPairRating() :
       target(std::numeric_limits<HypernodeID>::max()),
       value(std::numeric_limits<RatingType>::min()),
       valid(false) { }
 
-    HeavyEdgeRating(const HeavyEdgeRating&) = delete;
-    HeavyEdgeRating& operator= (const HeavyEdgeRating&) = delete;
+    VertexPairRating(const VertexPairRating&) = delete;
+    VertexPairRating& operator= (const VertexPairRating&) = delete;
 
-    HeavyEdgeRating(HeavyEdgeRating&&) = default;
-    HeavyEdgeRating& operator= (HeavyEdgeRating&&) = delete;
+    VertexPairRating(VertexPairRating&&) = default;
+    VertexPairRating& operator= (VertexPairRating&&) = delete;
 
-    ~HeavyEdgeRating() = default;
+    ~VertexPairRating() = default;
 
     HypernodeID target;
     RatingType value;
@@ -71,31 +72,30 @@ class HeavyEdgeRater {
   };
 
  public:
-  using RatingType = _RatingType;
-  using Rating = HeavyEdgeRating;
+  using Rating = VertexPairRating;
 
-  HeavyEdgeRater(Hypergraph& hypergraph, const Context& context) :
+  VertexPairRater(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
     _tmp_ratings(_hg.initialNumNodes()),
     _already_matched(_hg.initialNumNodes()) { }
 
-  HeavyEdgeRater(const HeavyEdgeRater&) = delete;
-  HeavyEdgeRater& operator= (const HeavyEdgeRater&) = delete;
+  VertexPairRater(const VertexPairRater&) = delete;
+  VertexPairRater& operator= (const VertexPairRater&) = delete;
 
-  HeavyEdgeRater(HeavyEdgeRater&&) = delete;
-  HeavyEdgeRater& operator= (HeavyEdgeRater&&) = delete;
+  VertexPairRater(VertexPairRater&&) = delete;
+  VertexPairRater& operator= (VertexPairRater&&) = delete;
 
-  ~HeavyEdgeRater() = default;
+  ~VertexPairRater() = default;
 
-  HeavyEdgeRating rate(const HypernodeID u) {
+  VertexPairRating rate(const HypernodeID u) {
     DBG << "Calculating rating for HN" << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     const PartitionID part_u = _hg.partID(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
-        const RatingType score = static_cast<RatingType>(_hg.edgeWeight(he)) / (_hg.edgeSize(he) - 1);
+        const RatingType score = ScorePolicy::score(_hg, he);
         for (const HypernodeID& v : _hg.pins(he)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               (part_u == _hg.partID(v))) {
@@ -107,14 +107,13 @@ class HeavyEdgeRater {
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
-    const std::vector<PartitionID>& communities = _hg.communities();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       const RatingType tmp_rating = it->value /
-                                    NodeWeightPenalty::penalty(weight_u,
-                                                               _hg.nodeWeight(tmp_target));
+                                    HeavyNodePenaltyPolicy::penalty(weight_u,
+                                                                    _hg.nodeWeight(tmp_target));
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
-      if (communities[u] == communities[tmp_target] &&
+      if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
                                          target, tmp_target, _already_matched)) {
         max_rating = tmp_rating;
@@ -122,13 +121,13 @@ class HeavyEdgeRater {
       }
     }
 
-    HeavyEdgeRating ret;
+    VertexPairRating ret;
     if (max_rating != std::numeric_limits<RatingType>::min()) {
       ASSERT(target != std::numeric_limits<HypernodeID>::max(), "invalid contraction target");
       ret.value = max_rating;
       ret.target = target;
       ret.valid = true;
-      ASSERT(communities[u] == communities[ret.target]);
+      ASSERT(_hg.communities()[u] == _hg.communities()[ret.target]);
     }
     ASSERT(!ret.valid || (_hg.partID(u) == _hg.partID(ret.target)));
     _tmp_ratings.clear();

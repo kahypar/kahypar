@@ -35,8 +35,11 @@ using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
+                                                   MultiplicativePenalty,
+                                                   UseCommunityStructure,
+                                                   BestRatingWithTieBreaking<FirstRatingWins>,
+                                                   RatingType>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class MultilevelPartitioning : public Test {

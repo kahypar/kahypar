@@ -27,8 +27,11 @@
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
 namespace kahypar {
-using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
-using CoarsenerType = LazyVertexPairCoarsener<FirstWinsRater>;
+using CoarsenerType = LazyVertexPairCoarsener<HeavyEdgeScore,
+                                              MultiplicativePenalty,
+                                              UseCommunityStructure,
+                                              BestRatingWithTieBreaking<FirstRatingWins>,
+                                              RatingType>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
  public:

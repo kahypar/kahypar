@@ -35,6 +35,7 @@
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
+#include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
 #include "kahypar/partition/recursive_bisection.h"

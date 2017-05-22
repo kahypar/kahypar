@@ -28,8 +28,13 @@
 #include "kahypar/definitions.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/multilevel.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -206,8 +211,11 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
   HypernodeWeightVector _written_hypernode_weights;
 };
 
-using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
-using FirstWinsCoarsener = FullVertexPairCoarsener<FirstWinsRater>;
+using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
+                                                   MultiplicativePenalty,
+                                                   UseCommunityStructure,
+                                                   BestRatingWithTieBreaking<FirstRatingWins>,
+                                                   RatingType>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class APartitionOfAHypergraph : public Test {

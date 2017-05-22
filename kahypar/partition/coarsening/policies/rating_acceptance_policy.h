@@ -21,34 +21,32 @@
 #pragma once
 
 #include "kahypar/definitions.h"
+#include "kahypar/meta/policy_registry.h"
+#include "kahypar/meta/typelist.h"
+#include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 
 namespace kahypar {
-template <class TieBreakingPolicy>
-class BestRatingWithRandomTieBreaking {
+template <class TieBreakingPolicy = RandomRatingWins>
+class BestRatingWithTieBreaking final : public meta::PolicyBase {
  public:
-  static bool acceptRating(const RatingType tmp, const RatingType max_rating,
-                           const HypernodeID, const HypernodeID,
-                           const ds::FastResetFlagArray<>&) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,
+                                                                  const RatingType max_rating,
+                                                                  const HypernodeID,
+                                                                  const HypernodeID,
+                                                                  const ds::FastResetFlagArray<>&) {
     return max_rating < tmp || (max_rating == tmp && TieBreakingPolicy::acceptEqual());
   }
-
-  BestRatingWithRandomTieBreaking(const BestRatingWithRandomTieBreaking&) = delete;
-  BestRatingWithRandomTieBreaking& operator= (const BestRatingWithRandomTieBreaking&) = delete;
-
-  BestRatingWithRandomTieBreaking(BestRatingWithRandomTieBreaking&&) = delete;
-  BestRatingWithRandomTieBreaking& operator= (BestRatingWithRandomTieBreaking&&) = delete;
-
- protected:
-  ~BestRatingWithRandomTieBreaking() = default;
 };
 
 
-template <class TieBreakingPolicy>
-class BestRatingPreferringUnmatched {
+template <class TieBreakingPolicy = RandomRatingWins>
+class BestRatingPreferringUnmatched final : public meta::PolicyBase {
  public:
-  static bool acceptRating(const RatingType tmp, const RatingType max_rating,
-                           const HypernodeID old_target, const HypernodeID new_target,
-                           const ds::FastResetFlagArray<>& already_matched) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,
+                                                                  const RatingType max_rating,
+                                                                  const HypernodeID old_target,
+                                                                  const HypernodeID new_target,
+                                                                  const ds::FastResetFlagArray<>& already_matched) {
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
@@ -57,14 +55,8 @@ class BestRatingPreferringUnmatched {
              (!already_matched[old_target] && !already_matched[new_target] &&
               TieBreakingPolicy::acceptEqual())));
   }
-
-  BestRatingPreferringUnmatched(const BestRatingPreferringUnmatched&) = delete;
-  BestRatingPreferringUnmatched& operator= (const BestRatingPreferringUnmatched&) = delete;
-
-  BestRatingPreferringUnmatched(BestRatingPreferringUnmatched&&) = delete;
-  BestRatingPreferringUnmatched& operator= (BestRatingPreferringUnmatched&&) = delete;
-
- protected:
-  ~BestRatingPreferringUnmatched() = default;
 };
+
+using AcceptancePolicies = meta::Typelist<BestRatingWithTieBreaking<>,
+                                          BestRatingPreferringUnmatched<> >;
 }  // namespace kahypar

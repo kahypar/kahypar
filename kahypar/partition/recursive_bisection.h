@@ -29,6 +29,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/multilevel.h"
+#include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
 namespace kahypar {

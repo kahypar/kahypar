@@ -28,15 +28,20 @@
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
-#include "kahypar/partition/preprocessing/louvain.h"
-#include "kahypar/partition/preprocessing/modularity.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/utils/float_compare.h"
 
 namespace kahypar {
+template <class ScorePolicy = HeavyEdgeScore,
+          class HeavyNodePenaltyPolicy = NoWeightPenalty,
+          class CommunityPolicy = UseCommunityStructure,
+          class AcceptancePolicy = BestRatingPreferringUnmatched<>,
+          typename RatingType = RatingType>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
  private:
@@ -45,9 +50,11 @@ class MLCoarsener final : public ICoarsener,
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
 
   using Base = VertexPairCoarsenerBase;
-  using Rater = HeavyEdgeRater<RatingType, RandomRatingWins,
-                               BestRatingPreferringUnmatched<RandomRatingWins>,
-                               NoWeightPenalty>;
+  using Rater = VertexPairRater<ScorePolicy,
+                                HeavyNodePenaltyPolicy,
+                                CommunityPolicy,
+                                AcceptancePolicy,
+                                RatingType>;
   using Rating = typename Rater::Rating;
 
  public:

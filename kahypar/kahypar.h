@@ -24,10 +24,14 @@
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/coarsening/do_nothing_coarsener.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
+#include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioning.h"
@@ -42,6 +46,18 @@
        const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {  \
     return new coarsener(hypergraph, context, weight_of_heaviest_node); \
   })
+
+#define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                 \
+  static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(        \
+    id,                                                                    \
+    [](Hypergraph& hypergraph, const Context& context,                     \
+       const HypernodeWeight weight_of_heaviest_node) {                    \
+    return dispatcher::create(                                             \
+      std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \
+      __VA_ARGS__                                                          \
+      );                                                                   \
+  })
+
 
 #define REGISTER_INITIAL_PARTITIONER(id, ip)                               \
   static meta::Registrar<InitialPartitioningFactory> register_ ## ip(      \
@@ -75,17 +91,72 @@ namespace kahypar {
 ////////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
 ////////////////////////////////////////////////////////////////////////////////
-using RandomWinsRaterHeavyEdgeRater = HeavyEdgeRater<RatingType, RandomRatingWins>;
+using RandomWinsRaterHeavyEdgeRater = VertexPairRater<>;
+
+////////////////////////////////////////////////////////////////////////////////
+//                       Coarsening / Rating Policies
+////////////////////////////////////////////////////////////////////////////////
+REGISTER_POLICY(CommunityPolicy, CommunityPolicy::use_communities,
+                UseCommunityStructure);
+REGISTER_POLICY(CommunityPolicy, CommunityPolicy::ignore_communities,
+                IgnoreCommunityStructure);
+
+REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::no_penalty,
+                NoWeightPenalty);
+REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::multiplicative_penalty,
+                MultiplicativePenalty);
+
+REGISTER_POLICY(RatingFunction, RatingFunction::heavy_edge,
+                HeavyEdgeScore);
+REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
+                EdgeFrequencyScore);
+
+using BestWithTieBreaking = BestRatingWithTieBreaking<>;
+using BestPreferringUnmatched = BestRatingPreferringUnmatched<>;
+
+REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
+                BestWithTieBreaking);
+REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
+                BestPreferringUnmatched);
 
 ////////////////////////////////////////////////////////////////////////////////
 //                          Coarsening Algorithms
 ////////////////////////////////////////////////////////////////////////////////
-using RandomWinsFullCoarsener = FullVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
-using RandomWinsLazyUpdateCoarsener = LazyVertexPairCoarsener<RandomWinsRaterHeavyEdgeRater>;
-REGISTER_COARSENER(CoarseningAlgorithm::heavy_lazy, RandomWinsLazyUpdateCoarsener);
-REGISTER_COARSENER(CoarseningAlgorithm::heavy_full, RandomWinsFullCoarsener);
-REGISTER_COARSENER(CoarseningAlgorithm::ml_style, MLCoarsener);
 REGISTER_COARSENER(CoarseningAlgorithm::do_nothing, DoNothingCoarsener);
+
+REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_lazy,
+                              LazyCoarseningDispatcher,
+                              meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
+                                context.coarsening.rating.rating_function),
+                              meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.heavy_node_penalty_policy),
+                              meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.acceptance_policy));
+
+REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_full,
+                              FullCoarseningDispatcher,
+                              meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
+                                context.coarsening.rating.rating_function),
+                              meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.heavy_node_penalty_policy),
+                              meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.acceptance_policy));
+
+REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
+                              MLCoarseningDispatcher,
+                              meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
+                                context.coarsening.rating.rating_function),
+                              meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.heavy_node_penalty_policy),
+                              meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.acceptance_policy));
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                          Initial Partitioning Algorithms

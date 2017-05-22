@@ -23,8 +23,12 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/coarsening/heavy_edge_rater.h"
+#include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_community_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
 using ::testing::Test;
 using ::testing::Eq;
@@ -32,9 +36,21 @@ using ::testing::DoubleEq;
 using ::testing::AnyOf;
 
 namespace kahypar {
-using FirstWinsRater = HeavyEdgeRater<RatingType, FirstRatingWins>;
-using LastWinsRater = HeavyEdgeRater<RatingType, LastRatingWins>;
-using RandomWinsRater = HeavyEdgeRater<RatingType, RandomRatingWins>;
+using FirstWinsRater = VertexPairRater<HeavyEdgeScore,
+                                       MultiplicativePenalty,
+                                       UseCommunityStructure,
+                                       BestRatingWithTieBreaking<FirstRatingWins>,
+                                       RatingType>;
+using LastWinsRater = VertexPairRater<HeavyEdgeScore,
+                                      MultiplicativePenalty,
+                                      UseCommunityStructure,
+                                      BestRatingWithTieBreaking<LastRatingWins>,
+                                      RatingType>;
+using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
+                                        MultiplicativePenalty,
+                                        UseCommunityStructure,
+                                        BestRatingWithTieBreaking<RandomRatingWins>,
+                                        RatingType>;
 
 class ARater : public Test {
  public:

@@ -20,26 +20,29 @@
 
 #pragma once
 
+#include <vector>
+
 #include "kahypar/definitions.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
 
-
 namespace kahypar {
-class MultiplicativePenalty final : public meta::PolicyBase {
+class UseCommunityStructure final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {
-    return weight_u * weight_v;
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool sameCommunity(const std::vector<PartitionID>& communities,
+                                                                   const HypernodeID u, const HypernodeID v) {
+    return communities[u] == communities[v];
   }
 };
 
-class NoWeightPenalty final : public meta::PolicyBase {
+class IgnoreCommunityStructure final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight, const HypernodeWeight) {
-    return 1;
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool sameCommunity(const std::vector<PartitionID>&,
+                                                                   const HypernodeID, const HypernodeID) {
+    return true;
   }
 };
 
-using HeavyNodePenaltyPolicies = meta::Typelist<MultiplicativePenalty,
-                                                NoWeightPenalty>;
+using CommunityPolicies = meta::Typelist<UseCommunityStructure,
+                                         IgnoreCommunityStructure>;
 }  // namespace kahypar
