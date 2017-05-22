@@ -25,7 +25,6 @@
 #include <vector>
 
 
-#include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
@@ -34,7 +33,6 @@
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
-#include "kahypar/utils/float_compare.h"
 
 namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,

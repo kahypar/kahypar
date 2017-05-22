@@ -27,8 +27,6 @@
 
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
-#include "kahypar/meta/mandatory.h"
-#include "kahypar/meta/template_parameter_to_string.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
@@ -36,7 +34,7 @@
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
-#include "kahypar/utils/stats.h"
+#include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
 namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,

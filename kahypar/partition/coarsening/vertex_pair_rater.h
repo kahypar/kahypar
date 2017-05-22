@@ -34,7 +34,6 @@
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
