@@ -139,14 +139,14 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
     }
   }
 
-  if (context.preprocessing.enable_louvain_community_detection &&
-      context.preprocessing.louvain_community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
+  if (context.preprocessing.enable_community_detection &&
+      context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
     const double density = static_cast<double>(hypergraph.initialNumEdges()) /
                            static_cast<double>(hypergraph.initialNumNodes());
     if (density < 0.75) {
-      context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::degree;
+      context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::degree;
     } else {
-      context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::uniform;
+      context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::uniform;
     }
   }
 }
@@ -207,7 +207,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
   if (context.partition.mode != Mode::recursive_bisection &&
-      context.preprocessing.enable_louvain_community_detection) {
+      context.preprocessing.enable_community_detection) {
     detectCommunities(hypergraph, context);
   }
 }

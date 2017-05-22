@@ -44,7 +44,7 @@ class ALouvainAlgorithm : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     context() {
-    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
     louvain = std::make_shared<Louvain<Modularity> >(hypergraph, context);
   }
 
@@ -61,7 +61,7 @@ class AModularityMeasure : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     graph(nullptr) {
-    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
     graph = std::make_shared<Graph>(hypergraph, context);
     modularity = std::make_shared<Modularity>(*graph);
   }
@@ -202,7 +202,7 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   }
   Context context;
 
-  context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+  context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
   Graph graph(adj_array, edges);
   Louvain<Modularity, false> louvain(adj_array, edges, context);
 

@@ -110,7 +110,7 @@ class Graph {
     _incident_cluster_weight_position(_num_nodes),
     _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
     std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
-    switch (context.preprocessing.louvain_community_detection.edge_weight) {
+    switch (context.preprocessing.community_detection.edge_weight) {
       case LouvainEdgeWeight::degree:
         constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
                                                 const HyperedgeID he,

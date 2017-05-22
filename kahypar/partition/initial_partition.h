@@ -44,8 +44,8 @@ static inline Context createContext(const Hypergraph& hg,
 
   context.type = ContextType::initial_partitioning;
 
-  if (!context.preprocessing.louvain_community_detection.enable_in_initial_partitioning) {
-    context.preprocessing.enable_louvain_community_detection = false;
+  if (!context.preprocessing.community_detection.enable_in_initial_partitioning) {
+    context.preprocessing.enable_community_detection = false;
   }
 
   context.partition.epsilon = init_alpha * original_context.partition.epsilon;

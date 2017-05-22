@@ -43,7 +43,7 @@ struct MinHashSparsifierParameters {
   bool is_active = false;
 };
 
-struct LouvainCommunityDetection {
+struct CommunityDetection {
   bool enable_in_initial_partitioning = false;
   bool reuse_communities = false;
   LouvainEdgeWeight edge_weight = LouvainEdgeWeight::hybrid;
@@ -53,11 +53,11 @@ struct LouvainCommunityDetection {
 
 struct PreprocessingParameters {
   bool enable_min_hash_sparsifier = false;
-  bool enable_louvain_community_detection = false;
+  bool enable_community_detection = false;
   bool remove_always_cut_hes = false;
   bool remove_parallel_hes = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
-  LouvainCommunityDetection louvain_community_detection = LouvainCommunityDetection();
+  CommunityDetection community_detection = CommunityDetection();
 };
 
 inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParameters& params) {
@@ -79,7 +79,7 @@ inline std::ostream& operator<< (std::ostream& str, const MinHashSparsifierParam
   return str;
 }
 
-inline std::ostream& operator<< (std::ostream& str, const LouvainCommunityDetection& params) {
+inline std::ostream& operator<< (std::ostream& str, const CommunityDetection& params) {
   str << "Community Detection Parameters:" << std::endl;
   str << "  use community detection in IP:      " << std::boolalpha
       << params.enable_in_initial_partitioning << std::endl;
@@ -100,7 +100,7 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
   str << "  enable min hash sparsifier:         " << std::boolalpha
       << params.enable_min_hash_sparsifier << std::endl;
   str << "  enable community detection:         " << std::boolalpha
-      << params.enable_louvain_community_detection << std::endl;
+      << params.enable_community_detection << std::endl;
   str << "  remove parallel HEs:                " << std::boolalpha
       << params.remove_parallel_hes << std::endl;
   str << "  remove HEs that always will be cut: " << std::boolalpha
@@ -110,10 +110,10 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
         << std::endl;
     str << params.min_hash_sparsifier << std::endl;
   }
-  if (params.enable_louvain_community_detection) {
+  if (params.enable_community_detection) {
     str << "-------------------------------------------------------------------------------"
         << std::endl;
-    str << params.louvain_community_detection;
+    str << params.community_detection;
   }
 
   return str;

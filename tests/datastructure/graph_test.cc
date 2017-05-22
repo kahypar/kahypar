@@ -41,7 +41,7 @@ class ABipartiteGraph : public Test {
     context(),
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9, 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }) {
-    context.preprocessing.louvain_community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+    context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
     graph = std::make_shared<Graph>(hypergraph, context);
   }
 

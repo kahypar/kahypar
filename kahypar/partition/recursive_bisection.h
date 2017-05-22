@@ -202,7 +202,7 @@ static inline void partition(Hypergraph& input_hypergraph,
                    R"(========================================)";
           }
 
-          if (current_context.preprocessing.enable_louvain_community_detection) {
+          if (current_context.preprocessing.enable_community_detection) {
             if (recursive_bisection_verbose) {
               LOG << "******************************************"
                      "**************************************";
@@ -223,7 +223,7 @@ static inline void partition(Hypergraph& input_hypergraph,
             // partitioning is not used here, because we clear the communities vector before calling
             // the initial partitioner (see initial_partition.h).
             const bool detect_communities =
-              !current_context.preprocessing.louvain_community_detection.reuse_communities ||
+              !current_context.preprocessing.community_detection.reuse_communities ||
               bisection_counter == 1;
             if (detect_communities) {
               detectCommunities(current_hypergraph, current_context);

@@ -176,26 +176,26 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Remove hyperedges that will always be cut because"
     " of the weight of their pins \n"
     "(default: false)")
-    ("p-use-louvain",
-    po::value<bool>(&context.preprocessing.enable_louvain_community_detection)->value_name("<bool>"),
+    ("p-detect-communities",
+    po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
     "Using louvain community detection for coarsening\n"
     "(default: false)")
-    ("p-use-louvain-in-ip",
-    po::value<bool>(&context.preprocessing.louvain_community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
+    ("p-detect-communities-in-ip",
+    po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
     "Using louvain community detection for coarsening during initial partitioning\n"
     "(default: false)")
     ("p-max-louvain-pass-iterations",
-    po::value<int>(&context.preprocessing.louvain_community_detection.max_pass_iterations)->value_name("<int>"),
+    po::value<int>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<int>"),
     "Maximum number of iterations over all nodes of one louvain pass\n"
     "(default: 100)")
     ("p-min-eps-improvement",
-    po::value<long double>(&context.preprocessing.louvain_community_detection.min_eps_improvement)->value_name("<long double>"),
+    po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
     "Minimum improvement of quality during a louvain pass which leads to further passes\n"
     "(default: 0.001)")
     ("p-louvain-edge-weight",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ptype) {
-      context.preprocessing.louvain_community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
+      context.preprocessing.community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
     }),
     "Weights:\n"
     " - hybrid \n"
@@ -204,7 +204,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - degree \n"
     "(default: hybrid)")
     ("p-reuse-communities",
-    po::value<bool>(&context.preprocessing.louvain_community_detection.reuse_communities)->value_name("<bool>"),
+    po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
     "Reuse the community structure identified in the first bisection for all other bisections.\n"
     "(default: false)");
 

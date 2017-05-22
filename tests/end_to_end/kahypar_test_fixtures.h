@@ -34,9 +34,9 @@ class KaHyParCA : public ::testing::Test {
     context.partition.mode = Mode::direct_kway;
     context.partition.objective = Objective::cut;
     context.partition.seed = 2;
-    context.preprocessing.enable_louvain_community_detection = true;
+    context.preprocessing.enable_community_detection = true;
     context.preprocessing.enable_min_hash_sparsifier = true;
-    context.preprocessing.louvain_community_detection.enable_in_initial_partitioning = true;
+    context.preprocessing.community_detection.enable_in_initial_partitioning = true;
     context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
     context.coarsening.max_allowed_weight_multiplier = 1;
     context.coarsening.contraction_limit_multiplier = 160;

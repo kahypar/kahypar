@@ -75,15 +75,15 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.preprocessing.min_hash_sparsifier.is_active
       << " pre_min_sparsifier_activation_median_he_size="
       << context.preprocessing.min_hash_sparsifier.min_median_he_size
-      << " enable_louvain_community_detection=" << std::boolalpha
-      << context.preprocessing.enable_louvain_community_detection
+      << " enable_community_detection=" << std::boolalpha
+      << context.preprocessing.enable_community_detection
       << " enable_louvain_in_initial_partitioning=" << std::boolalpha
-      << context.preprocessing.louvain_community_detection.enable_in_initial_partitioning
-      << " max_louvain_pass_iterations=" << context.preprocessing.louvain_community_detection.max_pass_iterations
-      << " min_louvain_eps_improvement=" << context.preprocessing.louvain_community_detection.min_eps_improvement
-      << " louvain_edge_weight=" << toString(context.preprocessing.louvain_community_detection.edge_weight)
+      << context.preprocessing.community_detection.enable_in_initial_partitioning
+      << " max_louvain_pass_iterations=" << context.preprocessing.community_detection.max_pass_iterations
+      << " min_louvain_eps_improvement=" << context.preprocessing.community_detection.min_eps_improvement
+      << " louvain_edge_weight=" << toString(context.preprocessing.community_detection.edge_weight)
       << " reuse_community_structure=" << std::boolalpha
-      << context.preprocessing.louvain_community_detection.reuse_communities
+      << context.preprocessing.community_detection.reuse_communities
       << " coarsening_algo=" << toString(context.coarsening.algorithm)
       << " coarsening_max_allowed_weight_multiplier=" << context.coarsening.max_allowed_weight_multiplier
       << " coarsening_contraction_limit_multiplier=" << context.coarsening.contraction_limit_multiplier

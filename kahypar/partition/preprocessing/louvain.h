@@ -103,7 +103,7 @@ class Louvain {
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> elapsed_seconds = end - start;
       DBG << "Louvain-Pass #" << iteration << "Time:" << elapsed_seconds.count() << "s";
-      improvement = cur_quality - old_quality > _context.preprocessing.louvain_community_detection.min_eps_improvement;
+      improvement = cur_quality - old_quality > _context.preprocessing.community_detection.min_eps_improvement;
 
       DBG << "Louvain-Pass #" << iteration << "improved quality from" << old_quality
           << "to" << cur_quality;
@@ -243,7 +243,7 @@ class Louvain {
 
       DBG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
     } while (node_moves > 0 &&
-             iterations < _context.preprocessing.louvain_community_detection.max_pass_iterations);
+             iterations < _context.preprocessing.community_detection.max_pass_iterations);
 
 
     return quality.quality();
