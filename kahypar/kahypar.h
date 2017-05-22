@@ -111,13 +111,13 @@ REGISTER_POLICY(RatingFunction, RatingFunction::heavy_edge,
 REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
                 EdgeFrequencyScore);
 
-using RandomTieBreaking = BestRatingWithTieBreaking<>;
-using PreferUnmatched = BestRatingPreferringUnmatched<>;
+using BestWithTieBreaking = BestRatingWithTieBreaking<>;
+using BestPreferringUnmatched = BestRatingPreferringUnmatched<>;
 
-REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::random_tie_breaking,
-                RandomTieBreaking);
-REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::prefer_unmatched,
-                PreferUnmatched);
+REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
+                BestWithTieBreaking);
+REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
+                BestPreferringUnmatched);
 
 ////////////////////////////////////////////////////////////////////////////////
 //                          Coarsening Algorithms

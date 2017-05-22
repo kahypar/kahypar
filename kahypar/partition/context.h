@@ -123,7 +123,7 @@ struct RatingParameters {
   RatingFunction rating_function = RatingFunction::heavy_edge;
   CommunityPolicy community_policy = CommunityPolicy::use_communities;
   HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::multiplicative_penalty;
-  AcceptancePolicy acceptance_policy = AcceptancePolicy::random_tie_breaking;
+  AcceptancePolicy acceptance_policy = AcceptancePolicy::best;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {

@@ -55,8 +55,8 @@ enum class HeavyNodePenaltyPolicy : uint8_t {
 };
 
 enum class AcceptancePolicy : uint8_t {
-  random_tie_breaking,
-  prefer_unmatched
+  best,
+  best_prefer_unmatched
 };
 
 enum class CoarseningAlgorithm : uint8_t {
@@ -146,12 +146,12 @@ static std::string toString(const HeavyNodePenaltyPolicy& heavy_hn_policy) {
   }
 }
 
-static std::string toString(const AcceptancePolicy& tie_breaking_policy) {
-  switch (tie_breaking_policy) {
-    case AcceptancePolicy::random_tie_breaking:
-      return std::string("random");
-    case AcceptancePolicy::prefer_unmatched:
-      return std::string("prefer_unmatched");
+static std::string toString(const AcceptancePolicy& acceptance_policy) {
+  switch (acceptance_policy) {
+    case AcceptancePolicy::best:
+      return std::string("best");
+    case AcceptancePolicy::best_prefer_unmatched:
+      return std::string("best_prefer_unmatched");
     default:
       return std::string("UNDEFINED");
   }
@@ -285,10 +285,10 @@ static std::string toString(const RefinementStoppingRule& algo) {
 }
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
-  if (crit == "random") {
-    return AcceptancePolicy::random_tie_breaking;
-  } else if (crit == "prefer_unmatched") {
-    return AcceptancePolicy::prefer_unmatched;
+  if (crit == "best") {
+    return AcceptancePolicy::best;
+  } else if (crit == "best_prefer_unmatched") {
+    return AcceptancePolicy::best_prefer_unmatched;
   }
   std::cout << "No valid acceptance criterion for rating." << std::endl;
   exit(0);
