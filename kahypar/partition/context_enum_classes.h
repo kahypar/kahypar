@@ -119,6 +119,75 @@ enum class Objective : uint8_t {
   km1,
   UNDEFINED
 };
+enum class ReplaceStrategy : uint8_t {
+  worst,
+  diverse,
+  strong_diverse
+};
+enum class CombineStrategy : uint8_t {
+  basic, 
+  with_edge_frequency_information
+};
+enum class MutateStrategy : uint8_t {
+  vcycle_with_new_initial_partitioning,
+  single_stable_net,
+  single_stable_net_vcycle
+};
+enum class CrossCombineObjective : uint8_t {
+  k,
+  epsilon,
+  objective,
+  mode,
+  louvain
+};
+static std::string toString(const CrossCombineObjective& ccobj) {
+  switch(ccobj) {
+    case CrossCombineObjective::k:
+      return std::string("k");
+    case CrossCombineObjective::epsilon:
+      return std::string("epsilon");
+    case CrossCombineObjective::objective:
+      return std::string("objective");
+    case CrossCombineObjective::mode:
+      return std::string("mode");
+    case CrossCombineObjective::louvain:
+      return std::string("louvain");
+  }
+}
+static std::string toString(const MutateStrategy& strat) {
+  switch (strat) {
+    case MutateStrategy::vcycle_with_new_initial_partitioning:
+      return std::string("vcycle with new initial partitioning");
+    case MutateStrategy::single_stable_net:
+      return std::string("single stable net");
+    case MutateStrategy::single_stable_net_vcycle:
+      return std::string("single stable net with additional vcycle");
+    default:
+      return std::string("UNDEFINED");
+  }
+}
+static std::string toString(const CombineStrategy& strat) {
+  switch (strat) {
+    case CombineStrategy::basic:
+      return std::string("basic");
+    case CombineStrategy::with_edge_frequency_information:
+      return std::string("with edge frequency information");
+    default:
+      return std::string("UNDEFINED");
+  }
+}
+static std::string toString(const ReplaceStrategy& strategy) {
+  switch (strategy) {
+    case ReplaceStrategy::worst:
+      return std::string("worst");
+    case ReplaceStrategy::diverse:
+      return std::string("diverse");
+    case ReplaceStrategy::strong_diverse:
+      return std::string("strong-diverse");
+    default:
+      return std::string("UNDEFINED");
+  }
+}
 
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
@@ -267,7 +336,36 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   }
   return os << static_cast<uint8_t>(rule);
 }
-
+static CrossCombineObjective crossCombineObjectiveFromString(const std::string& ccobj) { 
+  if(ccobj == "k") {return CrossCombineObjective::k;}
+  else if(ccobj == "epsilon") {return CrossCombineObjective::epsilon;}
+  else if(ccobj == "objective") {return CrossCombineObjective::objective;}
+  else if(ccobj == "mode") {return CrossCombineObjective::mode;}
+  else if(ccobj == "louvain") {return CrossCombineObjective::louvain;}
+  std::cout << "No valid cross combine objective " << std::endl;
+  exit(0);
+}
+static MutateStrategy mutateStrategyFromString(const std::string& strat) {
+  if(strat == "vcycle_with_new_initial_partitioning") {return MutateStrategy::vcycle_with_new_initial_partitioning;}
+  else if(strat =="single_stable_net") {return MutateStrategy::single_stable_net;}
+  else if(strat =="single_stable_net_vcycle") {return MutateStrategy::single_stable_net_vcycle;}
+  std::cout << "No valid mutate strategy. " << std::endl;
+  exit(0);
+}
+static CombineStrategy combineStrategyFromString(const std::string& strat) {
+  if(strat == "basic") {return CombineStrategy::basic;}
+  else if(strat =="with_edge_frequency") {return CombineStrategy::with_edge_frequency_information;}
+    std::cout << "No valid combine strategy. " << std::endl;
+  exit(0);
+}
+static ReplaceStrategy replaceStrategyFromString(const std::string& strat) {
+  if(strat == "worst") {return ReplaceStrategy::worst;}
+  else if (strat == "diverse") {return ReplaceStrategy::diverse;}
+  else if (strat == "strong-diverse") {return ReplaceStrategy::strong_diverse;}
+  std::cout << "No valid replace strategy. " << std::endl;
+  exit(0);
+  
+}
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   if (crit == "best") {
     return AcceptancePolicy::best;

@@ -304,8 +304,20 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  L_max1:                             " << params.max_part_weights[1] << std::endl;
   return str;
 }
-
-
+struct EvolutionaryParameters {
+  int timeLimitSeconds = 5 * 60 * 60;
+  int populationSize = 10;
+  float mutationChance = 0.1;
+  ReplaceStrategy replaceStrategy = ReplaceStrategy::strong_diverse;
+  CombineStrategy combineStrategy = CombineStrategy::basic;
+  MutateStrategy mutateStrategy = MutateStrategy::vcycle_with_new_initial_partitioning;
+  int performEdgeFrequencyInterval = 5;//-1 disables edge frequency
+  float crossCombineChance = 0.2;
+  CrossCombineObjective crossCombineObjective = CrossCombineObjective::k;
+  int diversifyInterval = -1; //-1 disables diversification
+  
+  
+};
 class Context {
  public:
   using PartitioningStats = Stats<Context>;
@@ -315,6 +327,7 @@ class Context {
   CoarseningParameters coarsening { };
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
+  EvolutionaryParameters evolutionary { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
 
