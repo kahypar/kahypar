@@ -318,6 +318,30 @@ struct EvolutionaryParameters {
   
   
 };
+inline std::ostream& operator<<(std::ostream& str, const EvolutionaryParameters& params) {
+  str << "Evolutionary Parameters:              " << std::endl;
+  str << "  Time Limit:                         " <<params.timeLimitSeconds <<std::endl;
+  str << "  Population Size:                    " <<params.populationSize <<std::endl;
+  str << "  Mutation Chance                     " <<params.mutationChance <<std::endl;
+  str << "  Cross Combine Chance                " <<params.crossCombineChance <<std::endl;
+  str << "  Replace Strategy                    " <<toString(params.replaceStrategy) <<std::endl;
+  str << "  Combine Strategy                    " <<toString(params.combineStrategy) <<std::endl;
+  str << "  Mutation Strategy                   " <<toString(params.mutateStrategy) <<std::endl;
+  str << "  Edge Frequency Interval             " <<params.performEdgeFrequencyInterval <<std::endl;
+  str << "  Diversification Interval            " <<params.diversifyInterval <<std::endl;
+  return str;
+
+
+}
+struct EvolutionaryFlags {
+  std::vector<PartitionID> parent1;
+  std::vector<PartitionID> parent2;
+  bool initialPartitioning = true;
+
+  std::vector<HyperedgeID> stableNetEdgesVCycle;
+  std::vector<HyperedgeID> stableNetEdgesFinal;
+  std::vector<unsigned> edgeFrequency;
+};
 class Context {
  public:
   using PartitioningStats = Stats<Context>;
@@ -328,8 +352,10 @@ class Context {
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   EvolutionaryParameters evolutionary { };
+  mutable EvolutionaryFlags evo_flags { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
+
 
   Context() :
     stats(*this) { }
@@ -361,6 +387,9 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
       << context.coarsening
       << context.initial_partitioning
       << context.local_search
+      << "-------------------------------------------------------------------------------"
+      << std::endl
+      << context.evolutionary
       << "-------------------------------------------------------------------------------";
   return str;
 }

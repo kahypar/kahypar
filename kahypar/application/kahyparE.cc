@@ -35,6 +35,7 @@
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
+using kahypar::partition::EvoPartitioner;
 using kahypar::Context;
 
 int main(int argc, char* argv[]) {
@@ -59,9 +60,9 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  EvoPartitioner partitioner(hypergraph, context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  kahypar::partition::evo_partition(hypergraph, context);
+  partitioner.evo_partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
 

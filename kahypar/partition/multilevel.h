@@ -48,30 +48,52 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-  io::printInitialPartitioningBanner(context);
-  start = std::chrono::high_resolution_clock::now();
-  initial::partition(hypergraph, context);
-  end = std::chrono::high_resolution_clock::now();
-  Timer::instance().add(context, Timepoint::initial_partitioning,
-                        std::chrono::duration<double>(end - start).count());
 
-  hypergraph.initializeNumCutHyperedges();
-  if (context.partition.verbose_output && context.type == ContextType::main) {
-    LOG << "Initial Partitioning Result:";
-    LOG << "Initial" << context.partition.objective << "      ="
-        << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
-        metrics::km1(hypergraph));
-    LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
-    LOG << "Initial part sizes and weights:";
-    io::printPartSizesAndWeights(hypergraph);
-    LLOG << "Target weights:";
-    if (context.partition.mode == Mode::direct_kway) {
-      LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
-    } else {
-      LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
-           << "w(1)=" << context.partition.max_part_weights[1] << "\n";
+  if(context.evo_flags.initialPartitioning) {
+    if (context.type == ContextType::main && (context.partition.verbose_output ||
+                                              context.initial_partitioning.verbose_output)) {
+      io::printInitialPartitioningBanner(context);
     }
-    io::printLocalSearchBanner(context);
+    start = std::chrono::high_resolution_clock::now();
+    initial::partition(hypergraph, context);
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(context, Timepoint::initial_partitioning,
+                          std::chrono::duration<double>(end - start).count());
+
+    hypergraph.initializeNumCutHyperedges();
+    if (context.partition.verbose_output && context.type == ContextType::main) {
+      LOG << "Initial Partitioning Result:";
+      LOG << "Initial" << context.partition.objective << "      ="
+          << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+              metrics::km1(hypergraph));
+      LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
+      LOG << "Initial part sizes and weights:";
+      io::printPartSizesAndWeights(hypergraph);
+      LLOG << "Target weights:";
+      if (context.partition.mode == Mode::direct_kway) {
+        LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
+      } else {
+        LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
+             << "w(1)=" << context.partition.max_part_weights[1] << "\n";
+      }
+      io::printLocalSearchBanner(context);
+    }
+  } else {
+    hypergraph.setPartitionVector(context.evo_flags.parent1);
+    HyperedgeWeight parentWeight1 = metrics::km1(hypergraph);
+    HyperedgeWeight parentWeight2;
+    
+    hypergraph.reset();
+    hypergraph.setPartitionVector(context.evo_flags.parent2);
+    parentWeight2 = metrics::km1(hypergraph);
+
+    if(parentWeight1 < parentWeight2) {
+      hypergraph.reset();
+      hypergraph.setPartitionVector(context.evo_flags.parent1);
+    } else {
+      //Just for correctness, because the Hypergraph has partition 2
+      //Which is already better
+    }
   }
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);

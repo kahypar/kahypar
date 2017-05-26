@@ -31,9 +31,9 @@ class EvoPartitioner {
   private:
 
   inline Decision decideNextMove(const Context& context);
-  inline void performCombine(const Context& context);
+  inline void performCombine(Hypergraph &hg, Context& context);
   inline void performCrossCombine(const Context& context);
-  inline void performMutation(const Context& context);
+  inline void performMutation(Hypergraph &hg, Context& context);
   inline void performEdgeFrequency(const Context& context);
   inline void diversify();
   inline std::chrono::duration<double> measureTime();
@@ -53,20 +53,26 @@ class EvoPartitioner {
 
 inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
   std::chrono::duration<double> elapsed_seconds_total = measureTime();
-  
-  
   while(_population.size() < context.evolutionary.populationSize && elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
+    std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
+    std::cout<<_population.size();
+    std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
     _population.generateIndividual(context);
-    elapsed_seconds_total = measureTime();    
+    elapsed_seconds_total = measureTime();   
+    _population.print(); 
   }
-  
+  performCombine(hg, context);
+  performCombine(hg, context);
+  performCombine(hg, context);
+  performCombine(hg, context);
+  return;
   while(elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
     Decision decision = decideNextMove(context);
     switch(decision) {
       case(mutateChoice) : {
-        performMutation(context);
+        performMutation(hg, context);
         break;
       } 
       case(edgeFrequencyChoice) : {
@@ -78,7 +84,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
         break;
       }
       case(combineChoice) : {
-        performCombine(context);
+        performCombine(hg, context);
         break;
       }
       default : {
@@ -90,12 +96,12 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
   }
 }
 
-inline void EvoPartitioner::performMutation(const Context& context) {
+inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
   const std::size_t mutationPosition = _population.randomIndividualExcept(_population.best());
   
   switch(context.evolutionary.mutateStrategy) {
     case(MutateStrategy::vcycle_with_new_initial_partitioning):{
-      Individual result = mutate::vCycleWithNewInitialPartitioning(_population.individualAt(mutationPosition));
+      Individual result = mutate::vCycleWithNewInitialPartitioning(hg, _population.individualAt(mutationPosition), context);
       _population.forceInsert(result, mutationPosition);
       break;
     }
@@ -113,10 +119,11 @@ inline void EvoPartitioner::performMutation(const Context& context) {
   
 }
 
-inline void EvoPartitioner::performCombine(const Context& context) {
+inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
+  const std::pair<Individual, Individual> parents = _population.tournamentSelect();
   switch(context.evolutionary.combineStrategy) {
     case(CombineStrategy::basic): {
-      Individual result = combine::partitions(context);
+      Individual result = combine::partitions(hg, parents, context);
       _population.insert(result, context);
       break;
     }

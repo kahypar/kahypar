@@ -97,7 +97,7 @@ class VertexPairRater {
         const RatingType score = ScorePolicy::score(_hg, he);
         for (const HypernodeID& v : _hg.pins(he)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
-              (part_u == _hg.partID(v))) {
+              _context.evo_flags.initialPartitioning && (part_u == _hg.partID(v))) {
             _tmp_ratings[v] += score;
           }
         }

@@ -10,24 +10,27 @@ class Individual {
     _strongcutedges(strongEdges), 
     _fitness(fitness) {}
 
-  inline HyperedgeWeight getFitness()const {
+  inline HyperedgeWeight fitness()const {
     return _fitness;
   }
 
-  inline std::vector<PartitionID> getPartition() const {
+  inline std::vector<PartitionID> partition() const {
     return _partition;
   }
-  inline std::vector<HyperedgeID> getCutEdges() const {
+  inline std::vector<HyperedgeID> cutEdges() const {
     return _cutedges;
   }
 
-  inline std::vector<HyperedgeID> getStrongCutEdges() const {
+  inline std::vector<HyperedgeID> strongCutEdges() const {
     return _strongcutedges;
   }
+  inline void print() const {
+    std::cout << _fitness << std::endl;
+  }
   private: 
-  const std::vector<PartitionID> _partition;
-  const std::vector<HyperedgeID> _cutedges;
-  const std::vector<HyperedgeID> _strongcutedges;
-  const HyperedgeWeight _fitness;
+  std::vector<PartitionID> _partition;
+  std::vector<HyperedgeID> _cutedges;
+  std::vector<HyperedgeID> _strongcutedges;
+  HyperedgeWeight _fitness;
 };
 }//namespace kahypar

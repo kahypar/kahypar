@@ -43,6 +43,7 @@
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/utils/math.h"
 
+
 namespace kahypar {
 namespace ds {
 // ! Helper function to allow range-based for loops
@@ -1354,7 +1355,12 @@ class GenericHypergraph {
       _connectivity_sets[i].clear();
     }
   }
-
+  void setPartitionVector(std::vector<PartitionID>partitionVector) {
+    for (HypernodeID u : nodes()) {
+		  setNodePart(u, partitionVector[u]);
+	  }
+  }
+  
   // ! Resets the hypergraph to initial state after construction
   void reset() {
     resetPartitioning();

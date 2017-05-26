@@ -1,36 +1,139 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/partition/partitioner.h"
 namespace kahypar {
-
+Individual createIndividual(const Hypergraph &hypergraph) {
+  std::vector<PartitionID> result;
+  for (HypernodeID u : hypergraph.nodes()) {
+		result.push_back(hypergraph.partID(u));
+	}
+	HyperedgeWeight weight = metrics::km1(hypergraph);
+	std::vector<HyperedgeID> cutWeak;
+	std::vector<HyperedgeID> cutStrong;
+	for(HyperedgeID v : hypergraph.edges()) {
+	  auto km1 = hypergraph.connectivity(v) - 1;
+	  if(km1 > 0) {
+	    cutWeak.push_back(v);
+	    for(unsigned i = 1; i < hypergraph.connectivity(v);i++) {
+        cutStrong.push_back(v);
+	    } 
+	  }
+	}
+	Individual ind(result,cutWeak, cutStrong, weight);
+  return ind;
+}
 class Population {
   public:
   Population(Hypergraph &hypergraph) :
   _internalPopulation(std::vector<Individual>()),
   _hypergraph(hypergraph) {}
-  inline void insert(const Individual &in, const Context& context);
+  inline void insert(Individual &in, const Context& context);
   inline void forceInsert(Individual& in,const std::size_t& position);
+  inline std::pair<Individual, Individual> tournamentSelect();
   inline Individual select();  
   inline Individual generateIndividual(Context& context);
   inline std::size_t size();
   inline std::size_t randomIndividual();
   inline std::size_t randomIndividualExcept(const std::size_t& exception);
   inline std::size_t best(); 
+  inline std::size_t worst();
   inline Individual individualAt(const std::size_t& pos);
+  inline void print()const ;
   private:
+  inline std::size_t difference(Individual &in, std::size_t position, bool strongSet);
+  inline std::size_t replaceDiverse(Individual &in, bool strongSet);
+  inline Individual singleTournamentSelection();
   inline Individual createIndividual();
   std::vector<Individual> _internalPopulation;
   Hypergraph &_hypergraph;
 };
+  inline std::size_t Population::difference(Individual &in, std::size_t position, bool strongSet) {
+    std::vector<HyperedgeID> output_diff;
+    std::vector<HyperedgeID> one;
+    std::vector<HyperedgeID> two;
+    if(strongSet) {
+    	one = _internalPopulation[position].strongCutEdges();
+     	two = in.strongCutEdges();
+    }
+    else {
+    	one = _internalPopulation[position].cutEdges();
+    	two = in.cutEdges(); 
+    }
+       
+    std::set_symmetric_difference(one.begin(),
+      one.end(),
+	    two.begin(),
+	    two.end(),
+	    std::back_inserter(output_diff));
 
-inline void Population::insert(const Individual& in, const Context& context) {
+      return output_diff.size();
+    }
+   inline std::size_t Population::replaceDiverse(Individual &in, bool strongSet) {
+     //TODO fix, that these can be inserted
+     
+     /*if(size() < _maxPopulationLimit) {
+       _internalPopulation.push_back(in);
+     }*/
+     unsigned max_similarity = std::numeric_limits<unsigned>::max();
+     unsigned max_similarity_id = 0; 
+     if(in.fitness() > individualAt(worst()).fitness()) {
+	     std::cout << "COLLAPSE";
+       return std::numeric_limits<unsigned>::max();
+     } 
+     for(unsigned i = 0; i < size(); ++i) {
+       if(_internalPopulation[i].fitness() >= in.fitness()) {
+
+         unsigned similarity = difference(in, i, strongSet);
+         std::cout << "SYMMETRIC DIFFERENCE: " << similarity << " from " << i <<std::endl;
+         if(similarity < max_similarity) {
+         max_similarity = similarity;
+         max_similarity_id = i;
+         }
+       }
+     }
+     forceInsert(in, max_similarity_id);
+     return max_similarity_id;
+   }
+
+
+inline std::pair<Individual, Individual> Population::tournamentSelect() {
+  Individual firstTournamentWinner = singleTournamentSelection();
+  std::size_t firstPos    = randomIndividual();
+  std::size_t secondPos   = randomIndividualExcept(firstPos);
+  Individual  first       = individualAt(firstPos);
+  Individual  second      = individualAt(secondPos);
+  std::size_t secondWinnerPos = first.fitness() < second.fitness() ? firstPos : secondPos;
+  if(firstTournamentWinner.fitness() == individualAt(secondWinnerPos).fitness()) {
+    secondWinnerPos = first.fitness() >= second.fitness() ? firstPos : secondPos;
+  }
+  return std::pair<Individual, Individual>(firstTournamentWinner, individualAt(secondWinnerPos));
+}
+inline Individual Population::singleTournamentSelection() {
+  std::size_t firstPos = randomIndividual();
+  std::size_t secondPos = randomIndividualExcept(firstPos);
+  Individual first = individualAt(firstPos);
+  Individual second = individualAt(secondPos);
+  return first.fitness() < second.fitness() ? first : second;
+}
+inline void Population::insert(Individual& in, const Context& context) {
   switch(context.evolutionary.replaceStrategy) {
-    default : { return; }
+    case ReplaceStrategy::worst :  {
+      forceInsert(in, worst());
+      return;
+    }
+    case ReplaceStrategy::diverse : {
+      replaceDiverse(in, false);
+      return;
+    }
+    case ReplaceStrategy::strong_diverse : {
+      replaceDiverse(in, false);
+      return;
+    }
   }
 }
 inline void Population::forceInsert(Individual& in, const std::size_t& position) {
-  std::swap(_internalPopulation[position], in);
+  //std::swap(_internalPopulation[position], in);
   //_internalPopulation.erase(_internalPopulation.begin() + position);
-  //_internalPopulation[position] = in;
+  _internalPopulation[position] = in;
 } 
 inline std::size_t Population::size() {
   return _internalPopulation.size();
@@ -50,8 +153,15 @@ inline Individual Population::individualAt(const std::size_t& pos) {
 }
 inline Individual Population::generateIndividual(Context& context) {
   Partitioner partitioner;
+  _hypergraph.reset();
   partitioner.partition(_hypergraph, context);
-  return createIndividual();
+  Individual ind = createIndividual();
+  _internalPopulation.push_back(ind);
+  if(_internalPopulation.size() > context.evolutionary.populationSize){
+    std::cout << "Error, tried to fill Population above limit" <<std::endl;
+    std::exit(1);
+  }
+  return ind;
 }
 
 
@@ -75,13 +185,17 @@ inline Individual Population::createIndividual() {
 	Individual ind(result,cutWeak, cutStrong, weight);
   return ind;
 }
-
+inline void Population::print() const {
+  for(int i = 0; i < _internalPopulation.size(); ++i) {
+    _internalPopulation[i].print();
+  }
+}
 inline std::size_t Population::best() {
    
   std::size_t bestPosition = 0;
   HyperedgeWeight bestValue = std::numeric_limits<int>::max();
   for(std::size_t i = 0; i < size(); i++) {
-	  HyperedgeWeight result = _internalPopulation[i].getFitness();
+	  HyperedgeWeight result = _internalPopulation[i].fitness();
 	  if(result < bestValue) {
 	    bestPosition = i;
 	    bestValue = result;
@@ -91,4 +205,18 @@ inline std::size_t Population::best() {
   return bestPosition;
 
 }
+inline std::size_t Population::worst() {
+  std::size_t worstPosition = 0;
+  HyperedgeWeight worstValue = std::numeric_limits<int>::min();
+  for(std::size_t i = 0; i < size(); i++) {
+	  HyperedgeWeight result = _internalPopulation[i].fitness();
+	  if(result > worstValue) {
+	    worstPosition = i;
+	    worstValue = result;
+	  }
+
+  }
+  return worstPosition;
+}
+
 }//namespace kahypar
