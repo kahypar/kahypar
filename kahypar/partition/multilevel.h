@@ -95,9 +95,7 @@ static inline void partition(Hypergraph& hypergraph,
       //Which is already better
     }
   }
-  LOG << "\n********************************************************************************";
-  LOG << "*                               Local Search...                                *";
-  LOG << "********************************************************************************";
+  
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();

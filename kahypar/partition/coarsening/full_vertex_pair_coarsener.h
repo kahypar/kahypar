@@ -41,8 +41,8 @@ namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
-          class AcceptancePolicy = BestRatingWithTieBreaking<>,
           class RatingPartitionPolicy = NormalPartitionPolicy,
+          class AcceptancePolicy = BestRatingWithTieBreaking<>,
           typename RatingType = RatingType>
 class FullVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
@@ -52,8 +52,9 @@ class FullVertexPairCoarsener final : public ICoarsener,
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
-                                AcceptancePolicy,
                                 RatingPartitionPolicy,
+                                AcceptancePolicy,
+                                
                                 RatingType>;
 
   using Base = VertexPairCoarsenerBase;

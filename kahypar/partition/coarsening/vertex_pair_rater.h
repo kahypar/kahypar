@@ -40,8 +40,8 @@ namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
-          class AcceptancePolicy = BestRatingWithTieBreaking<>,
           class RatingPartitionPolicy = NormalPartitionPolicy,
+          class AcceptancePolicy = BestRatingWithTieBreaking<>,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
@@ -102,10 +102,10 @@ class VertexPairRater {
               part_u == _hg.partID(v)) {
             _tmp_ratings[v] += score;
           }*/
-          /*RatingType accept = RatingPartitionPolicy::accept(_hg, _context, u, v);
+          RatingType accept = RatingPartitionPolicy::accept(_hg, _context, u, v);
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) && RatingPartitionPolicy::accept(_hg, _context, u, v)) {
             _tmp_ratings[v] += score;
-          }*/
+          }
         }
       }
     }

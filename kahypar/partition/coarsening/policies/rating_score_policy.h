@@ -36,7 +36,7 @@ class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
   // TODO(andre): implement edge frequency rating here
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
-    std::cout << "HAHAHA__";
+    //std::cout << "HAHAHA__";
     return 1;
   }
 };

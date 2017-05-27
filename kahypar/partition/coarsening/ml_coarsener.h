@@ -27,6 +27,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -38,8 +39,8 @@ namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = NoWeightPenalty,
           class CommunityPolicy = UseCommunityStructure, 
-          class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           class RatingPartitionPolicy = NormalPartitionPolicy,
+          class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           typename RatingType = RatingType>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
@@ -52,8 +53,8 @@ class MLCoarsener final : public ICoarsener,
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
-                                AcceptancePolicy,
                                 RatingPartitionPolicy,
+                                AcceptancePolicy,
                                 RatingType>;
   using Rating = typename Rater::Rating;
 
