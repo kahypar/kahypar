@@ -24,22 +24,20 @@
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
 
-
 namespace kahypar {
-class MultiplicativePenalty final : public meta::PolicyBase {
+class NormalPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {
-    return weight_u * weight_v;
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph, const Context& context, const HypernodeID& u, const HypernodeID& v) {
+    return hypergraph.partID(u) == hypergraph.partID(v);
   }
 };
 
-class NoWeightPenalty final : public meta::PolicyBase {
+class EvoPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight, const HypernodeWeight) {    
-    return 1;
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph, const Context& context, const HypernodeID& u, const HypernodeID& v) {
+    return context.evo_flags.parent1[u] == context.evo_flags.parent1[v] && context.evo_flags.parent2[u] == context.evo_flags.parent2[v];
   }
 };
 
-using HeavyNodePenaltyPolicies = meta::Typelist<MultiplicativePenalty,
-                                                NoWeightPenalty>;
+using PartitionPolicies = meta::Typelist<EvoPartitionPolicy, NormalPartitionPolicy>;
 }  // namespace kahypar

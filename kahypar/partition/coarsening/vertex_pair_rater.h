@@ -33,6 +33,7 @@
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/context.h"
 
 namespace kahypar {
@@ -40,6 +41,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class RatingPartitionPolicy = NormalPartitionPolicy,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
@@ -96,10 +98,14 @@ class VertexPairRater {
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
         const RatingType score = ScorePolicy::score(_hg, he);
         for (const HypernodeID& v : _hg.pins(he)) {
-          if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
-              _context.evo_flags.initialPartitioning && (part_u == _hg.partID(v))) {
+         /* if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
+              part_u == _hg.partID(v)) {
             _tmp_ratings[v] += score;
-          }
+          }*/
+          /*RatingType accept = RatingPartitionPolicy::accept(_hg, _context, u, v);
+          if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) && RatingPartitionPolicy::accept(_hg, _context, u, v)) {
+            _tmp_ratings[v] += score;
+          }*/
         }
       }
     }
@@ -108,7 +114,7 @@ class VertexPairRater {
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp_rating = it->value /
+      const RatingType tmp_rating = it->value/
                                     HeavyNodePenaltyPolicy::penalty(weight_u,
                                                                     _hg.nodeWeight(tmp_target));
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;

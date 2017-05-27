@@ -37,8 +37,9 @@
 namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = NoWeightPenalty,
-          class CommunityPolicy = UseCommunityStructure,
+          class CommunityPolicy = UseCommunityStructure, 
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
+          class RatingPartitionPolicy = NormalPartitionPolicy,
           typename RatingType = RatingType>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
@@ -52,6 +53,7 @@ class MLCoarsener final : public ICoarsener,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
                                 AcceptancePolicy,
+                                RatingPartitionPolicy,
                                 RatingType>;
   using Rating = typename Rater::Rating;
 

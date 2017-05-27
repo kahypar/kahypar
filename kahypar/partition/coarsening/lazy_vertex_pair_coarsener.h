@@ -40,6 +40,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class RatingPartitionPolicy = EvoPartitionPolicy,
           typename RatingType = RatingType>
 class LazyVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
@@ -50,6 +51,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
                                 AcceptancePolicy,
+                                RatingPartitionPolicy,
                                 RatingType>;
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;

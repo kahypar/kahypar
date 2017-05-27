@@ -30,6 +30,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
@@ -41,6 +42,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class RatingPartitionPolicy = NormalPartitionPolicy,
           typename RatingType = RatingType>
 class FullVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
@@ -51,6 +53,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
                                 AcceptancePolicy,
+                                RatingPartitionPolicy,
                                 RatingType>;
 
   using Base = VertexPairCoarsenerBase;

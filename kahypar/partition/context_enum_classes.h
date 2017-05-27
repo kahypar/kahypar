@@ -64,7 +64,10 @@ enum class AcceptancePolicy : uint8_t {
   best_prefer_unmatched,
   UNDEFINED
 };
-
+enum class RatingPartitionPolicy : uint8_t {
+  normal,
+  evolutionary
+};
 enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
@@ -140,6 +143,16 @@ enum class CrossCombineObjective : uint8_t {
   mode,
   louvain
 };
+static std::string toString(const RatingPartitionPolicy& policy) {
+  switch(policy) {
+    case RatingPartitionPolicy::normal: 
+      return std::string("normal");
+    case RatingPartitionPolicy::evolutionary: 
+      return std::string("evolutionary");
+    default : 
+      return std::string("UNDEFINED");
+  }
+}
 static std::string toString(const CrossCombineObjective& ccobj) {
   switch(ccobj) {
     case CrossCombineObjective::k:
@@ -152,6 +165,8 @@ static std::string toString(const CrossCombineObjective& ccobj) {
       return std::string("mode");
     case CrossCombineObjective::louvain:
       return std::string("louvain");
+    default : 
+      return std::string("UNDEFINED");
   }
 }
 static std::string toString(const MutateStrategy& strat) {
@@ -376,7 +391,17 @@ static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   exit(0);
 }
 
-
+static RatingPartitionPolicy ratingPartitionPolicyFromString(const std::string& partition) {
+  if (partition == "normal") {
+    return RatingPartitionPolicy::normal;
+  }  
+  else if (partition == "evolutionary") {
+    return RatingPartitionPolicy::evolutionary;
+  }
+  std::cout << "No valid partition policy for rating." << std::endl;
+  exit(0);
+  return RatingPartitionPolicy::normal;
+}
 static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& penalty) {
   if (penalty == "multiplicative") {
     return HeavyNodePenaltyPolicy::multiplicative_penalty;

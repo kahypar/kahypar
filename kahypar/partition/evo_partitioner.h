@@ -63,9 +63,13 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
     _population.print(); 
   }
   performCombine(hg, context);
+
   performCombine(hg, context);
+
   performCombine(hg, context);
+
   performCombine(hg, context);
+
   return;
   while(elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
@@ -124,6 +128,7 @@ inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
   switch(context.evolutionary.combineStrategy) {
     case(CombineStrategy::basic): {
       Individual result = combine::partitions(hg, parents, context);
+      result.print();
       _population.insert(result, context);
       break;
     }
