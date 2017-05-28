@@ -37,6 +37,7 @@ class Population {
   inline std::size_t best(); 
   inline std::size_t worst();
   inline Individual individualAt(const std::size_t& pos);
+  inline std::vector<Individual> listOfBest(const std::size_t& amount) const;
   inline void print()const ;
   private:
   inline std::size_t difference(Individual &in, std::size_t position, bool strongSet);
@@ -115,7 +116,7 @@ inline Individual Population::singleTournamentSelection() {
   return first.fitness() < second.fitness() ? first : second;
 }
 inline void Population::insert(Individual& in, const Context& context) {
-  switch(context.evolutionary.replaceStrategy) {
+  switch(context.evolutionary.replace_strategy) {
     case ReplaceStrategy::worst :  {
       forceInsert(in, worst());
       return;
@@ -157,7 +158,7 @@ inline Individual Population::generateIndividual(Context& context) {
   partitioner.partition(_hypergraph, context);
   Individual ind = createIndividual();
   _internalPopulation.push_back(ind);
-  if(_internalPopulation.size() > context.evolutionary.populationSize){
+  if(_internalPopulation.size() > context.evolutionary.population_size){
     std::cout << "Error, tried to fill Population above limit" <<std::endl;
     std::exit(1);
   }
@@ -204,6 +205,20 @@ inline std::size_t Population::best() {
   }
   return bestPosition;
 
+}
+inline std::vector<Individual> Population::listOfBest(const std::size_t& amount) const {
+  std::vector<std::pair<double, std::size_t>> sorting;
+  for (unsigned i = 0; i < _internalPopulation.size(); ++i) {
+    
+    sorting.push_back(std::make_pair(_internalPopulation[i].fitness(), i));
+  }
+  std::sort(sorting.begin(), sorting.end());
+  std::vector<Individual> positions;
+  for (int it = 0; it < sorting.size() && it < amount; ++it) {
+    positions.push_back(_internalPopulation[sorting[it].second]);
+  }
+  return positions;
+  
 }
 inline std::size_t Population::worst() {
   std::size_t worstPosition = 0;

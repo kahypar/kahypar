@@ -27,17 +27,17 @@
 namespace kahypar {
 class HeavyEdgeScore final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he, const Context& context) {
     return static_cast<RatingType>(hypergraph.edgeWeight(he)) / (hypergraph.edgeSize(he) - 1);
   }
 };
 
 class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
-  // TODO(andre): implement edge frequency rating here
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
-    //std::cout << "HAHAHA__";
-    return 1;
+  // TODO(andre): hyperedge Weight add
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he, const Context& context) {
+    
+    return static_cast<RatingType>(exp(-context.evolutionary.gamma * context.evo_flags.edge_frequency[he]) / hypergraph.edgeSize(he));
   }
 };
 

@@ -56,6 +56,7 @@ enum class CommunityPolicy : uint8_t {
 enum class HeavyNodePenaltyPolicy : uint8_t {
   no_penalty,
   multiplicative_penalty,
+  edge_frequency_penalty,
   UNDEFINED
 };
 
@@ -237,8 +238,8 @@ std::ostream& operator<< (std::ostream& os, const HeavyNodePenaltyPolicy& heavy_
   switch (heavy_hn_policy) {
     case HeavyNodePenaltyPolicy::multiplicative_penalty: return os << "multiplicative";
     case HeavyNodePenaltyPolicy::no_penalty: return os << "no_penalty";
+    case HeavyNodePenaltyPolicy::edge_frequency_penalty: return os << "edge_frequency_penalty";
     case HeavyNodePenaltyPolicy::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(heavy_hn_policy);
 }
@@ -407,6 +408,9 @@ static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& pena
     return HeavyNodePenaltyPolicy::multiplicative_penalty;
   } else if (penalty == "no_penalty") {
     return HeavyNodePenaltyPolicy::no_penalty;
+  }
+    else if (penalty == "edge_frequency_penalty") {
+      return HeavyNodePenaltyPolicy::edge_frequency_penalty;
   }
   std::cout << "No valid edge penalty policy for rating." << std::endl;
   exit(0);

@@ -96,7 +96,7 @@ class VertexPairRater {
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
-        const RatingType score = ScorePolicy::score(_hg, he);
+        const RatingType score = ScorePolicy::score(_hg, he, _context);
         for (const HypernodeID& v : _hg.pins(he)) {
          /* if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               part_u == _hg.partID(v)) {
