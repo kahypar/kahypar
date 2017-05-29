@@ -33,7 +33,7 @@ class EvoPartitioner {
 
   inline Decision decideNextMove(const Context& context);
   inline void performCombine(Hypergraph &hg, Context& context);
-  inline void performCrossCombine(const Context& context);
+  inline void performCrossCombine(Hypergraph &hg, Context& context);
   inline void performMutation(Hypergraph &hg, Context& context);
   inline void performEdgeFrequency(Hypergraph &hg, Context& context);
   inline void diversify();
@@ -63,13 +63,6 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
     elapsed_seconds_total = measureTime();   
     _population.print(); 
   }
-  performCombine(hg, context);
-
-  performCombine(hg, context);
-
-  performCombine(hg, context);
-
-  performCombine(hg, context);
 
   return;
   while(elapsed_seconds_total.count() <= _timelimit) {
@@ -85,7 +78,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
         break;
       }
       case(crossCombineChoice) : {
-        performCrossCombine(context);
+        performCrossCombine(hg, context);
         break;
       }
       case(combineChoice) : {
@@ -111,12 +104,12 @@ inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
       break;
     }
     case(MutateStrategy::single_stable_net):{
-      Individual result = mutate::stableNetMutate(_population.individualAt(mutationPosition));
+      Individual result = mutate::stableNetMutate(hg, _population.individualAt(mutationPosition), context);
       _population.forceInsert(result, mutationPosition);
       break;
     }
     case(MutateStrategy::single_stable_net_vcycle):{
-      Individual result = mutate::stableNetMutateWithVCycle(_population.individualAt(mutationPosition));
+      Individual result = mutate::stableNetMutateWithVCycle(hg, _population.individualAt(mutationPosition), context);
       _population.forceInsert(result, mutationPosition);
       break;
     }
@@ -139,8 +132,9 @@ inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
     }
   }
 }
-inline void EvoPartitioner::performCrossCombine(const Context& context) {
- //TODO stub
+inline void EvoPartitioner::performCrossCombine(Hypergraph &hg, Context& context) {
+  Individual result = combine::crossCombine(hg, _population.singleTournamentSelection(), context);
+  _population.insert(result, context);
 }
 inline void EvoPartitioner::performEdgeFrequency(Hypergraph &hg, Context& context) {
   Individual result = combine::edgeFrequency(hg, context, _population);

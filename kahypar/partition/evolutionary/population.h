@@ -21,6 +21,24 @@ Individual createIndividual(const Hypergraph &hypergraph) {
 	Individual ind(result,cutWeak, cutStrong, weight);
   return ind;
 }
+void forceBlock(const HyperedgeID he, Hypergraph& hg) {
+  int amount[hg.k()] = { };
+    for(HypernodeID u : hg.nodes()) {
+      amount[hg.partID(u)] += 1;
+    }
+    int smallestBlock = std::numeric_limits<int>::max();
+    int smallestBlockValue = std::numeric_limits<int>::max();
+    for(int i = 0; i < hg.k(); ++i) {
+      if(amount[i] < smallestBlockValue) { 
+        smallestBlock = i;
+        smallestBlockValue = amount[i];
+      }
+    }
+    for(HypernodeID u : hg.pins(he)) {   
+      hg.changeNodePart(u, hg.partID(u), smallestBlock);
+    }
+  }
+
 class Population {
   public:
   Population(Hypergraph &hypergraph) :
@@ -39,10 +57,11 @@ class Population {
   inline Individual individualAt(const std::size_t& pos);
   inline std::vector<Individual> listOfBest(const std::size_t& amount) const;
   inline void print()const ;
+  inline Individual singleTournamentSelection();
   private:
   inline std::size_t difference(Individual &in, std::size_t position, bool strongSet);
   inline std::size_t replaceDiverse(Individual &in, bool strongSet);
-  inline Individual singleTournamentSelection();
+  
   inline Individual createIndividual();
   std::vector<Individual> _internalPopulation;
   Hypergraph &_hypergraph;

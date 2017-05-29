@@ -78,27 +78,68 @@ static inline void partition(Hypergraph& hypergraph,
       }
       io::printLocalSearchBanner(context);
     }
-  } else {
+
+  } else if(context.coarsening.rating.partition_policy == RatingPartitionPolicy::evolutionary) {
     hypergraph.setPartitionVector(context.evo_flags.parent1);
     HyperedgeWeight parentWeight1 = metrics::km1(hypergraph);
     HyperedgeWeight parentWeight2;
     
-    hypergraph.reset();
-    hypergraph.setPartitionVector(context.evo_flags.parent2);
-    parentWeight2 = metrics::km1(hypergraph);
-
+    if(!context.evo_flags.invalid_second_partition) {
+      hypergraph.reset();
+      hypergraph.setPartitionVector(context.evo_flags.parent2);
+      parentWeight2 = metrics::km1(hypergraph);
+    } 
+    else {
+      parentWeight2 = parentWeight1 + 1; 
+    }
+  
+    ASSERT(context.evo_flags.invalid_second_partition == (parentWeight2 > parentWeight1));
     if(parentWeight1 < parentWeight2) {
       hypergraph.reset();
       hypergraph.setPartitionVector(context.evo_flags.parent1);
-    } else {
+    }
+    else {
       //Just for correctness, because the Hypergraph has partition 2
       //Which is already better
     }
   }
+  else {
+    
+    std::cout << "skipping Initial Partitioning" << std::endl;
+    ASSERT(context.evo_flags.parent1.size != 0);
+
+  }
+  
+  std::vector<HyperedgeID> stable_net_before_uncoarsen;
+  std::vector<HyperedgeID> stable_net_after_uncoarsen;
+  if(context.evo_flags.collect_stable_net_from_vcycle) {
+    for(HyperedgeID u : hypergraph.edges()) {
+      if(hypergraph.connectivity(u) > 1) {
+        stable_net_before_uncoarsen.push_back(u);
+      }
+    }
+  }
+  
   
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
+
+  if(context.evo_flags.collect_stable_net_from_vcycle) {
+    for(HyperedgeID u : hypergraph.edges()) {
+      if(hypergraph.connectivity(u) > 1) {
+        stable_net_after_uncoarsen.push_back(u);
+      }
+    }
+    std::vector<HyperedgeID> in_cut_before_and_after;
+    std::set_intersection(stable_net_before_uncoarsen.begin(),
+                          stable_net_before_uncoarsen.end(),
+                          stable_net_after_uncoarsen.begin(),
+                          stable_net_after_uncoarsen.end(),
+                          back_inserter(in_cut_before_and_after));
+    context.evo_flags.stable_net_edges_final = in_cut_before_and_after;
+  }
+
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
 
