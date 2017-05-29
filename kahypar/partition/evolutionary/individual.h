@@ -10,10 +10,14 @@ class Individual {
     _strongcutedges(strongEdges), 
     _fitness(fitness) {}
 
+  // TODO(robin): maybe use:
+  // Individual(const Hypergraph& hypergraph) and fill vectors there
+
   inline HyperedgeWeight fitness()const {
     return _fitness;
   }
 
+  // TODO(robin): return references!
   inline std::vector<PartitionID> partition() const {
     return _partition;
   }

@@ -102,6 +102,7 @@ class VertexPairRater {
               part_u == _hg.partID(v)) {
             _tmp_ratings[v] += score;
           }*/
+          // TODO(robin): cleanup
           RatingType accept = RatingPartitionPolicy::accept(_hg, _context, u, v);
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) && RatingPartitionPolicy::accept(_hg, _context, u, v)) {
             _tmp_ratings[v] += score;

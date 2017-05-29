@@ -88,7 +88,8 @@ static inline void partition(Hypergraph& hypergraph,
       hypergraph.reset();
       hypergraph.setPartitionVector(context.evo_flags.parent2);
       parentWeight2 = metrics::km1(hypergraph);
-    } 
+    }
+    // TODO(robin): increase abstraction
     else {
       parentWeight2 = parentWeight1 + 1; 
     }

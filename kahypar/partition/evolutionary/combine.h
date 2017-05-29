@@ -5,6 +5,7 @@
 #include "kahypar/partition/preprocessing/louvain.h"
 namespace kahypar {
 namespace combine {
+// TODO(robin): make copies of context and all context references const
   Individual partitions(Hypergraph&hg, const std::pair<Individual, Individual>& parents, Context& context) {
     hg.reset();
     context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
@@ -17,10 +18,12 @@ namespace combine {
     partitioner.partition(hg, context);
     return kahypar::createIndividual(hg);
   }
-  
+
+// TODO(robin): make context ref const
   Individual crossCombine(Hypergraph& hg,const Individual& in ,Context& context) {
     Context temporaryContext = context;
     switch(context.evolutionary.cross_combine_objective) {
+      // TODO(robin): add all constants to evo context
       case CrossCombineObjective::k : {
         int lowerbound = std::max(context.partition.k / 4, 2);
         int kFactor = Randomize::instance().getRandomInt(lowerbound, context.partition.k * 4);
@@ -58,6 +61,7 @@ namespace combine {
         std::exit(1);
       }
       case CrossCombineObjective::louvain : {
+        // TODO(robin): fix: use hg.communities() to get communities
         detectCommunities(hg, temporaryContext);
         
         std::vector<HyperedgeID> dummy;
@@ -67,6 +71,7 @@ namespace combine {
         context.evo_flags.invalid_second_partition = false;
         return ret;
       }
+        // TODO(robin): outside of switch
       hg.changeK(temporaryContext.partition.k);
       hg.reset();
       Partitioner partitioner;

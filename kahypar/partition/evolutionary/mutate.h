@@ -4,6 +4,7 @@ namespace kahypar {
 namespace partition {
 namespace mutate {
   Individual vCycleWithNewInitialPartitioning(Hypergraph &hg, const Individual& in, Context& context) {
+    // TODO(robin): fix this: use setPartition of hypergraph
     context.evo_flags.parent1 = in.partition();
     context.evo_flags.initialPartitioning = true;
     Partitioner partitioner;
@@ -11,10 +12,12 @@ namespace mutate {
     return createIndividual(hg);
   }
   Individual stableNetMutate(Hypergraph &hg, const Individual& in, Context& context) {
+    // TODO(robin): fix this: use setPartition of hypergraph
     context.evo_flags.parent1 = in.partition();
     context.evo_flags.initialPartitioning = false;
     context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
     context.evo_flags.collect_stable_net_from_vcycle = true;
+    // TODO(robin): maybe you should call partition somewhere? ;)
     return kahypar::createIndividual(hg);
   }
   Individual stableNetMutateWithVCycle(Hypergraph &hg, const Individual& in, Context& context) {

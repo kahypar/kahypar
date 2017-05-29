@@ -1,6 +1,7 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/partition/partitioner.h"
 namespace kahypar {
+// TODO(robin): maybe replace with a new Individual constructor
 Individual createIndividual(const Hypergraph &hypergraph) {
   std::vector<PartitionID> result;
   for (HypernodeID u : hypergraph.nodes()) {
@@ -23,6 +24,7 @@ Individual createIndividual(const Hypergraph &hypergraph) {
 }
 void forceBlock(const HyperedgeID he, Hypergraph& hg) {
   int amount[hg.k()] = { };
+  // TODO(robin): use hypergraph.partWeight(...) instead
     for(HypernodeID u : hg.nodes()) {
       amount[hg.partID(u)] += 1;
     }
@@ -42,7 +44,7 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
 class Population {
   public:
   Population(Hypergraph &hypergraph) :
-  _internalPopulation(std::vector<Individual>()),
+  _internalPopulation(),
   _hypergraph(hypergraph) {}
   inline void insert(Individual &in, const Context& context);
   inline void forceInsert(Individual& in,const std::size_t& position);
@@ -63,13 +65,21 @@ class Population {
   inline std::size_t replaceDiverse(Individual &in, bool strongSet);
   
   inline Individual createIndividual();
+  // TODO(robin): rename _individuals
   std::vector<Individual> _internalPopulation;
+  // TODO(robin): maybe get rid of hypergraph reference
   Hypergraph &_hypergraph;
 };
   inline std::size_t Population::difference(Individual &in, std::size_t position, bool strongSet) {
     std::vector<HyperedgeID> output_diff;
     std::vector<HyperedgeID> one;
     std::vector<HyperedgeID> two;
+    // TODO(robin): get rid of one, two by using/returning references
+    // std::set_symmetric_difference(_internalPopulation[position].strongCutEdges().begin(),
+      // _internalPopulation[position].strongCutEdges().end(),
+      //       in.strongCutEdges().begin(),
+      //       //       in.strongCutEdges().end(),
+      //       std::back_inserter(output_diff));
     if(strongSet) {
     	one = _internalPopulation[position].strongCutEdges();
      	two = in.strongCutEdges();
@@ -116,6 +126,9 @@ class Population {
 
 
 inline std::pair<Individual, Individual> Population::tournamentSelect() {
+  // TODO(robin): use const references (here, and EVERYWHERE ELSE ;))
+  // Individual  first --> const Individual&  first
+  // std::pair<Individual, Individual> --> std::pair<const Individual&, const Individual&>
   Individual firstTournamentWinner = singleTournamentSelection();
   std::size_t firstPos    = randomIndividual();
   std::size_t secondPos   = randomIndividualExcept(firstPos);
@@ -134,6 +147,8 @@ inline Individual Population::singleTournamentSelection() {
   Individual second = individualAt(secondPos);
   return first.fitness() < second.fitness() ? first : second;
 }
+
+  // TODO(robin): use const references in
 inline void Population::insert(Individual& in, const Context& context) {
   switch(context.evolutionary.replace_strategy) {
     case ReplaceStrategy::worst :  {
@@ -145,11 +160,13 @@ inline void Population::insert(Individual& in, const Context& context) {
       return;
     }
     case ReplaceStrategy::strong_diverse : {
+      // TODO(robin): fix
       replaceDiverse(in, false);
       return;
     }
   }
 }
+// TODO(robin): use const references in
 inline void Population::forceInsert(Individual& in, const std::size_t& position) {
   //std::swap(_internalPopulation[position], in);
   //_internalPopulation.erase(_internalPopulation.begin() + position);
@@ -171,6 +188,8 @@ inline std::size_t Population::randomIndividualExcept(const std::size_t& excepti
 inline Individual Population::individualAt(const std::size_t& pos) {
   return _internalPopulation[pos];
 }
+
+// TODO(robin): refactor
 inline Individual Population::generateIndividual(Context& context) {
   Partitioner partitioner;
   _hypergraph.reset();
@@ -184,7 +203,7 @@ inline Individual Population::generateIndividual(Context& context) {
   return ind;
 }
 
-
+// TODO(robin): remove
 inline Individual Population::createIndividual() {
   std::vector<PartitionID> result;
   for (HypernodeID u : _hypergraph.nodes()) {

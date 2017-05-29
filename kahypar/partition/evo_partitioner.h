@@ -9,6 +9,7 @@
 
 namespace kahypar {
 namespace partition {
+// TODO(robin): enum class and remove Choice
   enum Decision {
     mutateChoice,
     combineChoice,
@@ -95,6 +96,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
 }
 
 inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
+  // TODO(robin): remove std::
   const std::size_t mutationPosition = _population.randomIndividualExcept(_population.best());
   
   switch(context.evolutionary.mutate_strategy) {
@@ -133,6 +135,8 @@ inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
   }
 }
 inline void EvoPartitioner::performCrossCombine(Hypergraph &hg, Context& context) {
+  // TODO(robin): inline call to crossCombine into insert: insert(crossCombine(...))
+  // TODO(robin): do the same in all other methods
   Individual result = combine::crossCombine(hg, _population.singleTournamentSelection(), context);
   _population.insert(result, context);
 }
