@@ -29,7 +29,26 @@ class Individual {
     return _strongcutedges;
   }
   inline void print() const {
-    std::cout << _fitness << std::endl;
+    std::cout << "Fitness: " << _fitness << std::endl;
+    
+  }
+  inline void printDebug() const {
+    std::cout << "Fitness: " << _fitness << std::endl;
+    std::cout << "Partition :---------------------------------------" << std::endl;
+    for(std::size_t i = 0; i < _partition.size(); ++i) {
+      std::cout << _partition[i] << " ";
+    }
+    std::cout << std::endl << "--------------------------------------------------" << std::endl;
+    std::cout << "Cut Edges :---------------------------------------" << std::endl;
+    for(std::size_t i = 0; i < _cutedges.size(); ++i) {
+      std::cout << _cutedges[i] << " ";
+    }
+    std::cout << std::endl << "--------------------------------------------------" << std::endl;
+    std::cout << "Strong Cut Edges :--------------------------------" << std::endl;
+    for(std::size_t i = 0; i < _strongcutedges.size(); ++i) {
+      std::cout << _strongcutedges[i] << " ";
+    }
+    std::cout << std::endl << "--------------------------------------------------" << std::endl;
   }
   private: 
   std::vector<PartitionID> _partition;

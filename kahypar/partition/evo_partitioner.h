@@ -57,14 +57,11 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
   std::chrono::duration<double> elapsed_seconds_total = measureTime();
   while(_population.size() < context.evolutionary.population_size && elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
-    std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
-    std::cout<<_population.size();
-    std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
     _population.generateIndividual(context);
     elapsed_seconds_total = measureTime();   
     _population.print(); 
   }
-
+  performEdgeFrequency(hg, context);
   return;
   while(elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;

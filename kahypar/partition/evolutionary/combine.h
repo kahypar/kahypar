@@ -5,7 +5,7 @@
 #include "kahypar/partition/preprocessing/louvain.h"
 namespace kahypar {
 namespace combine {
-// TODO(robin): make copies of context and all context references const
+  static constexpr bool debug = true;
   Individual partitions(Hypergraph&hg, const std::pair<Individual, Individual>& parents, Context& context) {
     hg.reset();
     context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
@@ -21,6 +21,7 @@ namespace combine {
 
 // TODO(robin): make context ref const
   Individual crossCombine(Hypergraph& hg,const Individual& in ,Context& context) {
+
     Context temporaryContext = context;
     switch(context.evolutionary.cross_combine_objective) {
       // TODO(robin): add all constants to evo context
@@ -71,7 +72,6 @@ namespace combine {
         context.evo_flags.invalid_second_partition = false;
         return ret;
       }
-        // TODO(robin): outside of switch
       hg.changeK(temporaryContext.partition.k);
       hg.reset();
       Partitioner partitioner;
@@ -82,15 +82,23 @@ namespace combine {
       context.evo_flags.invalid_second_partition = true;
       Individual ret = partitions(hg, std::pair<Individual, Individual>(in, crossCombineIndividual), context);
       context.evo_flags.invalid_second_partition = false;
+      if(debug) {
+      LOG << "------------------------------------------------------------";
+      LOG << "---------------------------DEBUG----------------------------";
+      LOG << "---------------------------CROSSCOMBINE---------------------";
+      std::cout << "Cross Combine Objective: " << toString(context.evolutionary.cross_combine_objective) << std::endl;
+      LOG << "Original Individuum ";
+             in.printDebug();
+      LOG << "Cross Combine Individuum ";
+             crossCombineIndividual.printDebug();
+      LOG << "Result Individuum ";
+             ret.printDebug();
+      LOG << "---------------------------DEBUG----------------------------";
+      LOG << "------------------------------------------------------------";
+    }
       return ret;
     }
-    std::vector<PartitionID> result;
-    std::vector<HyperedgeID> cutWeak;
-	  std::vector<HyperedgeID> cutStrong;
-	  HyperedgeWeight fitness;
-    Individual ind(result, cutWeak, cutStrong, fitness);
-    return ind;
-  }
+
   Individual edgeFrequency(Hypergraph& hg, Context& context, const Population& pop) {
     hg.reset();
     context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
