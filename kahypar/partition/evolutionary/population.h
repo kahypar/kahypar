@@ -44,13 +44,12 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
 class Population {
   public:
   Population(Hypergraph &hypergraph) :
-  _internalPopulation(),
-  _hypergraph(hypergraph) {}
-  inline void insert(Individual &in, const Context& context);
-  inline void forceInsert(Individual& in,const std::size_t& position);
+  _internalPopulation() {}
+  inline void insert(const Individual &in, const Context& context);
+  inline void forceInsert(const Individual& in,const std::size_t& position);
   inline std::pair<Individual, Individual> tournamentSelect();
   inline Individual select();  
-  inline Individual generateIndividual(Context& context);
+  inline Individual generateIndividual(Hypergraph& hg, Context& context);
   inline std::size_t size();
   inline std::size_t randomIndividual();
   inline std::size_t randomIndividualExcept(const std::size_t& exception);
@@ -61,16 +60,16 @@ class Population {
   inline void print()const ;
   inline Individual singleTournamentSelection();
   private:
-  inline std::size_t difference(Individual &in, std::size_t position, bool strongSet);
-  inline std::size_t replaceDiverse(Individual &in, bool strongSet);
+  inline std::size_t difference(const Individual &in, std::size_t position, bool strongSet);
+  inline std::size_t replaceDiverse(const Individual &in, bool strongSet);
   
   inline Individual createIndividual();
   // TODO(robin): rename _individuals
   std::vector<Individual> _internalPopulation;
   // TODO(robin): maybe get rid of hypergraph reference
-  Hypergraph &_hypergraph;
+
 };
-  inline std::size_t Population::difference(Individual &in, std::size_t position, bool strongSet) {
+  inline std::size_t Population::difference(const Individual &in, std::size_t position, bool strongSet) {
     std::vector<HyperedgeID> output_diff;
     std::vector<HyperedgeID> one;
     std::vector<HyperedgeID> two;
@@ -97,7 +96,7 @@ class Population {
 
       return output_diff.size();
     }
-   inline std::size_t Population::replaceDiverse(Individual &in, bool strongSet) {
+   inline std::size_t Population::replaceDiverse(const Individual &in, bool strongSet) {
      //TODO fix, that these can be inserted
      
      /*if(size() < _maxPopulationLimit) {
@@ -149,7 +148,7 @@ inline Individual Population::singleTournamentSelection() {
 }
 
   // TODO(robin): use const references in
-inline void Population::insert(Individual& in, const Context& context) {
+inline void Population::insert(const Individual& in, const Context& context) {
   switch(context.evolutionary.replace_strategy) {
     case ReplaceStrategy::worst :  {
       forceInsert(in, worst());
@@ -160,14 +159,13 @@ inline void Population::insert(Individual& in, const Context& context) {
       return;
     }
     case ReplaceStrategy::strong_diverse : {
-      // TODO(robin): fix
-      replaceDiverse(in, false);
+      replaceDiverse(in, true);
       return;
     }
   }
 }
 // TODO(robin): use const references in
-inline void Population::forceInsert(Individual& in, const std::size_t& position) {
+inline void Population::forceInsert(const Individual& in, const std::size_t& position) {
   //std::swap(_internalPopulation[position], in);
   //_internalPopulation.erase(_internalPopulation.begin() + position);
   _internalPopulation[position] = in;
@@ -190,11 +188,11 @@ inline Individual Population::individualAt(const std::size_t& pos) {
 }
 
 // TODO(robin): refactor
-inline Individual Population::generateIndividual(Context& context) {
+inline Individual Population::generateIndividual(Hypergraph&hg, Context& context) {
   Partitioner partitioner;
-  _hypergraph.reset();
-  partitioner.partition(_hypergraph, context);
-  Individual ind = createIndividual();
+  hg.reset();
+  partitioner.partition(hg, context);
+  Individual ind = kahypar::createIndividual(hg);
   _internalPopulation.push_back(ind);
   if(_internalPopulation.size() > context.evolutionary.population_size){
     std::cout << "Error, tried to fill Population above limit" <<std::endl;
@@ -203,27 +201,7 @@ inline Individual Population::generateIndividual(Context& context) {
   return ind;
 }
 
-// TODO(robin): remove
-inline Individual Population::createIndividual() {
-  std::vector<PartitionID> result;
-  for (HypernodeID u : _hypergraph.nodes()) {
-		result.push_back(_hypergraph.partID(u));
-	}
-	HyperedgeWeight weight = metrics::km1(_hypergraph);
-	std::vector<HyperedgeID> cutWeak;
-	std::vector<HyperedgeID> cutStrong;
-	for(HyperedgeID v : _hypergraph.edges()) {
-	  auto km1 = _hypergraph.connectivity(v) - 1;
-	  if(km1 > 0) {
-	    cutWeak.push_back(v);
-	    for(unsigned i = 1; i < _hypergraph.connectivity(v);i++) {
-        cutStrong.push_back(v);
-	    } 
-	  }
-	}
-	Individual ind(result,cutWeak, cutStrong, weight);
-  return ind;
-}
+
 inline void Population::print() const {
   for(int i = 0; i < _internalPopulation.size(); ++i) {
     _internalPopulation[i].print();

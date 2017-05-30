@@ -57,7 +57,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
   std::chrono::duration<double> elapsed_seconds_total = measureTime();
   while(_population.size() < context.evolutionary.population_size && elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
-    _population.generateIndividual(context);
+    _population.generateIndividual(hg, context);
     elapsed_seconds_total = measureTime();   
     _population.print(); 
   }
@@ -94,22 +94,19 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
 
 inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
   // TODO(robin): remove std::
-  const std::size_t mutationPosition = _population.randomIndividualExcept(_population.best());
+  const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
   
   switch(context.evolutionary.mutate_strategy) {
     case(MutateStrategy::vcycle_with_new_initial_partitioning):{
-      Individual result = mutate::vCycleWithNewInitialPartitioning(hg, _population.individualAt(mutationPosition), context);
-      _population.forceInsert(result, mutationPosition);
+      _population.forceInsert(mutate::vCycleWithNewInitialPartitioning(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
     }
     case(MutateStrategy::single_stable_net):{
-      Individual result = mutate::stableNetMutate(hg, _population.individualAt(mutationPosition), context);
-      _population.forceInsert(result, mutationPosition);
+      _population.forceInsert(mutate::stableNetMutate(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
     }
-    case(MutateStrategy::single_stable_net_vcycle):{
-      Individual result = mutate::stableNetMutateWithVCycle(hg, _population.individualAt(mutationPosition), context);
-      _population.forceInsert(result, mutationPosition);
+    case(MutateStrategy::single_stable_net_vcycle):{   
+      _population.forceInsert(mutate::stableNetMutateWithVCycle(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
     }
   }
@@ -120,26 +117,20 @@ inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
   const std::pair<Individual, Individual> parents = _population.tournamentSelect();
   switch(context.evolutionary.combine_strategy) {
     case(CombineStrategy::basic): {
-      Individual result = combine::partitions(hg, parents, context);
-      ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-      _population.insert(result, context);
+      //ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
+      _population.insert(combine::partitions(hg, parents, context), context);
       break;
     }
     case(CombineStrategy::with_edge_frequency_information): {
-      Individual result = combine::edgeFrequencyWithAdditionalPartitionInformation(hg, parents, context, _population);
-      _population.insert(result, context);
+      _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg, parents, context, _population), context);
     }
   }
 }
 inline void EvoPartitioner::performCrossCombine(Hypergraph &hg, Context& context) {
-  // TODO(robin): inline call to crossCombine into insert: insert(crossCombine(...))
-  // TODO(robin): do the same in all other methods
-  Individual result = combine::crossCombine(hg, _population.singleTournamentSelection(), context);
-  _population.insert(result, context);
+  _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(), context), context);
 }
 inline void EvoPartitioner::performEdgeFrequency(Hypergraph &hg, Context& context) {
-  Individual result = combine::edgeFrequency(hg, context, _population);
-  _population.insert(result, context);
+  _population.insert(combine::edgeFrequency(hg, context, _population), context);
 }
 inline std::chrono::duration<double> EvoPartitioner::measureTime() {
   HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
