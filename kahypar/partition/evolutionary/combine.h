@@ -8,46 +8,64 @@ namespace combine {
   static constexpr bool debug = true;
 
   Individual partitions(Hypergraph&hg, const std::pair<Individual, Individual>& parents,const Context& context) {
-    Context temporaryContext = context;
+    
+    Action action;
+    action.action = Decision::combine;
+    action.subtype = Subtype::basic_combine;
+    action.requires.initial_partitioning = false;
+    action.requires.evolutionary_parent_contraction = true;
+    Context temporary_context = context;
+    temporary_context.evo_flags.action = action;
+    
     hg.reset();
-    temporaryContext.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-    ASSERT(context.coarsening.rating.heavy_node_penalty_policy != HeavyNodePenaltyPolicy::edge_frequency);
-    temporaryContext.evo_flags.parent1 = parents.first.partition();
-    temporaryContext.evo_flags.parent2 = parents.second.partition();
-    temporaryContext.evo_flags.initialPartitioning = false;
+    temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
+    temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
+    temporary_context.evo_flags.parent1 = parents.first.partition();
+    temporary_context.evo_flags.parent2 = parents.second.partition();
     Partitioner partitioner;
-    partitioner.partition(hg, temporaryContext);
+    partitioner.partition(hg, temporary_context);
     return kahypar::createIndividual(hg);
   }
 
 
   Individual crossCombine(Hypergraph& hg,const Individual& in ,const Context& context) {
-
-    Context temporaryContext = context;
+  
+  
+    Action action;
+    action.action = Decision::cross_combine;
+    action.subtype = Subtype::cross_combine;
+    action.requires.initial_partitioning = false;
+    action.requires.evolutionary_parent_contraction = true;
+    action.requires.vcycle_stable_net_collection = false; 
+    action.requires.invalidation_of_second_partition = true;
+    Context temporary_context = context;
+    temporary_context.evo_flags.action = action;
+    
+    
+    
     switch(context.evolutionary.cross_combine_objective) {
       case CrossCombineObjective::k : {
         int lowerbound = std::max(context.partition.k / context.evolutionary.cross_combine_lower_limit_kfactor, 2);
         int kFactor = Randomize::instance().getRandomInt(lowerbound, 
                                                          (context.evolutionary.cross_combine_upper_limit_kfactor *
                                                          context.partition.k));
-        temporaryContext.partition.k = kFactor;
+        temporary_context.partition.k = kFactor;
         //break; //No break statement since in mode k epsilon should be varied too
       }
       case CrossCombineObjective::epsilon : {
         float epsilonFactor = Randomize::instance().getRandomFloat(context.partition.epsilon, 
                                                                    context.evolutionary.cross_combine_epsilon_upper_limit);
-        temporaryContext.partition.epsilon = epsilonFactor;
+        temporary_context.partition.epsilon = epsilonFactor;
         break;
       }
       case CrossCombineObjective::objective : {
   
         if(context.partition.objective == Objective::km1) {
-          io::readInBisectionContext(temporaryContext);
+          io::readInBisectionContext(temporary_context);
           break;
         }
         else if(context.partition.objective == Objective::cut) {
-          io::readInDirectKwayContext(temporaryContext);
+          io::readInDirectKwayContext(temporary_context);
           break;
         }
         std::cout << "Nonspecified Objective in Cross Combine " << std::endl;
@@ -55,11 +73,11 @@ namespace combine {
       }
       case CrossCombineObjective::mode : {
         if(context.partition.mode == Mode::recursive_bisection) {
-          io::readInDirectKwayContext(temporaryContext);
+          io::readInDirectKwayContext(temporary_context);
           break;
         }
         else if(context.partition.mode == Mode::direct_kway) {
-          io::readInBisectionContext(temporaryContext);
+          io::readInBisectionContext(temporary_context);
           break;
         }
         std::cout << "Nonspecified Mode in Cross Combine " << std::endl;
@@ -67,28 +85,27 @@ namespace combine {
       }
       case CrossCombineObjective::louvain : {
 
-        detectCommunities(hg, temporaryContext);
+        detectCommunities(hg, temporary_context);
         std::vector<PartitionID> communities = hg.communities();
         std::vector<HyperedgeID> dummy;
         Individual temporaryLouvainIndividual = Individual(communities, dummy, dummy, std::numeric_limits<double>::max());
-        context.evo_flags.invalid_second_partition = true;
+
         Individual ret = partitions(hg, std::pair<Individual, Individual>(in, temporaryLouvainIndividual), context);
-        context.evo_flags.invalid_second_partition = false;
+
         
         return ret;
       }
 
       }
-      hg.changeK(temporaryContext.partition.k);
+
+      hg.changeK(temporary_context.partition.k);
       hg.reset();
       Partitioner partitioner;
-      partitioner.partition(hg, temporaryContext);
+      partitioner.partition(hg, temporary_context);
       Individual crossCombineIndividual = kahypar::createIndividual(hg);
       hg.reset();
       hg.changeK(context.partition.k);
-      context.evo_flags.invalid_second_partition = true;
       Individual ret = partitions(hg, std::pair<Individual, Individual>(in, crossCombineIndividual), context);
-      context.evo_flags.invalid_second_partition = false;
       if(debug) {
       LOG << "------------------------------------------------------------";
       LOG << "---------------------------DEBUG----------------------------";
@@ -107,26 +124,47 @@ namespace combine {
     }
 
   Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& pop) {
-    Context temporaryContext = context;
+  
+  
+    Context temporary_context = context;
+    Action action;
+    action.action = Decision::edge_frequency;
+    action.subtype = Subtype::edge_frequency;
+    action.requires.initial_partitioning = false;
+    action.requires.evolutionary_parent_contraction = false;
+    action.requires.vcycle_stable_net_collection = false; 
+    temporary_context.evo_flags.action = action;
     hg.reset();
-    temporaryContext.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
-    temporaryContext.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-    temporaryContext.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::edge_frequency_penalty;
+    
+    
+    temporary_context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+    temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+    temporary_context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::edge_frequency_penalty;
+    
+    
     Partitioner partitioner;
-    partitioner.partition(hg, temporaryContext);
+    partitioner.partition(hg, temporary_context);
     return kahypar::createIndividual(hg);
   }
   Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,const std::pair<Individual, Individual>& parents, const Context& context, const Population& pop) { 
     hg.reset();
-    Context temporaryContext = context;
-    temporaryContext.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
-    temporaryContext.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-    temporaryContext.evo_flags.parent1 = parents.first.partition();
-    temporaryContext.evo_flags.parent2 = parents.second.partition();
+    Context temporary_context = context;
+    Action action;
+    action.action = Decision::combine;
+    action.subtype = Subtype::edge_frequency;
+    action.requires.initial_partitioning = false;
+    action.requires.evolutionary_parent_contraction = true;
+    action.requires.vcycle_stable_net_collection = false; 
+    
+    
+    temporary_context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+    temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
+    temporary_context.evo_flags.parent1 = parents.first.partition();
+    temporary_context.evo_flags.parent2 = parents.second.partition();
     Partitioner partitioner;
-    partitioner.partition(hg, temporaryContext);
+    partitioner.partition(hg, temporary_context);
     return kahypar::createIndividual(hg);
   }
   
@@ -134,10 +172,8 @@ namespace combine {
   
   
 
-  Individual populationStableNet(Hypergraph &hg, const Population& pop, Context& context){
-    context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-    context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-    context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::no_penalty;
+  Individual populationStableNet(Hypergraph &hg, const Population& pop,const Context& context) {
+    //No action required as we do not access the partitioner for this
     std::vector<HyperedgeID> stable_nets = stablenet::stableNetsFromMultipleIndividuals(context, pop.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
     Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
     

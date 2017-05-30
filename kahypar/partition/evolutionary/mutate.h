@@ -4,22 +4,32 @@ namespace kahypar {
 namespace partition {
 namespace mutate {
   Individual vCycleWithNewInitialPartitioning(Hypergraph &hg, const Individual& in,const Context& context) {
-    Context temporary_context = context;
+  
     hg.setPartitionVector(in.partition());
-    temporary_context.evo_flags.initialPartitioning = true;
+    Action action;
+    action.action = Decision::mutation;
+    action.subtype = Subtype::vcycle_initial_partitioning;
+    action.requires.initial_partitioning = true;
+    Context temporary_context = context;
+    temporary_context.evo_flags.action = action;
+    
     Partitioner partitioner;
     partitioner.partition(hg, temporary_context);
     return kahypar::createIndividual(hg);
   }
   Individual stableNetMutate(Hypergraph &hg, const Individual& in,const Context& context) {
-    Context temporary_context = context;
     hg.setPartitionVector(in.partition());
-    temporary_context.evo_flags.initialPartitioning = false;
+    Action action;
+    action.action = Decision::mutation;
+    action.subtype = Subtype::stable_net;
+    action.requires.initial_partitioning = false;
+    action.requires.vcycle_stable_net_collection = true;
+    Context temporary_context = context;
+    temporary_context.evo_flags.action = action;
     temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-    temporary_context.evo_flags.collect_stable_net_from_vcycle = true;
     Partitioner partitioner;
     partitioner.partition(hg, temporary_context);
-    // TODO(robin): maybe you should call partition somewhere? ;) (I need to test whether this works)
+    // TODO (I need to test whether this call to partiton works)
     return kahypar::createIndividual(hg);
   }
   Individual stableNetMutateWithVCycle(Hypergraph &hg, const Individual& in,const Context& context) {

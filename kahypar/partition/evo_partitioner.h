@@ -6,16 +6,18 @@
 #include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/combine.h"
-
+#include "kahypar/partition/context_enum_classes.h"
 namespace kahypar {
 namespace partition {
-// TODO(robin): enum class and remove Choice
-  enum Decision {
-    mutateChoice,
-    combineChoice,
-    edgeFrequencyChoice,
-    crossCombineChoice
+
+  enum class Decision  {
+    normal,
+    mutation,
+    combine,
+    edgeFrequency,
+    crossCombine
   };
+
 class EvoPartitioner {
   public:
   
@@ -33,10 +35,10 @@ class EvoPartitioner {
   private:
 
   inline Decision decideNextMove(const Context& context);
-  inline void performCombine(Hypergraph &hg, Context& context);
-  inline void performCrossCombine(Hypergraph &hg, Context& context);
-  inline void performMutation(Hypergraph &hg, Context& context);
-  inline void performEdgeFrequency(Hypergraph &hg, Context& context);
+  inline void performCombine(Hypergraph &hg, const Context& context);
+  inline void performCrossCombine(Hypergraph &hg, const Context& context);
+  inline void performMutation(Hypergraph &hg, const Context& context);
+  inline void performEdgeFrequency(Hypergraph &hg, const Context& context);
   inline void diversify();
   inline std::chrono::duration<double> measureTime();
   HighResClockTimepoint _globalstart;
@@ -67,19 +69,19 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
     ++_iteration;
     Decision decision = decideNextMove(context);
     switch(decision) {
-      case(mutateChoice) : {
+      case(Decision::mutation) : {
         performMutation(hg, context);
         break;
       } 
-      case(edgeFrequencyChoice) : {
+      case(Decision::edgeFrequency) : {
         performEdgeFrequency(hg, context);
         break;
       }
-      case(crossCombineChoice) : {
+      case(Decision::crossCombine) : {
         performCrossCombine(hg, context);
         break;
       }
-      case(combineChoice) : {
+      case(Decision::combine) : {
         performCombine(hg, context);
         break;
       }
@@ -92,8 +94,8 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context &context) {
   }
 }
 
-inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
-  // TODO(robin): remove std::
+inline void EvoPartitioner::performMutation(Hypergraph& hg,const Context& context) {
+  
   const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
   
   switch(context.evolutionary.mutate_strategy) {
@@ -113,7 +115,7 @@ inline void EvoPartitioner::performMutation(Hypergraph& hg, Context& context) {
   
 }
 
-inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
+inline void EvoPartitioner::performCombine(Hypergraph& hg,const Context& context) {
   const std::pair<Individual, Individual> parents = _population.tournamentSelect();
   switch(context.evolutionary.combine_strategy) {
     case(CombineStrategy::basic): {
@@ -126,10 +128,10 @@ inline void EvoPartitioner::performCombine(Hypergraph& hg, Context& context) {
     }
   }
 }
-inline void EvoPartitioner::performCrossCombine(Hypergraph &hg, Context& context) {
+inline void EvoPartitioner::performCrossCombine(Hypergraph &hg,const Context& context) {
   _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(), context), context);
 }
-inline void EvoPartitioner::performEdgeFrequency(Hypergraph &hg, Context& context) {
+inline void EvoPartitioner::performEdgeFrequency(Hypergraph &hg,const Context& context) {
   _population.insert(combine::edgeFrequency(hg, context, _population), context);
 }
 inline std::chrono::duration<double> EvoPartitioner::measureTime() {
@@ -138,15 +140,15 @@ inline std::chrono::duration<double> EvoPartitioner::measureTime() {
 }
 inline Decision EvoPartitioner::decideNextMove(const Context& context) {
   if(_iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
-    return Decision::edgeFrequencyChoice;
+    return Decision::edgeFrequency;
   }
   if(Randomize::instance().getRandomFloat(0,1) < context.evolutionary.mutation_chance) {
-    return Decision::mutateChoice;
+    return Decision::mutation;
   }
   if(Randomize::instance().getRandomFloat(0,1) < context.evolutionary.cross_combine_chance) {
-    return Decision::crossCombineChoice;
+    return Decision::crossCombine;
   }
-  return Decision::combineChoice;
+  return Decision::combine;
 }
 } //namespace partition
 } //namespace kahypar

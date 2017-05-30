@@ -144,6 +144,77 @@ enum class CrossCombineObjective : uint8_t {
   mode,
   louvain
 };
+
+enum class Decision  {
+    normal,
+    mutation,
+    combine,
+    edge_frequency,
+    cross_combine
+  };
+enum class Subtype : uint8_t {
+  stable_net, 
+  stable_net_vcycle,
+  edge_frequency,
+  cross_combine,
+  basic_combine,
+  vcycle_initial_partitioning,
+  normal
+};
+struct Requirements {
+  bool initial_partitioning;
+  bool evolutionary_parent_contraction;
+  bool vcycle_stable_net_collection;
+  bool invalidation_of_second_partition;
+};
+struct Action {
+  Action() : 
+  action(Decision::normal),
+  subtype(Subtype::normal),
+  requires() {
+    requires.initial_partitioning = true;
+  }
+  Decision action;
+  Subtype subtype;
+  Requirements requires;
+
+  void print() {
+  std::cout << toString(action) << std::endl
+  << toString(subtype) << std::endl
+  << requires.initial_partitioning << std::endl
+  << requires.evolutionary_parent_contraction << std::endl
+  << requires.vcycle_stable_net_collection <<std::endl
+  << requires.invalidation_of_second_partition << std::endl;
+  
+  }
+    
+
+  std::string toString(const Decision& dec){
+  switch(dec) {
+    case Decision::normal : {return "normal";}
+    case Decision::mutation : {return "mutation";}
+    case Decision::combine : {return "combine";}
+    case Decision::edge_frequency : {return "edge frequency";}
+    case Decision::cross_combine : {return "cross combine";}
+  }
+  return "UNDEFINED";
+}
+  std::string toString(const Subtype& subtype) const {
+  switch(subtype) {
+    case Subtype::stable_net : {return "stable net";}
+    case Subtype::edge_frequency : {return "edge frequency";}
+    case Subtype::cross_combine: {return "cross combine";}
+    case Subtype::basic_combine: {return "basic combine";}
+    case Subtype::vcycle_initial_partitioning: {return "vcycle initial partitioning";}
+    case Subtype::normal: {return "normal";}
+  }
+  return "UNDEFINED";
+}
+};
+
+
+
+
 static std::string toString(const RatingPartitionPolicy& policy) {
   switch(policy) {
     case RatingPartitionPolicy::normal: 

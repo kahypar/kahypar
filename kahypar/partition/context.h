@@ -340,12 +340,11 @@ inline std::ostream& operator<<(std::ostream& str, const EvolutionaryParameters&
 struct EvolutionaryFlags {
   std::vector<PartitionID> parent1;
   std::vector<PartitionID> parent2;
-  bool initialPartitioning = true;
-  bool invalid_second_partition = false;
   std::vector<HyperedgeID> stable_net_edges_vcycle;
   std::vector<HyperedgeID> stable_net_edges_final;
   std::vector<std::size_t> edge_frequency;
-  bool collect_stable_net_from_vcycle;
+  Action action;
+  
 };
 class Context {
  public:
@@ -360,7 +359,7 @@ class Context {
   mutable EvolutionaryFlags evo_flags { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
-
+  bool partition_evolutionary;
 
   Context() :
     stats(*this) { }
