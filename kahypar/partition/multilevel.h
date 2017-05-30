@@ -79,55 +79,52 @@ static inline void partition(Hypergraph& hypergraph,
   }
   }
 
-  if(context.partition_evolutionary && context.evo_flags.action.requires.evolutionary_parent_contraction) {
+  if (context.partition_evolutionary && context.evo_flags.action.requires.evolutionary_parent_contraction) {
     ASSERT(!context.evo_flags.action.requires.initial_partitioning);
-    //There is currently no reason why an evolutionary contraction should be used 
-    //in conjunction with initial partitioning ... Yet
+    // There is currently no reason why an evolutionary contraction should be used
+    // in conjunction with initial partitioning ... Yet
     hypergraph.setPartitionVector(context.evo_flags.parent1);
     HyperedgeWeight parentWeight1 = metrics::km1(hypergraph);
     HyperedgeWeight parentWeight2;
-    
-    if(!context.evo_flags.action.requires.invalidation_of_second_partition) {
+
+    if (!context.evo_flags.action.requires.invalidation_of_second_partition) {
       hypergraph.reset();
       hypergraph.setPartitionVector(context.evo_flags.parent2);
       parentWeight2 = metrics::km1(hypergraph);
     }
 
-    if(parentWeight1 < parentWeight2) {
-			hypergraph.reset();
-			hypergraph.setPartitionVector(context.evo_flags.parent1);
-		}
-		else {
-			//Just for correctness, because the Hypergraph has partition 2
-			//which is already better
-		}
-  }
-
-  else {
+    if (parentWeight1 < parentWeight2) {
+      hypergraph.reset();
+      hypergraph.setPartitionVector(context.evo_flags.parent1);
+    } else {
+      // Just for correctness, because the Hypergraph has partition 2
+      // which is already better
+    }
+  } else {
     // TODO(robin): remove
     std::cout << "skipping Initial Partitioning" << std::endl;
     ASSERT(context.evo_flags.parent1.size != 0);
-
   }
-  
+
   std::vector<HyperedgeID> stable_net_before_uncoarsen;
   std::vector<HyperedgeID> stable_net_after_uncoarsen;
-  if(context.partition_evolutionary && context.evo_flags.action.requires.vcycle_stable_net_collection) {
-    for(HyperedgeID u : hypergraph.edges()) {
-      if(hypergraph.connectivity(u) > 1) {
+  if (context.partition_evolutionary && context.evo_flags.action.requires.vcycle_stable_net_collection) {
+    for (HyperedgeID u : hypergraph.edges()) {
+      if (hypergraph.connectivity(u) > 1) {
         stable_net_before_uncoarsen.push_back(u);
       }
-    } 
+    }
   }
-  
-  
+
+
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
 
-  if(context.partition_evolutionary &&context.evo_flags.action.requires.vcycle_stable_net_collection) {
-    for(HyperedgeID u : hypergraph.edges()) {
-      if(hypergraph.connectivity(u) > 1) {
+
+  if (context.partition_evolutionary && context.evo_flags.action.requires.vcycle_stable_net_collection) {
+    for (HyperedgeID u : hypergraph.edges()) {
+      if (hypergraph.connectivity(u) > 1) {
         stable_net_after_uncoarsen.push_back(u);
       }
     }

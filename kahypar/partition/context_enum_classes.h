@@ -129,7 +129,7 @@ enum class ReplaceStrategy : uint8_t {
   strong_diverse
 };
 enum class CombineStrategy : uint8_t {
-  basic, 
+  basic,
   with_edge_frequency_information
 };
 enum class MutateStrategy : uint8_t {
@@ -146,15 +146,15 @@ enum class CrossCombineObjective : uint8_t {
   louvain
 };
 
-enum class Decision  {
-    normal,
-    mutation,
-    combine,
-    edge_frequency,
-    cross_combine
-  };
+enum class Decision {
+  normal,
+  mutation,
+  combine,
+  edge_frequency,
+  cross_combine
+};
 enum class Subtype : uint8_t {
-  stable_net, 
+  stable_net,
   stable_net_vcycle,
   edge_frequency,
   cross_combine,
@@ -171,10 +171,10 @@ struct Requirements {
   bool invalidation_of_second_partition;
 };
 struct Action {
-  Action() : 
-  action(Decision::normal),
-  subtype(Subtype::normal),
-  requires() {
+  Action() :
+    action(Decision::normal),
+    subtype(Subtype::normal),
+    requires() {
     requires.initial_partitioning = true;
   }
   Decision action;
@@ -182,54 +182,51 @@ struct Action {
   Requirements requires;
 
   void print() {
-  std::cout << toString(action) << std::endl
-  << toString(subtype) << std::endl
-  << requires.initial_partitioning << std::endl
-  << requires.evolutionary_parent_contraction << std::endl
-  << requires.vcycle_stable_net_collection <<std::endl
-  << requires.invalidation_of_second_partition << std::endl;
-  
+    std::cout << toString(action) << std::endl
+              << toString(subtype) << std::endl
+              << requires.initial_partitioning << std::endl
+              << requires.evolutionary_parent_contraction << std::endl
+              << requires.vcycle_stable_net_collection << std::endl
+              << requires.invalidation_of_second_partition << std::endl;
   }
-    
 
-  std::string toString(const Decision& dec){
-  switch(dec) {
-    case Decision::normal : {return "normal";}
-    case Decision::mutation : {return "mutation";}
-    case Decision::combine : {return "combine";}
-    case Decision::edge_frequency : {return "edge frequency";}
-    case Decision::cross_combine : {return "cross combine";}
+
+  std::string toString(const Decision& dec) {
+    switch (dec) {
+      case Decision::normal:  return "normal";
+      case Decision::mutation:  return "mutation";
+      case Decision::combine:  return "combine";
+      case Decision::edge_frequency:  return "edge frequency";
+      case Decision::cross_combine:  return "cross combine";
+    }
+    return "UNDEFINED";
   }
-  return "UNDEFINED";
-}
   std::string toString(const Subtype& subtype) const {
-  switch(subtype) {
-    case Subtype::stable_net : {return "stable net";}
-    case Subtype::edge_frequency : {return "edge frequency";}
-    case Subtype::cross_combine: {return "cross combine";}
-    case Subtype::basic_combine: {return "basic combine";}
-    case Subtype::vcycle_initial_partitioning: {return "vcycle initial partitioning";}
-    case Subtype::normal: {return "normal";}
+    switch (subtype) {
+      case Subtype::stable_net:  return "stable net";
+      case Subtype::edge_frequency:  return "edge frequency";
+      case Subtype::cross_combine:  return "cross combine";
+      case Subtype::basic_combine:  return "basic combine";
+      case Subtype::vcycle_initial_partitioning:  return "vcycle initial partitioning";
+      case Subtype::normal:  return "normal";
+    }
+    return "UNDEFINED";
   }
-  return "UNDEFINED";
-}
 };
 
 
-
-
 static std::string toString(const RatingPartitionPolicy& policy) {
-  switch(policy) {
-    case RatingPartitionPolicy::normal: 
+  switch (policy) {
+    case RatingPartitionPolicy::normal:
       return std::string("normal");
-    case RatingPartitionPolicy::evolutionary: 
+    case RatingPartitionPolicy::evolutionary:
       return std::string("evolutionary");
-    default : 
+    default:
       return std::string("UNDEFINED");
   }
 }
 static std::string toString(const CrossCombineObjective& ccobj) {
-  switch(ccobj) {
+  switch (ccobj) {
     case CrossCombineObjective::k:
       return std::string("k");
     case CrossCombineObjective::epsilon:
@@ -240,7 +237,7 @@ static std::string toString(const CrossCombineObjective& ccobj) {
       return std::string("mode");
     case CrossCombineObjective::louvain:
       return std::string("louvain");
-    default : 
+    default:
       return std::string("UNDEFINED");
   }
 }
@@ -426,35 +423,51 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   }
   return os << static_cast<uint8_t>(rule);
 }
-static CrossCombineObjective crossCombineObjectiveFromString(const std::string& ccobj) { 
-  if(ccobj == "k") {return CrossCombineObjective::k;}
-  else if(ccobj == "epsilon") {return CrossCombineObjective::epsilon;}
-  else if(ccobj == "objective") {return CrossCombineObjective::objective;}
-  else if(ccobj == "mode") {return CrossCombineObjective::mode;}
-  else if(ccobj == "louvain") {return CrossCombineObjective::louvain;}
+static CrossCombineObjective crossCombineObjectiveFromString(const std::string& ccobj) {
+  if (ccobj == "k") {
+    return CrossCombineObjective::k;
+  } else if (ccobj == "epsilon") {
+    return CrossCombineObjective::epsilon;
+  } else if (ccobj == "objective") {
+    return CrossCombineObjective::objective;
+  } else if (ccobj == "mode") {
+    return CrossCombineObjective::mode;
+  } else if (ccobj == "louvain") {
+    return CrossCombineObjective::louvain;
+  }
   std::cout << "No valid cross combine objective " << std::endl;
   exit(0);
 }
 static MutateStrategy mutateStrategyFromString(const std::string& strat) {
-  if(strat == "vcycle_with_new_initial_partitioning") {return MutateStrategy::vcycle_with_new_initial_partitioning;}
-  else if(strat =="single_stable_net") {return MutateStrategy::single_stable_net;}
-  else if(strat =="single_stable_net_vcycle") {return MutateStrategy::single_stable_net_vcycle;}
+  if (strat == "vcycle_with_new_initial_partitioning") {
+    return MutateStrategy::vcycle_with_new_initial_partitioning;
+  } else if (strat == "single_stable_net") {
+    return MutateStrategy::single_stable_net;
+  } else if (strat == "single_stable_net_vcycle") {
+    return MutateStrategy::single_stable_net_vcycle;
+  }
   std::cout << "No valid mutate strategy. " << std::endl;
   exit(0);
 }
 static CombineStrategy combineStrategyFromString(const std::string& strat) {
-  if(strat == "basic") {return CombineStrategy::basic;}
-  else if(strat =="with_edge_frequency") {return CombineStrategy::with_edge_frequency_information;}
-    std::cout << "No valid combine strategy. " << std::endl;
+  if (strat == "basic") {
+    return CombineStrategy::basic;
+  } else if (strat == "with_edge_frequency") {
+    return CombineStrategy::with_edge_frequency_information;
+  }
+  std::cout << "No valid combine strategy. " << std::endl;
   exit(0);
 }
 static ReplaceStrategy replaceStrategyFromString(const std::string& strat) {
-  if(strat == "worst") {return ReplaceStrategy::worst;}
-  else if (strat == "diverse") {return ReplaceStrategy::diverse;}
-  else if (strat == "strong-diverse") {return ReplaceStrategy::strong_diverse;}
+  if (strat == "worst") {
+    return ReplaceStrategy::worst;
+  } else if (strat == "diverse") {
+    return ReplaceStrategy::diverse;
+  } else if (strat == "strong-diverse") {
+    return ReplaceStrategy::strong_diverse;
+  }
   std::cout << "No valid replace strategy. " << std::endl;
   exit(0);
-  
 }
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   if (crit == "best") {
@@ -469,8 +482,7 @@ static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
 static RatingPartitionPolicy ratingPartitionPolicyFromString(const std::string& partition) {
   if (partition == "normal") {
     return RatingPartitionPolicy::normal;
-  }  
-  else if (partition == "evolutionary") {
+  } else if (partition == "evolutionary") {
     return RatingPartitionPolicy::evolutionary;
   }
   std::cout << "No valid partition policy for rating." << std::endl;
@@ -482,9 +494,8 @@ static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& pena
     return HeavyNodePenaltyPolicy::multiplicative_penalty;
   } else if (penalty == "no_penalty") {
     return HeavyNodePenaltyPolicy::no_penalty;
-  }
-    else if (penalty == "edge_frequency_penalty") {
-      return HeavyNodePenaltyPolicy::edge_frequency_penalty;
+  } else if (penalty == "edge_frequency_penalty") {
+    return HeavyNodePenaltyPolicy::edge_frequency_penalty;
   }
   std::cout << "No valid edge penalty policy for rating." << std::endl;
   exit(0);

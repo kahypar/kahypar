@@ -1355,12 +1355,12 @@ class GenericHypergraph {
       _connectivity_sets[i].clear();
     }
   }
-  void setPartitionVector(std::vector<PartitionID>partitionVector) {
+  void setPartitionVector(std::vector<PartitionID> partitionVector) {
     for (HypernodeID u : nodes()) {
-		  setNodePart(u, partitionVector[u]);
-	  }
+      setNodePart(u, partitionVector[u]);
+    }
   }
-  
+
   // ! Resets the hypergraph to initial state after construction
   void reset() {
     resetPartitioning();

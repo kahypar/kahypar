@@ -311,10 +311,10 @@ struct EvolutionaryParameters {
   ReplaceStrategy replace_strategy = ReplaceStrategy::strong_diverse;
   CombineStrategy combine_strategy = CombineStrategy::basic;
   MutateStrategy mutate_strategy = MutateStrategy::vcycle_with_new_initial_partitioning;
-  int perform_edge_frequency_interval = 5;//-1 disables edge frequency
+  int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
   CrossCombineObjective cross_combine_objective = CrossCombineObjective::k;
-  int diversify_interval = -1; //-1 disables diversification
+  int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
   size_t stable_net_amount = 10;
@@ -322,20 +322,18 @@ struct EvolutionaryParameters {
   int cross_combine_upper_limit_kfactor = 4;
   float cross_combine_epsilon_upper_limit = 0.25;
 };
-inline std::ostream& operator<<(std::ostream& str, const EvolutionaryParameters& params) {
+inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;
-  str << "  Time Limit:                         " <<params.time_limit_seconds <<std::endl;
-  str << "  Population Size:                    " <<params.population_size <<std::endl;
-  str << "  Mutation Chance                     " <<params.mutation_chance <<std::endl;
-  str << "  Cross Combine Chance                " <<params.cross_combine_chance <<std::endl;
-  str << "  Replace Strategy                    " <<toString(params.replace_strategy) <<std::endl;
-  str << "  Combine Strategy                    " <<toString(params.combine_strategy) <<std::endl;
-  str << "  Mutation Strategy                   " <<toString(params.mutate_strategy) <<std::endl;
-  str << "  Edge Frequency Interval             " <<params.perform_edge_frequency_interval <<std::endl;
-  str << "  Diversification Interval            " <<params.diversify_interval <<std::endl;
+  str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
+  str << "  Population Size:                    " << params.population_size << std::endl;
+  str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
+  str << "  Cross Combine Chance                " << params.cross_combine_chance << std::endl;
+  str << "  Replace Strategy                    " << toString(params.replace_strategy) << std::endl;
+  str << "  Combine Strategy                    " << toString(params.combine_strategy) << std::endl;
+  str << "  Mutation Strategy                   " << toString(params.mutate_strategy) << std::endl;
+  str << "  Edge Frequency Interval             " << params.perform_edge_frequency_interval << std::endl;
+  str << "  Diversification Interval            " << params.diversify_interval << std::endl;
   return str;
-
-
 }
 // TODO(robin): move to EvolutionaryParameters
 struct EvolutionaryFlags {
@@ -345,7 +343,6 @@ struct EvolutionaryFlags {
   std::vector<HyperedgeID> stable_net_edges_final;
   std::vector<std::size_t> edge_frequency;
   Action action;
-  
 };
 class Context {
  public:

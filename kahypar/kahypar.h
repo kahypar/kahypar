@@ -26,10 +26,10 @@
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
-#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
@@ -263,5 +263,4 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
                               context.local_search.fm.stopping_rule));
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
-
 }  // namespace kahypar

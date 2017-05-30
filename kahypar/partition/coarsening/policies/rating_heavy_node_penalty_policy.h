@@ -35,13 +35,13 @@ class MultiplicativePenalty final : public meta::PolicyBase {
 
 class NoWeightPenalty final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight, const HypernodeWeight) {    
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight, const HypernodeWeight) {
     return 1;
   }
 };
 class EdgeFrequencyPenalty final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {    
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {
     return std::pow(weight_u * weight_v, 1.2);
   }
 };
