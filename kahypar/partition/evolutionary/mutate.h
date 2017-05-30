@@ -8,6 +8,8 @@ namespace mutate {
     hg.setPartitionVector(in.partition());
     Action action;
     action.action = Decision::mutation;
+    // TODO(robin): increase abstraction via action.configure(Decision::mutation,
+    // Subtype::vcycle_initial_partitioning) or via Action constructor
     action.subtype = Subtype::vcycle_initial_partitioning;
     action.requires.initial_partitioning = true;
     Context temporary_context = context;

@@ -126,7 +126,7 @@ inline std::pair<const Individual&,const Individual&> Population::tournamentSele
   if(first_tournament_winner.fitness() == individualAt(second_winner_pos).fitness()) {
     second_winner_pos = first.fitness() >= second.fitness() ? first_pos : second_pos;
   }
-  return std::pair<Individual, Individual>(first_tournament_winner, individualAt(second_winner_pos));
+  return std::make_pair(first_tournament_winner, individualAt(second_winner_pos));
 }
 inline const Individual& Population::singleTournamentSelection() {
   size_t first_pos = randomIndividual();
@@ -209,7 +209,7 @@ inline size_t Population::best() {
   return best_position;
 
 }
-//TODO make references
+
 inline std::vector<Individual> Population::listOfBest(const size_t& amount) const {
   std::vector<std::pair<double, size_t>> sorting;
   for (unsigned i = 0; i < _individuals.size(); ++i) {

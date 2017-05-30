@@ -137,6 +137,7 @@ enum class MutateStrategy : uint8_t {
   single_stable_net,
   single_stable_net_vcycle
 };
+// TODO(robin): rename to CrossCombineStrategy
 enum class CrossCombineObjective : uint8_t {
   k,
   epsilon,
@@ -161,6 +162,8 @@ enum class Subtype : uint8_t {
   vcycle_initial_partitioning,
   normal
 };
+
+// TODO(robin): move to context
 struct Requirements {
   bool initial_partitioning;
   bool evolutionary_parent_contraction;

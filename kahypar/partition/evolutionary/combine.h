@@ -106,26 +106,23 @@ namespace combine {
       hg.reset();
       hg.changeK(context.partition.k);
       Individual ret = partitions(hg, std::pair<Individual, Individual>(in, crossCombineIndividual), context);
-      if(debug) {
-      LOG << "------------------------------------------------------------";
-      LOG << "---------------------------DEBUG----------------------------";
-      LOG << "---------------------------CROSSCOMBINE---------------------";
-      std::cout << "Cross Combine Objective: " << toString(context.evolutionary.cross_combine_objective) << std::endl;
-      LOG << "Original Individuum ";
+      DBG << "------------------------------------------------------------";
+      DBG << "---------------------------DEBUG----------------------------";
+      DBG << "---------------------------CROSSCOMBINE---------------------";
+      DBG << "Cross Combine Objective: " << toString(context.evolutionary.cross_combine_objective);
+      DBG << "Original Individuum ";
              in.printDebug();
-      LOG << "Cross Combine Individuum ";
+      DBG << "Cross Combine Individuum ";
              crossCombineIndividual.printDebug();
-      LOG << "Result Individuum ";
+      DBG << "Result Individuum ";
              ret.printDebug();
-      LOG << "---------------------------DEBUG----------------------------";
-      LOG << "------------------------------------------------------------";
-    }
+      DBG << "---------------------------DEBUG----------------------------";
+      DBG << "------------------------------------------------------------";
       return ret;
     }
 
   Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& pop) {
-  
-  
+    // TODO(robin): Context temporary_context(context)
     Context temporary_context = context;
     Action action;
     action.action = Decision::edge_frequency;
@@ -136,7 +133,7 @@ namespace combine {
     temporary_context.evo_flags.action = action;
     hg.reset();
     
-    
+    // TODO(robin):  edgefrequency::fromPopulation
     temporary_context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
     temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
     temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;

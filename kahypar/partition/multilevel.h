@@ -102,8 +102,9 @@ static inline void partition(Hypergraph& hypergraph,
 			//which is already better
 		}
   }
+
   else {
-    
+    // TODO(robin): remove
     std::cout << "skipping Initial Partitioning" << std::endl;
     ASSERT(context.evo_flags.parent1.size != 0);
 

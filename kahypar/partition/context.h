@@ -337,6 +337,7 @@ inline std::ostream& operator<<(std::ostream& str, const EvolutionaryParameters&
 
 
 }
+// TODO(robin): move to EvolutionaryParameters
 struct EvolutionaryFlags {
   std::vector<PartitionID> parent1;
   std::vector<PartitionID> parent2;
