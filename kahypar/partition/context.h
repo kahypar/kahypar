@@ -316,8 +316,11 @@ struct EvolutionaryParameters {
   CrossCombineObjective cross_combine_objective = CrossCombineObjective::k;
   int diversify_interval = -1; //-1 disables diversification
   double gamma = 0.5;
-  std::size_t edge_frequency_amount = 3;
-  std::size_t stable_net_amount = 10;
+  size_t edge_frequency_amount = 3;
+  size_t stable_net_amount = 10;
+  int cross_combine_lower_limit_kfactor = 4;
+  int cross_combine_upper_limit_kfactor = 4;
+  float cross_combine_epsilon_upper_limit = 0.25;
 };
 inline std::ostream& operator<<(std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;

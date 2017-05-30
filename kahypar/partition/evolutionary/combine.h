@@ -6,33 +6,37 @@
 namespace kahypar {
 namespace combine {
   static constexpr bool debug = true;
-  Individual partitions(Hypergraph&hg, const std::pair<Individual, Individual>& parents, Context& context) {
+
+  Individual partitions(Hypergraph&hg, const std::pair<Individual, Individual>& parents,const Context& context) {
+    Context temporaryContext = context;
     hg.reset();
-    context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-    context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
+    temporaryContext.coarsening.rating.rating_function = RatingFunction::heavy_edge;
+    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
     ASSERT(context.coarsening.rating.heavy_node_penalty_policy != HeavyNodePenaltyPolicy::edge_frequency);
-    context.evo_flags.parent1 = parents.first.partition();
-    context.evo_flags.parent2 = parents.second.partition();
-    context.evo_flags.initialPartitioning = false;
+    temporaryContext.evo_flags.parent1 = parents.first.partition();
+    temporaryContext.evo_flags.parent2 = parents.second.partition();
+    temporaryContext.evo_flags.initialPartitioning = false;
     Partitioner partitioner;
-    partitioner.partition(hg, context);
+    partitioner.partition(hg, temporaryContext);
     return kahypar::createIndividual(hg);
   }
 
-// TODO(robin): make context ref const
-  Individual crossCombine(Hypergraph& hg,const Individual& in ,Context& context) {
+
+  Individual crossCombine(Hypergraph& hg,const Individual& in ,const Context& context) {
 
     Context temporaryContext = context;
     switch(context.evolutionary.cross_combine_objective) {
-      // TODO(robin): add all constants to evo context
       case CrossCombineObjective::k : {
-        int lowerbound = std::max(context.partition.k / 4, 2);
-        int kFactor = Randomize::instance().getRandomInt(lowerbound, context.partition.k * 4);
+        int lowerbound = std::max(context.partition.k / context.evolutionary.cross_combine_lower_limit_kfactor, 2);
+        int kFactor = Randomize::instance().getRandomInt(lowerbound, 
+                                                         (context.evolutionary.cross_combine_upper_limit_kfactor *
+                                                         context.partition.k));
         temporaryContext.partition.k = kFactor;
         //break; //No break statement since in mode k epsilon should be varied too
       }
       case CrossCombineObjective::epsilon : {
-        float epsilonFactor = Randomize::instance().getRandomFloat(context.partition.epsilon, 0.25);
+        float epsilonFactor = Randomize::instance().getRandomFloat(context.partition.epsilon, 
+                                                                   context.evolutionary.cross_combine_epsilon_upper_limit);
         temporaryContext.partition.epsilon = epsilonFactor;
         break;
       }
@@ -62,15 +66,18 @@ namespace combine {
         std::exit(1);
       }
       case CrossCombineObjective::louvain : {
-        // TODO(robin): fix: use hg.communities() to get communities
+
         detectCommunities(hg, temporaryContext);
-        
+        std::vector<PartitionID> communities = hg.communities();
         std::vector<HyperedgeID> dummy;
-        Individual temporaryLouvainIndividual = kahypar::createIndividual(hg);
+        Individual temporaryLouvainIndividual = Individual(communities, dummy, dummy, std::numeric_limits<double>::max());
         context.evo_flags.invalid_second_partition = true;
         Individual ret = partitions(hg, std::pair<Individual, Individual>(in, temporaryLouvainIndividual), context);
         context.evo_flags.invalid_second_partition = false;
+        
         return ret;
+      }
+
       }
       hg.changeK(temporaryContext.partition.k);
       hg.reset();
@@ -99,29 +106,27 @@ namespace combine {
       return ret;
     }
 
-  Individual edgeFrequency(Hypergraph& hg, Context& context, const Population& pop) {
+  Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& pop) {
+    Context temporaryContext = context;
     hg.reset();
-    context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
-    HeavyNodePenaltyPolicy originalPolicy = context.coarsening.rating.heavy_node_penalty_policy;
-    context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-    context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-    context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::edge_frequency_penalty;
+    temporaryContext.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    temporaryContext.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+    temporaryContext.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::edge_frequency_penalty;
     Partitioner partitioner;
-    partitioner.partition(hg, context);
-    context.coarsening.rating.heavy_node_penalty_policy = originalPolicy;
+    partitioner.partition(hg, temporaryContext);
     return kahypar::createIndividual(hg);
   }
-  Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,const std::pair<Individual, Individual>& parents, Context& context, const Population& pop) { 
+  Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,const std::pair<Individual, Individual>& parents, const Context& context, const Population& pop) { 
     hg.reset();
-    context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
-    HeavyNodePenaltyPolicy originalPolicy = context.coarsening.rating.heavy_node_penalty_policy;
-    context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-    context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-    context.evo_flags.parent1 = parents.first.partition();
-    context.evo_flags.parent2 = parents.second.partition();
+    Context temporaryContext = context;
+    temporaryContext.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    temporaryContext.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+    temporaryContext.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
+    temporaryContext.evo_flags.parent1 = parents.first.partition();
+    temporaryContext.evo_flags.parent2 = parents.second.partition();
     Partitioner partitioner;
-    partitioner.partition(hg, context);
-    context.coarsening.rating.heavy_node_penalty_policy = originalPolicy;
+    partitioner.partition(hg, temporaryContext);
     return kahypar::createIndividual(hg);
   }
   
