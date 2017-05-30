@@ -23,21 +23,21 @@ Individual createIndividual(const Hypergraph &hypergraph) {
   return ind;
 }
 void forceBlock(const HyperedgeID he, Hypergraph& hg) {
-  int amount[hg.k()] = { };
-  // TODO(robin): use hypergraph.partWeight(...) instead
-    for(HypernodeID u : hg.nodes()) {
-      amount[hg.partID(u)] += 1;
+  int k = hg.k();
+  int amount[k] = { };
+    for(int i = 0; i < k; ++i) {
+      amount[i] += hg.partWeight(i);
     }
-    int smallestBlock = std::numeric_limits<int>::max();
-    int smallestBlockValue = std::numeric_limits<int>::max();
+    int smallest_block = std::numeric_limits<int>::max();
+    int smallest_block_value = std::numeric_limits<int>::max();
     for(int i = 0; i < hg.k(); ++i) {
-      if(amount[i] < smallestBlockValue) { 
-        smallestBlock = i;
-        smallestBlockValue = amount[i];
+      if(amount[i] < smallest_block_value) { 
+        smallest_block = i;
+        smallest_block_value = amount[i];
       }
     }
     for(HypernodeID u : hg.pins(he)) {   
-      hg.changeNodePart(u, hg.partID(u), smallestBlock);
+      hg.changeNodePart(u, hg.partID(u), smallest_block);
     }
   }
 
@@ -60,26 +60,18 @@ class Population {
   inline void print()const ;
   inline const Individual& singleTournamentSelection();
   private:
-  inline size_t difference(const Individual &in, size_t position, bool strongSet);
-  inline size_t replaceDiverse(const Individual &in, bool strongSet);
+  inline size_t difference(const Individual &in, size_t position, bool strong_set);
+  inline size_t replaceDiverse(const Individual &in, bool strong_set);
   
   inline Individual createIndividual();
-  // TODO(robin): rename _individuals
+
   std::vector<Individual> _individuals;
-  // TODO(robin): maybe get rid of hypergraph reference
+
 
 };
-  inline size_t Population::difference(const Individual &in, size_t position, bool strongSet) {
+  inline size_t Population::difference(const Individual &in, size_t position, bool strong_set) {
     std::vector<HyperedgeID> output_diff;
-    std::vector<HyperedgeID> one;
-    std::vector<HyperedgeID> two;
-    // TODO(robin): get rid of one, two by using/returning references
-    // std::set_symmetric_difference(_internalPopulation[position].strongCutEdges().begin(),
-      // _internalPopulation[position].strongCutEdges().end(),
-      //       in.strongCutEdges().begin(),
-      //       //       in.strongCutEdges().end(),
-      //       std::back_inserter(output_diff));
-    if(strongSet) {
+    if(strong_set) {
       
       std::set_symmetric_difference(_individuals[position].strongCutEdges().begin(),
              _individuals[position].strongCutEdges().end(),
@@ -96,7 +88,7 @@ class Population {
     }
       return output_diff.size();
     }
-   inline size_t Population::replaceDiverse(const Individual &in, bool strongSet) {
+   inline size_t Population::replaceDiverse(const Individual &in, bool strong_set) {
      //TODO fix, that these can be inserted
      
      /*if(size() < _maxPopulationLimit) {
@@ -111,7 +103,7 @@ class Population {
      for(unsigned i = 0; i < size(); ++i) {
        if(_individuals[i].fitness() >= in.fitness()) {
 
-         unsigned similarity = difference(in, i, strongSet);
+         unsigned similarity = difference(in, i, strong_set);
          std::cout << "SYMMETRIC DIFFERENCE: " << similarity << " from " << i <<std::endl;
          if(similarity < max_similarity) {
          max_similarity = similarity;
@@ -125,22 +117,22 @@ class Population {
 
 
 inline std::pair<const Individual&,const Individual&> Population::tournamentSelect() {
-  const Individual& firstTournamentWinner = singleTournamentSelection();
-  size_t firstPos    = randomIndividual();
-  size_t secondPos   = randomIndividualExcept(firstPos);
-  const Individual&  first       = individualAt(firstPos);
-  const Individual&  second      = individualAt(secondPos);
-  size_t secondWinnerPos = first.fitness() < second.fitness() ? firstPos : secondPos;
-  if(firstTournamentWinner.fitness() == individualAt(secondWinnerPos).fitness()) {
-    secondWinnerPos = first.fitness() >= second.fitness() ? firstPos : secondPos;
+  const Individual& first_tournament_winner = singleTournamentSelection();
+  size_t first_pos    = randomIndividual();
+  size_t second_pos   = randomIndividualExcept(first_pos);
+  const Individual&  first       = individualAt(first_pos);
+  const Individual&  second      = individualAt(second_pos);
+  size_t second_winner_pos = first.fitness() < second.fitness() ? first_pos : second_pos;
+  if(first_tournament_winner.fitness() == individualAt(second_winner_pos).fitness()) {
+    second_winner_pos = first.fitness() >= second.fitness() ? first_pos : second_pos;
   }
-  return std::pair<Individual, Individual>(firstTournamentWinner, individualAt(secondWinnerPos));
+  return std::pair<Individual, Individual>(first_tournament_winner, individualAt(second_winner_pos));
 }
 inline const Individual& Population::singleTournamentSelection() {
-  size_t firstPos = randomIndividual();
-  size_t secondPos = randomIndividualExcept(firstPos);
-  Individual first = individualAt(firstPos);
-  Individual second = individualAt(secondPos);
+  size_t first_pos = randomIndividual();
+  size_t second_pos = randomIndividualExcept(first_pos);
+  const Individual& first = individualAt(first_pos);
+  const Individual& second = individualAt(second_pos);
   return first.fitness() < second.fitness() ? first : second;
 }
 
@@ -204,17 +196,17 @@ inline void Population::print() const {
 }
 inline size_t Population::best() {
    
-  size_t bestPosition = 0;
-  HyperedgeWeight bestValue = std::numeric_limits<int>::max();
+  size_t best_position = 0;
+  HyperedgeWeight best_value = std::numeric_limits<int>::max();
   for(size_t i = 0; i < size(); ++i) {
 	  HyperedgeWeight result = _individuals[i].fitness();
-	  if(result < bestValue) {
-	    bestPosition = i;
-	    bestValue = result;
+	  if(result < best_value) {
+	    best_position = i;
+	    best_value = result;
 	  }
 
   }
-  return bestPosition;
+  return best_position;
 
 }
 //TODO make references
@@ -233,17 +225,17 @@ inline std::vector<Individual> Population::listOfBest(const size_t& amount) cons
   
 }
 inline size_t Population::worst() {
-  size_t worstPosition = 0;
-  HyperedgeWeight worstValue = std::numeric_limits<int>::min();
+  size_t worst_position = 0;
+  HyperedgeWeight worst_value = std::numeric_limits<int>::min();
   for(size_t i = 0; i < size(); ++i) {
 	  HyperedgeWeight result = _individuals[i].fitness();
-	  if(result > worstValue) {
-	    worstPosition = i;
-	    worstValue = result;
+	  if(result > worst_value) {
+	    worst_position = i;
+	    worst_value = result;
 	  }
 
   }
-  return worstPosition;
+  return worst_position;
 }
 
 }//namespace kahypar
