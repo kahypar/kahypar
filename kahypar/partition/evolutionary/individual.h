@@ -18,14 +18,14 @@ class Individual {
   }
 
   // TODO(robin): return references!
-  inline std::vector<PartitionID> partition() const {
+  inline const std::vector<PartitionID>& partition() const {
     return _partition;
   }
-  inline std::vector<HyperedgeID> cutEdges() const {
+  inline const std::vector<HyperedgeID>& cutEdges() const {
     return _cutedges;
   }
 
-  inline std::vector<HyperedgeID> strongCutEdges() const {
+  inline const std::vector<HyperedgeID>& strongCutEdges() const {
     return _strongcutedges;
   }
   inline void print() const {
