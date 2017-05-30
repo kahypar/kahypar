@@ -1658,6 +1658,16 @@ class GenericHypergraph {
     std::fill(_communities.begin(), _communities.end(), 0);
   }
 
+  void resetEdgeHashes() {
+    for (const HyperedgeID& he : edges()) {
+      hyperedge(he).hash = kEdgeHashSeed;
+      hyperedge(he).contraction_type = ContractionType::Initial;
+      for (const HypernodeID& pin : pins(he)) {
+        hyperedge(he).hash += math::hash(pin);
+      }
+    }
+  }
+
 
   // ! Returns the sum of the weights of all hypernodes in a block
   HypernodeWeight partWeight(const PartitionID id) const {

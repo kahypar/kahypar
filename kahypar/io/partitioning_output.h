@@ -231,10 +231,10 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
       << context.stats.postprocessing("ParallelHErestoreTime")
       << "s [currently not implemented]";
   if (context.partition.global_search_iterations > 0) {
-    LOG << " | v-cycle coarsening              = "
+    LOG << "  | v-cycle coarsening              = "
         << context.stats.coarsening("VcycleTime") << "s";
-    LOG << " | v-cycle uncoarsening/refinement ="
-        << context.stats.localSearch("vcycletime") << "s";
+    LOG << "  | v-cycle uncoarsening/refinement ="
+        << context.stats.localSearch("VcycleTime") << "s";
   }
 }
 

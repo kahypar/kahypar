@@ -47,9 +47,9 @@ int main(int argc, char* argv[]) {
     kahypar::io::printBanner();
   }
 
-  if (context.partition.global_search_iterations != 0) {
-    std::cerr << "Coarsened does not check if HNs are in same part." << std::endl;
-    std::cerr << "Therefore v-cycles are currently disabled." << std::endl;
+  if (context.partition.global_search_iterations != 0 &&
+      context.partition.mode == kahypar::Mode::recursive_bisection) {
+    std::cerr << "V-Cycles are not supported in recursive bisection mode." << std::endl;
     std::exit(-1);
   }
 

@@ -37,17 +37,21 @@ static constexpr bool debug = false;
 
 static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener,
                                    IRefiner& refiner, const Context& context) {
+  // In order to perform parallel net detection, we have to reset the edge hashes
+  // before coarsening.
+  hypergraph.resetEdgeHashes();
+
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats.coarsening("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.coarsening("VcycleTime") += std::chrono::duration<double>(end - start).count();
 
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  context.stats.localSearch("Time") += std::chrono::duration<double>(end - start).count();
+  context.stats.localSearch("VcycleTime") += std::chrono::duration<double>(end - start).count();
   return found_improved_cut;
 }
 
