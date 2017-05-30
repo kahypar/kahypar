@@ -117,9 +117,10 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   po::options_description preset_options("Preset Options", num_columns);
   preset_options.add_options()
     ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
-    "Context Presets:\n"
-    " - direct_kway_km1_alenex17\n"
-    " - rb_cut_alenex16\n"
+    "Context Presets (see config directory):\n"
+    " - km1_direct_kway_sea17.ini\n"
+    " - direct_kway_km1_alenex17.ini\n"
+    " - rb_cut_alenex16.ini\n"
     " - <path-to-custom-ini-file>");
 
   po::options_description general_options("General Options", num_columns);
@@ -380,7 +381,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::stoppingRuleFromString(ip_stopfm);
     }),
     "Stopping Rule for IP Local Search: \n"
-    " - adaptive_opt: ALENEX'17 stopping rule \n"
+    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
     " - simple:       ALENEX'16 threshold based on i-r-i\n"
     "(default: simple)")
     ("i-r-fm-stop-i",
@@ -434,10 +435,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
     }),
     "Stopping Rule for Local Search: \n"
-    " - adaptive_opt: ALENEX'17 stopping rule \n"
-    " - adaptive1:    new nGP implementation \n"
-    " - adaptive2:    original nGP implementation \n"
-    " - simple:       threshold based on r-fm-stop-i \n"
+    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
+    " - simple:       ALENEX'16 threshold based on r-fm-stop-i\n"
     "(default: simple)")
     ("r-fm-stop-i",
     po::value<int>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
@@ -445,7 +444,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "(default: 250)")
     ("r-fm-stop-alpha",
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
-    "Parameter alpha for adaptive stopping rules \n"
+    "Parameter alpha for adaptive stopping rule \n"
     "(default: 1,infinity: -1)");
 
   po::options_description cmd_line_options;
