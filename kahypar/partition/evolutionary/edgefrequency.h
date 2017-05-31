@@ -17,6 +17,7 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
+//#include "kahypar/partition/evolutionary/individual.h"
 namespace kahypar {
 namespace combine {
 namespace edgefrequency {

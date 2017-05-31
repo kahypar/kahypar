@@ -138,7 +138,7 @@ enum class MutateStrategy : uint8_t {
   single_stable_net_vcycle
 };
 // TODO(robin): rename to CrossCombineStrategy
-enum class CrossCombineObjective : uint8_t {
+enum class CrossCombineStrategy : uint8_t {
   k,
   epsilon,
   objective,
@@ -163,32 +163,7 @@ enum class Subtype : uint8_t {
   normal
 };
 
-// TODO(robin): move to context
-struct Requirements {
-  bool initial_partitioning;
-  bool evolutionary_parent_contraction;
-  bool vcycle_stable_net_collection;
-  bool invalidation_of_second_partition;
-};
-struct Action {
-  Action() :
-    action(Decision::normal),
-    subtype(Subtype::normal),
-    requires() {
-    requires.initial_partitioning = true;
-  }
-  Decision action;
-  Subtype subtype;
-  Requirements requires;
 
-  void print() {
-    std::cout << toString(action) << std::endl
-              << toString(subtype) << std::endl
-              << requires.initial_partitioning << std::endl
-              << requires.evolutionary_parent_contraction << std::endl
-              << requires.vcycle_stable_net_collection << std::endl
-              << requires.invalidation_of_second_partition << std::endl;
-  }
 
 
   std::string toString(const Decision& dec) {
@@ -201,7 +176,7 @@ struct Action {
     }
     return "UNDEFINED";
   }
-  std::string toString(const Subtype& subtype) const {
+  std::string toString(const Subtype& subtype)  {
     switch (subtype) {
       case Subtype::stable_net:  return "stable net";
       case Subtype::edge_frequency:  return "edge frequency";
@@ -212,7 +187,6 @@ struct Action {
     }
     return "UNDEFINED";
   }
-};
 
 
 static std::string toString(const RatingPartitionPolicy& policy) {
@@ -225,17 +199,17 @@ static std::string toString(const RatingPartitionPolicy& policy) {
       return std::string("UNDEFINED");
   }
 }
-static std::string toString(const CrossCombineObjective& ccobj) {
+static std::string toString(const CrossCombineStrategy& ccobj) {
   switch (ccobj) {
-    case CrossCombineObjective::k:
+    case CrossCombineStrategy::k:
       return std::string("k");
-    case CrossCombineObjective::epsilon:
+    case CrossCombineStrategy::epsilon:
       return std::string("epsilon");
-    case CrossCombineObjective::objective:
+    case CrossCombineStrategy::objective:
       return std::string("objective");
-    case CrossCombineObjective::mode:
+    case CrossCombineStrategy::mode:
       return std::string("mode");
-    case CrossCombineObjective::louvain:
+    case CrossCombineStrategy::louvain:
       return std::string("louvain");
     default:
       return std::string("UNDEFINED");
@@ -423,17 +397,17 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   }
   return os << static_cast<uint8_t>(rule);
 }
-static CrossCombineObjective crossCombineObjectiveFromString(const std::string& ccobj) {
+static CrossCombineStrategy crossCombineStrategyFromString(const std::string& ccobj) {
   if (ccobj == "k") {
-    return CrossCombineObjective::k;
+    return CrossCombineStrategy::k;
   } else if (ccobj == "epsilon") {
-    return CrossCombineObjective::epsilon;
+    return CrossCombineStrategy::epsilon;
   } else if (ccobj == "objective") {
-    return CrossCombineObjective::objective;
+    return CrossCombineStrategy::objective;
   } else if (ccobj == "mode") {
-    return CrossCombineObjective::mode;
+    return CrossCombineStrategy::mode;
   } else if (ccobj == "louvain") {
-    return CrossCombineObjective::louvain;
+    return CrossCombineStrategy::louvain;
   }
   std::cout << "No valid cross combine objective " << std::endl;
   exit(0);

@@ -1355,7 +1355,7 @@ class GenericHypergraph {
       _connectivity_sets[i].clear();
     }
   }
-  void setPartitionVector(std::vector<PartitionID> partitionVector) {
+  void setPartitionVector(const std::vector<PartitionID>& partitionVector) {
     for (HypernodeID u : nodes()) {
       setNodePart(u, partitionVector[u]);
     }

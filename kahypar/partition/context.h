@@ -190,6 +190,33 @@ struct LocalSearchParameters {
   int iterations_per_level = std::numeric_limits<int>::max();
 };
 
+struct Requirements {
+  bool initial_partitioning;
+  bool evolutionary_parent_contraction;
+  bool vcycle_stable_net_collection;
+  bool invalidation_of_second_partition;
+};
+
+struct Action {
+  Action() :
+    action(Decision::normal),
+    subtype(Subtype::normal),
+    requires() {
+    requires.initial_partitioning = true;
+  }
+  Decision action;
+  Subtype subtype;
+  Requirements requires;
+
+  void print() {
+    std::cout << toString(action) << std::endl
+              << toString(subtype) << std::endl
+              << requires.initial_partitioning << std::endl
+              << requires.evolutionary_parent_contraction << std::endl
+              << requires.vcycle_stable_net_collection << std::endl
+              << requires.invalidation_of_second_partition << std::endl;
+  }
+};
 inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters& params) {
   str << "Local Search Parameters:" << std::endl;
   str << "  Algorithm:                          " << params.algorithm << std::endl;
@@ -313,7 +340,7 @@ struct EvolutionaryParameters {
   MutateStrategy mutate_strategy = MutateStrategy::vcycle_with_new_initial_partitioning;
   int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
-  CrossCombineObjective cross_combine_objective = CrossCombineObjective::k;
+  CrossCombineStrategy cross_combine_objective = CrossCombineStrategy::k;
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
@@ -321,6 +348,12 @@ struct EvolutionaryParameters {
   int cross_combine_lower_limit_kfactor = 4;
   int cross_combine_upper_limit_kfactor = 4;
   float cross_combine_epsilon_upper_limit = 0.25;
+  mutable std::vector<PartitionID> parent1;
+  mutable std::vector<PartitionID> parent2;
+  mutable std::vector<HyperedgeID> stable_net_edges_vcycle;
+  mutable std::vector<HyperedgeID> stable_net_edges_final;
+  mutable std::vector<std::size_t> edge_frequency;
+  mutable Action action;
 };
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;
@@ -335,15 +368,7 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Diversification Interval            " << params.diversify_interval << std::endl;
   return str;
 }
-// TODO(robin): move to EvolutionaryParameters
-struct EvolutionaryFlags {
-  std::vector<PartitionID> parent1;
-  std::vector<PartitionID> parent2;
-  std::vector<HyperedgeID> stable_net_edges_vcycle;
-  std::vector<HyperedgeID> stable_net_edges_final;
-  std::vector<std::size_t> edge_frequency;
-  Action action;
-};
+
 class Context {
  public:
   using PartitioningStats = Stats<Context>;
@@ -354,7 +379,6 @@ class Context {
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   EvolutionaryParameters evolutionary { };
-  mutable EvolutionaryFlags evo_flags { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
   bool partition_evolutionary;

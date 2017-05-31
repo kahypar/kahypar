@@ -27,20 +27,40 @@ class Individual {
     _cutedges(),
     _strongcutedges(),
     _fitness() { }
-  Individual(std::vector<PartitionID> partition, std::vector<HyperedgeID> cutEdges, std::vector<HyperedgeID> strongEdges, HyperedgeWeight fitness) :
+  Individual(std::vector<PartitionID> partition, std::vector<HyperedgeID> cut_edges, std::vector<HyperedgeID> strong_edges, HyperedgeWeight fitness) :
     _partition(partition),
-    _cutedges(cutEdges),
-    _strongcutedges(strongEdges),
+    _cutedges(cut_edges),
+    _strongcutedges(strong_edges),
     _fitness(fitness) { }
 
-  // TODO(robin): maybe use:
-  // Individual(const Hypergraph& hypergraph) and fill vectors there
+  Individual(const Hypergraph& hypergraph) : 
+  _partition(),
+  _cutedges(),
+  _strongcutedges(),
+  _fitness() {
+  
+    for (HypernodeID u : hypergraph.nodes()) {
+      std::cout << hypergraph.partID(u) << " ";
+      _partition.push_back(hypergraph.partID(u));
+    }
+    _fitness = metrics::km1(hypergraph);
 
+    for (HyperedgeID v : hypergraph.edges()) {
+      auto km1 = hypergraph.connectivity(v) - 1;
+      if (km1 > 0) {
+        _cutedges.push_back(v);
+        for (unsigned i = 1; i < hypergraph.connectivity(v); i++) {
+          _strongcutedges.push_back(v);
+        }
+      }
+    }
+  
+  }
   inline HyperedgeWeight fitness() const {
     return _fitness;
   }
 
-  // TODO(robin): return references!
+
   inline const std::vector<PartitionID> & partition() const {
     return _partition;
   }

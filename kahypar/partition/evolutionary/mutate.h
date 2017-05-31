@@ -31,11 +31,11 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   action.subtype = Subtype::vcycle_initial_partitioning;
   action.requires.initial_partitioning = true;
   Context temporary_context = context;
-  temporary_context.evo_flags.action = action;
+  temporary_context.evolutionary.action = action;
 
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
 Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
@@ -45,20 +45,30 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   action.requires.initial_partitioning = false;
   action.requires.vcycle_stable_net_collection = true;
   Context temporary_context = context;
-  temporary_context.evo_flags.action = action;
+  temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
   // TODO (I need to test whether this call to partiton works)
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
+//TODO implement
 Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const Context& context) {
-  std::vector<PartitionID> result;
-  std::vector<HyperedgeID> cutWeak;
-  std::vector<HyperedgeID> cutStrong;
-  HyperedgeWeight fitness;
-  Individual ind(result, cutWeak, cutStrong, fitness);
-  return ind;
+hg.setPartitionVector(in.partition());
+  Action action;
+  action.action = Decision::mutation;
+  action.subtype = Subtype::stable_net;
+  action.requires.initial_partitioning = false;
+  action.requires.vcycle_stable_net_collection = true;
+  Context temporary_context = context;
+  temporary_context.evolutionary.action = action;
+  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+  Partitioner partitioner;
+  partitioner.partition(hg, temporary_context);
+  action.requires.initial_partitioning = false;
+  action.requires.vcycle_stable_net_collection = false;
+  partitioner.partition(hg, temporary_context);
+  return Individual(hg);
 }
 }  // namespace mutate
 }

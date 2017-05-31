@@ -21,10 +21,11 @@
 #include "kahypar/datastructure/hypergraph.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/context_enum_classes.h"
-#include "kahypar/partition/evolutionary/combine.h"
-#include "kahypar/partition/evolutionary/individual.h"
-#include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/population.h"
+#include "kahypar/partition/evolutionary/combine.h"
+#include "kahypar/partition/evolutionary/mutate.h"
+#include "kahypar/partition/evolutionary/diversifyer.h"
+#include "kahypar/io/evolutionary_io.h"
 #include <chrono>
 namespace kahypar {
 namespace partition {
@@ -33,7 +34,8 @@ enum class Decision {
   mutation,
   combine,
   edgeFrequency,
-  crossCombine
+  crossCombine,
+  diversify
 };
 
 class EvoPartitioner {
@@ -64,6 +66,7 @@ class EvoPartitioner {
 
 
 inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
+  context.partition_evolutionary = true;
   std::chrono::duration<double> elapsed_seconds_total = measureTime();
   while (_population.size() < context.evolutionary.population_size && elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
@@ -71,12 +74,16 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
     elapsed_seconds_total = measureTime();
     _population.print();
   }
-  performEdgeFrequency(hg, context);
+  performCombine(hg, context);
+  _population.print();
   return;
   while (elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
     Decision decision = decideNextMove(context);
     switch (decision) {
+      case (Decision::diversify) : {
+        kahypar::partition::diversify(context);
+      }
       case (Decision::mutation):
         performMutation(hg, context);
         break;
@@ -93,6 +100,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
         std::cout << "Error in evo_partitioner.h: Non-covered case in decision making" << std::endl;
         std::exit(EXIT_FAILURE);
     }
+   
     elapsed_seconds_total = measureTime();
   }
 }
@@ -114,7 +122,7 @@ inline void EvoPartitioner::performMutation(Hypergraph& hg, const Context& conte
 }
 
 inline void EvoPartitioner::performCombine(Hypergraph& hg, const Context& context) {
-  const std::pair<Individual, Individual> parents = _population.tournamentSelect();
+  const std::pair<Individual, Individual>& parents = _population.tournamentSelect();
   switch (context.evolutionary.combine_strategy) {
     case (CombineStrategy::basic):
       // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
@@ -135,7 +143,10 @@ inline std::chrono::duration<double> EvoPartitioner::measureTime() {
   return currentTime - _globalstart;
 }
 inline Decision EvoPartitioner::decideNextMove(const Context& context) {
-  if (_iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
+  if (context.evolutionary.diversify_interval != -1  && _iteration % context.evolutionary.diversify_interval == 0) {
+    return Decision::diversify;
+  }
+  if (context.evolutionary.perform_edge_frequency_interval != -1 && _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
     return Decision::edgeFrequency;
   }
   if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {

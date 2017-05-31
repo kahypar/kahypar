@@ -35,7 +35,7 @@ class NormalPartitionPolicy final : public meta::PolicyBase {
 class EvoPartitionPolicy final : public meta::PolicyBase {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph, const Context& context, const HypernodeID& u, const HypernodeID& v) {
-    return context.evo_flags.parent1[u] == context.evo_flags.parent1[v] && context.evo_flags.parent2[u] == context.evo_flags.parent2[v];
+    return context.evolutionary.parent1[u] == context.evolutionary.parent1[v] && context.evolutionary.parent2[u] == context.evolutionary.parent2[v];
   }
 };
 

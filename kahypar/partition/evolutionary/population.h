@@ -17,11 +17,12 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
-#include "kahypar/partition/partitioner.h"
+//#include "kahypar/partition/partitioner.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/partition/evolutionary/individual.h"
 namespace kahypar {
 // TODO(robin): maybe replace with a new Individual constructor
-Individual createIndividual(const Hypergraph& hypergraph) {
+/*Individual createIndividual(const Hypergraph& hypergraph) {
   std::vector<PartitionID> result;
   for (HypernodeID u : hypergraph.nodes()) {
     result.push_back(hypergraph.partID(u));
@@ -40,8 +41,8 @@ Individual createIndividual(const Hypergraph& hypergraph) {
   }
   Individual ind(result, cutWeak, cutStrong, weight);
   return ind;
-}
-void forceBlock(const HyperedgeID he, Hypergraph& hg) {
+}*/
+/*void forceBlock(const HyperedgeID he, Hypergraph& hg) {
   int k = hg.k();
   int amount[k] = { };
   for (int i = 0; i < k; ++i) {
@@ -58,7 +59,7 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
   for (HypernodeID u : hg.pins(he)) {
     hg.changeNodePart(u, hg.partID(u), smallest_block);
   }
-}
+}*/
 
 class Population {
  public:
@@ -191,7 +192,7 @@ inline const Individual& Population::generateIndividual(Hypergraph& hg, Context&
   Partitioner partitioner;
   hg.reset();
   partitioner.partition(hg, context);
-  Individual ind = kahypar::createIndividual(hg);
+  Individual ind = Individual(hg);
   _individuals.push_back(ind);
   if (_individuals.size() > context.evolutionary.population_size) {
     std::cout << "Error, tried to fill Population above limit" << std::endl;

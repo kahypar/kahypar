@@ -20,30 +20,36 @@
 #include "kahypar/io/config_file_reader.h"
 #include "kahypar/partition/evolutionary/edgefrequency.h"
 #include "kahypar/partition/evolutionary/stablenet.h"
-#include "kahypar/partition/partitioner.h"
-#include "kahypar/partition/preprocessing/louvain.h"
 namespace kahypar {
 namespace combine {
 static constexpr bool debug = true;
 
 
 Individual partitions(Hypergraph& hg, const std::pair<Individual, Individual>& parents, const Context& context) {
+
   Action action;
   action.action = Decision::combine;
   action.subtype = Subtype::basic_combine;
   action.requires.initial_partitioning = false;
   action.requires.evolutionary_parent_contraction = true;
-  Context temporary_context = context;
-  temporary_context.evo_flags.action = action;
+
+  Context temporary_context(context);
+  temporary_context.evolutionary.action = action;
 
   hg.reset();
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-  temporary_context.evo_flags.parent1 = parents.first.partition();
-  temporary_context.evo_flags.parent2 = parents.second.partition();
+/*for(int i = 0; i < parents.first.partition().size(); ++i ) {
+      std::cout << parents.first.partition()[i] << " ";
+  }*/
+  temporary_context.evolutionary.parent1 = parents.first.partition();
+ /*for(int i = 0; i < context.evolutionary.parent1.size(); ++i ) {
+      std::cout << context.evolutionary.parent1[i] << " ";
+  }*/
+  temporary_context.evolutionary.parent2 = parents.second.partition();
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
 
 Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& context) {
@@ -55,11 +61,11 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   action.requires.vcycle_stable_net_collection = false;
   action.requires.invalidation_of_second_partition = true;
   Context temporary_context = context;
-  temporary_context.evo_flags.action = action;
+  temporary_context.evolutionary.action = action;
 
 
   switch (context.evolutionary.cross_combine_objective) {
-    case CrossCombineObjective::k: {
+    case CrossCombineStrategy::k: {
         int lowerbound = std::max(context.partition.k / context.evolutionary.cross_combine_lower_limit_kfactor, 2);
         int kFactor = Randomize::instance().getRandomInt(lowerbound,
                                                          (context.evolutionary.cross_combine_upper_limit_kfactor *
@@ -67,13 +73,13 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         temporary_context.partition.k = kFactor;
         // break; //No break statement since in mode k epsilon should be varied too
       }
-    case CrossCombineObjective::epsilon: {
+    case CrossCombineStrategy::epsilon: {
         float epsilonFactor = Randomize::instance().getRandomFloat(context.partition.epsilon,
                                                                    context.evolutionary.cross_combine_epsilon_upper_limit);
         temporary_context.partition.epsilon = epsilonFactor;
         break;
       }
-    case CrossCombineObjective::objective:
+    case CrossCombineStrategy::objective:
 
       if (context.partition.objective == Objective::km1) {
         io::readInBisectionContext(temporary_context);
@@ -84,7 +90,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       }
       std::cout << "Nonspecified Objective in Cross Combine " << std::endl;
       std::exit(1);
-    case CrossCombineObjective::mode:
+    case CrossCombineStrategy::mode:
       if (context.partition.mode == Mode::recursive_bisection) {
         io::readInDirectKwayContext(temporary_context);
         break;
@@ -94,7 +100,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       }
       std::cout << "Nonspecified Mode in Cross Combine " << std::endl;
       std::exit(1);
-    case CrossCombineObjective::louvain: {
+    case CrossCombineStrategy::louvain: {
         detectCommunities(hg, temporary_context);
         std::vector<PartitionID> communities = hg.communities();
         std::vector<HyperedgeID> dummy;
@@ -112,7 +118,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   hg.reset();
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
-  Individual crossCombineIndividual = kahypar::createIndividual(hg);
+  Individual crossCombineIndividual = Individual(hg);
   hg.reset();
   hg.changeK(context.partition.k);
   Individual ret = partitions(hg, std::pair<Individual, Individual>(in, crossCombineIndividual), context);
@@ -140,11 +146,11 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   action.requires.initial_partitioning = false;
   action.requires.evolutionary_parent_contraction = false;
   action.requires.vcycle_stable_net_collection = false;
-  temporary_context.evo_flags.action = action;
+  temporary_context.evolutionary.action = action;
   hg.reset();
 
   // TODO(robin):  edgefrequency::fromPopulation
-  temporary_context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+  temporary_context.evolutionary.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   temporary_context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::edge_frequency_penalty;
@@ -152,7 +158,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
 
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
 Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const std::pair<Individual, Individual>& parents, const Context& context, const Population& pop) {
   hg.reset();
@@ -165,14 +171,14 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   action.requires.vcycle_stable_net_collection = false;
 
 
-  temporary_context.evo_flags.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+  temporary_context.evolutionary.edge_frequency = edgefrequency::frequencyFromPopulation(context, pop.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-  temporary_context.evo_flags.parent1 = parents.first.partition();
-  temporary_context.evo_flags.parent2 = parents.second.partition();
+  temporary_context.evolutionary.parent1 = parents.first.partition();
+  temporary_context.evolutionary.parent2 = parents.second.partition();
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
 
 
@@ -193,16 +199,16 @@ Individual populationStableNet(Hypergraph& hg, const Population& pop, const Cont
       for (HypernodeID u :hg.pins(stable_nets[i])) {
         touchedArray[u] = true;
       }
-      forceBlock(stable_nets[i], hg);
+      stablenet::forceBlock(stable_nets[i], hg);
     }
   }
-  return kahypar::createIndividual(hg);
+  return Individual(hg);
 }
 
 
 // TODO(andre) is this even viable?
 Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph& hg, const Population& pop, Context& context) {
-  context.evo_flags.stable_net_edges_final = stablenet::stableNetsFromMultipleIndividuals(context, pop.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
+  context.evolutionary.stable_net_edges_final = stablenet::stableNetsFromMultipleIndividuals(context, pop.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   std::vector<PartitionID> result;
   std::vector<HyperedgeID> cutWeak;
   std::vector<HyperedgeID> cutStrong;
