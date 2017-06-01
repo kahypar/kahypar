@@ -36,6 +36,7 @@ namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds) {
+  const auto& timings = Timer::instance().result();
   std::ostringstream oss;
   oss << "RESULT"
       << " graph=" << context.partition.graph_filename.substr(
@@ -79,21 +80,28 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.preprocessing.enable_community_detection
       << " enable_louvain_in_initial_partitioning=" << std::boolalpha
       << context.preprocessing.community_detection.enable_in_initial_partitioning
-      << " max_louvain_pass_iterations=" << context.preprocessing.community_detection.max_pass_iterations
-      << " min_louvain_eps_improvement=" << context.preprocessing.community_detection.min_eps_improvement
+      << " max_louvain_pass_iterations="
+      << context.preprocessing.community_detection.max_pass_iterations
+      << " min_louvain_eps_improvement="
+      << context.preprocessing.community_detection.min_eps_improvement
       << " louvain_edge_weight=" << toString(context.preprocessing.community_detection.edge_weight)
       << " reuse_community_structure=" << std::boolalpha
       << context.preprocessing.community_detection.reuse_communities
       << " coarsening_algo=" << toString(context.coarsening.algorithm)
-      << " coarsening_max_allowed_weight_multiplier=" << context.coarsening.max_allowed_weight_multiplier
-      << " coarsening_contraction_limit_multiplier=" << context.coarsening.contraction_limit_multiplier
+      << " coarsening_max_allowed_weight_multiplier="
+      << context.coarsening.max_allowed_weight_multiplier
+      << " coarsening_contraction_limit_multiplier="
+      << context.coarsening.contraction_limit_multiplier
       << " coarsening_hypernode_weight_fraction=" << context.coarsening.hypernode_weight_fraction
       << " coarsening_max_allowed_node_weight=" << context.coarsening.max_allowed_node_weight
       << " coarsening_contraction_limit=" << context.coarsening.contraction_limit
       << " coarsening_rating_function=" << toString(context.coarsening.rating.rating_function)
-      << " coarsening_rating_use_communities=" << toString(context.coarsening.rating.community_policy)
-      << " coarsening_rating_heavy_node_penalty=" << toString(context.coarsening.rating.heavy_node_penalty_policy)
-      << " coarsening_rating_acceptance_policy=" << toString(context.coarsening.rating.acceptance_policy)
+      << " coarsening_rating_use_communities="
+      << toString(context.coarsening.rating.community_policy)
+      << " coarsening_rating_heavy_node_penalty="
+      << toString(context.coarsening.rating.heavy_node_penalty_policy)
+      << " coarsening_rating_acceptance_policy="
+      << toString(context.coarsening.rating.acceptance_policy)
       << " IP_mode=" << toString(context.initial_partitioning.mode)
       << " IP_technique=" << toString(context.initial_partitioning.technique)
       << " IP_algorithm=" << toString(context.initial_partitioning.algo)
@@ -104,11 +112,16 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.initial_partitioning.coarsening.max_allowed_weight_multiplier
       << " IP_coarsening_contraction_limit_multiplier="
       << context.initial_partitioning.coarsening.contraction_limit_multiplier
-      << " IP_coarsening_rating_function=" << toString(context.initial_partitioning.coarsening.rating.rating_function)
-      << " IP_coarsening_rating_use_communities=" << toString(context.initial_partitioning.coarsening.rating.community_policy)
-      << " IP_coarsening_rating_heavy_node_penalty=" << toString(context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy)
-      << " IP_coarsening_rating_acceptance_policy=" << toString(context.initial_partitioning.coarsening.rating.acceptance_policy)
-      << " IP_local_search_algorithm=" << toString(context.initial_partitioning.local_search.algorithm)
+      << " IP_coarsening_rating_function="
+      << toString(context.initial_partitioning.coarsening.rating.rating_function)
+      << " IP_coarsening_rating_use_communities="
+      << toString(context.initial_partitioning.coarsening.rating.community_policy)
+      << " IP_coarsening_rating_heavy_node_penalty="
+      << toString(context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy)
+      << " IP_coarsening_rating_acceptance_policy="
+      << toString(context.initial_partitioning.coarsening.rating.acceptance_policy)
+      << " IP_local_search_algorithm="
+      << toString(context.initial_partitioning.local_search.algorithm)
       << " IP_local_search_iterations_per_level="
       << context.initial_partitioning.local_search.iterations_per_level;
   if (context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
@@ -121,7 +134,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " IP_local_search_fm_adaptive_stopping_alpha="
         << context.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
-  if (context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::label_propagation) {
+  if (context.initial_partitioning.local_search.algorithm ==
+      RefinementAlgorithm::label_propagation) {
     oss << " IP_local_search_sclap_max_number_iterations="
         << context.initial_partitioning.local_search.sclap.max_number_iterations;
   }
@@ -134,7 +148,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     oss << " local_search_fm_stopping_rule=" << toString(context.local_search.fm.stopping_rule)
         << " local_search_fm_max_number_of_fruitless_moves="
         << context.local_search.fm.max_number_of_fruitless_moves
-        << " local_search_fm_adaptive_stopping_alpha=" << context.local_search.fm.adaptive_stopping_alpha;
+        << " local_search_fm_adaptive_stopping_alpha="
+        << context.local_search.fm.adaptive_stopping_alpha;
   }
   if (context.local_search.algorithm == RefinementAlgorithm::label_propagation) {
     oss << " local_search_sclap_max_number_iterations="
@@ -152,25 +167,25 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " absorption=" << metrics::absorption(hypergraph)
       << " imbalance=" << metrics::imbalance(hypergraph, context)
       << " totalPartitionTime=" << elapsed_seconds.count()
-      << " initialParallelHEremovalTime="
-      << context.stats.preprocessing("ParallelHEremovalTime")
-      << " initialLargeHEremovalTime="
-      << context.stats.preprocessing("LargeHEremovalTime")
-      << " minHashSparsifierTime="
-      << context.stats.preprocessing("MinHashSparsifierTime")
-      << " communityDetectionTime="
-      << context.stats.preprocessing("CommunityDetectionTime")
-      << " coarseningTime="
-      << context.stats.coarsening("Time")
-      << " initialPartitionTime="
-      << context.stats.initialPartitioning("Time")
-      << " uncoarseningRefinementTime="
-      << context.stats.localSearch("Time")
-      << " initialParallelHErestoreTime="
-      << context.stats.postprocessing("ParallelHErestoreTime")
-      << " initialLargeHErestoreTime="
-      << context.stats.postprocessing("LargeHErestoreTime") << " "
-      << context.stats.serialize().str()
+      << " minHashSparsifierTime=" << timings.pre_sparsifier
+      << " communityDetectionTime=" << timings.pre_community_detection
+      << " coarseningTime=" << timings.total_coarsening
+      << " initialPartitionTime=" << timings.total_initial_partitioning
+      << " uncoarseningRefinementTime=" << timings.total_ip_local_search
+      << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
+
+  if (context.partition.global_search_iterations > 0) {
+    int i = 1;
+    for (const auto& timing : timings.v_cycle_coarsening) {
+      oss << " vcycle" << i << "_coarsening=" << timing;
+    }
+    i = 1;
+    for (const auto& timing : timings.v_cycle_local_search) {
+      oss << " vcycle" << i << "_local_search=" << timing;
+    }
+  }
+
+  oss << context.stats.serialize().str()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;
 

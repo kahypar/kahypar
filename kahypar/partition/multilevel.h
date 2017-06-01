@@ -27,6 +27,7 @@
 #include "kahypar/partition/initial_partition.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/timer.h"
 
 namespace kahypar {
 namespace multilevel {
@@ -44,11 +45,8 @@ static inline void partition(Hypergraph& hypergraph,
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats.coarsening("Time") += std::chrono::duration<double>(end - start).count();
-  if (context.isMainRecursiveBisection()) {
-    context.stats.topLevel().coarsening("Time") +=
-      std::chrono::duration<double>(end - start).count();
-  }
+  Timer::instance().add(context, Timepoint::coarsening,
+                        std::chrono::duration<double>(end - start).count());
 
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
@@ -62,11 +60,8 @@ static inline void partition(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   initial::partition(hypergraph, context);
   end = std::chrono::high_resolution_clock::now();
-  context.stats.initialPartitioning("Time") += std::chrono::duration<double>(end - start).count();
-  if (context.isMainRecursiveBisection()) {
-    context.stats.topLevel().initialPartitioning("Time") +=
-      std::chrono::duration<double>(end - start).count();
-  }
+  Timer::instance().add(context, Timepoint::initial_partitioning,
+                        std::chrono::duration<double>(end - start).count());
 
   hypergraph.initializeNumCutHyperedges();
   if (context.partition.verbose_output && context.type == ContextType::main) {
@@ -91,11 +86,8 @@ static inline void partition(Hypergraph& hypergraph,
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  context.stats.localSearch("Time") += std::chrono::duration<double>(end - start).count();
-  if (context.isMainRecursiveBisection()) {
-    context.stats.topLevel().localSearch("Time") +=
-      std::chrono::duration<double>(end - start).count();
-  }
+  Timer::instance().add(context, Timepoint::local_search,
+                        std::chrono::duration<double>(end - start).count());
 
   if (context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "Local Search Result:";

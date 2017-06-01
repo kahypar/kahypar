@@ -33,6 +33,7 @@
 #include "kahypar/partition/preprocessing/modularity.h"
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/stats.h"
+#include "kahypar/utils/timer.h"
 
 static constexpr bool debug = false;
 
@@ -262,11 +263,8 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   const EdgeWeight quality = louvain.run();
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  DBG << "Louvain-Time:" << elapsed_seconds.count() << "s";
-  context.stats.preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
-  if (context.isMainRecursiveBisection()) {
-    context.stats.topLevel().preprocessing("CommunityDetectionTime") += elapsed_seconds.count();
-  }
+  Timer::instance().add(context, Timepoint::pre_community_detection,
+                        std::chrono::duration<double>(end - start).count());
   context.stats.preprocessing("Communities") += louvain.numCommunities();
   context.stats.preprocessing("Modularity") += quality;
 
@@ -291,6 +289,7 @@ inline void detectCommunities(Hypergraph& hypergraph, const Context& context) {
     LOG << "Performing community detection:";
   }
   hypergraph.setCommunities(internal::detectCommunities(hypergraph, context));
+
   if (verbose_output) {
     LOG << "  # communities =" << context.stats.preprocessing("Communities");
     LOG << "  modularity    =" << context.stats.preprocessing("Modularity");

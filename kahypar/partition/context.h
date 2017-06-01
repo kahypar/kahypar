@@ -301,7 +301,7 @@ struct PartitioningParameters {
   PartitionID rb_upper_k = 1;
   int seed = 0;
   int global_search_iterations = 0;
-  int current_v_cycle = 0;
+  mutable int current_v_cycle = 0;
   std::array<HypernodeWeight, 2> perfect_balance_part_weights { {
                                                                   std::numeric_limits<HypernodeWeight>::max(),
                                                                   std::numeric_limits<HypernodeWeight>::max()

@@ -44,14 +44,16 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  context.stats.coarsening("VcycleTime") += std::chrono::duration<double>(end - start).count();
+  Timer::instance().add(context, Timepoint::v_cycle_coarsening,
+                        std::chrono::duration<double>(end - start).count());
 
   hypergraph.initializeNumCutHyperedges();
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
-  context.stats.localSearch("VcycleTime") += std::chrono::duration<double>(end - start).count();
+  Timer::instance().add(context, Timepoint::v_cycle_local_search,
+                        std::chrono::duration<double>(end - start).count());
   return found_improved_cut;
 }
 
@@ -74,6 +76,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 #endif
 
   for (int vcycle = 1; vcycle <= context.partition.global_search_iterations; ++vcycle) {
+    context.partition.current_v_cycle = vcycle;
     const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener, *refiner, context);
 
     DBG << V(vcycle) << V(metrics::hyperedgeCut(hypergraph));
