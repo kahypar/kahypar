@@ -181,7 +181,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     }
   }
 
-  oss << context.stats.serialize().str()
+  oss << " " << context.stats.serialize().str()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;
 

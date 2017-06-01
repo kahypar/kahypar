@@ -27,6 +27,30 @@
 #include "kahypar/partition/context_enum_classes.h"
 
 namespace kahypar {
+enum class StatTag : uint8_t {
+  Preprocessing,
+  Coarsening,
+  InitialPartitioning,
+  LocalSearch,
+  Postprocessing,
+  COUNT
+};
+
+
+std::ostream& operator<< (std::ostream& os, StatTag tag) {
+  switch (tag) {
+    case StatTag::Preprocessing: return os << "preprocessing";
+    case StatTag::Coarsening: return os << "coarsening";
+    case StatTag::InitialPartitioning: return os << "initial_partitioning";
+    case StatTag::LocalSearch: return os << "local_search";
+    case StatTag::Postprocessing: return os << "postprocessing";
+    case StatTag::COUNT: return os << "";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(tag);
+}
+
+#ifdef GATHER_STATS
 template <class Context>
 class Stats {
   using Log = std::map<std::string, double>;
@@ -36,21 +60,13 @@ class Stats {
     _context(context),
     _oss(),
     _parent(nullptr),
-    _preprocessing_logs(),
-    _coarsening_logs(),
-    _ip_logs(),
-    _local_search_logs(),
-    _postprocessing_logs() { }
+    _logs() { }
 
   Stats(const Context& context, Stats* parent) :
     _context(context),
     _oss(),
     _parent(parent),
-    _preprocessing_logs(),
-    _coarsening_logs(),
-    _ip_logs(),
-    _local_search_logs(),
-    _postprocessing_logs() { }
+    _logs() { }
 
   ~Stats() {
     if (_parent != nullptr) {
@@ -64,24 +80,12 @@ class Stats {
   Stats(Stats&&) = delete;
   Stats& operator= (Stats&&) = delete;
 
-  double & preprocessing(const std::string& key) {
-    return _preprocessing_logs[key];
+  void set(const StatTag& tag, const std::string& key, const double& value) {
+    _logs[static_cast<size_t>(tag)][key] = value;
   }
 
-  double & coarsening(const std::string& key) {
-    return _coarsening_logs[key];
-  }
-
-  double & initialPartitioning(const std::string& key) {
-    return _ip_logs[key];
-  }
-
-  double & localSearch(const std::string& key) {
-    return _local_search_logs[key];
-  }
-
-  double & postprocessing(const std::string& key) {
-    return _postprocessing_logs[key];
+  void add(const StatTag& tag, const std::string& key, const double& value) {
+    _logs[static_cast<size_t>(tag)][key] = value;
   }
 
   Stats & topLevel() {
@@ -106,35 +110,61 @@ class Stats {
 
   void serializeToParent() {
     std::ostringstream& oss = parentOutputStream();
-    serialize(_preprocessing_logs, prefix("preprocessing"), oss);
-    serialize(_coarsening_logs, prefix("coarsening"), oss);
-    serialize(_ip_logs, prefix("ip"), oss);
-    serialize(_local_search_logs, prefix("local_search"), oss);
-    serialize(_postprocessing_logs, prefix("postprocessing"), oss);
-  }
-
-  void serialize(const Log& log, const std::string& prefix, std::ostringstream& oss) {
-    for (auto it = log.cbegin(); it != log.cend(); ++it) {
-      oss << prefix << it->first << "=" << it->second << " ";
+    for (int i = 0; i < static_cast<int>(StatTag::COUNT); ++i) {
+      serialize(_logs[i], static_cast<StatTag>(i), oss);
     }
   }
 
-  std::string prefix(const std::string& phase) const {
-    return "vcycle_" + std::to_string(_context.partition.current_v_cycle)
-           + "-" + toString(_context.type)
-           + "-bisection_" + std::to_string(_context.partition.rb_lower_k)
-           + "_" + std::to_string(_context.partition.rb_upper_k)
-           + "-" + phase + "-";
+  void serialize(const Log& log, const StatTag& tag, std::ostringstream& oss) {
+    for (auto it = log.cbegin(); it != log.cend(); ++it) {
+      oss << "vcycle_" << std::to_string(_context.partition.current_v_cycle)
+          << "-" << toString(_context.type)
+          << "-bisection_" << std::to_string(_context.partition.rb_lower_k)
+          << "_" << std::to_string(_context.partition.rb_upper_k)
+          << "-" << tag << "-" << it->first << "=" << it->second << " ";
+    }
   }
-
 
   const Context& _context;
   std::ostringstream _oss;
   Stats* _parent;
-  Log _preprocessing_logs;
-  Log _coarsening_logs;
-  Log _ip_logs;
-  Log _local_search_logs;
-  Log _postprocessing_logs;
+  std::array<Log, static_cast<int>(StatTag::COUNT)> _logs;
 };
+
+#else
+template <class Context>
+class Stats {
+  using Log = std::map<std::string, double>;
+
+ public:
+  explicit Stats(const Context&) :
+    _oss() { }
+
+  Stats(const Context&, Stats*) :
+    _oss() { }
+
+  Stats(const Stats&) = delete;
+  Stats& operator= (const Stats&) = delete;
+
+  Stats(Stats&&) = delete;
+  Stats& operator= (Stats&&) = delete;
+
+  template <typename T>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void set(const StatTag&, const T&, const double&) { }
+
+  template <typename T>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void add(const StatTag&, const T&, const double&) { }
+
+  Stats & topLevel() { return *this; }
+
+  std::ostringstream & serialize() {
+    return _oss;
+  }
+
+ private:
+  std::ostringstream _oss;
+};
+
+
+#endif
 }  // namespace kahypar

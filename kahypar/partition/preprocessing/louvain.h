@@ -258,6 +258,14 @@ class Louvain {
 namespace internal {
 inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
                                                 const Context& context) {
+  const bool verbose_output = (context.type == ContextType::main &&
+                               context.partition.verbose_output) ||
+                              (context.type == ContextType::initial_partitioning &&
+                               context.initial_partitioning.verbose_output);
+  if (verbose_output) {
+    LOG << "Performing community detection:";
+  }
+
   Louvain<Modularity> louvain(hypergraph, context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   const EdgeWeight quality = louvain.run();
@@ -265,8 +273,13 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   std::chrono::duration<double> elapsed_seconds = end - start;
   Timer::instance().add(context, Timepoint::pre_community_detection,
                         std::chrono::duration<double>(end - start).count());
-  context.stats.preprocessing("Communities") += louvain.numCommunities();
-  context.stats.preprocessing("Modularity") += quality;
+  context.stats.set(StatTag::Preprocessing, "Communities", louvain.numCommunities());
+  context.stats.set(StatTag::Preprocessing, "Modularity", quality);
+
+  if (verbose_output) {
+    LOG << "  # communities =" << louvain.numCommunities();
+    LOG << "  modularity    =" << quality;
+  }
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
   for (const HypernodeID& hn : hypergraph.nodes()) {
@@ -281,18 +294,6 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
 }  // namespace internal
 
 inline void detectCommunities(Hypergraph& hypergraph, const Context& context) {
-  const bool verbose_output = (context.type == ContextType::main &&
-                               context.partition.verbose_output) ||
-                              (context.type == ContextType::initial_partitioning &&
-                               context.initial_partitioning.verbose_output);
-  if (verbose_output) {
-    LOG << "Performing community detection:";
-  }
   hypergraph.setCommunities(internal::detectCommunities(hypergraph, context));
-
-  if (verbose_output) {
-    LOG << "  # communities =" << context.stats.preprocessing("Communities");
-    LOG << "  modularity    =" << context.stats.preprocessing("Modularity");
-  }
 }
 }  // namespace kahypar

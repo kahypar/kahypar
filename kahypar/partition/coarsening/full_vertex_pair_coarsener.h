@@ -155,9 +155,6 @@ class FullVertexPairCoarsener final : public ICoarsener,
           << _hg.initialNumNodes() << "]:HN" << hn
           << "\t(w=" << _hg.nodeWeight(hn) << "," << "deg=" << _hg.nodeDegree(hn)
           << ") did not find valid contraction partner.";
-#ifdef GATHER_STATS
-      Stats::instance().add(_context, "numHNsWithoutValidContractionPartner", 1);
-#endif
     }
   }
 
