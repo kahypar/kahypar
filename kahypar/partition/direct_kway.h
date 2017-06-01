@@ -59,13 +59,13 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
   io::printLocalSearchBanner(context);
 
   start = std::chrono::high_resolution_clock::now();
-  const bool found_improved_cut = coarsener.uncoarsen(refiner);
+  const bool improved_quality = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::v_cycle_local_search,
                         std::chrono::duration<double>(end - start).count());
 
   io::printLocalSearchResults(context, hypergraph);
-  return found_improved_cut;
+  return improved_quality;
 }
 
 
@@ -81,25 +81,27 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 
   multilevel::partition(hypergraph, *coarsener, *refiner, context);
 
-  DBG << "PartitioningResult: cut=" << metrics::hyperedgeCut(hypergraph);
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
+  HyperedgeWeight initial_km1 = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
   for (int vcycle = 1; vcycle <= context.partition.global_search_iterations; ++vcycle) {
     context.partition.current_v_cycle = vcycle;
-    const bool found_improved_cut = partitionVCycle(hypergraph, *coarsener, *refiner, context);
+    const bool improved_quality = partitionVCycle(hypergraph, *coarsener, *refiner, context);
 
-    DBG << V(vcycle) << V(metrics::hyperedgeCut(hypergraph));
-    if (!found_improved_cut) {
+    if (!improved_quality) {
       LOG << "No improvement in V-cycle" << vcycle << ". Stopping global search.";
       break;
     }
 
     ASSERT(metrics::hyperedgeCut(hypergraph) <= initial_cut,
-           "Uncoarsening worsened cut:" << metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
+           metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
+    ASSERT(metrics::km1(hypergraph) <= initial_km1,
+           metrics::km1(hypergraph) << ">" << initial_km1);
 #ifndef NDEBUG
     initial_cut = metrics::hyperedgeCut(hypergraph);
+    initial_cut = metrics::km1(hypergraph);
 #endif
   }
 }
