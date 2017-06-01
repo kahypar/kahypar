@@ -168,15 +168,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("p-sparsifier-combined-num-hash-func",
     po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
     "Number of combined hash functions")
-    ("p-parallel-net-removal",
-    po::value<bool>(&context.preprocessing.remove_parallel_hes)->value_name("<bool>"),
-    "Remove parallel hyperedges before partitioning \n"
-    "(default: false)")
-    ("p-large-net-removal",
-    po::value<bool>(&context.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
-    "Remove hyperedges that will always be cut because"
-    " of the weight of their pins \n"
-    "(default: false)")
     ("p-detect-communities",
     po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
     "Using louvain community detection for coarsening\n"

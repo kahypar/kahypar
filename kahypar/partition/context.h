@@ -54,8 +54,6 @@ struct CommunityDetection {
 struct PreprocessingParameters {
   bool enable_min_hash_sparsifier = false;
   bool enable_community_detection = false;
-  bool remove_always_cut_hes = false;
-  bool remove_parallel_hes = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
   CommunityDetection community_detection = CommunityDetection();
 };
@@ -101,10 +99,6 @@ inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameter
       << params.enable_min_hash_sparsifier << std::endl;
   str << "  enable community detection:         " << std::boolalpha
       << params.enable_community_detection << std::endl;
-  str << "  remove parallel HEs:                " << std::boolalpha
-      << params.remove_parallel_hes << std::endl;
-  str << "  remove HEs that always will be cut: " << std::boolalpha
-      << params.remove_always_cut_hes << std::endl;
   if (params.enable_min_hash_sparsifier) {
     str << "-------------------------------------------------------------------------------"
         << std::endl;

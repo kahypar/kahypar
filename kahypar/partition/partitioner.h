@@ -34,7 +34,6 @@
 #include "kahypar/partition/direct_kway.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/preprocessing/large_hyperedge_remover.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
@@ -73,7 +72,6 @@ class Partitioner {
  public:
   Partitioner() :
     _single_node_he_remover(),
-    _large_he_remover(),
     _pin_sparsifier() { }
 
   Partitioner(const Partitioner&) = delete;
@@ -119,7 +117,6 @@ class Partitioner {
                           const Context& context);
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
-  LargeHyperedgeRemover _large_he_remover;
   MinHashSparsifier _pin_sparsifier;
 };
 
@@ -192,18 +189,6 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
         << "unconnected HNs could have been removed" << "\033[0m";
   }
 
-  if (context.preprocessing.remove_always_cut_hes) {
-    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    _large_he_remover.removeLargeHyperedges(hypergraph, context);
-    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    context.stats.preprocessing("LargeHEremovalTime") +=
-      std::chrono::duration<double>(end - start).count();
-    if (context.isMainRecursiveBisection()) {
-      context.stats.topLevel().preprocessing("LargeHEremovalTime") +=
-        std::chrono::duration<double>(end - start).count();
-    }
-  }
-
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
   if (context.partition.mode != Mode::recursive_bisection &&
@@ -237,17 +222,6 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
 }
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& context) {
-  if (context.preprocessing.remove_always_cut_hes) {
-    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    _large_he_remover.restoreLargeHyperedges(hypergraph);
-    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    context.stats.postprocessing("LargeHErestoreTime") +=
-      std::chrono::duration<double>(end - start).count();
-    if (context.isMainRecursiveBisection()) {
-      context.stats.topLevel().postprocessing("LargeHErestoreTime") +=
-        std::chrono::duration<double>(end - start).count();
-    }
-  }
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
 }
 
