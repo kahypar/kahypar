@@ -30,7 +30,6 @@
 #include "kahypar/datastructure/hash_table.h"
 #include "kahypar/definitions.h"
 #include "kahypar/utils/hash_vector.h"
-#include "kahypar/utils/stats.h"
 
 namespace kahypar {
 template <typename _HashPolicy>
@@ -106,27 +105,15 @@ class AdaptiveLSHWithConnectedComponents {
       }
 
       const uint32_t hash_num = main_hash_set.getHashNum() - 1;
-      auto start = std::chrono::high_resolution_clock::now();
       incrementalParametersEstimation(active_vertices_set, rnd(eng), main_hash_set, hash_num);
-      auto end = std::chrono::high_resolution_clock::now();
-      _context.stats.preprocessing("adaptive_lsh_incremental_parameter_estimation") +=
-        std::chrono::duration<double>(end - start).count();
 
       _multiset_buckets.clear();
-      start = std::chrono::high_resolution_clock::now();
       calculateOneDimBucket(_hypergraph.currentNumNodes(),
                             active_clusters_bool_set, clusters, main_hash_set, hash_num);
-      end = std::chrono::high_resolution_clock::now();
-      _context.stats.preprocessing("adaptive_lsh_construction_of_buckets") +=
-        std::chrono::duration<double>(end - start).count();
 
-      start = std::chrono::high_resolution_clock::now();
       calculateClustersIncrementally(active_clusters_bool_set,
                                      clusters, cluster_size,
                                      main_hash_set, hash_num, inactive_clusters);
-      end = std::chrono::high_resolution_clock::now();
-      _context.stats.preprocessing("adaptive_lsh_construction_of_clustering") +=
-        std::chrono::duration<double>(end - start).count();
 
       std::vector<char> bit_map(clusters.size());
       for (const auto& clst : clusters) {
