@@ -36,6 +36,27 @@ By using this very fine grained *n*-level approach combined with strong local se
 it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
+#### Experimental Results
+ We use the performance plots introduced in [ALENEX'16][ALENEX'16] to compare KaHyPar to other partitioning algorithms in terms of solution quality:
+For each algorithm, these plots relate the smallest minimum cut of all algorithms to the
+corresponding cut produced by the algorithm on a per-instance basis. For each algorithm,
+these ratios are sorted in increasing order. The plots use a cube root scale for both axes
+to reduce right skewness and show 1 − (best/algorithm) on the y-axis to highlight the
+instances were each partitioner performs badly. A point close to one indicates that the
+<img src="https://cloud.githubusercontent.com/assets/484403/26682208/eb1ee650-46df-11e7-97f9-42d884dd792c.png" alt="alt text" width="50%" height="50%" align="right">
+partition produced by the corresponding algorithm was considerably worse than the partition
+produced by the best algorithm. A value of zero therefore indicates that the corresponding
+algorithm produced the best solution. Points above one correspond to infeasible solutions
+that violated the balance constraint. Thus an algorithm is considered to outperform another
+algorithm if its corresponding ratio values are below those of the other algorithm.
+
+
+**Interactive** visualizations of the performance plots and detailed per-instance results can be found on
+the website accompanying the publications:
+ - KaHyPar-R:  [ALENEX'16][ALENEX'16bench]
+ - KaHyPar-K:  [ALENEX'17][ALENEX'17bench] (referred to as KaHyPar in the picture above)
+ - KaHyPar-CA: [SEA'17][SEA'17bench] (latest version of KaHyPar)
+
 Requirements:
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
@@ -71,8 +92,8 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
 Currently we provide three different presets that correspond to the configurations used in the publications at
-[ALENEX'16](http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5), [ALENEX'17](http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3),
-and [SEA'17](https://nms.kcl.ac.uk/informatics/events/SEA2017/accepted.html).
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17],
+and [SEA'17][SEA'17].
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
@@ -156,3 +177,9 @@ feel free to contact me or create an issue on the
 [CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
 [KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Literature "KaHyPar Publications"
 [HYPERGRAPHWIKI]: https://en.wikipedia.org/wiki/Hypergraph "Hypergraphs"
+[ALENEX'16]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5
+[ALENEX'17]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3
+[SEA'17]: https://nms.kcl.ac.uk/informatics/events/SEA2017/accepted.html
+[ALENEX'16bench]: http://dx.doi.org/10.5281/zenodo.30176
+[ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
+[SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
