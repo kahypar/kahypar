@@ -298,5 +298,75 @@ static inline void printBanner() {
   LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
   LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
 }
+
+
+static inline void printInputInformation(const Context& context, const Hypergraph& hypergraph) {
+if (context.type == ContextType::main && !context.partition.quiet_mode) {
+    LOG << context;
+    if (context.partition.verbose_output) {
+      LOG << "\n********************************************************************************";
+      LOG << "*                                    Input                                     *";
+      LOG << "********************************************************************************";
+      io::printHypergraphInfo(hypergraph, context.partition.graph_filename.substr(
+                                context.partition.graph_filename.find_last_of('/') + 1));
+    }
+  }
+}
+
+static inline void printTopLevelPreprocessingBanner(const Context& context) {
+ if (context.partition.verbose_output) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                          Top Level Preprocessing..                           *";
+    LOG << "********************************************************************************";
+  }
+}
+
+static inline void printCoarseningBanner(const Context& context) {
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    LOG << "********************************************************************************";
+    LOG << "*                                Coarsening...                                 *";
+    LOG << "********************************************************************************";
+  }
+}
+
+static inline void printInitialPartitioningBanner(const Context& context) {
+  if (context.type == ContextType::main && (context.partition.verbose_output ||
+                                            context.initial_partitioning.verbose_output)) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                           Initial Partitioning...                            *";
+    LOG << "********************************************************************************";
+  }
+}
+
+static inline void printLocalSearchBanner(const Context& context) {
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                               Local Search...                                *";
+    LOG << "********************************************************************************";
+  }
+}
+
+static inline void printVcycleBanner(const Context& context) {
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    if (context.partition.verbose_output) {
+      LOG << "================================================================================";
+      LOG << "V-Cycle No. " << context.partition.current_v_cycle;
+      LOG << "================================================================================";
+    }
+  }
+}
+
+static inline void printLocalSearchResults(const Context& context, const Hypergraph& hypergraph) {
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    LOG << "Local Search Result:";
+    LOG << "Final" << toString(context.partition.objective) << "      ="
+        << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+        metrics::km1(hypergraph));
+    LOG << "Final imbalance =" << metrics::imbalance(hypergraph, context);
+    LOG << "Final part sizes and weights:";
+    io::printPartSizesAndWeights(hypergraph);
+    LOG << "";
+  }
+}
 }  // namespace io
 }  // namespace kahypar

@@ -176,11 +176,7 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
-  if (context.partition.verbose_output) {
-    LOG << "\n********************************************************************************";
-    LOG << "*                          Top Level Preprocessing..                           *";
-    LOG << "********************************************************************************";
-  }
+  io::printTopLevelPreprocessingBanner(context);
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
     LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
@@ -239,16 +235,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   configurePreprocessing(hypergraph, context);
 
   setupContext(hypergraph, context);
-  if (context.type == ContextType::main && !context.partition.quiet_mode) {
-    LOG << context;
-    if (context.partition.verbose_output) {
-      LOG << "\n********************************************************************************";
-      LOG << "*                                    Input                                     *";
-      LOG << "********************************************************************************";
-      io::printHypergraphInfo(hypergraph, context.partition.graph_filename.substr(
-                                context.partition.graph_filename.find_last_of('/') + 1));
-    }
-  }
+  io::printInputInformation(context, hypergraph);
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);

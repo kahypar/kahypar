@@ -37,11 +37,8 @@ static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
-    LOG << "********************************************************************************";
-    LOG << "*                                Coarsening...                                 *";
-    LOG << "********************************************************************************";
-  }
+  io::printCoarseningBanner(context);
+
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -51,12 +48,7 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-  if (context.type == ContextType::main && (context.partition.verbose_output ||
-                                            context.initial_partitioning.verbose_output)) {
-    LOG << "\n********************************************************************************";
-    LOG << "*                           Initial Partitioning...                            *";
-    LOG << "********************************************************************************";
-  }
+  io::printInitialPartitioningBanner(context);
   start = std::chrono::high_resolution_clock::now();
   initial::partition(hypergraph, context);
   end = std::chrono::high_resolution_clock::now();
@@ -79,9 +71,7 @@ static inline void partition(Hypergraph& hypergraph,
       LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
            << "w(1)=" << context.partition.max_part_weights[1] << "\n";
     }
-    LOG << "\n********************************************************************************";
-    LOG << "*                               Local Search...                                *";
-    LOG << "********************************************************************************";
+    io::printLocalSearchBanner(context);
   }
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
@@ -89,16 +79,7 @@ static inline void partition(Hypergraph& hypergraph,
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
 
-  if (context.partition.verbose_output && context.type == ContextType::main) {
-    LOG << "Local Search Result:";
-    LOG << "Final" << toString(context.partition.objective) << "      ="
-        << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
-        metrics::km1(hypergraph));
-    LOG << "Final imbalance =" << metrics::imbalance(hypergraph, context);
-    LOG << "Final part sizes and weights:";
-    io::printPartSizesAndWeights(hypergraph);
-    LOG << "";
-  }
+  io::printLocalSearchResults(context, hypergraph);
 }
 }  // namespace multilevel
 }  // namespace kahypar

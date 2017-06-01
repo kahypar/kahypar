@@ -41,19 +41,30 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
   // before coarsening.
   hypergraph.resetEdgeHashes();
 
+  io::printVcycleBanner(context);
+  io::printCoarseningBanner(context);
+
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::v_cycle_coarsening,
                         std::chrono::duration<double>(end - start).count());
 
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
+  }
+
   hypergraph.initializeNumCutHyperedges();
+
+  io::printLocalSearchBanner(context);
 
   start = std::chrono::high_resolution_clock::now();
   const bool found_improved_cut = coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::v_cycle_local_search,
                         std::chrono::duration<double>(end - start).count());
+
+  io::printLocalSearchResults(context, hypergraph);
   return found_improved_cut;
 }
 
@@ -81,7 +92,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 
     DBG << V(vcycle) << V(metrics::hyperedgeCut(hypergraph));
     if (!found_improved_cut) {
-      LOG << "Cut could not be decreased in v-cycle" << vcycle << ". Stopping global search.";
+      LOG << "No improvement in V-cycle" << vcycle << ". Stopping global search.";
       break;
     }
 
