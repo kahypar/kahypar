@@ -52,10 +52,10 @@ algorithm if its corresponding ratio values are below those of the other algorit
 
 
 **Interactive** visualizations of the performance plots and detailed per-instance results can be found on
-the website accompanying the publications:
+the website accompanying each publication:
  - KaHyPar-CA: [SEA'17][SEA'17bench] (latest version of KaHyPar)
  - KaHyPar-K:  [ALENEX'17][ALENEX'17bench] (referred to as KaHyPar in the picture above)
- - KaHyPar-R:  [ALENEX'16][ALENEX'16bench]
+ - KaHyPar-R:  [ALENEX'16][ALENEX'16bench] (only experimental results)
 
 Requirements:
 -----------
