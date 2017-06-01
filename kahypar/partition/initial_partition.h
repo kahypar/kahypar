@@ -49,11 +49,6 @@ static inline Context createContext(const Hypergraph& hg,
   }
 
   context.partition.epsilon = init_alpha * original_context.partition.epsilon;
-  if (context.initial_partitioning.verbose_output || context.initial_partitioning.collect_stats) {
-    context.partition.collect_stats = true;
-  } else {
-    context.partition.collect_stats = false;
-  }
 
   context.partition.global_search_iterations = 0;
 

@@ -170,9 +170,6 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
                                                     * context.partition.total_graph_weight);
-
-  // the main partitioner should track stats
-  context.partition.collect_stats = true;
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {

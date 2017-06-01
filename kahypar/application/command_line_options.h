@@ -388,11 +388,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       }
     }),
     "Max. # local search repetitions on each level \n"
-    "(default:1, no limit:-1)")
-    ("i-stats",
-    po::value<bool>(&context.initial_partitioning.collect_stats)->value_name("<bool>"),
-    "# Collect statistics for initial partitioning \n"
-    "(default: false)");
+    "(default:1, no limit:-1)");
 
   po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()
@@ -490,9 +486,5 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     + ".seed"
     + std::to_string(context.partition.seed)
     + ".KaHyPar";
-
-  if (context.partition.verbose_output || context.initial_partitioning.verbose_output) {
-    context.partition.collect_stats = true;
-  }
 }
 }  // namespace kahypar

@@ -229,8 +229,7 @@ class InitialPartitioningParameters {
     lp_max_iteration(100),
     lp_assign_vertex_to_part(5),
     refinement(true),
-    verbose_output(false),
-    collect_stats(false) {
+    verbose_output(false) {
     // Specifically tuned for IP
     coarsening.contraction_limit_multiplier = 150;
     coarsening.max_allowed_weight_multiplier = 2.5;
@@ -266,7 +265,6 @@ class InitialPartitioningParameters {
   int lp_assign_vertex_to_part;
   bool refinement;
   bool verbose_output;
-  bool collect_stats;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningParameters& params) {
@@ -305,7 +303,6 @@ struct PartitioningParameters {
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
 
   bool verbose_output = false;
-  bool collect_stats = false;
   bool quiet_mode = false;
   bool sp_process_output = false;
 
