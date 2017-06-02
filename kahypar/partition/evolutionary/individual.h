@@ -37,7 +37,7 @@ class Individual {
     _strongcutedges(strong_edges),
     _fitness(fitness) { }
 
-  explict Individual(const Hypergraph& hypergraph) :
+  explicit Individual(const Hypergraph& hypergraph) :
     _partition(),
     _cutedges(),
     _strongcutedges(),
