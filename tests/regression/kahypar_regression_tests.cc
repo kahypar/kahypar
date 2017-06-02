@@ -154,7 +154,7 @@ TEST_F(KaHyParCA, UsesSparsificationAndCommunityDetection) {
   context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
   context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::no_penalty;
   context.coarsening.rating.acceptance_policy = AcceptancePolicy::best_prefer_unmatched;
-  context.partition.graph_filename = "test_instances/af_4_k101.mtx.hgr";
+  context.partition.graph_filename = "test_instances/bundle1.mtx.hgr";
 
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
