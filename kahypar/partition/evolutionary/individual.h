@@ -17,8 +17,12 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
-#include "kahypar/definitions.h"
+#pragma once
+
 #include <vector>
+
+#include "kahypar/definitions.h"
+
 namespace kahypar {
 class Individual {
  public:
@@ -33,12 +37,11 @@ class Individual {
     _strongcutedges(strong_edges),
     _fitness(fitness) { }
 
-  Individual(const Hypergraph& hypergraph) : 
-  _partition(),
-  _cutedges(),
-  _strongcutedges(),
-  _fitness() {
-  
+  explict Individual(const Hypergraph& hypergraph) :
+    _partition(),
+    _cutedges(),
+    _strongcutedges(),
+    _fitness() {
     for (HypernodeID u : hypergraph.nodes()) {
       std::cout << hypergraph.partID(u) << " ";
       _partition.push_back(hypergraph.partID(u));
@@ -54,7 +57,6 @@ class Individual {
         }
       }
     }
-  
   }
   inline HyperedgeWeight fitness() const {
     return _fitness;

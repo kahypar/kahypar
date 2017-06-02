@@ -17,20 +17,22 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
+#pragma once
+
 namespace kahypar {
 namespace partition {
-  static void diversify(Context& context) {
-    //TODO i need to switch from boolean to strategies like cross Combine
-    //context.evolutionary.use_edge_combine = Randomize::instance().flipCoin();
-    //context.evolutionary.stable_net = Randomize::instance().flipCoin();
-    context.evolutionary.cross_combine_objective = static_cast<CrossCombineStrategy>(Randomize::instance().getRandomInt(0,4));
-    
-    context.preprocessing.enable_min_hash_sparsifier = Randomize::instance().flipCoin();
-    context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
-    context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
+static void diversify(Context& context) {
+  // TODO i need to switch from boolean to strategies like cross Combine
+  // context.evolutionary.use_edge_combine = Randomize::instance().flipCoin();
+  // context.evolutionary.stable_net = Randomize::instance().flipCoin();
+  context.evolutionary.cross_combine_objective = static_cast<CrossCombineStrategy>(Randomize::instance().getRandomInt(0, 4));
 
-      //TODO Config detect Communities
-      //config.coarsening.algorithm = ml, lazy
-  }
+  context.preprocessing.enable_min_hash_sparsifier = Randomize::instance().flipCoin();
+  context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
+  context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
+
+  // TODO Config detect Communities
+  // config.coarsening.algorithm = ml, lazy
 }
-}
+}  // namespace partition
+}  // namespace kahypar

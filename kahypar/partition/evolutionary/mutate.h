@@ -17,6 +17,8 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
+#pragma once
+
 #include "kahypar/partition/partitioner.h"
 
 namespace kahypar {
@@ -52,9 +54,9 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   // TODO (I need to test whether this call to partiton works)
   return Individual(hg);
 }
-//TODO implement
+// TODO implement
 Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const Context& context) {
-hg.setPartitionVector(in.partition());
+  hg.setPartitionVector(in.partition());
   Action action;
   action.action = Decision::mutation;
   action.subtype = Subtype::stable_net;
@@ -71,5 +73,5 @@ hg.setPartitionVector(in.partition());
   return Individual(hg);
 }
 }  // namespace mutate
-}
+}  // namespace partition
 }  // namespace kahypar

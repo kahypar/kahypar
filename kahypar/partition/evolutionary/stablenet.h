@@ -17,6 +17,11 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
+#pragma once
+
+#include <limits>
+#include <vector>
+
 #include "kahypar/definitions.h"
 namespace kahypar {
 namespace combine {
@@ -49,6 +54,6 @@ static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context&
   }
   return stableNetEdges;
 }
-}
-}
-}
+}  // namespace stablenet
+}  // namespace combine
+}  // namespace kahypar

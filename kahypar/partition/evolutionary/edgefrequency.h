@@ -17,11 +17,13 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
-//#include "kahypar/partition/evolutionary/individual.h"
+#pragma once
+
+#include <vector>
+
 namespace kahypar {
 namespace combine {
 namespace edgefrequency {
-// TODO(andre): naming conections: variable_name methodName()
 std::vector<std::size_t> frequencyFromPopulation(const Context& context, const std::vector<Individual>& edgeFreqTargets, const std::size_t& size) {
   std::vector<std::size_t> returnVector(size);
   for (std::size_t i = 0; i < edgeFreqTargets.size(); ++i) {
@@ -37,6 +39,6 @@ std::vector<std::size_t> frequencyFromPopulation(const Context& context, const s
   }
   return returnVector;
 }
-}
-}
-}
+}  // namespace edgefrequency
+}  // namespace combine
+}  // namespace kahypar

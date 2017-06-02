@@ -17,9 +17,16 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
-//#include "kahypar/partition/partitioner.h"
-#include "kahypar/utils/randomize.h"
+#pragma once
+
+#include <algorithm>
+#include <limits>
+#include <utility>
+#include <vector>
+
+// #include "kahypar/partition/partitioner.h"
 #include "kahypar/partition/evolutionary/individual.h"
+#include "kahypar/utils/randomize.h"
 namespace kahypar {
 // TODO(robin): maybe replace with a new Individual constructor
 /*Individual createIndividual(const Hypergraph& hypergraph) {
@@ -63,7 +70,7 @@ namespace kahypar {
 
 class Population {
  public:
-  Population(Hypergraph& hypergraph) :
+  explicit Population(Hypergraph& hypergraph) :
     _individuals() { }
   inline void insert(const Individual& in, const Context& context);
   inline void forceInsert(const Individual& in, const size_t& position);
