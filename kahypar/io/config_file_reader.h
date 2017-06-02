@@ -18,6 +18,10 @@
  *
 ******************************************************************************/
 #include <boost/program_options.hpp>
+
+#include <limits>
+#include <string>
+
 namespace po = boost::program_options;
 namespace kahypar {
 namespace io {
@@ -27,7 +31,8 @@ void helper(Context& context, const std::string& filename) {
   po::variables_map cmd_vm;
   std::ifstream file(filename);
   if (!file) {
-    std::cerr << "Could not load config file for Cross Combine (Mode/Objective)" << ": config_file_reader.h Line 12" << std::endl;
+    std::cerr << "Could not load config file for Cross Combine (Mode/Objective)"
+              << ": config_file_reader.h Line 12" << std::endl;
     std::exit(-1);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,15 +104,6 @@ void helper(Context& context, const std::string& filename) {
     ("p-sparsifier-combined-num-hash-func",
     po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
     "Number of combined hash functions")
-    ("p-parallel-net-removal",
-    po::value<bool>(&context.preprocessing.remove_parallel_hes)->value_name("<bool>"),
-    "Remove parallel hyperedges before partitioning \n"
-    "(default: false)")
-    ("p-large-net-removal",
-    po::value<bool>(&context.preprocessing.remove_always_cut_hes)->value_name("<bool>"),
-    "Remove hyperedges that will always be cut because"
-    " of the weight of their pins \n"
-    "(default: false)")
     ("p-detect-communities",
     po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
     "Using louvain community detection for coarsening\n"
@@ -334,11 +330,7 @@ void helper(Context& context, const std::string& filename) {
           }
         }),
     "Max. # local search repetitions on each level \n"
-    "(default:1, no limit:-1)")
-    ("i-stats",
-    po::value<bool>(&context.initial_partitioning.collect_stats)->value_name("<bool>"),
-    "# Collect statistics for initial partitioning \n"
-    "(default: false)");
+    "(default:1, no limit:-1)");
 
   po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()
@@ -395,7 +387,7 @@ void helper(Context& context, const std::string& filename) {
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
 }
-}
+}  // namespace internal
 
 void readInBisectionContext(Context& context) {
   internal::helper(context, "../../../config/cut_rb_alenex16.ini");
@@ -403,5 +395,5 @@ void readInBisectionContext(Context& context) {
 void readInDirectKwayContext(Context& context) {
   internal::helper(context, "../../../config/km1_direct_alenex17.ini");
 }
-}
-}
+}  // namespace io
+}  // namespace kahypar
