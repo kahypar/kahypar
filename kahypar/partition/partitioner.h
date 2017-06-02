@@ -125,7 +125,7 @@ class Partitioner {
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                          const Context& context);
 
-  inline void postprocess(Hypergraph& hypergraph, const Context& context);
+  inline void postprocess(Hypergraph& hypergraph);
   inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                           const Context& context);
 
@@ -225,7 +225,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
   preprocess(sparse_hypergraph, context);
 }
 
-inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& context) {
+inline void Partitioner::postprocess(Hypergraph& hypergraph) {
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
 }
 
@@ -240,7 +240,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
                     std::chrono::duration<double>(end - start).count());
   Timer::instance().add(context, Timepoint::post_sparsifier_restore,
                         std::chrono::duration<double>(end - start).count());
-  postprocess(hypergraph, context);
+  postprocess(hypergraph);
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
@@ -259,7 +259,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   } else {
     preprocess(hypergraph, context);
     partition::partition(hypergraph, context);
-    postprocess(hypergraph, context);
+    postprocess(hypergraph);
   }
 }
 }  // namespace kahypar
