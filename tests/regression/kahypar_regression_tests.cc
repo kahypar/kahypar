@@ -142,4 +142,32 @@ TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
 
   test("kahypar-ca-km1.results", hypergraph, context);
 }
+
+TEST_F(KaHyParCA, UsesSparsificationAndCommunityDetection) {
+  context.partition.k = 8;
+  context.partition.epsilon = 0.03;
+  context.partition.seed = 10;
+  context.partition.objective = Objective::km1;
+  context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+  context.preprocessing.enable_community_detection = true;
+  context.preprocessing.enable_min_hash_sparsifier = true;
+  context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+  context.coarsening.rating.heavy_node_penalty_policy = HeavyNodePenaltyPolicy::no_penalty;
+  context.coarsening.rating.acceptance_policy = AcceptancePolicy::best_prefer_unmatched;
+  context.partition.graph_filename = "test_instances/af_4_k101.mtx.hgr";
+
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  Partitioner partitioner;
+  partitioner.partition(hypergraph, context);
+  kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  test("kahypar-ca-km1-comm-sparse.results", hypergraph, context);
+}
 }  // namespace kahypar

@@ -54,6 +54,17 @@ class APartitionedHypergraph;
 
 namespace partition {
 static inline void partition(Hypergraph& hypergraph, const Context& context) {
+  ASSERT([&]() {
+        if (context.partition.mode != Mode::recursive_bisection &&
+            context.preprocessing.enable_community_detection) {
+          return !std::all_of(hypergraph.communities().cbegin(),
+                              hypergraph.communities().cend(),
+                              [](auto i) {
+            return i == 0;
+          });
+        }
+        return true;
+      } ());
   switch (context.partition.mode) {
     case Mode::recursive_bisection:
       recursive_bisection::partition(hypergraph, context);
@@ -107,6 +118,8 @@ class Partitioner {
   static inline void setupContext(const Hypergraph& hypergraph, Context& context);
 
   static inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context);
+
+  inline void sanitize(Hypergraph& hypergraph, const Context& context);
 
   inline void preprocess(Hypergraph& hypergraph, const Context& context);
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
@@ -172,7 +185,7 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
                                                     * context.partition.total_graph_weight);
 }
 
-inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
+inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
   io::printTopLevelPreprocessingBanner(context);
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
@@ -181,7 +194,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
     LOG << "\033[1m\033[31m" << "===>" << result.num_unconnected_hns
         << "unconnected HNs could have been removed" << "\033[0m";
   }
+}
 
+inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
   if (context.partition.mode != Mode::recursive_bisection &&
@@ -192,7 +207,6 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                                     const Context& context) {
-  preprocess(hypergraph, context);
   ASSERT(context.preprocessing.enable_min_hash_sparsifier);
 
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -208,6 +222,7 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
     LOG << "After sparsification:";
     kahypar::io::printHypergraphInfo(sparse_hypergraph, "sparsified hypergraph");
   }
+  preprocess(sparse_hypergraph, context);
 }
 
 inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& context) {
@@ -233,6 +248,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
 
   setupContext(hypergraph, context);
   io::printInputInformation(context, hypergraph);
+
+  sanitize(hypergraph, context);
+
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
