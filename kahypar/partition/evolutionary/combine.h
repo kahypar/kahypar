@@ -109,10 +109,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
     case CrossCombineStrategy::louvain: {
         detectCommunities(hg, temporary_context);
         std::vector<HyperedgeID> dummy;
-        const Individual lovain_individual = Individual(hg.communities(),
-                                                        dummy,
-                                                        dummy,
-                                                        std::numeric_limits<double>::max());
+        const Individual lovain_individual = Individual(hg.communities());
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    context);
       }
@@ -223,7 +220,7 @@ Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph& hg,
 
   HyperedgeWeight fitness;
 
-  Individual ind(result, cutWeak, cutStrong, fitness);
+  Individual ind;
   return ind;
 }
 }  // namespace combine

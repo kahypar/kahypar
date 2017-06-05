@@ -19,6 +19,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <limits>
 #include <vector>
 
 #include "kahypar/definitions.h"
@@ -28,77 +29,88 @@ class Individual {
  public:
   Individual() :
     _partition(),
-    _cutedges(),
-    _strongcutedges(),
+    _cut_edges(),
+    _strong_cut_edges(),
     _fitness() { }
-  Individual(std::vector<PartitionID> partition, std::vector<HyperedgeID> cut_edges, std::vector<HyperedgeID> strong_edges, HyperedgeWeight fitness) :
-    _partition(partition),
-    _cutedges(cut_edges),
-    _strongcutedges(strong_edges),
+
+  Individual(std::vector<PartitionID>&& partition, std::vector<HyperedgeID>&& cut_edges,
+             std::vector<HyperedgeID>&& strong_edges, HyperedgeWeight fitness) :
+    _partition(std::move(partition)),
+    _cut_edges(std::move(cut_edges)),
+    _strong_cut_edges(std::move(strong_edges)),
     _fitness(fitness) { }
+
+  explicit Individual(const std::vector<PartitionID>& partition) :
+    _partition(std::move(partition)),
+    _cut_edges(),
+    _strong_cut_edges(),
+    _fitness(std::numeric_limits<HyperedgeWeight>::max()) { }
 
   explicit Individual(const Hypergraph& hypergraph) :
     _partition(),
-    _cutedges(),
-    _strongcutedges(),
+    _cut_edges(),
+    _strong_cut_edges(),
     _fitness() {
-    for (HypernodeID u : hypergraph.nodes()) {
-      std::cout << hypergraph.partID(u) << " ";
-      _partition.push_back(hypergraph.partID(u));
+    for (const HypernodeID& hn : hypergraph.nodes()) {
+      _partition.push_back(hypergraph.partID(hn));
     }
     _fitness = metrics::km1(hypergraph);
 
-    for (HyperedgeID v : hypergraph.edges()) {
-      auto km1 = hypergraph.connectivity(v) - 1;
-      if (km1 > 0) {
-        _cutedges.push_back(v);
-        for (unsigned i = 1; i < hypergraph.connectivity(v); i++) {
-          _strongcutedges.push_back(v);
+    for (const HyperedgeID& he : hypergraph.edges()) {
+      if (hypergraph.connectivity(he) > 1) {
+        _cut_edges.push_back(he);
+        // TODO(robin): why did this loop start from 1?
+        for (PartitionID i = 0; i < hypergraph.connectivity(he); ++i) {
+          _strong_cut_edges.push_back(he);
         }
       }
     }
   }
   inline HyperedgeWeight fitness() const {
+    ASSERT(_fitness != std::numeric_limits<HyperedgeWeight>::max());
     return _fitness;
   }
 
 
   inline const std::vector<PartitionID> & partition() const {
+    ASSERT(!_partition.empty());
     return _partition;
   }
   inline const std::vector<HyperedgeID> & cutEdges() const {
-    return _cutedges;
+    ASSERT(!_cut_edges.empty());
+    return _cut_edges;
   }
 
   inline const std::vector<HyperedgeID> & strongCutEdges() const {
-    return _strongcutedges;
+    ASSERT(!_strong_cut_edges.empty());
+    return _strong_cut_edges;
   }
   inline void print() const {
-    std::cout << "Fitness: " << _fitness << std::endl;
+    LOG << "Fitness:" << _fitness;
   }
   inline void printDebug() const {
-    std::cout << "Fitness: " << _fitness << std::endl;
-    std::cout << "Partition :---------------------------------------" << std::endl;
-    for (std::size_t i = 0; i < _partition.size(); ++i) {
-      std::cout << _partition[i] << " ";
+    LOG << "Fitness:" << _fitness;
+    LOG << "Partition :---------------------------------------";
+    for (const PartitionID part : _partition) {
+      LLOG << part;
     }
-    std::cout << std::endl << "--------------------------------------------------" << std::endl;
-    std::cout << "Cut Edges :---------------------------------------" << std::endl;
-    for (std::size_t i = 0; i < _cutedges.size(); ++i) {
-      std::cout << _cutedges[i] << " ";
+    LOG << "\n--------------------------------------------------";
+    LOG << "Cut Edges :---------------------------------------";
+    for (const HyperedgeID cut_edge : _cut_edges) {
+      LLOG << cut_edge;
     }
-    std::cout << std::endl << "--------------------------------------------------" << std::endl;
-    std::cout << "Strong Cut Edges :--------------------------------" << std::endl;
-    for (std::size_t i = 0; i < _strongcutedges.size(); ++i) {
-      std::cout << _strongcutedges[i] << " ";
+    LOG << "\n--------------------------------------------------";
+    LOG << "Strong Cut Edges :--------------------------------";
+    for (const HyperedgeID strong_cut_edge :  _strong_cut_edges) {
+      LLOG << strong_cut_edge;
     }
-    std::cout << std::endl << "--------------------------------------------------" << std::endl;
+    LOG << "\n--------------------------------------------------";
   }
 
  private:
   std::vector<PartitionID> _partition;
-  std::vector<HyperedgeID> _cutedges;
-  std::vector<HyperedgeID> _strongcutedges;
+  std::vector<HyperedgeID> _cut_edges;
+  std::vector<HyperedgeID> _strong_cut_edges;
   HyperedgeWeight _fitness;
 };
 }  // namespace kahypar
