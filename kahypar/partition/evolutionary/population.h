@@ -112,8 +112,6 @@ class Population {
     return std::make_pair(first_tournament_winner, individualAt(second_winner_pos));
   }
 
-  inline const Individual & select();
-
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
     Partitioner partitioner;
     hg.reset();
