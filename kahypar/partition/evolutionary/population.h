@@ -199,13 +199,12 @@ inline const Individual& Population::generateIndividual(Hypergraph& hg, Context&
   Partitioner partitioner;
   hg.reset();
   partitioner.partition(hg, context);
-  Individual ind = Individual(hg);
-  _individuals.push_back(ind);
+  _individuals.emplace_back(Individual(hg));
   if (_individuals.size() > context.evolutionary.population_size) {
     std::cout << "Error, tried to fill Population above limit" << std::endl;
     std::exit(1);
   }
-  return ind;
+  return _individuals.back();
 }
 
 

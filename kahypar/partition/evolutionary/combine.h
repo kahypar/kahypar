@@ -192,19 +192,20 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
   std::vector<HyperedgeID> stable_nets = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
 
-  bool touchedArray[hg.initialNumNodes()] = { };
-  for (std::size_t i = 0; i < stable_nets.size(); ++i) {
-    bool edgeWasTouched = false;
-    for (HypernodeID u : hg.pins(stable_nets[i])) {
-      if (touchedArray[u]) {
-        edgeWasTouched = true;
+  std::vector<bool> touched_hns(hg.initialNumNodes(), false);
+  for (const HyperedgeID& stable_net : stable_nets) {
+    bool he_was_touched = false;
+    for (const HypernodeID& pin : hg.pins(stable_net)) {
+      if (touched_hns[pin]) {
+        he_was_touched = true;
+        break;
       }
     }
-    if (!edgeWasTouched) {
-      for (HypernodeID u :hg.pins(stable_nets[i])) {
-        touchedArray[u] = true;
+    if (!he_was_touched) {
+      for (const HypernodeID pin : hg.pins(stable_net)) {
+        touched_hns[pin] = true;
       }
-      stablenet::forceBlock(stable_nets[i], hg);
+      stablenet::forceBlock(stable_net, hg);
     }
   }
   return Individual(hg);

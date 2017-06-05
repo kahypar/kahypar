@@ -28,16 +28,13 @@ namespace combine {
 namespace stablenet {
 void forceBlock(const HyperedgeID he, Hypergraph& hg) {
   const PartitionID k = hg.k();
-  HypernodeWeight amount[k] = { };
-  for (PartitionID i = 0; i < k; ++i) {
-    amount[i] += hg.partWeight(i);
-  }
   PartitionID smallest_block = std::numeric_limits<int>::max();
   PartitionID smallest_block_value = std::numeric_limits<int>::max();
+
   for (PartitionID i = 0; i < k; ++i) {
-    if (amount[i] < smallest_block_value) {
+    if (hg.partWeight(i) < smallest_block_value) {
       smallest_block = i;
-      smallest_block_value = amount[i];
+      smallest_block_value = hg.partWeight(i);
     }
   }
   for (const HypernodeID& hn : hg.pins(he)) {
