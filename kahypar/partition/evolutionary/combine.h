@@ -121,7 +121,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   const Individual cross_combine_individual = Individual(hg);
   hg.reset();
   hg.changeK(context.partition.k);
-  const Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), context);
+  Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), context);
   DBG << "------------------------------------------------------------";
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "---------------------------CROSSCOMBINE---------------------";

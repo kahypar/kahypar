@@ -98,7 +98,8 @@ class Population {
     return first.fitness() < second.fitness() ? first : second;
   }
 
-  inline std::pair<const Individual&, const Individual&> tournamentSelect() const {
+  inline std::pair<std::reference_wrapper<const Individual>,
+                   std::reference_wrapper<const Individual> > tournamentSelect() const {
     const Individual& first_tournament_winner = singleTournamentSelection();
     const size_t first_pos = randomIndividual();
     const size_t second_pos = randomIndividualExcept(first_pos);
@@ -109,7 +110,7 @@ class Population {
     if (first_tournament_winner.fitness() == individualAt(second_winner_pos).fitness()) {
       second_winner_pos = first.fitness() >= second.fitness() ? first_pos : second_pos;
     }
-    return std::make_pair(first_tournament_winner, individualAt(second_winner_pos));
+    return std::make_pair(std::cref(first_tournament_winner), std::cref(individualAt(second_winner_pos)));
   }
 
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {

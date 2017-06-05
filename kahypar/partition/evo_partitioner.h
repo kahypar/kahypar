@@ -18,15 +18,19 @@
  *
 ******************************************************************************/
 #pragma once
+
+#include <chrono>
+
 #include "kahypar/datastructure/hypergraph.h"
+#include "kahypar/io/evolutionary_io.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/context_enum_classes.h"
-#include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/combine.h"
-#include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/diversifyer.h"
-#include "kahypar/io/evolutionary_io.h"
-#include <chrono>
+#include "kahypar/partition/evolutionary/mutate.h"
+#include "kahypar/partition/evolutionary/population.h"
+
+
 namespace kahypar {
 namespace partition {
 enum class Decision {
@@ -81,9 +85,8 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
     ++_iteration;
     Decision decision = decideNextMove(context);
     switch (decision) {
-      case (Decision::diversify) : {
+      case (Decision::diversify):
         kahypar::partition::diversify(context);
-      }
       case (Decision::mutation):
         performMutation(hg, context);
         break;
@@ -100,7 +103,7 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
         std::cout << "Error in evo_partitioner.h: Non-covered case in decision making" << std::endl;
         std::exit(EXIT_FAILURE);
     }
-   
+
     elapsed_seconds_total = measureTime();
   }
 }
@@ -122,7 +125,7 @@ inline void EvoPartitioner::performMutation(Hypergraph& hg, const Context& conte
 }
 
 inline void EvoPartitioner::performCombine(Hypergraph& hg, const Context& context) {
-  const std::pair<Individual, Individual>& parents = _population.tournamentSelect();
+  const auto& parents = _population.tournamentSelect();
   switch (context.evolutionary.combine_strategy) {
     case (CombineStrategy::basic):
       // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
@@ -143,7 +146,7 @@ inline std::chrono::duration<double> EvoPartitioner::measureTime() {
   return currentTime - _globalstart;
 }
 inline Decision EvoPartitioner::decideNextMove(const Context& context) {
-  if (context.evolutionary.diversify_interval != -1  && _iteration % context.evolutionary.diversify_interval == 0) {
+  if (context.evolutionary.diversify_interval != -1 && _iteration % context.evolutionary.diversify_interval == 0) {
     return Decision::diversify;
   }
   if (context.evolutionary.perform_edge_frequency_interval != -1 && _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {

@@ -66,6 +66,13 @@ class Individual {
       }
     }
   }
+
+  Individual(const Individual&) = delete;
+  Individual& operator= (const Individual&) = delete;
+
+  Individual(Individual&&) = default;
+  Individual& operator= (Individual&&) = default;
+
   inline HyperedgeWeight fitness() const {
     ASSERT(_fitness != std::numeric_limits<HyperedgeWeight>::max());
     return _fitness;
