@@ -41,7 +41,9 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
     hg.changeNodePart(hn, hg.partID(hn), smallest_block);
   }
 }
-static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context, const std::vector<Individual>& individuals, const std::size_t& size) {
+static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,
+                                                                  const Individuals& individuals,
+                                                                  const std::size_t& size) {
   const std::vector<std::size_t> frequency = kahypar::combine::edgefrequency::frequencyFromPopulation(context, individuals, size);
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {

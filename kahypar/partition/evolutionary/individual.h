@@ -113,4 +113,6 @@ class Individual {
   std::vector<HyperedgeID> _strong_cut_edges;
   HyperedgeWeight _fitness;
 };
+
+using Individuals = std::vector<std::reference_wrapper<const Individual> >;
 }  // namespace kahypar
