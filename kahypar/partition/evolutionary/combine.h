@@ -49,8 +49,8 @@ Individual partitions(Hypergraph& hg,
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
-  temporary_context.evolutionary.parent1 = parents.first.partition();
-  temporary_context.evolutionary.parent2 = parents.second.partition();
+  temporary_context.evolutionary.parent1 = &parents.first.partition();
+  temporary_context.evolutionary.parent2 = &parents.second.partition();
 
   hg.reset();
 
@@ -174,8 +174,8 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-  temporary_context.evolutionary.parent1 = parents.first.partition();
-  temporary_context.evolutionary.parent2 = parents.second.partition();
+  temporary_context.evolutionary.parent1 = &parents.first.partition();
+  temporary_context.evolutionary.parent2 = &parents.second.partition();
 
   temporary_context.evolutionary.edge_frequency =
     computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());

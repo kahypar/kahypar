@@ -42,8 +42,10 @@ class EvoPartitionPolicy final : public meta::PolicyBase {
                                                             const Context& context,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {
-    return context.evolutionary.parent1[u] == context.evolutionary.parent1[v] &&
-           context.evolutionary.parent2[u] == context.evolutionary.parent2[v];
+    ASSERT(context.evolutionary.parent1 != nullptr);
+    ASSERT(context.evolutionary.parent2 != nullptr);
+    return (*context.evolutionary.parent1)[u] == (*context.evolutionary.parent1)[v] &&
+        (*context.evolutionary.parent2)[u] == (*context.evolutionary.parent2)[v];
   }
 };
 

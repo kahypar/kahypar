@@ -349,8 +349,8 @@ struct EvolutionaryParameters {
   int cross_combine_lower_limit_kfactor = 4;
   int cross_combine_upper_limit_kfactor = 4;
   float cross_combine_epsilon_upper_limit = 0.25;
-  mutable std::vector<PartitionID> parent1;
-  mutable std::vector<PartitionID> parent2;
+  const std::vector<PartitionID>* parent1 = nullptr;
+  const std::vector<PartitionID>* parent2 = nullptr;
   mutable std::vector<HyperedgeID> stable_net_edges_vcycle;
   mutable std::vector<HyperedgeID> stable_net_edges_final;
   mutable std::vector<std::size_t> edge_frequency;
