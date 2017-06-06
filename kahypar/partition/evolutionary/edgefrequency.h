@@ -26,8 +26,7 @@
 namespace kahypar {
 namespace combine {
 namespace edgefrequency {
-std::vector<std::size_t> frequencyFromPopulation(const Context& context,
-                                                 const Individuals& edge_frequency_targets,
+std::vector<std::size_t> frequencyFromPopulation(const Individuals& edge_frequency_targets,
                                                  const std::size_t& size) {
   std::vector<std::size_t> result(size, 0);
   for (const auto& individual : edge_frequency_targets) {

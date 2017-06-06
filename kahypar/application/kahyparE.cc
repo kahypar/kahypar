@@ -18,6 +18,11 @@
  *
  ******************************************************************************/
 
+#include <chrono>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
@@ -28,10 +33,6 @@
 #include "kahypar/partition/evo_partitioner.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
-#include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
@@ -60,7 +61,7 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  EvoPartitioner partitioner(hypergraph, context);
+  EvoPartitioner partitioner(context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.evo_partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

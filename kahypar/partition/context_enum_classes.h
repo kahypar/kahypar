@@ -177,6 +177,7 @@ std::string toString(const Decision& dec) {
 std::string toString(const Subtype& subtype) {
   switch (subtype) {
     case Subtype::stable_net:  return "stable net";
+    case Subtype::stable_net_vcycle:  return "stable net vcycle";
     case Subtype::edge_frequency:  return "edge frequency";
     case Subtype::cross_combine:  return "cross combine";
     case Subtype::basic_combine:  return "basic combine";

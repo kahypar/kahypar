@@ -27,6 +27,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
@@ -333,7 +334,7 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 }
 struct EvolutionaryParameters {
   int time_limit_seconds = 5 * 60 * 60;
-  int population_size = 10;
+  size_t population_size = 10;
   float mutation_chance = 0.1;
   ReplaceStrategy replace_strategy = ReplaceStrategy::strong_diverse;
   CombineStrategy combine_strategy = CombineStrategy::basic;
@@ -381,7 +382,7 @@ class Context {
   EvolutionaryParameters evolutionary { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
-  bool partition_evolutionary;
+  bool partition_evolutionary = false;
 
   Context() :
     stats(*this) { }
@@ -393,7 +394,8 @@ class Context {
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
     type(other.type),
-    stats(*this, &other.stats.topLevel()) { }
+    stats(*this, &other.stats.topLevel()),
+    partition_evolutionary(other.partition_evolutionary) { }
 
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;

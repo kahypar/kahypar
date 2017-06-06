@@ -156,7 +156,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
 
   // TODO(robin):  edgefrequency::fromPopulation
   temporary_context.evolutionary.edge_frequency =
-    edgefrequency::frequencyFromPopulation(context, population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    edgefrequency::frequencyFromPopulation(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -178,7 +178,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   temporary_context.evolutionary.parent2 = parents.second.partition();
 
   temporary_context.evolutionary.edge_frequency =
-    edgefrequency::frequencyFromPopulation(context, population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    edgefrequency::frequencyFromPopulation(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -211,15 +211,15 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
 
 
 // TODO(andre) is this even viable?
-Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph& hg,
-                                                                 const Population& population,
-                                                                 Context& context) {
-  context.evolutionary.stable_net_edges_final = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
-  std::vector<PartitionID> result;
-  std::vector<HyperedgeID> cutWeak;
-  std::vector<HyperedgeID> cutStrong;
+Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph&,
+                                                                 const Population&,
+                                                                 Context&) {
+  // context.evolutionary.stable_net_edges_final = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
+  // std::vector<PartitionID> result;
+  // std::vector<HyperedgeID> cutWeak;
+  // std::vector<HyperedgeID> cutStrong;
 
-  HyperedgeWeight fitness;
+  // HyperedgeWeight fitness;
 
   Individual ind;
   return ind;

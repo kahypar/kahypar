@@ -28,23 +28,23 @@ namespace combine {
 namespace stablenet {
 void forceBlock(const HyperedgeID he, Hypergraph& hg) {
   const PartitionID k = hg.k();
-  PartitionID smallest_block = std::numeric_limits<int>::max();
-  PartitionID smallest_block_value = std::numeric_limits<int>::max();
+  PartitionID lightest_part = std::numeric_limits<PartitionID>::max();
+  HypernodeWeight lightest_part_weight = std::numeric_limits<HypernodeWeight>::max();
 
   for (PartitionID i = 0; i < k; ++i) {
-    if (hg.partWeight(i) < smallest_block_value) {
-      smallest_block = i;
-      smallest_block_value = hg.partWeight(i);
+    if (hg.partWeight(i) < lightest_part_weight) {
+      lightest_part = i;
+      lightest_part_weight = hg.partWeight(i);
     }
   }
   for (const HypernodeID& hn : hg.pins(he)) {
-    hg.changeNodePart(hn, hg.partID(hn), smallest_block);
+    hg.changeNodePart(hn, hg.partID(hn), lightest_part);
   }
 }
 static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,
                                                                   const Individuals& individuals,
                                                                   const std::size_t& size) {
-  const std::vector<std::size_t> frequency = kahypar::combine::edgefrequency::frequencyFromPopulation(context, individuals, size);
+  const std::vector<std::size_t> frequency = edgefrequency::frequencyFromPopulation(individuals, size);
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
     if (frequency[i] >= context.evolutionary.stable_net_amount * individuals.size()) {

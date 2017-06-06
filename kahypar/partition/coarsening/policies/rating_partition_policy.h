@@ -28,7 +28,7 @@ namespace kahypar {
 class NormalPartitionPolicy final : public meta::PolicyBase {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph,
-                                                            const Context& context,
+                                                            const Context&,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {
     return hypergraph.partID(u) == hypergraph.partID(v);
@@ -37,12 +37,12 @@ class NormalPartitionPolicy final : public meta::PolicyBase {
 
 class EvoPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph&,
                                                             const Context& context,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {
     return context.evolutionary.parent1[u] == context.evolutionary.parent1[v] &&
-        context.evolutionary.parent2[u] == context.evolutionary.parent2[v];
+           context.evolutionary.parent2[u] == context.evolutionary.parent2[v];
   }
 };
 

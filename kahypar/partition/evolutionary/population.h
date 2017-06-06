@@ -29,49 +29,9 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-// TODO(robin): maybe replace with a new Individual constructor
-/*Individual createIndividual(const Hypergraph& hypergraph) {
-  std::vector<PartitionID> result;
-  for (HypernodeID u : hypergraph.nodes()) {
-    result.push_back(hypergraph.partID(u));
-  }
-  HyperedgeWeight weight = metrics::km1(hypergraph);
-  std::vector<HyperedgeID> cutWeak;
-  std::vector<HyperedgeID> cutStrong;
-  for (HyperedgeID v : hypergraph.edges()) {
-    auto km1 = hypergraph.connectivity(v) - 1;
-    if (km1 > 0) {
-      cutWeak.push_back(v);
-      for (unsigned i = 1; i < hypergraph.connectivity(v); i++) {
-        cutStrong.push_back(v);
-      }
-    }
-  }
-  Individual ind(result, cutWeak, cutStrong, weight);
-  return ind;
-}*/
-/*void forceBlock(const HyperedgeID he, Hypergraph& hg) {
-  int k = hg.k();
-  int amount[k] = { };
-  for (int i = 0; i < k; ++i) {
-    amount[i] += hg.partWeight(i);
-  }
-  int smallest_block = std::numeric_limits<int>::max();
-  int smallest_block_value = std::numeric_limits<int>::max();
-  for (int i = 0; i < hg.k(); ++i) {
-    if (amount[i] < smallest_block_value) {
-      smallest_block = i;
-      smallest_block_value = amount[i];
-    }
-  }
-  for (HypernodeID u : hg.pins(he)) {
-    hg.changeNodePart(u, hg.partID(u), smallest_block);
-  }
-}*/
-
 class Population {
  public:
-  explicit Population(Hypergraph& hypergraph) :
+  explicit Population() :
     _individuals() { }
 
   inline void insert(Individual&& individual, const Context& context) {
@@ -132,7 +92,7 @@ class Population {
     return Randomize::instance().getRandomInt(0, size() - 1);
   }
   inline size_t randomIndividualExcept(const size_t exception) const {
-    int target = Randomize::instance().getRandomInt(0, size() - 2);
+    size_t target = Randomize::instance().getRandomInt(0, size() - 2);
     if (target == exception) {
       target = size() - 1;
     }
@@ -180,14 +140,14 @@ class Population {
     std::partial_sort(sorting.begin(), sorting.begin() + amount, sorting.end());
 
     Individuals best_individuals;
-    for (int it = 0; it < amount; ++it) {
-      best_individuals.push_back(_individuals[sorting[it].second]);
+    for (size_t i = 0; i < amount; ++i) {
+      best_individuals.push_back(_individuals[sorting[i].second]);
     }
     return best_individuals;
   }
 
   inline void print() const {
-    for (int i = 0; i < _individuals.size(); ++i) {
+    for (size_t i = 0; i < _individuals.size(); ++i) {
       _individuals[i].print();
     }
   }

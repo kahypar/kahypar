@@ -187,8 +187,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
-static inline void serializeEvolutionary(const Context& context, const Hypergraph& hypergraph,
-                                         const std::chrono::duration<double>& elapsed_seconds) { }
+static inline void serializeEvolutionary(const Context&, const Hypergraph&,
+                                         const std::chrono::duration<double>&) { }
 }  // namespace serializer
 }  // namespace io
 }  // namespace kahypar

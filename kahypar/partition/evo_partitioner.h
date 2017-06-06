@@ -44,10 +44,11 @@ enum class Decision {
 
 class EvoPartitioner {
  public:
-  EvoPartitioner(Hypergraph& hg, const Context& context) :
+  EvoPartitioner(const Context& context) :
     _globalstart(),
     _timelimit(),
-    _population(hg) {
+    _population(),
+    _iteration(0) {
     _globalstart = std::chrono::high_resolution_clock::now();
     _timelimit = context.evolutionary.time_limit_seconds;
   }
