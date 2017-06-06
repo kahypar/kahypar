@@ -214,7 +214,7 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
 Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph&,
                                                                  const Population&,
                                                                  Context&) {
-  // context.evolutionary.stable_net_edges_final = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
+  // context.evolutionary.stable_nets_final = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   // std::vector<PartitionID> result;
   // std::vector<HyperedgeID> cutWeak;
   // std::vector<HyperedgeID> cutStrong;

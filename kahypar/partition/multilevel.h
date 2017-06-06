@@ -130,7 +130,7 @@ static inline void partition(Hypergraph& hypergraph,
                           stable_net_before_uncoarsen.end(),
                           stable_net_after_uncoarsen.begin(),
                           stable_net_after_uncoarsen.end(),
-                          back_inserter(context.evolutionary.stable_net_edges_final));
+                          back_inserter(context.evolutionary.stable_nets_final));
   }
 
   Timer::instance().add(context, Timepoint::local_search,
