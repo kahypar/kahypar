@@ -164,29 +164,27 @@ enum class Subtype : uint8_t {
 };
 
 
-
-
-  std::string toString(const Decision& dec) {
-    switch (dec) {
-      case Decision::normal:  return "normal";
-      case Decision::mutation:  return "mutation";
-      case Decision::combine:  return "combine";
-      case Decision::edge_frequency:  return "edge frequency";
-      case Decision::cross_combine:  return "cross combine";
-    }
-    return "UNDEFINED";
+std::string toString(const Decision& dec) {
+  switch (dec) {
+    case Decision::normal:  return "normal";
+    case Decision::mutation:  return "mutation";
+    case Decision::combine:  return "combine";
+    case Decision::edge_frequency:  return "edge frequency";
+    case Decision::cross_combine:  return "cross combine";
   }
-  std::string toString(const Subtype& subtype)  {
-    switch (subtype) {
-      case Subtype::stable_net:  return "stable net";
-      case Subtype::edge_frequency:  return "edge frequency";
-      case Subtype::cross_combine:  return "cross combine";
-      case Subtype::basic_combine:  return "basic combine";
-      case Subtype::vcycle_initial_partitioning:  return "vcycle initial partitioning";
-      case Subtype::normal:  return "normal";
-    }
-    return "UNDEFINED";
+  return "UNDEFINED";
+}
+std::string toString(const Subtype& subtype) {
+  switch (subtype) {
+    case Subtype::stable_net:  return "stable net";
+    case Subtype::edge_frequency:  return "edge frequency";
+    case Subtype::cross_combine:  return "cross combine";
+    case Subtype::basic_combine:  return "basic combine";
+    case Subtype::vcycle_initial_partitioning:  return "vcycle initial partitioning";
+    case Subtype::normal:  return "normal";
   }
+  return "UNDEFINED";
+}
 
 
 static std::string toString(const RatingPartitionPolicy& policy) {

@@ -26,6 +26,7 @@
 
 #include "kahypar/io/config_file_reader.h"
 #include "kahypar/partition/evolutionary/edgefrequency.h"
+#include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/stablenet.h"
 
 namespace kahypar {

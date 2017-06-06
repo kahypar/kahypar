@@ -21,6 +21,8 @@
 
 #include <vector>
 
+#include "kahypar/partition/evolutionary/individual.h"
+
 namespace kahypar {
 namespace combine {
 namespace edgefrequency {
