@@ -39,16 +39,19 @@ namespace kahypar {
 using FirstWinsRater = VertexPairRater<HeavyEdgeScore,
                                        MultiplicativePenalty,
                                        UseCommunityStructure,
+                                       NormalPartitionPolicy,
                                        BestRatingWithTieBreaking<FirstRatingWins>,
                                        RatingType>;
 using LastWinsRater = VertexPairRater<HeavyEdgeScore,
                                       MultiplicativePenalty,
                                       UseCommunityStructure,
+                                      NormalPartitionPolicy,
                                       BestRatingWithTieBreaking<LastRatingWins>,
                                       RatingType>;
 using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
                                         MultiplicativePenalty,
                                         UseCommunityStructure,
+                                        NormalPartitionPolicy,
                                         BestRatingWithTieBreaking<RandomRatingWins>,
                                         RatingType>;
 
