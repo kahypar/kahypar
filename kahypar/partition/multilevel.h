@@ -126,13 +126,11 @@ static inline void partition(Hypergraph& hypergraph,
         stable_net_after_uncoarsen.push_back(u);
       }
     }
-    std::vector<HyperedgeID> in_cut_before_and_after;
     std::set_intersection(stable_net_before_uncoarsen.begin(),
                           stable_net_before_uncoarsen.end(),
                           stable_net_after_uncoarsen.begin(),
                           stable_net_after_uncoarsen.end(),
-                          back_inserter(in_cut_before_and_after));
-    context.evolutionary.stable_net_edges_final = in_cut_before_and_after;
+                          back_inserter(context.evolutionary.stable_net_edges_final));
   }
 
   Timer::instance().add(context, Timepoint::local_search,
