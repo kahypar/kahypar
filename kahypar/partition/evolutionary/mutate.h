@@ -70,6 +70,7 @@ Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const
   DBG << V(action.action) << "===>" << V(action.subtype);
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
+  // TODO(andre): this doesn't do anything
   action.requires.initial_partitioning = false;
   action.requires.vcycle_stable_net_collection = false;
   partitioner.partition(hg, temporary_context);
