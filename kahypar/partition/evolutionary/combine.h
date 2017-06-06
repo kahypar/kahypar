@@ -156,7 +156,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
 
   // TODO(robin):  edgefrequency::fromPopulation
   temporary_context.evolutionary.edge_frequency =
-    edgefrequency::frequencyFromPopulation(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -178,7 +178,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   temporary_context.evolutionary.parent2 = parents.second.partition();
 
   temporary_context.evolutionary.edge_frequency =
-    edgefrequency::frequencyFromPopulation(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);

@@ -25,10 +25,9 @@
 
 namespace kahypar {
 namespace combine {
-namespace edgefrequency {
-std::vector<std::size_t> frequencyFromPopulation(const Individuals& edge_frequency_targets,
-                                                 const std::size_t& size) {
-  std::vector<std::size_t> result(size, 0);
+std::vector<size_t> computeEdgeFrequency(const Individuals& edge_frequency_targets,
+                                         const HyperedgeID num_hyperedges) {
+  std::vector<size_t> result(num_hyperedges, 0);
   for (const auto& individual : edge_frequency_targets) {
     for (const HyperedgeID cut_he : individual.get().cutEdges()) {
       result[cut_he] += 1;
@@ -36,6 +35,5 @@ std::vector<std::size_t> frequencyFromPopulation(const Individuals& edge_frequen
   }
   return result;
 }
-}  // namespace edgefrequency
 }  // namespace combine
 }  // namespace kahypar

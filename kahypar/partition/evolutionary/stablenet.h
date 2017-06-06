@@ -44,7 +44,7 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
 static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,
                                                                   const Individuals& individuals,
                                                                   const std::size_t& size) {
-  const std::vector<std::size_t> frequency = edgefrequency::frequencyFromPopulation(individuals, size);
+  const std::vector<std::size_t> frequency = computeEdgeFrequency(individuals, size);
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
     if (frequency[i] >= context.evolutionary.stable_net_amount * individuals.size()) {
