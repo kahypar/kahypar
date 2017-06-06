@@ -90,22 +90,16 @@ static inline void partition(Hypergraph& hypergraph,
 
     hypergraph.setPartitionVector(context.evolutionary.parent1);
 
-    HyperedgeWeight parentWeight1 = metrics::km1(hypergraph);
-
-    HyperedgeWeight parentWeight2;
-
     if (!context.evolutionary.action.requires.invalidation_of_second_partition) {
+      const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
       hypergraph.reset();
       hypergraph.setPartitionVector(context.evolutionary.parent2);
-      parentWeight2 = metrics::km1(hypergraph);
-    }
+      const HyperedgeWeight parent_2_objective = metrics::km1(hypergraph);
 
-    if (parentWeight1 < parentWeight2) {
-      hypergraph.reset();
-      hypergraph.setPartitionVector(context.evolutionary.parent1);
-    } else {
-      // Just for correctness, because the Hypergraph has partition 2
-      // which is already better
+      if (parent_1_objective < parent_2_objective) {
+        hypergraph.reset();
+        hypergraph.setPartitionVector(context.evolutionary.parent1);
+      }
     }
   }
 
