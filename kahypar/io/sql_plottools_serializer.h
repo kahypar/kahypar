@@ -167,7 +167,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " communityDetectionTime=" << timings.pre_community_detection
       << " coarseningTime=" << timings.total_coarsening
       << " initialPartitionTime=" << timings.total_initial_partitioning
-      << " uncoarseningRefinementTime=" << timings.total_ip_local_search
+      << " uncoarseningRefinementTime=" << timings.total_local_search
       << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
 
   if (context.partition.global_search_iterations > 0) {
