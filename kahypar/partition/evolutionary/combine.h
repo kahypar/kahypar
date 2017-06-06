@@ -67,7 +67,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   action.requires.vcycle_stable_net_collection = false;
   action.requires.invalidation_of_second_partition = true;
 
-  Context temporary_context = context;
+  Context temporary_context(context);
   temporary_context.evolutionary.action = action;
 
   switch (context.evolutionary.cross_combine_objective) {

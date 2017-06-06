@@ -32,7 +32,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   // Subtype::vcycle_initial_partitioning) or via Action constructor
   action.subtype = Subtype::vcycle_initial_partitioning;
   action.requires.initial_partitioning = true;
-  Context temporary_context = context;
+  Context temporary_context(context);
   temporary_context.evolutionary.action = action;
 
   Partitioner partitioner;
@@ -46,7 +46,7 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   action.subtype = Subtype::stable_net;
   action.requires.initial_partitioning = false;
   action.requires.vcycle_stable_net_collection = true;
-  Context temporary_context = context;
+  Context temporary_context(context);
   temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   Partitioner partitioner;
@@ -62,7 +62,7 @@ Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const
   action.subtype = Subtype::stable_net;
   action.requires.initial_partitioning = false;
   action.requires.vcycle_stable_net_collection = true;
-  Context temporary_context = context;
+  Context temporary_context(context);
   temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   Partitioner partitioner;
