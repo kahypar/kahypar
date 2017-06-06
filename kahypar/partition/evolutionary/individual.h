@@ -26,6 +26,9 @@
 
 namespace kahypar {
 class Individual {
+ private:
+  static constexpr bool debug = true;
+
  public:
   Individual() :
     _partition(),
@@ -65,6 +68,7 @@ class Individual {
         }
       }
     }
+    DBG << "New individual" << V(_fitness);
   }
 
   Individual(const Individual&) = delete;

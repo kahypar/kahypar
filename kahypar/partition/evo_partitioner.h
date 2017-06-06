@@ -33,18 +33,12 @@
 
 namespace kahypar {
 namespace partition {
-enum class Decision {
-  normal,
-  mutation,
-  combine,
-  edgeFrequency,
-  crossCombine,
-  diversify
-};
-
 class EvoPartitioner {
+ private:
+  static constexpr bool debug = true;
+
  public:
-  EvoPartitioner(const Context& context) :
+  explicit EvoPartitioner(const Context& context) :
     _globalstart(),
     _timelimit(),
     _population(),
@@ -85,19 +79,20 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
   while (elapsed_seconds_total.count() <= _timelimit) {
     ++_iteration;
     Decision decision = decideNextMove(context);
+    DBG << V(decision);
     switch (decision) {
-      case (Decision::diversify):
+      case Decision::diversify:
         kahypar::partition::diversify(context);
-      case (Decision::mutation):
+      case Decision::mutation:
         performMutation(hg, context);
         break;
-      case (Decision::edgeFrequency):
+      case Decision::edge_frequency:
         performEdgeFrequency(hg, context);
         break;
-      case (Decision::crossCombine):
+      case Decision::cross_combine:
         performCrossCombine(hg, context);
         break;
-      case (Decision::combine):
+      case Decision::combine:
         performCombine(hg, context);
         break;
       default:
@@ -111,15 +106,14 @@ inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
 
 inline void EvoPartitioner::performMutation(Hypergraph& hg, const Context& context) {
   const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
-
   switch (context.evolutionary.mutate_strategy) {
-    case (MutateStrategy::vcycle_with_new_initial_partitioning):
+    case MutateStrategy::vcycle_with_new_initial_partitioning:
       _population.forceInsert(mutate::vCycleWithNewInitialPartitioning(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
-    case (MutateStrategy::single_stable_net):
+    case MutateStrategy::single_stable_net:
       _population.forceInsert(mutate::stableNetMutate(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
-    case (MutateStrategy::single_stable_net_vcycle):
+    case MutateStrategy::single_stable_net_vcycle:
       _population.forceInsert(mutate::stableNetMutateWithVCycle(hg, _population.individualAt(mutationPosition), context), mutationPosition);
       break;
   }
@@ -128,11 +122,11 @@ inline void EvoPartitioner::performMutation(Hypergraph& hg, const Context& conte
 inline void EvoPartitioner::performCombine(Hypergraph& hg, const Context& context) {
   const auto& parents = _population.tournamentSelect();
   switch (context.evolutionary.combine_strategy) {
-    case (CombineStrategy::basic):
+    case CombineStrategy::basic:
       // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
       _population.insert(combine::partitions(hg, parents, context), context);
       break;
-    case (CombineStrategy::with_edge_frequency_information):
+    case CombineStrategy::with_edge_frequency_information:
       _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg, parents, context, _population), context);
   }
 }
@@ -151,13 +145,13 @@ inline Decision EvoPartitioner::decideNextMove(const Context& context) {
     return Decision::diversify;
   }
   if (context.evolutionary.perform_edge_frequency_interval != -1 && _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
-    return Decision::edgeFrequency;
+    return Decision::edge_frequency;
   }
   if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
     return Decision::mutation;
   }
   if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.cross_combine_chance) {
-    return Decision::crossCombine;
+    return Decision::cross_combine;
   }
   return Decision::combine;
 }

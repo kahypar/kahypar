@@ -22,6 +22,10 @@
 namespace kahypar {
 namespace partition {
 static void diversify(Context& context) {
+  static constexpr bool debug = true;
+  DBG << "diversify";
+
+
   // TODO i need to switch from boolean to strategies like cross Combine
   // context.evolutionary.use_edge_combine = Randomize::instance().flipCoin();
   // context.evolutionary.stable_net = Randomize::instance().flipCoin();

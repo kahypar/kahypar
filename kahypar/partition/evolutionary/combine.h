@@ -44,6 +44,8 @@ Individual partitions(Hypergraph& hg,
   action.requires.initial_partitioning = false;
   action.requires.evolutionary_parent_contraction = true;
 
+  DBG << V(action.action) << "===>" << V(action.subtype);
+
   Context temporary_context(context);
   temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
@@ -154,14 +156,18 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   temporary_context.coarsening.rating.heavy_node_penalty_policy =
     HeavyNodePenaltyPolicy::edge_frequency_penalty;
 
-  // TODO(robin):  edgefrequency::fromPopulation
   temporary_context.evolutionary.edge_frequency =
-    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
+                         hg.initialNumEdges());
+
+  DBG << V(action.action) << "===>" << V(action.subtype);
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
-Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const Parents& parents, const Context& context, const Population& population) {
+Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const Parents& parents,
+                                                           const Context& context,
+                                                           const Population& population) {
   hg.reset();
   Context temporary_context(context);
 
@@ -178,7 +184,10 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   temporary_context.evolutionary.parent2 = &parents.second.partition();
 
   temporary_context.evolutionary.edge_frequency =
-    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount), hg.initialNumEdges());
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
+                         hg.initialNumEdges());
+
+  DBG << V(action.action) << "===>" << V(action.subtype);
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -187,7 +196,11 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
 
 Individual populationStableNet(Hypergraph& hg, const Population& population, const Context& context) {
   // No action required as we do not access the partitioner for this
-  std::vector<HyperedgeID> stable_nets = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
+  DBG << "action.action = population_stable_net";
+  std::vector<HyperedgeID> stable_nets =
+    stablenet::stableNetsFromMultipleIndividuals(context,
+                                                 population.listOfBest(context.evolutionary.stable_net_amount),
+                                                 hg.initialNumEdges());
   Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
 
   std::vector<bool> touched_hns(hg.initialNumNodes(), false);

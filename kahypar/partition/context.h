@@ -210,8 +210,8 @@ struct Action {
   Requirements requires;
 
   void print() {
-    std::cout << toString(action) << std::endl
-              << toString(subtype) << std::endl
+    std::cout << action << std::endl
+              << subtype << std::endl
               << requires.initial_partitioning << std::endl
               << requires.evolutionary_parent_contraction << std::endl
               << requires.vcycle_stable_net_collection << std::endl
@@ -353,7 +353,7 @@ struct EvolutionaryParameters {
   const std::vector<PartitionID>* parent2 = nullptr;
   mutable std::vector<HyperedgeID> stable_nets_vcycle;
   mutable std::vector<HyperedgeID> stable_nets_final;
-  mutable std::vector<std::size_t> edge_frequency;
+  mutable std::vector<size_t> edge_frequency;
   mutable Action action;
 };
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
@@ -397,7 +397,7 @@ class Context {
     stats(*this, &other.stats.topLevel()),
     partition_evolutionary(other.partition_evolutionary) { }
 
-   Context& operator= (const Context&) = delete;
+  Context& operator= (const Context&) = delete;
 
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;

@@ -24,6 +24,8 @@
 namespace kahypar {
 namespace partition {
 namespace mutate {
+static constexpr bool debug = true;
+
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
   Action action;
@@ -35,8 +37,8 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   Context temporary_context(context);
   temporary_context.evolutionary.action = action;
 
-  Partitioner partitioner;
-  partitioner.partition(hg, temporary_context);
+  DBG << V(action.action) << "===>" << V(action.subtype);
+  Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
 Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& context) {
@@ -49,8 +51,8 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   Context temporary_context(context);
   temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  Partitioner partitioner;
-  partitioner.partition(hg, temporary_context);
+  DBG << V(action.action) << "===>" << V(action.subtype);
+  Partitioner().partition(hg, temporary_context);
   // TODO (I need to test whether this call to partiton works)
   return Individual(hg);
 }
@@ -65,6 +67,7 @@ Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const
   Context temporary_context(context);
   temporary_context.evolutionary.action = action;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+  DBG << V(action.action) << "===>" << V(action.subtype);
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
   action.requires.initial_partitioning = false;

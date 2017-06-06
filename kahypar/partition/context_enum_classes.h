@@ -146,12 +146,13 @@ enum class CrossCombineStrategy : uint8_t {
   louvain
 };
 
-enum class Decision {
+enum class Decision :uint8_t {
   normal,
   mutation,
   combine,
   edge_frequency,
-  cross_combine
+  cross_combine,
+  diversify
 };
 enum class Subtype : uint8_t {
   stable_net,
@@ -163,28 +164,75 @@ enum class Subtype : uint8_t {
   normal
 };
 
-
-std::string toString(const Decision& dec) {
-  switch (dec) {
-    case Decision::normal:  return "normal";
-    case Decision::mutation:  return "mutation";
-    case Decision::combine:  return "combine";
-    case Decision::edge_frequency:  return "edge frequency";
-    case Decision::cross_combine:  return "cross combine";
+std::ostream& operator<< (std::ostream& os, const ReplaceStrategy& replace) {
+  switch (replace) {
+    case ReplaceStrategy::worst: return os << "worst";
+    case ReplaceStrategy::diverse: return os << "diverse";
+    case ReplaceStrategy::strong_diverse: return os << "strong_diverse";
+      // omit default case to trigger compiler warning for missing cases
   }
-  return "UNDEFINED";
+  return os << static_cast<uint8_t>(replace);
 }
-std::string toString(const Subtype& subtype) {
-  switch (subtype) {
-    case Subtype::stable_net:  return "stable net";
-    case Subtype::stable_net_vcycle:  return "stable net vcycle";
-    case Subtype::edge_frequency:  return "edge frequency";
-    case Subtype::cross_combine:  return "cross combine";
-    case Subtype::basic_combine:  return "basic combine";
-    case Subtype::vcycle_initial_partitioning:  return "vcycle initial partitioning";
-    case Subtype::normal:  return "normal";
+
+std::ostream& operator<< (std::ostream& os, const CombineStrategy& combine) {
+  switch (combine) {
+    case CombineStrategy::basic: return os << "basic";
+    case CombineStrategy::with_edge_frequency_information:
+      return os << "with_edge_frequency_information";
+      // omit default case to trigger compiler warning for missing cases
   }
-  return "UNDEFINED";
+  return os << static_cast<uint8_t>(combine);
+}
+
+std::ostream& operator<< (std::ostream& os, const MutateStrategy& mutation) {
+  switch (mutation) {
+    case MutateStrategy::vcycle_with_new_initial_partitioning:
+      return os << "vcycle_with_new_initial_partitioning";
+    case MutateStrategy::single_stable_net:  return os << "single_stable_net";
+    case MutateStrategy::single_stable_net_vcycle:  return os << "single_stable_net_vcycle";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(mutation);
+}
+
+std::ostream& operator<< (std::ostream& os, const CrossCombineStrategy& cross_combine) {
+  switch (cross_combine) {
+    case CrossCombineStrategy::k:  return os << "k";
+    case CrossCombineStrategy::epsilon:  return os << "epsilon";
+    case CrossCombineStrategy::objective:  return os << "objective";
+    case CrossCombineStrategy::mode:  return os << "mode";
+    case CrossCombineStrategy::louvain:  return os << "louvain";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(cross_combine);
+}
+
+
+std::ostream& operator<< (std::ostream& os, Decision decision) {
+  switch (decision) {
+    case Decision::normal:  return os << "normal";
+    case Decision::mutation:  return os << "mutation";
+    case Decision::combine:  return os << "combine";
+    case Decision::edge_frequency:  return os << "edge_frequency";
+    case Decision::cross_combine:  return os << "cross_combine";
+    case Decision::diversify: return os << "diversify";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(decision);
+}
+
+std::ostream& operator<< (std::ostream& os, const Subtype& subtype) {
+  switch (subtype) {
+    case Subtype::stable_net:  return os << "stable_net";
+    case Subtype::stable_net_vcycle:  return os << "stable_net_vcycle";
+    case Subtype::edge_frequency:  return os << "edge_frequency";
+    case Subtype::cross_combine:  return os << "cross_combine";
+    case Subtype::basic_combine:  return os << "basic_combine";
+    case Subtype::vcycle_initial_partitioning:  return os << "vcycle_initial_partitioning";
+    case Subtype::normal:  return os << "normal";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(subtype);
 }
 
 

@@ -24,17 +24,20 @@
 #include <utility>
 #include <vector>
 
-// #include "kahypar/partition/partitioner.h"
 #include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 class Population {
+ private:
+  static constexpr bool debug = true;
+
  public:
   explicit Population() :
     _individuals() { }
 
   inline void insert(Individual&& individual, const Context& context) {
+    DBG << context.evolutionary.replace_strategy;
     switch (context.evolutionary.replace_strategy) {
       case ReplaceStrategy::worst:
         forceInsert(std::move(individual), worst());
@@ -47,14 +50,16 @@ class Population {
         return;
     }
   }
-  inline void forceInsert(Individual&& individual, const size_t& position) {
+  inline void forceInsert(Individual&& individual, const size_t position) {
+    DBG << V(position) << V(individual.fitness());
     _individuals[position] = std::move(individual);
   }
   inline const Individual & singleTournamentSelection() const {
-    size_t first_pos = randomIndividual();
-    size_t second_pos = randomIndividualExcept(first_pos);
+    const size_t first_pos = randomIndividual();
+    const size_t second_pos = randomIndividualExcept(first_pos);
     const Individual& first = individualAt(first_pos);
     const Individual& second = individualAt(second_pos);
+    DBG << V(first_pos) << V(first.fitness()) << V(second_pos) << V(second.fitness());
     return first.fitness() < second.fitness() ? first : second;
   }
 
@@ -70,6 +75,8 @@ class Population {
     if (first_tournament_winner.fitness() == individualAt(second_winner_pos).fitness()) {
       second_winner_pos = first.fitness() >= second.fitness() ? first_pos : second_pos;
     }
+
+    DBG << V(first_tournament_winner.fitness()) << V(individualAt(second_winner_pos).fitness());
     return std::make_pair(std::cref(first_tournament_winner), std::cref(individualAt(second_winner_pos)));
   }
 
@@ -82,6 +89,7 @@ class Population {
       std::cout << "Error, tried to fill Population above limit" << std::endl;
       std::exit(1);
     }
+    DBG << "Individual" << _individuals.size() - 1 << V(_individuals.back().fitness());
     return _individuals.back();
   }
 
@@ -101,29 +109,31 @@ class Population {
 
   inline size_t best() const {
     size_t best_position = std::numeric_limits<size_t>::max();
-    HyperedgeWeight best_value = std::numeric_limits<int>::max();
+    HyperedgeWeight best_fitness = std::numeric_limits<int>::max();
 
     for (size_t i = 0; i < size(); ++i) {
       const HyperedgeWeight result = _individuals[i].fitness();
-      if (result < best_value) {
+      if (result < best_fitness) {
         best_position = i;
-        best_value = result;
+        best_fitness = result;
       }
     }
     ASSERT(best_position != std::numeric_limits<size_t>::max());
+    DBG << V(best_position) << V(best_fitness);
     return best_position;
   }
 
   inline size_t worst() {
-    size_t worst_position = 0;
-    HyperedgeWeight worst_value = std::numeric_limits<int>::min();
+    size_t worst_position = std::numeric_limits<size_t>::max();
+    HyperedgeWeight worst_fitness = std::numeric_limits<int>::min();
     for (size_t i = 0; i < size(); ++i) {
       HyperedgeWeight result = _individuals[i].fitness();
-      if (result > worst_value) {
+      if (result > worst_fitness) {
         worst_position = i;
-        worst_value = result;
+        worst_fitness = result;
       }
     }
+    DBG << V(worst_position) << V(worst_fitness);
     return worst_position;
   }
 
@@ -176,6 +186,7 @@ class Population {
                                     individual.cutEdges().end(),
                                     std::back_inserter(output_diff));
     }
+    DBG << V(output_diff.size());
     return output_diff.size();
   }
 
@@ -201,6 +212,7 @@ class Population {
         }
       }
     }
+    DBG << V(max_similarity_id) << V(max_similarity);
     forceInsert(std::move(individual), max_similarity_id);
     return max_similarity_id;
   }
