@@ -70,11 +70,10 @@ enum class RatingPartitionPolicy : uint8_t {
   evolutionary
 };
 enum class CoarseningAlgorithm : uint8_t {
-  heavy_full,
-  heavy_lazy,
   ml_style,
-  do_nothing,
-  UNDEFINED
+  heavy_lazy,
+  heavy_full,
+  do_nothing
 };
 
 enum class RefinementAlgorithm : uint8_t {
