@@ -24,8 +24,9 @@
 
 #include "kahypar/definitions.h"
 namespace kahypar {
-namespace combine {
 namespace stablenet {
+static constexpr bool debug = true;
+
 void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   const PartitionID k = hg.k();
   PartitionID lightest_part = std::numeric_limits<PartitionID>::max();
@@ -48,12 +49,36 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
     for (const HypernodeID& hn : hg.pins(he)) {
       hg.changeNodePart(hn, hg.partID(hn), lightest_part);
     }
+    DBG << "moved stable net" << he << "to block" << lightest_part;
   }
 }
+
+void removeStableNets(Hypergraph& hg, const Context& context,
+                      std::vector<HyperedgeID>& stable_nets  ) {
+
+  Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
+  std::vector<bool> touched_hns(hg.initialNumNodes(), false);
+  for (const HyperedgeID& stable_net : stable_nets) {
+    bool he_was_touched = false;
+    for (const HypernodeID& pin : hg.pins(stable_net)) {
+      if (touched_hns[pin]) {
+        he_was_touched = true;
+        break;
+      }
+    }
+    if (!he_was_touched) {
+      for (const HypernodeID pin : hg.pins(stable_net)) {
+        touched_hns[pin] = true;
+      }
+      forceBlock(stable_net, hg, context);
+    }
+  }
+}
+
 static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,
                                                                   const Individuals& individuals,
                                                                   const std::size_t& size) {
-  const std::vector<std::size_t> frequency = computeEdgeFrequency(individuals, size);
+  const std::vector<size_t> frequency = combine::computeEdgeFrequency(individuals, size);
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
     if (frequency[i] >= context.evolutionary.stable_net_amount * individuals.size()) {
@@ -63,5 +88,4 @@ static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context&
   return stable_nets;
 }
 }  // namespace stablenet
-}  // namespace combine
 }  // namespace kahypar

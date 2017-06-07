@@ -178,28 +178,12 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
 Individual populationStableNet(Hypergraph& hg, const Population& population, const Context& context) {
   // No action required as we do not access the partitioner for this
   DBG << "action.decision() = population_stable_net";
+  DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
-    stablenet::stableNetsFromMultipleIndividuals(context,
-                                                 population.listOfBest(context.evolutionary.stable_net_amount),
-                                                 hg.initialNumEdges());
-  Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
-
-  std::vector<bool> touched_hns(hg.initialNumNodes(), false);
-  for (const HyperedgeID& stable_net : stable_nets) {
-    bool he_was_touched = false;
-    for (const HypernodeID& pin : hg.pins(stable_net)) {
-      if (touched_hns[pin]) {
-        he_was_touched = true;
-        break;
-      }
-    }
-    if (!he_was_touched) {
-      for (const HypernodeID pin : hg.pins(stable_net)) {
-        touched_hns[pin] = true;
-      }
-      stablenet::forceBlock(stable_net, hg, context);
-    }
-  }
+      stablenet::stableNetsFromMultipleIndividuals(context,
+                                      population.listOfBest(context.evolutionary.stable_net_amount),
+                                      hg.initialNumEdges());
+  stablenet::removeStableNets(hg, context, stable_nets);
   return Individual(hg);
 }
 
