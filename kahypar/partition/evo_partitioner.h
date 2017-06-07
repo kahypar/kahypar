@@ -137,21 +137,21 @@ class EvoPartitioner {
   inline void performMutation(Hypergraph& hg, const Context& context) {
     const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
     switch (context.evolutionary.mutate_strategy) {
-      case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
+      case EvoMutateStrategy::new_initial_partitioning_vcycle:
         _population.forceInsert(
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutationPosition),
                                                    context), mutationPosition);
         break;
       case EvoMutateStrategy::single_stable_net:
-        _population.forceInsert(mutate::stableNetMutate(hg,
-                                                        _population.individualAt(mutationPosition),
-                                                        context), mutationPosition);
+        _population.forceInsert(mutate::removeStableNets(hg,
+                                                         _population.individualAt(mutationPosition),
+                                                         context), mutationPosition);
         break;
       case EvoMutateStrategy::single_stable_net_vcycle:
-        _population.forceInsert(mutate::stableNetMutateWithVCycle(hg,
-                                                                  _population.individualAt(mutationPosition),
-                                                                  context), mutationPosition);
+        _population.forceInsert(mutate::removeStableNetsWithVCycle(hg,
+                                                                   _population.individualAt(mutationPosition),
+                                                                   context), mutationPosition);
         break;
     }
   }

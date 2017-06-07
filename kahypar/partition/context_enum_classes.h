@@ -132,7 +132,7 @@ enum class EvoCombineStrategy : uint8_t {
   with_edge_frequency_information
 };
 enum class EvoMutateStrategy : uint8_t {
-  vcycle_with_new_initial_partitioning,
+  new_initial_partitioning_vcycle,
   single_stable_net,
   single_stable_net_vcycle
 };
@@ -176,8 +176,8 @@ std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
 
 std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
   switch (mutation) {
-    case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
-      return os << "vcycle_with_new_initial_partitioning";
+    case EvoMutateStrategy::new_initial_partitioning_vcycle:
+      return os << "new_initial_partitioning_vcycle";
     case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
     case EvoMutateStrategy::single_stable_net_vcycle:  return os << "single_stable_net_vcycle";
       // omit default case to trigger compiler warning for missing cases
@@ -240,7 +240,7 @@ static std::string toString(const EvoCrossCombineStrategy& ccobj) {
 }
 static std::string toString(const EvoMutateStrategy& strat) {
   switch (strat) {
-    case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
+    case EvoMutateStrategy::new_initial_partitioning_vcycle:
       return std::string("vcycle with new initial partitioning");
     case EvoMutateStrategy::single_stable_net:
       return std::string("single stable net");
@@ -436,8 +436,8 @@ static EvoCrossCombineStrategy crossCombineStrategyFromString(const std::string&
   exit(0);
 }
 static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
-  if (strat == "vcycle_with_new_initial_partitioning") {
-    return EvoMutateStrategy::vcycle_with_new_initial_partitioning;
+  if (strat == "new_initial_partitioning_vcycle") {
+    return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "single_stable_net") {
     return EvoMutateStrategy::single_stable_net;
   } else if (strat == "single_stable_net_vcycle") {

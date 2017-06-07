@@ -314,7 +314,7 @@ struct EvolutionaryParameters {
   float mutation_chance = 0.1;
   EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
   EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
-  EvoMutateStrategy mutate_strategy = EvoMutateStrategy::vcycle_with_new_initial_partitioning;
+  EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
   int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
   EvoCrossCombineStrategy cross_combine_objective = EvoCrossCombineStrategy::k;

@@ -77,7 +77,8 @@ class Population {
     }
 
     DBG << V(first_tournament_winner.fitness()) << V(individualAt(second_winner_pos).fitness());
-    return std::make_pair(std::cref(first_tournament_winner), std::cref(individualAt(second_winner_pos)));
+    return std::make_pair(std::cref(first_tournament_winner),
+                          std::cref(individualAt(second_winner_pos)));
   }
 
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
@@ -163,7 +164,8 @@ class Population {
   }
 
  private:
-  inline size_t difference(const Individual& individual, const size_t position, const bool strong_set) const {
+  inline size_t difference(const Individual& individual, const size_t position,
+                           const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
     if (strong_set) {
       ASSERT(std::is_sorted(_individuals[position].strongCutEdges().begin(),

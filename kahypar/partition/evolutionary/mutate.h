@@ -26,18 +26,19 @@ namespace partition {
 namespace mutate {
 static constexpr bool debug = true;
 
-Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in, const Context& context) {
+Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
+                                            const Context& context) {
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
-           meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle_with_new_initial_partitioning)>());
+           meta::Int2Type<static_cast<int>(EvoMutateStrategy::new_initial_partitioning_vcycle)>());
 
   DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
-Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& context) {
+Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
@@ -50,7 +51,8 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   return Individual(hg);
 }
 // TODO implement
-Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const Context& context) {
+Individual removeStableNetsWithVCycle(Hypergraph& hg, const Individual& in, const
+                                      Context& context) {
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
