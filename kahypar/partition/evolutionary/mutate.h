@@ -74,24 +74,6 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
   DBG << "final result" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
   return Individual(hg);
 }
-// TODO implement
-Individual removeStableNetsWithVCycle(Hypergraph& hg, const Individual& in, const
-                                      Context& context) {
-  hg.setPartition(in.partition());
-  Context temporary_context(context);
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
-             meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net_vcycle)>() };
-  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(temporary_context.evolutionary.action.decision());
-  Partitioner partitioner;
-  partitioner.partition(hg, temporary_context);
-  // TODO(andre): this doesn't do anything
-  // action.requires().initial_partitioning = false;
-  // action.requires().vcycle_stable_net_collection = false;
-  partitioner.partition(hg, temporary_context);
-  return Individual(hg);
-}
 }  // namespace mutate
 }  // namespace partition
 }  // namespace kahypar
