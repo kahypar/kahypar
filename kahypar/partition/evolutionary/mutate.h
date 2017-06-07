@@ -30,8 +30,8 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
-    Action(meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-           meta::Int2Type<static_cast<int>(MutateStrategy::vcycle_with_new_initial_partitioning)>());
+    Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+           meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle_with_new_initial_partitioning)>());
 
   DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
@@ -41,8 +41,8 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-             meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+             meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
@@ -54,8 +54,8 @@ Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const
   hg.setPartitionVector(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-             meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net_vcycle)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+             meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net_vcycle)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner partitioner;

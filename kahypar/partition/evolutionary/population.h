@@ -39,13 +39,13 @@ class Population {
   inline void insert(Individual&& individual, const Context& context) {
     DBG << context.evolutionary.replace_strategy;
     switch (context.evolutionary.replace_strategy) {
-      case ReplaceStrategy::worst:
+      case EvoReplaceStrategy::worst:
         forceInsert(std::move(individual), worst());
         return;
-      case ReplaceStrategy::diverse:
+      case EvoReplaceStrategy::diverse:
         replaceDiverse(std::move(individual), false);
         return;
-      case ReplaceStrategy::strong_diverse:
+      case EvoReplaceStrategy::strong_diverse:
         replaceDiverse(std::move(individual), true);
         return;
     }

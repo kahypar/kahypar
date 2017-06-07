@@ -123,22 +123,22 @@ enum class Objective : uint8_t {
   km1,
   UNDEFINED
 };
-enum class ReplaceStrategy : uint8_t {
+enum class EvoReplaceStrategy : uint8_t {
   worst,
   diverse,
   strong_diverse
 };
-enum class CombineStrategy : uint8_t {
+enum class EvoCombineStrategy : uint8_t {
   basic,
   with_edge_frequency_information
 };
-enum class MutateStrategy : uint8_t {
+enum class EvoMutateStrategy : uint8_t {
   vcycle_with_new_initial_partitioning,
   single_stable_net,
   single_stable_net_vcycle
 };
 
-enum class CrossCombineStrategy : uint8_t {
+enum class EvoCrossCombineStrategy : uint8_t {
   k,
   epsilon,
   objective,
@@ -146,7 +146,7 @@ enum class CrossCombineStrategy : uint8_t {
   louvain
 };
 
-enum class Decision :uint8_t {
+enum class EvoDecision :uint8_t {
   normal,
   mutation,
   combine,
@@ -155,58 +155,58 @@ enum class Decision :uint8_t {
   diversify
 };
 
-std::ostream& operator<< (std::ostream& os, const ReplaceStrategy& replace) {
+std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
   switch (replace) {
-    case ReplaceStrategy::worst: return os << "worst";
-    case ReplaceStrategy::diverse: return os << "diverse";
-    case ReplaceStrategy::strong_diverse: return os << "strong_diverse";
+    case EvoReplaceStrategy::worst: return os << "worst";
+    case EvoReplaceStrategy::diverse: return os << "diverse";
+    case EvoReplaceStrategy::strong_diverse: return os << "strong_diverse";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(replace);
 }
 
-std::ostream& operator<< (std::ostream& os, const CombineStrategy& combine) {
+std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
   switch (combine) {
-    case CombineStrategy::basic: return os << "basic";
-    case CombineStrategy::with_edge_frequency_information:
+    case EvoCombineStrategy::basic: return os << "basic";
+    case EvoCombineStrategy::with_edge_frequency_information:
       return os << "with_edge_frequency_information";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(combine);
 }
 
-std::ostream& operator<< (std::ostream& os, const MutateStrategy& mutation) {
+std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
   switch (mutation) {
-    case MutateStrategy::vcycle_with_new_initial_partitioning:
+    case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
       return os << "vcycle_with_new_initial_partitioning";
-    case MutateStrategy::single_stable_net:  return os << "single_stable_net";
-    case MutateStrategy::single_stable_net_vcycle:  return os << "single_stable_net_vcycle";
+    case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
+    case EvoMutateStrategy::single_stable_net_vcycle:  return os << "single_stable_net_vcycle";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mutation);
 }
 
-std::ostream& operator<< (std::ostream& os, const CrossCombineStrategy& cross_combine) {
+std::ostream& operator<< (std::ostream& os, const EvoCrossCombineStrategy& cross_combine) {
   switch (cross_combine) {
-    case CrossCombineStrategy::k:  return os << "k";
-    case CrossCombineStrategy::epsilon:  return os << "epsilon";
-    case CrossCombineStrategy::objective:  return os << "objective";
-    case CrossCombineStrategy::mode:  return os << "mode";
-    case CrossCombineStrategy::louvain:  return os << "louvain";
+    case EvoCrossCombineStrategy::k:  return os << "k";
+    case EvoCrossCombineStrategy::epsilon:  return os << "epsilon";
+    case EvoCrossCombineStrategy::objective:  return os << "objective";
+    case EvoCrossCombineStrategy::mode:  return os << "mode";
+    case EvoCrossCombineStrategy::louvain:  return os << "louvain";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(cross_combine);
 }
 
 
-std::ostream& operator<< (std::ostream& os, Decision decision) {
+std::ostream& operator<< (std::ostream& os, EvoDecision decision) {
   switch (decision) {
-    case Decision::normal:  return os << "normal";
-    case Decision::mutation:  return os << "mutation";
-    case Decision::combine:  return os << "combine";
-    case Decision::edge_frequency:  return os << "edge_frequency";
-    case Decision::cross_combine:  return os << "cross_combine";
-    case Decision::diversify: return os << "diversify";
+    case EvoDecision::normal:  return os << "normal";
+    case EvoDecision::mutation:  return os << "mutation";
+    case EvoDecision::combine:  return os << "combine";
+    case EvoDecision::edge_frequency:  return os << "edge_frequency";
+    case EvoDecision::cross_combine:  return os << "cross_combine";
+    case EvoDecision::diversify: return os << "diversify";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);
@@ -223,51 +223,51 @@ static std::string toString(const RatingPartitionPolicy& policy) {
       return std::string("UNDEFINED");
   }
 }
-static std::string toString(const CrossCombineStrategy& ccobj) {
+static std::string toString(const EvoCrossCombineStrategy& ccobj) {
   switch (ccobj) {
-    case CrossCombineStrategy::k:
+    case EvoCrossCombineStrategy::k:
       return std::string("k");
-    case CrossCombineStrategy::epsilon:
+    case EvoCrossCombineStrategy::epsilon:
       return std::string("epsilon");
-    case CrossCombineStrategy::objective:
+    case EvoCrossCombineStrategy::objective:
       return std::string("objective");
-    case CrossCombineStrategy::mode:
+    case EvoCrossCombineStrategy::mode:
       return std::string("mode");
-    case CrossCombineStrategy::louvain:
+    case EvoCrossCombineStrategy::louvain:
       return std::string("louvain");
     default:
       return std::string("UNDEFINED");
   }
 }
-static std::string toString(const MutateStrategy& strat) {
+static std::string toString(const EvoMutateStrategy& strat) {
   switch (strat) {
-    case MutateStrategy::vcycle_with_new_initial_partitioning:
+    case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
       return std::string("vcycle with new initial partitioning");
-    case MutateStrategy::single_stable_net:
+    case EvoMutateStrategy::single_stable_net:
       return std::string("single stable net");
-    case MutateStrategy::single_stable_net_vcycle:
+    case EvoMutateStrategy::single_stable_net_vcycle:
       return std::string("single stable net with additional vcycle");
     default:
       return std::string("UNDEFINED");
   }
 }
-static std::string toString(const CombineStrategy& strat) {
+static std::string toString(const EvoCombineStrategy& strat) {
   switch (strat) {
-    case CombineStrategy::basic:
+    case EvoCombineStrategy::basic:
       return std::string("basic");
-    case CombineStrategy::with_edge_frequency_information:
+    case EvoCombineStrategy::with_edge_frequency_information:
       return std::string("with edge frequency information");
     default:
       return std::string("UNDEFINED");
   }
 }
-static std::string toString(const ReplaceStrategy& strategy) {
+static std::string toString(const EvoReplaceStrategy& strategy) {
   switch (strategy) {
-    case ReplaceStrategy::worst:
+    case EvoReplaceStrategy::worst:
       return std::string("worst");
-    case ReplaceStrategy::diverse:
+    case EvoReplaceStrategy::diverse:
       return std::string("diverse");
-    case ReplaceStrategy::strong_diverse:
+    case EvoReplaceStrategy::strong_diverse:
       return std::string("strong-diverse");
     default:
       return std::string("UNDEFINED");
@@ -421,48 +421,48 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   }
   return os << static_cast<uint8_t>(rule);
 }
-static CrossCombineStrategy crossCombineStrategyFromString(const std::string& ccobj) {
+static EvoCrossCombineStrategy crossCombineStrategyFromString(const std::string& ccobj) {
   if (ccobj == "k") {
-    return CrossCombineStrategy::k;
+    return EvoCrossCombineStrategy::k;
   } else if (ccobj == "epsilon") {
-    return CrossCombineStrategy::epsilon;
+    return EvoCrossCombineStrategy::epsilon;
   } else if (ccobj == "objective") {
-    return CrossCombineStrategy::objective;
+    return EvoCrossCombineStrategy::objective;
   } else if (ccobj == "mode") {
-    return CrossCombineStrategy::mode;
+    return EvoCrossCombineStrategy::mode;
   } else if (ccobj == "louvain") {
-    return CrossCombineStrategy::louvain;
+    return EvoCrossCombineStrategy::louvain;
   }
   std::cout << "No valid cross combine objective " << std::endl;
   exit(0);
 }
-static MutateStrategy mutateStrategyFromString(const std::string& strat) {
+static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
   if (strat == "vcycle_with_new_initial_partitioning") {
-    return MutateStrategy::vcycle_with_new_initial_partitioning;
+    return EvoMutateStrategy::vcycle_with_new_initial_partitioning;
   } else if (strat == "single_stable_net") {
-    return MutateStrategy::single_stable_net;
+    return EvoMutateStrategy::single_stable_net;
   } else if (strat == "single_stable_net_vcycle") {
-    return MutateStrategy::single_stable_net_vcycle;
+    return EvoMutateStrategy::single_stable_net_vcycle;
   }
   std::cout << "No valid mutate strategy. " << std::endl;
   exit(0);
 }
-static CombineStrategy combineStrategyFromString(const std::string& strat) {
+static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
   if (strat == "basic") {
-    return CombineStrategy::basic;
+    return EvoCombineStrategy::basic;
   } else if (strat == "with_edge_frequency") {
-    return CombineStrategy::with_edge_frequency_information;
+    return EvoCombineStrategy::with_edge_frequency_information;
   }
   std::cout << "No valid combine strategy. " << std::endl;
   exit(0);
 }
-static ReplaceStrategy replaceStrategyFromString(const std::string& strat) {
+static EvoReplaceStrategy replaceStrategyFromString(const std::string& strat) {
   if (strat == "worst") {
-    return ReplaceStrategy::worst;
+    return EvoReplaceStrategy::worst;
   } else if (strat == "diverse") {
-    return ReplaceStrategy::diverse;
+    return EvoReplaceStrategy::diverse;
   } else if (strat == "strong-diverse") {
-    return ReplaceStrategy::strong_diverse;
+    return EvoReplaceStrategy::strong_diverse;
   }
   std::cout << "No valid replace strategy. " << std::endl;
   exit(0);

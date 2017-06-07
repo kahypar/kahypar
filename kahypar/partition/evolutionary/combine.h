@@ -41,7 +41,7 @@ Individual partitions(Hypergraph& hg,
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::combine)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::combine)>() };
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
@@ -60,10 +60,10 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::cross_combine)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
 
   switch (context.evolutionary.cross_combine_objective) {
-    case CrossCombineStrategy::k: {
+    case EvoCrossCombineStrategy::k: {
         const PartitionID lowerbound = std::max(context.partition.k /
                                                 context.evolutionary.cross_combine_lower_limit_kfactor, 2);
         const PartitionID new_k = Randomize::instance().getRandomInt(lowerbound,
@@ -72,13 +72,13 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         temporary_context.partition.k = new_k;
         // No break statement since in mode k epsilon should be varied as well
       }
-    case CrossCombineStrategy::epsilon: {
+    case EvoCrossCombineStrategy::epsilon: {
         const double new_epsilon = Randomize::instance().getRandomFloat(context.partition.epsilon,
                                                                         context.evolutionary.cross_combine_epsilon_upper_limit);
         temporary_context.partition.epsilon = new_epsilon;
         break;
       }
-    case CrossCombineStrategy::objective:
+    case EvoCrossCombineStrategy::objective:
 
       if (context.partition.objective == Objective::km1) {
         io::readInBisectionContext(temporary_context);
@@ -89,7 +89,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       }
       LOG << "Cross Combine Objective unspecified ";
       std::exit(1);
-    case CrossCombineStrategy::mode:
+    case EvoCrossCombineStrategy::mode:
       if (context.partition.mode == Mode::recursive_bisection) {
         io::readInDirectKwayContext(temporary_context);
         break;
@@ -99,7 +99,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       }
       LOG << "Cross Combine Mode unspecified ";
       std::exit(1);
-    case CrossCombineStrategy::louvain: {
+    case EvoCrossCombineStrategy::louvain: {
         detectCommunities(hg, temporary_context);
         std::vector<HyperedgeID> dummy;
         const Individual lovain_individual = Individual(hg.communities());
@@ -135,7 +135,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::edge_frequency)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::edge_frequency)>() };
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
@@ -158,7 +158,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::combine)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::combine)>() };
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;

@@ -19,8 +19,7 @@
  ******************************************************************************/
 
 
-namespace kahypar{
-
+namespace kahypar {
 // Actions encapsulate Requirements for the non-evolutionary
 // partitioner.
 
@@ -35,47 +34,47 @@ class Action {
 
  public:
   Action() :
-    _decision(Decision::normal),
+    _decision(EvoDecision::normal),
     _requires() {
     _requires.initial_partitioning = true;
   }
 
   // TODO(robin): Verfiy the settings
-  Action(meta::Int2Type<static_cast<int>(Decision::combine)>) :
-    _decision(Decision::combine),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::combine)>) :
+    _decision(EvoDecision::combine),
     _requires() {
     _requires.evolutionary_parent_contraction = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(Decision::cross_combine)>) :
-    _decision(Decision::cross_combine),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>) :
+    _decision(EvoDecision::cross_combine),
     _requires() {
     _requires.evolutionary_parent_contraction = true;
     _requires.invalidation_of_second_partition = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(Decision::edge_frequency)>) :
-    _decision(Decision::edge_frequency),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::edge_frequency)>) :
+    _decision(EvoDecision::edge_frequency),
     _requires() { }
 
 
-  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
-         meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net)>) :
-    _decision(Decision::mutation),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
+         meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>) :
+    _decision(EvoDecision::mutation),
     _requires() {
     _requires.vcycle_stable_net_collection = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
-         meta::Int2Type<static_cast<int>(MutateStrategy::vcycle_with_new_initial_partitioning)>) :
-    _decision(Decision::mutation),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
+         meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle_with_new_initial_partitioning)>) :
+    _decision(EvoDecision::mutation),
     _requires() {
     _requires.initial_partitioning = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
-         meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net_vcycle)>) :
-    _decision(Decision::mutation),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
+         meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net_vcycle)>) :
+    _decision(EvoDecision::mutation),
     _requires() {
     _requires.vcycle_stable_net_collection = true;
   }
@@ -88,7 +87,7 @@ class Action {
               << _requires.invalidation_of_second_partition << std::endl;
   }
 
-  Decision decision() const {
+  EvoDecision decision() const {
     return _decision;
   }
 
@@ -97,7 +96,7 @@ class Action {
   }
 
  private:
-  Decision _decision;
+  EvoDecision _decision;
   Requirements _requires;
 };
 }  // namespace kahypar

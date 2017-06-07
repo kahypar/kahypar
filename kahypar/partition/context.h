@@ -312,12 +312,12 @@ struct EvolutionaryParameters {
   int time_limit_seconds = 5 * 60 * 60;
   size_t population_size = 10;
   float mutation_chance = 0.1;
-  ReplaceStrategy replace_strategy = ReplaceStrategy::strong_diverse;
-  CombineStrategy combine_strategy = CombineStrategy::basic;
-  MutateStrategy mutate_strategy = MutateStrategy::vcycle_with_new_initial_partitioning;
+  EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
+  EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
+  EvoMutateStrategy mutate_strategy = EvoMutateStrategy::vcycle_with_new_initial_partitioning;
   int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
-  CrossCombineStrategy cross_combine_objective = CrossCombineStrategy::k;
+  EvoCrossCombineStrategy cross_combine_objective = EvoCrossCombineStrategy::k;
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
