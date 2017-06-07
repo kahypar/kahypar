@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/meta/int_to_type.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/utils/stats.h"
 
@@ -192,19 +193,80 @@ struct LocalSearchParameters {
 };
 
 struct Requirements {
-  bool initial_partitioning;
-  bool evolutionary_parent_contraction;
-  bool vcycle_stable_net_collection;
-  bool invalidation_of_second_partition;
+  bool initial_partitioning = false;
+  bool evolutionary_parent_contraction = false;
+  bool vcycle_stable_net_collection = false;
+  bool invalidation_of_second_partition = false;
 };
 
-struct Action {
+class Action {
+ public:
   Action() :
     action(Decision::normal),
     subtype(Subtype::normal),
     requires() {
     requires.initial_partitioning = true;
   }
+
+  // TODO(robin): Verfiy the settings
+  Action(meta::Int2Type<static_cast<int>(Decision::combine)>,
+         meta::Int2Type<static_cast<int>(Subtype::basic_combine)>) :
+    action(Decision::combine),
+    subtype(Subtype::basic_combine),
+    requires() {
+    requires.evolutionary_parent_contraction = true;
+  }
+
+  Action(meta::Int2Type<static_cast<int>(Decision::combine)>,
+         meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>) :
+    action(Decision::combine),
+    subtype(Subtype::edge_frequency),
+    requires() {
+    requires.evolutionary_parent_contraction = true;
+  }
+
+
+  Action(meta::Int2Type<static_cast<int>(Decision::cross_combine)>,
+         meta::Int2Type<static_cast<int>(Subtype::cross_combine)>) :
+    action(Decision::combine),
+    subtype(Subtype::basic_combine),
+    requires() {
+    requires.evolutionary_parent_contraction = true;
+    requires.invalidation_of_second_partition = true;
+  }
+
+  Action(meta::Int2Type<static_cast<int>(Decision::edge_frequency)>,
+         meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>) :
+    action(Decision::edge_frequency),
+    subtype(Subtype::edge_frequency),
+    requires() { }
+
+
+  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
+         meta::Int2Type<static_cast<int>(Subtype::stable_net)>) :
+    action(Decision::mutation),
+    subtype(Subtype::stable_net),
+    requires() {
+    requires.vcycle_stable_net_collection = true;
+  }
+
+  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
+         meta::Int2Type<static_cast<int>(Subtype::vcycle_initial_partitioning)>) :
+    action(Decision::mutation),
+    subtype(Subtype::vcycle_initial_partitioning),
+    requires() {
+    requires.initial_partitioning = true;
+  }
+
+  Action(meta::Int2Type<static_cast<int>(Decision::mutation)>,
+         meta::Int2Type<static_cast<int>(Subtype::stable_net_vcycle)>) :
+    action(Decision::mutation),
+    subtype(Subtype::stable_net_vcycle),
+    requires() {
+    requires.vcycle_stable_net_collection = true;
+  }
+
+
   Decision action;
   Subtype subtype;
   Requirements requires;

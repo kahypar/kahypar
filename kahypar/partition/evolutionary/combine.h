@@ -38,16 +38,11 @@ using Parents = std::pair<const Individual&, const Individual&>;
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
                       const Context& context) {
-  Action action;
-  action.action = Decision::combine;
-  action.subtype = Subtype::basic_combine;
-  action.requires.initial_partitioning = false;
-  action.requires.evolutionary_parent_contraction = true;
-
-  DBG << V(action.action) << "===>" << V(action.subtype);
-
   Context temporary_context(context);
-  temporary_context.evolutionary.action = action;
+
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::combine)>(),
+             meta::Int2Type<static_cast<int>(Subtype::basic_combine)>() };
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
@@ -56,21 +51,19 @@ Individual partitions(Hypergraph& hg,
 
   hg.reset();
 
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
+
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
 
 Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& context) {
-  Action action;
-  action.action = Decision::cross_combine;
-  action.subtype = Subtype::cross_combine;
-  action.requires.initial_partitioning = false;
-  action.requires.evolutionary_parent_contraction = true;
-  action.requires.vcycle_stable_net_collection = false;
-  action.requires.invalidation_of_second_partition = true;
-
   Context temporary_context(context);
-  temporary_context.evolutionary.action = action;
+
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::cross_combine)>(),
+             meta::Int2Type<static_cast<int>(Subtype::cross_combine)>() };
 
   switch (context.evolutionary.cross_combine_objective) {
     case CrossCombineStrategy::k: {
@@ -143,14 +136,11 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
 Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
   hg.reset();
   Context temporary_context(context);
-  Action action;
-  action.action = Decision::edge_frequency;
-  action.subtype = Subtype::edge_frequency;
-  action.requires.initial_partitioning = false;
-  action.requires.evolutionary_parent_contraction = false;
-  action.requires.vcycle_stable_net_collection = false;
 
-  temporary_context.evolutionary.action = action;
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::edge_frequency)>(),
+             meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>() };
+
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
   temporary_context.coarsening.rating.heavy_node_penalty_policy =
@@ -160,7 +150,8 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
     computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
                          hg.initialNumEdges());
 
-  DBG << V(action.action) << "===>" << V(action.subtype);
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -171,12 +162,9 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   hg.reset();
   Context temporary_context(context);
 
-  Action action;
-  action.action = Decision::combine;
-  action.subtype = Subtype::edge_frequency;
-  action.requires.initial_partitioning = false;
-  action.requires.evolutionary_parent_contraction = true;
-  action.requires.vcycle_stable_net_collection = false;
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::combine)>(),
+             meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>() };
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
@@ -187,7 +175,8 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
     computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
                          hg.initialNumEdges());
 
-  DBG << V(action.action) << "===>" << V(action.subtype);
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);

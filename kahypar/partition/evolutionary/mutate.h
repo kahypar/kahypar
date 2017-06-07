@@ -28,30 +28,25 @@ static constexpr bool debug = true;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
-  Action action;
-  action.action = Decision::mutation;
-  // TODO(robin): increase abstraction via action.configure(Decision::mutation,
-  // Subtype::vcycle_initial_partitioning) or via Action constructor
-  action.subtype = Subtype::vcycle_initial_partitioning;
-  action.requires.initial_partitioning = true;
   Context temporary_context(context);
-  temporary_context.evolutionary.action = action;
+  temporary_context.evolutionary.action =
+    Action(meta::Int2Type<static_cast<int>(Decision::mutation)>(),
+           meta::Int2Type<static_cast<int>(Subtype::vcycle_initial_partitioning)>());
 
-  DBG << V(action.action) << "===>" << V(action.subtype);
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
 Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
-  Action action;
-  action.action = Decision::mutation;
-  action.subtype = Subtype::stable_net;
-  action.requires.initial_partitioning = false;
-  action.requires.vcycle_stable_net_collection = true;
   Context temporary_context(context);
-  temporary_context.evolutionary.action = action;
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
+             meta::Int2Type<static_cast<int>(Subtype::stable_net)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(action.action) << "===>" << V(action.subtype);
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
   Partitioner().partition(hg, temporary_context);
   // TODO (I need to test whether this call to partiton works)
   return Individual(hg);
@@ -59,20 +54,18 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
 // TODO implement
 Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const Context& context) {
   hg.setPartitionVector(in.partition());
-  Action action;
-  action.action = Decision::mutation;
-  action.subtype = Subtype::stable_net;
-  action.requires.initial_partitioning = false;
-  action.requires.vcycle_stable_net_collection = true;
   Context temporary_context(context);
-  temporary_context.evolutionary.action = action;
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
+             meta::Int2Type<static_cast<int>(Subtype::stable_net_vcycle)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(action.action) << "===>" << V(action.subtype);
+  DBG << V(temporary_context.evolutionary.action.action) << "===>"
+      << V(temporary_context.evolutionary.action.subtype);
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
   // TODO(andre): this doesn't do anything
-  action.requires.initial_partitioning = false;
-  action.requires.vcycle_stable_net_collection = false;
+  // action.requires.initial_partitioning = false;
+  // action.requires.vcycle_stable_net_collection = false;
   partitioner.partition(hg, temporary_context);
   return Individual(hg);
 }
