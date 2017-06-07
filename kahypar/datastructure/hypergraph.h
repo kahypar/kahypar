@@ -1355,10 +1355,11 @@ class GenericHypergraph {
       _connectivity_sets[i].clear();
     }
   }
-  void setPartitionVector(const std::vector<PartitionID>& partitionVector) {
+  void setPartition(const std::vector<PartitionID>& partition) {
     reset();
+    ASSERT(partition.size() == _num_hypernodes);
     for (HypernodeID u : nodes()) {
-      setNodePart(u, partitionVector[u]);
+      setNodePart(u, partition[u]);
     }
   }
 

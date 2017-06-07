@@ -85,15 +85,15 @@ static inline void partition(Hypergraph& hypergraph,
     ASSERT(!context.evolutionary.action.requires().initial_partitioning);
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet
-    hypergraph.setPartitionVector(*context.evolutionary.parent1);
+    hypergraph.setPartition(*context.evolutionary.parent1);
 
     if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
       const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
-      hypergraph.setPartitionVector(*context.evolutionary.parent2);
+      hypergraph.setPartition(*context.evolutionary.parent2);
       const HyperedgeWeight parent_2_objective = metrics::km1(hypergraph);
 
       if (parent_1_objective < parent_2_objective) {
-        hypergraph.setPartitionVector(*context.evolutionary.parent1);
+        hypergraph.setPartition(*context.evolutionary.parent1);
       }
     }
   }

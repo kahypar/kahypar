@@ -28,7 +28,7 @@ static constexpr bool debug = true;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
-  hg.setPartitionVector(in.partition());
+  hg.setPartition(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
@@ -39,8 +39,8 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   return Individual(hg);
 }
 Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
-  hg.setPartitionVector(in.partition());
   Context temporary_context(context);
+  hg.setPartition(in.partition());
   temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
              meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>() };
@@ -53,7 +53,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 // TODO implement
 Individual removeStableNetsWithVCycle(Hypergraph& hg, const Individual& in, const
                                       Context& context) {
-  hg.setPartitionVector(in.partition());
+  hg.setPartition(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
