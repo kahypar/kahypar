@@ -41,8 +41,7 @@ Individual partitions(Hypergraph& hg,
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::combine)>(),
-             meta::Int2Type<static_cast<int>(Subtype::basic_combine)>() };
+    Action { meta::Int2Type<static_cast<int>(Decision::combine)>() };
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
@@ -51,8 +50,7 @@ Individual partitions(Hypergraph& hg,
 
   hg.reset();
 
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
+  DBG << V(temporary_context.evolutionary.action.decision());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -62,8 +60,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::cross_combine)>(),
-             meta::Int2Type<static_cast<int>(Subtype::cross_combine)>() };
+    Action { meta::Int2Type<static_cast<int>(Decision::cross_combine)>() };
 
   switch (context.evolutionary.cross_combine_objective) {
     case CrossCombineStrategy::k: {
@@ -138,8 +135,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::edge_frequency)>(),
-             meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>() };
+    Action { meta::Int2Type<static_cast<int>(Decision::edge_frequency)>() };
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
@@ -150,8 +146,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
     computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
                          hg.initialNumEdges());
 
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
+  DBG << V(temporary_context.evolutionary.action.decision());
 
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
@@ -163,8 +158,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(Decision::combine)>(),
-             meta::Int2Type<static_cast<int>(Subtype::edge_frequency)>() };
+    Action { meta::Int2Type<static_cast<int>(Decision::combine)>() };
 
   temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
@@ -175,9 +169,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
     computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
                          hg.initialNumEdges());
 
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
-
+  DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
@@ -185,7 +177,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg, const
 
 Individual populationStableNet(Hypergraph& hg, const Population& population, const Context& context) {
   // No action required as we do not access the partitioner for this
-  DBG << "action.action = population_stable_net";
+  DBG << "action.decision() = population_stable_net";
   std::vector<HyperedgeID> stable_nets =
     stablenet::stableNetsFromMultipleIndividuals(context,
                                                  population.listOfBest(context.evolutionary.stable_net_amount),

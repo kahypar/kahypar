@@ -50,9 +50,8 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-  if(!context.partition_evolutionary || context.evo_flags.action.requires.initial_partitioning) {
-  if (context.type == ContextType::main && (context.partition.verbose_output ||
-                                            context.initial_partitioning.verbose_output)) {
+
+  if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
     io::printInitialPartitioningBanner(context);
 
     start = std::chrono::high_resolution_clock::now();
@@ -82,15 +81,15 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   if (context.partition_evolutionary &&
-      context.evolutionary.action.requires.evolutionary_parent_contraction) {
-    ASSERT(!context.evolutionary.action.requires.initial_partitioning);
+      context.evolutionary.action.requires().evolutionary_parent_contraction) {
+    ASSERT(!context.evolutionary.action.requires().initial_partitioning);
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet
     hypergraph.reset();
 
     hypergraph.setPartitionVector(*context.evolutionary.parent1);
 
-    if (!context.evolutionary.action.requires.invalidation_of_second_partition) {
+    if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
       const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
       hypergraph.reset();
       hypergraph.setPartitionVector(*context.evolutionary.parent2);
@@ -106,7 +105,7 @@ static inline void partition(Hypergraph& hypergraph,
   std::vector<HyperedgeID> stable_net_before_uncoarsen;
   std::vector<HyperedgeID> stable_net_after_uncoarsen;
   if (context.partition_evolutionary &&
-      context.evolutionary.action.requires.vcycle_stable_net_collection) {
+      context.evolutionary.action.requires().vcycle_stable_net_collection) {
     for (HyperedgeID u : hypergraph.edges()) {
       if (hypergraph.connectivity(u) > 1) {
         stable_net_before_uncoarsen.push_back(u);
@@ -120,7 +119,7 @@ static inline void partition(Hypergraph& hypergraph,
   end = std::chrono::high_resolution_clock::now();
 
   if (context.partition_evolutionary &&
-      context.evolutionary.action.requires.vcycle_stable_net_collection) {
+      context.evolutionary.action.requires().vcycle_stable_net_collection) {
     for (HyperedgeID u : hypergraph.edges()) {
       if (hypergraph.connectivity(u) > 1) {
         stable_net_after_uncoarsen.push_back(u);

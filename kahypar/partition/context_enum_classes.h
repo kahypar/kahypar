@@ -137,7 +137,7 @@ enum class MutateStrategy : uint8_t {
   single_stable_net,
   single_stable_net_vcycle
 };
-// TODO(robin): rename to CrossCombineStrategy
+
 enum class CrossCombineStrategy : uint8_t {
   k,
   epsilon,
@@ -153,15 +153,6 @@ enum class Decision :uint8_t {
   edge_frequency,
   cross_combine,
   diversify
-};
-enum class Subtype : uint8_t {
-  stable_net,
-  stable_net_vcycle,
-  edge_frequency,
-  cross_combine,
-  basic_combine,
-  vcycle_initial_partitioning,
-  normal
 };
 
 std::ostream& operator<< (std::ostream& os, const ReplaceStrategy& replace) {
@@ -219,20 +210,6 @@ std::ostream& operator<< (std::ostream& os, Decision decision) {
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);
-}
-
-std::ostream& operator<< (std::ostream& os, const Subtype& subtype) {
-  switch (subtype) {
-    case Subtype::stable_net:  return os << "stable_net";
-    case Subtype::stable_net_vcycle:  return os << "stable_net_vcycle";
-    case Subtype::edge_frequency:  return os << "edge_frequency";
-    case Subtype::cross_combine:  return os << "cross_combine";
-    case Subtype::basic_combine:  return os << "basic_combine";
-    case Subtype::vcycle_initial_partitioning:  return os << "vcycle_initial_partitioning";
-    case Subtype::normal:  return os << "normal";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(subtype);
 }
 
 

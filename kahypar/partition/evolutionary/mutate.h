@@ -31,10 +31,9 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action(meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-           meta::Int2Type<static_cast<int>(Subtype::vcycle_initial_partitioning)>());
+           meta::Int2Type<static_cast<int>(MutateStrategy::vcycle_with_new_initial_partitioning)>());
 
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
+  DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
@@ -43,10 +42,9 @@ Individual stableNetMutate(Hypergraph& hg, const Individual& in, const Context& 
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-             meta::Int2Type<static_cast<int>(Subtype::stable_net)>() };
+             meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
+  DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner().partition(hg, temporary_context);
   // TODO (I need to test whether this call to partiton works)
   return Individual(hg);
@@ -57,15 +55,14 @@ Individual stableNetMutateWithVCycle(Hypergraph& hg, const Individual& in, const
   Context temporary_context(context);
   temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(Decision::mutation)>(),
-             meta::Int2Type<static_cast<int>(Subtype::stable_net_vcycle)>() };
+             meta::Int2Type<static_cast<int>(MutateStrategy::single_stable_net_vcycle)>() };
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(temporary_context.evolutionary.action.action) << "===>"
-      << V(temporary_context.evolutionary.action.subtype);
+  DBG << V(temporary_context.evolutionary.action.decision());
   Partitioner partitioner;
   partitioner.partition(hg, temporary_context);
   // TODO(andre): this doesn't do anything
-  // action.requires.initial_partitioning = false;
-  // action.requires.vcycle_stable_net_collection = false;
+  // action.requires().initial_partitioning = false;
+  // action.requires().vcycle_stable_net_collection = false;
   partitioner.partition(hg, temporary_context);
   return Individual(hg);
 }
