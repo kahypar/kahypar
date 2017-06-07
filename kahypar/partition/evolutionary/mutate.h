@@ -20,6 +20,7 @@
 #pragma once
 
 #include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/evolutionary/stablenet.h"
 
 namespace kahypar {
 namespace partition {
@@ -41,13 +42,36 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
 Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
   Context temporary_context(context);
   hg.setPartition(in.partition());
+
   temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
              meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>() };
+
+  temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  DBG << V(temporary_context.evolutionary.action.decision());
+
+  DBG << "initial" <<  V(in.fitness()) << V(metrics::imbalance(hg,context));
+  DBG << "initial" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
   Partitioner().partition(hg, temporary_context);
-  // TODO (I need to test whether this call to partiton works)
+  DBG << "after vcycle for stable net collection"
+      << V(metrics::km1(hg))
+      << V(metrics::imbalance(hg,context));
+
+  stablenet::removeStableNets(hg, temporary_context,
+                              temporary_context.evolutionary.stable_nets_final);
+
+  DBG << "after stable net removal:" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+
+  std::vector<PartitionID> new_partition;
+  for (const HypernodeID& hn : hg.nodes()) {
+    new_partition.push_back(hg.partID(hn));
+  }
+
+  hg.reset();
+  hg.setPartition(new_partition);
+
+  Partitioner().partition(hg, temporary_context);
+  DBG << "final result" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
   return Individual(hg);
 }
 // TODO implement
