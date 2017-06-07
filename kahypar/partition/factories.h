@@ -38,7 +38,6 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
-#include "kahypar/partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 namespace kahypar {
