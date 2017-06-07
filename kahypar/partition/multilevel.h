@@ -58,7 +58,7 @@ static inline void partition(Hypergraph& hypergraph,
   hypergraph.initializeNumCutHyperedges();
   if (context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "Initial Partitioning Result:";
-    LOG << "Initial" << toString(context.partition.objective) << "      ="
+    LOG << "Initial" << context.partition.objective << "      ="
         << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
         metrics::km1(hypergraph));
     LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);

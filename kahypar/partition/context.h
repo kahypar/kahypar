@@ -86,7 +86,7 @@ inline std::ostream& operator<< (std::ostream& str, const CommunityDetection& pa
   str << "  minimum quality improvement:        "
       << params.min_eps_improvement << std::endl;
   str << "  graph edge weight:                  "
-      << toString(params.edge_weight) << std::endl;
+      << params.edge_weight << std::endl;
   str << "  reuse community structure:          " << std::boolalpha
       << params.reuse_communities << std::endl;
   return str;
@@ -122,10 +122,10 @@ struct RatingParameters {
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
   str << "  Rating Parameters:" << std::endl;
-  str << "    Rating Function:                  " << toString(params.rating_function) << std::endl;
-  str << "    Use Community Structure:          " << toString(params.community_policy) << std::endl;
-  str << "    Heavy Node Penalty:               " << toString(params.heavy_node_penalty_policy) << std::endl;
-  str << "    Acceptance Policy:                " << toString(params.acceptance_policy) << std::endl;
+  str << "    Rating Function:                  " << params.rating_function << std::endl;
+  str << "    Use Community Structure:          " << params.community_policy << std::endl;
+  str << "    Heavy Node Penalty:               " << params.heavy_node_penalty_policy << std::endl;
+  str << "    Acceptance Policy:                " << params.acceptance_policy << std::endl;
   return str;
 }
 
@@ -143,7 +143,7 @@ struct CoarseningParameters {
 
 inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& params) {
   str << "Coarsening Parameters:" << std::endl;
-  str << "  Algorithm:                          " << toString(params.algorithm) << std::endl;
+  str << "  Algorithm:                          " << params.algorithm << std::endl;
   str << "  max-allowed-weight-multiplier:      " << params.max_allowed_weight_multiplier << std::endl;
   str << "  contraction-limit-multiplier:       " << params.contraction_limit_multiplier << std::endl;
   str << "  hypernode weight fraction:          ";
@@ -191,12 +191,12 @@ struct LocalSearchParameters {
 
 inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters& params) {
   str << "Local Search Parameters:" << std::endl;
-  str << "  Algorithm:                          " << toString(params.algorithm) << std::endl;
+  str << "  Algorithm:                          " << params.algorithm << std::endl;
   str << "  iterations per level:               " << params.iterations_per_level << std::endl;
   if (params.algorithm == RefinementAlgorithm::twoway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm_km1) {
-    str << "  stopping rule:                      " << toString(params.fm.stopping_rule) << std::endl;
+    str << "  stopping rule:                      " << params.fm.stopping_rule << std::endl;
     if (params.fm.stopping_rule == RefinementStoppingRule::simple) {
       str << "  max. # fruitless moves:             " << params.fm.max_number_of_fruitless_moves << std::endl;
     } else {
@@ -272,9 +272,9 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
       << std::endl;
   str << "Initial Partitioning Parameters:" << std::endl;
   str << "  # IP trials:                        " << params.nruns << std::endl;
-  str << "  Mode:                               " << toString(params.mode) << std::endl;
-  str << "  Technique:                          " << toString(params.technique) << std::endl;
-  str << "  Algorithm:                          " << toString(params.algo) << std::endl;
+  str << "  Mode:                               " << params.mode << std::endl;
+  str << "  Technique:                          " << params.technique << std::endl;
+  str << "  Algorithm:                          " << params.algo << std::endl;
   str << "IP Coarsening:                        " << std::endl;
   str << params.coarsening;
   str << "IP Local Search:                      " << std::endl;
@@ -314,8 +314,8 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "Partitioning Parameters:" << std::endl;
   str << "  Hypergraph:                         " << params.graph_filename << std::endl;
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
-  str << "  Mode:                               " << toString(params.mode) << std::endl;
-  str << "  Objective:                          " << toString(params.objective) << std::endl;
+  str << "  Mode:                               " << params.mode << std::endl;
+  str << "  Objective:                          " << params.objective << std::endl;
   str << "  k:                                  " << params.k << std::endl;
   str << "  epsilon:                            " << params.epsilon << std::endl;
   str << "  seed:                               " << params.seed << std::endl;
@@ -381,17 +381,17 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
 static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm) {
     LOG << "WARNING: local search algorithm is set to"
-        << toString(algo)
-        << ". However" << toString(RefinementAlgorithm::twoway_fm)
+        << algo
+        << ". However" << RefinementAlgorithm::twoway_fm
         << "is better and faster.";
     LOG << "Should the local search algorithm be changed to"
-        << toString(RefinementAlgorithm::twoway_fm) << "(Y/N)?";
+        << RefinementAlgorithm::twoway_fm << "(Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
       LOG << "Changing local search algorithm to"
-          << toString(RefinementAlgorithm::twoway_fm);
+          << RefinementAlgorithm::twoway_fm;
       algo = RefinementAlgorithm::twoway_fm;
     }
   }
@@ -400,16 +400,16 @@ static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
 void checkDirectKwayMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::twoway_fm) {
     LOG << "WARNING: local search algorithm is set to"
-        << toString(algo)
+        << algo
         << ". This algorithm cannot be used for direct k-way partitioning with k>2.";
     LOG << "Should the local search algorithm be changed to"
-        << toString(RefinementAlgorithm::kway_fm) << "(Y/N)?";
+        << RefinementAlgorithm::kway_fm << "(Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
       LOG << "Changing local search algorithm to"
-          << toString(RefinementAlgorithm::kway_fm);
+          << RefinementAlgorithm::kway_fm;
       algo = RefinementAlgorithm::kway_fm;
     }
   }
@@ -426,7 +426,7 @@ static inline void sanityCheck(Context& context) {
       // should run in direct mode and not in recursive bisection mode (since there
       // is nothing left to bisect).
       ALWAYS_ASSERT(context.initial_partitioning.mode == Mode::direct_kway,
-                    toString(context.initial_partitioning.mode));
+                    context.initial_partitioning.mode);
       // Furthermore, the IP algorithm should not use the multilevel technique itself,
       // because the hypergraph is already coarse enough for initial partitioning.
       // Therefore we prevent further coarsening by enforcing flat rather than multilevel.
@@ -435,7 +435,7 @@ static inline void sanityCheck(Context& context) {
       // could just do the additional multilevel coarsening and then call the initial
       // partitioning algorithm as a flat algorithm.
       ALWAYS_ASSERT(context.initial_partitioning.technique == InitialPartitioningTechnique::flat,
-                    toString(context.initial_partitioning.technique));
+                    context.initial_partitioning.technique);
       checkRecursiveBisectionMode(context.local_search.algorithm);
       break;
     case Mode::direct_kway:
@@ -446,8 +446,8 @@ static inline void sanityCheck(Context& context) {
       // we currently forbid this contexturation.
       ALWAYS_ASSERT(context.initial_partitioning.mode != Mode::direct_kway ||
                     context.initial_partitioning.technique == InitialPartitioningTechnique::flat,
-                    toString(context.initial_partitioning.mode)
-                    << toString(context.initial_partitioning.technique));
+                    context.initial_partitioning.mode
+                    << context.initial_partitioning.technique);
       checkDirectKwayMode(context.local_search.algorithm);
       break;
     default:

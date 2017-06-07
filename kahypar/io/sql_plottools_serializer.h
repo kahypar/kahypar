@@ -44,8 +44,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " numHNs=" << hypergraph.initialNumNodes()
       << " numHEs=" << hypergraph.initialNumEdges()
       << " " << hypergraph.typeAsString()
-      << " mode=" << toString(context.partition.mode)
-      << " objective=" << toString(context.partition.objective)
+      << " mode=" << context.partition.mode
+      << " objective=" << context.partition.objective
       << " k=" << context.partition.k
       << " epsilon=" << context.partition.epsilon
       << " seed=" << context.partition.seed
@@ -80,10 +80,10 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.preprocessing.community_detection.max_pass_iterations
       << " min_louvain_eps_improvement="
       << context.preprocessing.community_detection.min_eps_improvement
-      << " louvain_edge_weight=" << toString(context.preprocessing.community_detection.edge_weight)
+      << " louvain_edge_weight=" << context.preprocessing.community_detection.edge_weight
       << " reuse_community_structure=" << std::boolalpha
       << context.preprocessing.community_detection.reuse_communities
-      << " coarsening_algo=" << toString(context.coarsening.algorithm)
+      << " coarsening_algo=" << context.coarsening.algorithm
       << " coarsening_max_allowed_weight_multiplier="
       << context.coarsening.max_allowed_weight_multiplier
       << " coarsening_contraction_limit_multiplier="
@@ -91,40 +91,40 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " coarsening_hypernode_weight_fraction=" << context.coarsening.hypernode_weight_fraction
       << " coarsening_max_allowed_node_weight=" << context.coarsening.max_allowed_node_weight
       << " coarsening_contraction_limit=" << context.coarsening.contraction_limit
-      << " coarsening_rating_function=" << toString(context.coarsening.rating.rating_function)
+      << " coarsening_rating_function=" << context.coarsening.rating.rating_function
       << " coarsening_rating_use_communities="
-      << toString(context.coarsening.rating.community_policy)
+      << context.coarsening.rating.community_policy
       << " coarsening_rating_heavy_node_penalty="
-      << toString(context.coarsening.rating.heavy_node_penalty_policy)
+      << context.coarsening.rating.heavy_node_penalty_policy
       << " coarsening_rating_acceptance_policy="
-      << toString(context.coarsening.rating.acceptance_policy)
-      << " IP_mode=" << toString(context.initial_partitioning.mode)
-      << " IP_technique=" << toString(context.initial_partitioning.technique)
-      << " IP_algorithm=" << toString(context.initial_partitioning.algo)
+      << context.coarsening.rating.acceptance_policy
+      << " IP_mode=" << context.initial_partitioning.mode
+      << " IP_technique=" << context.initial_partitioning.technique
+      << " IP_algorithm=" << context.initial_partitioning.algo
       << " IP_pool_type=" << context.initial_partitioning.pool_type
       << " IP_num_runs=" << context.initial_partitioning.nruns
-      << " IP_coarsening_algo=" << toString(context.initial_partitioning.coarsening.algorithm)
+      << " IP_coarsening_algo=" << context.initial_partitioning.coarsening.algorithm
       << " IP_coarsening_max_allowed_weight_multiplier="
       << context.initial_partitioning.coarsening.max_allowed_weight_multiplier
       << " IP_coarsening_contraction_limit_multiplier="
       << context.initial_partitioning.coarsening.contraction_limit_multiplier
       << " IP_coarsening_rating_function="
-      << toString(context.initial_partitioning.coarsening.rating.rating_function)
+      << context.initial_partitioning.coarsening.rating.rating_function
       << " IP_coarsening_rating_use_communities="
-      << toString(context.initial_partitioning.coarsening.rating.community_policy)
+      << context.initial_partitioning.coarsening.rating.community_policy
       << " IP_coarsening_rating_heavy_node_penalty="
-      << toString(context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy)
+      << context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy
       << " IP_coarsening_rating_acceptance_policy="
-      << toString(context.initial_partitioning.coarsening.rating.acceptance_policy)
+      << context.initial_partitioning.coarsening.rating.acceptance_policy
       << " IP_local_search_algorithm="
-      << toString(context.initial_partitioning.local_search.algorithm)
+      << context.initial_partitioning.local_search.algorithm
       << " IP_local_search_iterations_per_level="
       << context.initial_partitioning.local_search.iterations_per_level;
   if (context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
     oss << " IP_local_search_fm_stopping_rule="
-        << toString(context.initial_partitioning.local_search.fm.stopping_rule)
+        << context.initial_partitioning.local_search.fm.stopping_rule
         << " IP_local_search_fm_max_number_of_fruitless_moves="
         << context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves
         << " IP_local_search_fm_adaptive_stopping_alpha="
@@ -136,12 +136,12 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << context.initial_partitioning.local_search.sclap.max_number_iterations;
   }
 
-  oss << " local_search_algorithm=" << toString(context.local_search.algorithm)
+  oss << " local_search_algorithm=" << context.local_search.algorithm
       << " local_search_iterations_per_level=" << context.local_search.iterations_per_level;
   if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
       context.local_search.algorithm == RefinementAlgorithm::kway_fm ||
       context.local_search.algorithm == RefinementAlgorithm::kway_fm_km1) {
-    oss << " local_search_fm_stopping_rule=" << toString(context.local_search.fm.stopping_rule)
+    oss << " local_search_fm_stopping_rule=" << context.local_search.fm.stopping_rule
         << " local_search_fm_max_number_of_fruitless_moves="
         << context.local_search.fm.max_number_of_fruitless_moves
         << " local_search_fm_adaptive_stopping_alpha="

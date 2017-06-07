@@ -108,180 +108,140 @@ enum class Objective : uint8_t {
   km1
 };
 
-static std::string toString(const Mode& mode) {
+std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
-    case Mode::recursive_bisection:
-      return std::string("recursive");
-    case Mode::direct_kway:
-      return std::string("direct");
-    default:
-      return std::string("UNDEFINED");
+    case Mode::recursive_bisection: return os << "recursive";
+    case Mode::direct_kway: return os << "direct";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(mode);
 }
 
-static std::string toString(const ContextType& type) {
+std::ostream& operator<< (std::ostream& os, const ContextType& type) {
   if (type == ContextType::main) {
-    return "main";
+    return os << "main";
   } else {
-    return "ip";
+    return os << "ip";
   }
+  return os << static_cast<uint8_t>(type);
 }
 
-static std::string toString(const CommunityPolicy& comm_policy) {
+std::ostream& operator<< (std::ostream& os, const CommunityPolicy& comm_policy) {
   if (comm_policy == CommunityPolicy::use_communities) {
-    return "true";
+    return os << "true";
   } else {
-    return "false";
+    return os << "false";
   }
+  return os << static_cast<uint8_t>(comm_policy);
 }
 
-static std::string toString(const HeavyNodePenaltyPolicy& heavy_hn_policy) {
+std::ostream& operator<< (std::ostream& os, const HeavyNodePenaltyPolicy& heavy_hn_policy) {
   switch (heavy_hn_policy) {
-    case HeavyNodePenaltyPolicy::multiplicative_penalty:
-      return std::string("multiplicative");
-    case HeavyNodePenaltyPolicy::no_penalty:
-      return std::string("no_penalty");
-    default:
-      return std::string("UNDEFINED");
+    case HeavyNodePenaltyPolicy::multiplicative_penalty: return os << "multiplicative";
+    case HeavyNodePenaltyPolicy::no_penalty: return os << "no_penalty";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(heavy_hn_policy);
 }
 
-static std::string toString(const AcceptancePolicy& acceptance_policy) {
+std::ostream& operator<< (std::ostream& os, const AcceptancePolicy& acceptance_policy) {
   switch (acceptance_policy) {
-    case AcceptancePolicy::best:
-      return std::string("best");
-    case AcceptancePolicy::best_prefer_unmatched:
-      return std::string("best_prefer_unmatched");
-    default:
-      return std::string("UNDEFINED");
+    case AcceptancePolicy::best: return os << "best";
+    case AcceptancePolicy::best_prefer_unmatched: return os << "best_prefer_unmatched";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(acceptance_policy);
 }
 
-
-static std::string toString(const RatingFunction& func) {
+std::ostream& operator<< (std::ostream& os, const RatingFunction& func) {
   switch (func) {
-    case RatingFunction::heavy_edge:
-      return std::string("heavy_edge");
-    case RatingFunction::edge_frequency:
-      return std::string("edge_frequency");
-    default:
-      return std::string("UNDEFINED");
+    case RatingFunction::heavy_edge: return os << "heavy_edge";
+    case RatingFunction::edge_frequency: return os << "edge_frequency";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(func);
 }
 
-static std::string toString(const Objective& objective) {
+std::ostream& operator<< (std::ostream& os, const Objective& objective) {
   switch (objective) {
-    case Objective::cut:
-      return std::string("cut");
-    case Objective::km1:
-      return std::string("km1");
-    default:
-      return std::string("UNDEFINED");
+    case Objective::cut: return os << "cut";
+    case Objective::km1: return os << "km1";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(objective);
 }
 
-static std::string toString(const InitialPartitioningTechnique& technique) {
+std::ostream& operator<< (std::ostream& os, const InitialPartitioningTechnique& technique) {
   switch (technique) {
-    case InitialPartitioningTechnique::flat:
-      return std::string("flat");
-    case InitialPartitioningTechnique::multilevel:
-      return std::string("multilevel");
-    default:
-      return std::string("UNDEFINED");
+    case InitialPartitioningTechnique::flat: return os << "flat";
+    case InitialPartitioningTechnique::multilevel: return os << "multilevel";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(technique);
 }
 
-static std::string toString(const CoarseningAlgorithm& algo) {
+std::ostream& operator<< (std::ostream& os, const CoarseningAlgorithm& algo) {
   switch (algo) {
-    case CoarseningAlgorithm::heavy_full:
-      return std::string("heavy_full");
-    case CoarseningAlgorithm::heavy_lazy:
-      return std::string("heavy_lazy");
-    case CoarseningAlgorithm::ml_style:
-      return std::string("ml_style");
-    case CoarseningAlgorithm::do_nothing:
-      return std::string("do_nothing");
-    default:
-      return std::string("UNDEFINED");
+    case CoarseningAlgorithm::heavy_full: return os << "heavy_full";
+    case CoarseningAlgorithm::heavy_lazy: return os << "heavy_lazy";
+    case CoarseningAlgorithm::ml_style: return os << "ml_style";
+    case CoarseningAlgorithm::do_nothing: return os << "do_nothing";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(algo);
 }
 
-static std::string toString(const RefinementAlgorithm& algo) {
+std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
   switch (algo) {
-    case RefinementAlgorithm::twoway_fm:
-      return std::string("twoway_fm");
-    case RefinementAlgorithm::kway_fm:
-      return std::string("kway_fm");
-    case RefinementAlgorithm::kway_fm_maxgain:
-      return std::string("kway_fm_maxgain");
-    case RefinementAlgorithm::kway_fm_km1:
-      return std::string("kway_fm_km1");
-    case RefinementAlgorithm::label_propagation:
-      return std::string("label_propagation");
-    case RefinementAlgorithm::do_nothing:
-      return std::string("do_nothing");
-    default:
-      return std::string("UNDEFINED");
+    case RefinementAlgorithm::twoway_fm: return os << "twoway_fm";
+    case RefinementAlgorithm::kway_fm: return os << "kway_fm";
+    case RefinementAlgorithm::kway_fm_maxgain: return os << "kway_fm_maxgain";
+    case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
+    case RefinementAlgorithm::label_propagation: return os << "label_propagation";
+    case RefinementAlgorithm::do_nothing: return os << "do_nothing";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(algo);
 }
 
-static std::string toString(const InitialPartitionerAlgorithm& algo) {
+std::ostream& operator<< (std::ostream& os, const InitialPartitionerAlgorithm& algo) {
   switch (algo) {
-    case InitialPartitionerAlgorithm::greedy_sequential:
-      return std::string("greedy_sequential");
-    case InitialPartitionerAlgorithm::greedy_global:
-      return std::string("greedy_global");
-    case InitialPartitionerAlgorithm::greedy_round:
-      return std::string("greedy_round");
-    case InitialPartitionerAlgorithm::greedy_sequential_maxpin:
-      return std::string("greedy_maxpin");
-    case InitialPartitionerAlgorithm::greedy_global_maxpin:
-      return std::string("greedy_global_maxpin");
-    case InitialPartitionerAlgorithm::greedy_round_maxpin:
-      return std::string("greedy_round_maxpin");
-    case InitialPartitionerAlgorithm::greedy_sequential_maxnet:
-      return std::string("greedy_maxnet");
-    case InitialPartitionerAlgorithm::greedy_global_maxnet:
-      return std::string("greedy_global_maxnet");
-    case InitialPartitionerAlgorithm::greedy_round_maxnet:
-      return std::string("greedy_round_maxnet");
-    case InitialPartitionerAlgorithm::bfs:
-      return std::string("bfs");
-    case InitialPartitionerAlgorithm::random:
-      return std::string("random");
-    case InitialPartitionerAlgorithm::lp:
-      return std::string("lp");
-    case InitialPartitionerAlgorithm::pool:
-      return std::string("pool");
-    default:
-      return std::string("UNDEFINED");
+    case InitialPartitionerAlgorithm::greedy_sequential: return os << "greedy_sequential";
+    case InitialPartitionerAlgorithm::greedy_global: return os << "greedy_global";
+    case InitialPartitionerAlgorithm::greedy_round: return os << "greedy_round";
+    case InitialPartitionerAlgorithm::greedy_sequential_maxpin: return os << "greedy_maxpin";
+    case InitialPartitionerAlgorithm::greedy_global_maxpin: return os << "greedy_global_maxpin";
+    case InitialPartitionerAlgorithm::greedy_round_maxpin: return os << "greedy_round_maxpin";
+    case InitialPartitionerAlgorithm::greedy_sequential_maxnet: return os << "greedy_maxnet";
+    case InitialPartitionerAlgorithm::greedy_global_maxnet: return os << "greedy_global_maxnet";
+    case InitialPartitionerAlgorithm::greedy_round_maxnet: return os << "greedy_round_maxnet";
+    case InitialPartitionerAlgorithm::bfs: return os << "bfs";
+    case InitialPartitionerAlgorithm::random: return os << "random";
+    case InitialPartitionerAlgorithm::lp: return os << "lp";
+    case InitialPartitionerAlgorithm::pool: return os << "pool";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(algo);
 }
 
-static std::string toString(const LouvainEdgeWeight& weight) {
+std::ostream& operator<< (std::ostream& os, const LouvainEdgeWeight& weight) {
   switch (weight) {
-    case LouvainEdgeWeight::hybrid:
-      return std::string("hybrid");
-    case LouvainEdgeWeight::uniform:
-      return std::string("uniform");
-    case LouvainEdgeWeight::non_uniform:
-      return std::string("non_uniform");
-    case LouvainEdgeWeight::degree:
-      return std::string("degree");
-    default:
-      return std::string("UNDEFINED");
+    case LouvainEdgeWeight::hybrid: return os << "hybrid";
+    case LouvainEdgeWeight::uniform: return os << "uniform";
+    case LouvainEdgeWeight::non_uniform: return os << "non_uniform";
+    case LouvainEdgeWeight::degree: return os << "degree";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(weight);
 }
 
-static std::string toString(const RefinementStoppingRule& algo) {
-  switch (algo) {
-    case RefinementStoppingRule::simple:
-      return std::string("simple");
-    case RefinementStoppingRule::adaptive_opt:
-      return std::string("adaptive_opt");
-    default:
-      return std::string("UNDEFINED");
+std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) {
+  switch (rule) {
+    case RefinementStoppingRule::simple: return os << "simple";
+    case RefinementStoppingRule::adaptive_opt: return os << "adaptive_opt";
+      // omit default case to trigger compiler warning for missing cases
   }
+  return os << static_cast<uint8_t>(rule);
 }
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {

@@ -50,7 +50,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
     void print_result(const std::string& desc) const {
       LOG << desc << "=" << "[ Cut=" << cut << "- Imbalance=" << imbalance << "- Algorithm="
-          << toString(algo) << "]";
+          << algo << "]";
     }
 
     InitialPartitionerAlgorithm algo;
@@ -122,7 +122,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       partitioner->partition(_hg, _context);
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
-      DBG << toString(algo) << V(current_cut) << V(current_imbalance);
+      DBG << algo << V(current_cut) << V(current_imbalance);
       if (current_cut <= best_cut.cut) {
         bool apply_best_partition = true;
         if (best_cut.cut != kInvalidCut &&

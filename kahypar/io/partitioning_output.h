@@ -301,7 +301,7 @@ static inline void printBanner() {
 
 
 static inline void printInputInformation(const Context& context, const Hypergraph& hypergraph) {
-if (context.type == ContextType::main && !context.partition.quiet_mode) {
+  if (context.type == ContextType::main && !context.partition.quiet_mode) {
     LOG << context;
     if (context.partition.verbose_output) {
       LOG << "\n********************************************************************************";
@@ -314,7 +314,7 @@ if (context.type == ContextType::main && !context.partition.quiet_mode) {
 }
 
 static inline void printTopLevelPreprocessingBanner(const Context& context) {
- if (context.partition.verbose_output) {
+  if (context.partition.verbose_output) {
     LOG << "\n********************************************************************************";
     LOG << "*                          Top Level Preprocessing..                           *";
     LOG << "********************************************************************************";
@@ -359,7 +359,7 @@ static inline void printVcycleBanner(const Context& context) {
 static inline void printLocalSearchResults(const Context& context, const Hypergraph& hypergraph) {
   if (context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "Local Search Result:";
-    LOG << "Final" << toString(context.partition.objective) << "      ="
+    LOG << "Final" << context.partition.objective << "      ="
         << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
         metrics::km1(hypergraph));
     LOG << "Final imbalance =" << metrics::imbalance(hypergraph, context);
