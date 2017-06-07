@@ -23,7 +23,6 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
-#include "kahypar/partition/refinement/policies/2fm_rebalancing_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 using ::testing::Test;
