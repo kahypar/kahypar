@@ -1356,6 +1356,7 @@ class GenericHypergraph {
     }
   }
   void setPartitionVector(const std::vector<PartitionID>& partitionVector) {
+    reset();
     for (HypernodeID u : nodes()) {
       setNodePart(u, partitionVector[u]);
     }
