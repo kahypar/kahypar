@@ -90,7 +90,9 @@ class Population {
       std::cout << "Error, tried to fill Population above limit" << std::endl;
       std::exit(1);
     }
-    DBG << "Individual" << _individuals.size() - 1 << V(_individuals.back().fitness());
+    DBG << "Individual" << _individuals.size() - 1
+        << V(_individuals.back().fitness())
+        << V(metrics::km1(hg));
     return _individuals.back();
   }
 
