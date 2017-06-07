@@ -85,25 +85,26 @@ static inline void partition(Hypergraph& hypergraph,
     ASSERT(!context.evolutionary.action.requires().initial_partitioning);
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet
-    hypergraph.reset();
-
     hypergraph.setPartitionVector(*context.evolutionary.parent1);
 
     if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
       const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
-      hypergraph.reset();
       hypergraph.setPartitionVector(*context.evolutionary.parent2);
       const HyperedgeWeight parent_2_objective = metrics::km1(hypergraph);
 
       if (parent_1_objective < parent_2_objective) {
-        hypergraph.reset();
         hypergraph.setPartitionVector(*context.evolutionary.parent1);
       }
     }
   }
 
+  // TODO(andre): verify that this is correct
+  if (context.partition_evolutionary) {
+      hypergraph.initializeNumCutHyperedges();
+  }
+  DBG << V(metrics::km1(hypergraph));
+
   std::vector<HyperedgeID> stable_net_before_uncoarsen;
-  std::vector<HyperedgeID> stable_net_after_uncoarsen;
   if (context.partition_evolutionary &&
       context.evolutionary.action.requires().vcycle_stable_net_collection) {
     for (HyperedgeID u : hypergraph.edges()) {
@@ -120,6 +121,7 @@ static inline void partition(Hypergraph& hypergraph,
 
   if (context.partition_evolutionary &&
       context.evolutionary.action.requires().vcycle_stable_net_collection) {
+    std::vector<HyperedgeID> stable_net_after_uncoarsen;
     for (HyperedgeID u : hypergraph.edges()) {
       if (hypergraph.connectivity(u) > 1) {
         stable_net_after_uncoarsen.push_back(u);
