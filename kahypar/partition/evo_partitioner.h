@@ -47,113 +47,131 @@ class EvoPartitioner {
     _timelimit = context.evolutionary.time_limit_seconds;
   }
 
-  inline void evo_partition(Hypergraph& hg, Context& context);
+  inline void evo_partition(Hypergraph& hg, Context& context) {
+    context.partition_evolutionary = true;
+    std::chrono::duration<double> elapsed_seconds_total = measureTime();
+    while (_population.size() < context.evolutionary.population_size &&
+           elapsed_seconds_total.count() <= _timelimit) {
+      ++_iteration;
+      _population.generateIndividual(hg, context);
+      elapsed_seconds_total = measureTime();
+      _population.print();
+    }
+
+    // TODO(somebody): remove this
+    performCombine(hg, context);
+    _population.print();
+    return;
+
+    while (elapsed_seconds_total.count() <= _timelimit) {
+      ++_iteration;
+      EvoDecision decision = decideNextMove(context);
+      DBG << V(decision);
+      switch (decision) {
+        case EvoDecision::diversify:
+          kahypar::partition::diversify(context);
+        case EvoDecision::mutation:
+          performMutation(hg, context);
+          break;
+        case EvoDecision::edge_frequency:
+          performEdgeFrequency(hg, context);
+          break;
+        case EvoDecision::cross_combine:
+          performCrossCombine(hg, context);
+          break;
+        case EvoDecision::combine:
+          performCombine(hg, context);
+          break;
+        default:
+          LOG << "Error in evo_partitioner.h: Non-covered case in decision making";
+          std::exit(EXIT_FAILURE);
+      }
+
+      elapsed_seconds_total = measureTime();
+    }
+  }
 
  private:
-  inline EvoDecision decideNextMove(const Context& context);
-  inline void performCombine(Hypergraph& hg, const Context& context);
-  inline void performCrossCombine(Hypergraph& hg, const Context& context);
-  inline void performMutation(Hypergraph& hg, const Context& context);
-  inline void performEdgeFrequency(Hypergraph& hg, const Context& context);
+  inline EvoDecision decideNextMove(const Context& context) {
+    if (context.evolutionary.diversify_interval != -1 &&
+        _iteration % context.evolutionary.diversify_interval == 0) {
+      return EvoDecision::diversify;
+    }
+    if (context.evolutionary.perform_edge_frequency_interval != -1 &&
+        _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
+      return EvoDecision::edge_frequency;
+    }
+    if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
+      return EvoDecision::mutation;
+    }
+    if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.cross_combine_chance) {
+      return EvoDecision::cross_combine;
+    }
+    return EvoDecision::combine;
+  }
+
+
+  inline void performCombine(Hypergraph& hg, const Context& context) {
+    const auto& parents = _population.tournamentSelect();
+    switch (context.evolutionary.combine_strategy) {
+      case EvoCombineStrategy::basic:
+        // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
+        _population.insert(combine::partitions(hg, parents, context), context);
+        break;
+      case EvoCombineStrategy::with_edge_frequency_information:
+        _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg,
+                                                                                    parents,
+                                                                                    context,
+                                                                                    _population),
+                           context);
+    }
+  }
+
+
+  inline void performCrossCombine(Hypergraph& hg, const Context& context) {
+    _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
+                                             context), context);
+  }
+
+
+  inline void performMutation(Hypergraph& hg, const Context& context) {
+    const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
+    switch (context.evolutionary.mutate_strategy) {
+      case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
+        _population.forceInsert(
+          mutate::vCycleWithNewInitialPartitioning(hg,
+                                                   _population.individualAt(mutationPosition),
+                                                   context), mutationPosition);
+        break;
+      case EvoMutateStrategy::single_stable_net:
+        _population.forceInsert(mutate::stableNetMutate(hg,
+                                                        _population.individualAt(mutationPosition),
+                                                        context), mutationPosition);
+        break;
+      case EvoMutateStrategy::single_stable_net_vcycle:
+        _population.forceInsert(mutate::stableNetMutateWithVCycle(hg,
+                                                                  _population.individualAt(mutationPosition),
+                                                                  context), mutationPosition);
+        break;
+    }
+  }
+
+
+  inline void performEdgeFrequency(Hypergraph& hg, const Context& context) {
+    _population.insert(combine::edgeFrequency(hg, context, _population), context);
+  }
+
   inline void diversify();
-  inline std::chrono::duration<double> measureTime();
+
+  inline std::chrono::duration<double> measureTime() {
+    const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
+    return currentTime - _globalstart;
+  }
+
   HighResClockTimepoint _globalstart;
   int _timelimit;
   Population _population;
   int _iteration;
 };
-
-
-inline void EvoPartitioner::evo_partition(Hypergraph& hg, Context& context) {
-  context.partition_evolutionary = true;
-  std::chrono::duration<double> elapsed_seconds_total = measureTime();
-  while (_population.size() < context.evolutionary.population_size && elapsed_seconds_total.count() <= _timelimit) {
-    ++_iteration;
-    _population.generateIndividual(hg, context);
-    elapsed_seconds_total = measureTime();
-    _population.print();
-  }
-  performCombine(hg, context);
-  _population.print();
-  return;
-  while (elapsed_seconds_total.count() <= _timelimit) {
-    ++_iteration;
-    EvoDecision decision = decideNextMove(context);
-    DBG << V(decision);
-    switch (decision) {
-      case EvoDecision::diversify:
-        kahypar::partition::diversify(context);
-      case EvoDecision::mutation:
-        performMutation(hg, context);
-        break;
-      case EvoDecision::edge_frequency:
-        performEdgeFrequency(hg, context);
-        break;
-      case EvoDecision::cross_combine:
-        performCrossCombine(hg, context);
-        break;
-      case EvoDecision::combine:
-        performCombine(hg, context);
-        break;
-      default:
-        std::cout << "Error in evo_partitioner.h: Non-covered case in decision making" << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    elapsed_seconds_total = measureTime();
-  }
-}
-
-inline void EvoPartitioner::performMutation(Hypergraph& hg, const Context& context) {
-  const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
-  switch (context.evolutionary.mutate_strategy) {
-    case EvoMutateStrategy::vcycle_with_new_initial_partitioning:
-      _population.forceInsert(mutate::vCycleWithNewInitialPartitioning(hg, _population.individualAt(mutationPosition), context), mutationPosition);
-      break;
-    case EvoMutateStrategy::single_stable_net:
-      _population.forceInsert(mutate::stableNetMutate(hg, _population.individualAt(mutationPosition), context), mutationPosition);
-      break;
-    case EvoMutateStrategy::single_stable_net_vcycle:
-      _population.forceInsert(mutate::stableNetMutateWithVCycle(hg, _population.individualAt(mutationPosition), context), mutationPosition);
-      break;
-  }
-}
-
-inline void EvoPartitioner::performCombine(Hypergraph& hg, const Context& context) {
-  const auto& parents = _population.tournamentSelect();
-  switch (context.evolutionary.combine_strategy) {
-    case EvoCombineStrategy::basic:
-      // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-      _population.insert(combine::partitions(hg, parents, context), context);
-      break;
-    case EvoCombineStrategy::with_edge_frequency_information:
-      _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg, parents, context, _population), context);
-  }
-}
-inline void EvoPartitioner::performCrossCombine(Hypergraph& hg, const Context& context) {
-  _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(), context), context);
-}
-inline void EvoPartitioner::performEdgeFrequency(Hypergraph& hg, const Context& context) {
-  _population.insert(combine::edgeFrequency(hg, context, _population), context);
-}
-inline std::chrono::duration<double> EvoPartitioner::measureTime() {
-  HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
-  return currentTime - _globalstart;
-}
-inline EvoDecision EvoPartitioner::decideNextMove(const Context& context) {
-  if (context.evolutionary.diversify_interval != -1 && _iteration % context.evolutionary.diversify_interval == 0) {
-    return EvoDecision::diversify;
-  }
-  if (context.evolutionary.perform_edge_frequency_interval != -1 && _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
-    return EvoDecision::edge_frequency;
-  }
-  if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
-    return EvoDecision::mutation;
-  }
-  if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.cross_combine_chance) {
-    return EvoDecision::cross_combine;
-  }
-  return EvoDecision::combine;
-}
 }  // namespace partition
 }  // namespace kahypar
