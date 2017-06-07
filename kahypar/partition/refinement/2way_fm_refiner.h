@@ -558,22 +558,22 @@ class TwoWayFMRefiner final : public IRefiner,
           updateGainCache(pin, -he_weight);
         }
       } else {
-        for (const HypernodeID& pin : _hg.pins(he)) {
-          if (_hg.partID(pin) == from_part) {
-            if (increase_necessary) {
-              if (update_local_search_pq && !_hg.marked(pin)) {
-                updatePin(pin, he_weight);
-                // break;      // caching is done in updatePin in this case
-              } else {
-                updateGainCache(pin, he_weight);
+        if (increase_necessary || decrease_necessary) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
+            if (_hg.partID(pin) == from_part) {
+              if (increase_necessary) {
+                if (update_local_search_pq && !_hg.marked(pin)) {
+                  updatePin(pin, he_weight);  // caching is done in updatePin in this case
+                } else {
+                  updateGainCache(pin, he_weight);
+                }
               }
-            }
-          } else if (decrease_necessary) {
-            if (update_local_search_pq &&  !_hg.marked(pin)) {
-              updatePin(pin, -he_weight);
-              // break;    // caching is done in updatePin in this case
-            } else {
-              updateGainCache(pin, -he_weight);
+            } else if (decrease_necessary) {
+              if (update_local_search_pq && !_hg.marked(pin)) {
+                updatePin(pin, -he_weight);  // caching is done in updatePin in this case
+              } else {
+                updateGainCache(pin, -he_weight);
+              }
             }
           }
         }
