@@ -26,10 +26,15 @@
 namespace kahypar {
 namespace combine {
 namespace stablenet {
-void forceBlock(const HyperedgeID he, Hypergraph& hg) {
+void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   const PartitionID k = hg.k();
   PartitionID lightest_part = std::numeric_limits<PartitionID>::max();
   HypernodeWeight lightest_part_weight = std::numeric_limits<HypernodeWeight>::max();
+
+  HypernodeWeight pin_weight = 0;
+  for (const HypernodeID& pin : hg.pins(he)) {
+    pin_weight += hg.nodeWeight(pin);
+  }
 
   for (PartitionID i = 0; i < k; ++i) {
     if (hg.partWeight(i) < lightest_part_weight) {
@@ -37,8 +42,12 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg) {
       lightest_part_weight = hg.partWeight(i);
     }
   }
-  for (const HypernodeID& hn : hg.pins(he)) {
-    hg.changeNodePart(hn, hg.partID(hn), lightest_part);
+
+  // mod ensures that this also works is we are in recursive bisection mode
+  if (lightest_part_weight + pin_weight <= context.partition.max_part_weights[lightest_part % 2]) {
+    for (const HypernodeID& hn : hg.pins(he)) {
+      hg.changeNodePart(hn, hg.partID(hn), lightest_part);
+    }
   }
 }
 static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,

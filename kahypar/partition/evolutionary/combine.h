@@ -197,7 +197,7 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
       for (const HypernodeID pin : hg.pins(stable_net)) {
         touched_hns[pin] = true;
       }
-      stablenet::forceBlock(stable_net, hg);
+      stablenet::forceBlock(stable_net, hg, context);
     }
   }
   return Individual(hg);
