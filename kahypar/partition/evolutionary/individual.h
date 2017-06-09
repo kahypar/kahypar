@@ -20,6 +20,7 @@
 #pragma once
 
 #include <limits>
+#include <utility>
 #include <vector>
 
 #include "kahypar/definitions.h"
@@ -126,4 +127,5 @@ class Individual {
 };
 
 using Individuals = std::vector<std::reference_wrapper<const Individual> >;
+using Parents = std::pair<const Individual&, const Individual&>;
 }  // namespace kahypar

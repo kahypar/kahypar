@@ -33,8 +33,6 @@ namespace kahypar {
 namespace combine {
 static constexpr bool debug = true;
 
-using Parents = std::pair<const Individual&, const Individual&>;
-
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
                       Context& context) {
