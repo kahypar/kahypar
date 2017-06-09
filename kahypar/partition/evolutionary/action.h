@@ -55,7 +55,9 @@ class Action {
 
   Action(meta::Int2Type<static_cast<int>(EvoDecision::edge_frequency)>) :
     _decision(EvoDecision::edge_frequency),
-    _requires() { }
+    _requires() {
+    _requires.initial_partitioning = true;
+  }
 
 
   Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
