@@ -154,9 +154,9 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
 }
 
 
-Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,
-                                                           const Context& context,
-                                                           const Population& population) {
+Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
+                                                    const Context& context,
+                                                    const Population& population) {
   Context temporary_context(context);
 
   temporary_context.evolutionary.action =
@@ -178,9 +178,7 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,
 
 
 // TODO(andre) is this even viable?
-Individual removePopulationStableNetsWithAdditionalPartitionInformation(Hypergraph&,
-                                                                        const Population&,
-                                                                        Context&) {
+Individual usingTournamentSelectionAndStableNetRemoval(Hypergraph&, const Population&, Context&) {
   // context.evolutionary.stable_nets_final = stablenet::stableNetsFromIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   // std::vector<PartitionID> result;
   // std::vector<HyperedgeID> cutWeak;

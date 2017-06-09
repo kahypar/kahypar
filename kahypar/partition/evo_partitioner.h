@@ -111,9 +111,9 @@ class EvoPartitioner {
         _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
         break;
       case EvoCombineStrategy::with_edge_frequency_information:
-        _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg,
-                                                                                    context,
-                                                                                    _population),
+        _population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
+                                                                             context,
+                                                                             _population),
                            context);
     }
   }
