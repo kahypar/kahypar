@@ -208,7 +208,7 @@ class Population {
     }
     for (size_t i = 0; i < size(); ++i) {
       if (_individuals[i].fitness() >= individual.fitness()) {
-        size_t similarity = difference(individual, i, strong_set);
+        const size_t similarity = difference(individual, i, strong_set);
         DBG << "SYMMETRIC DIFFERENCE:" << similarity << " from" << i;
         if (similarity < max_similarity) {
           max_similarity = similarity;
