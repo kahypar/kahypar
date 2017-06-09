@@ -89,7 +89,6 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
     new_partition.push_back(hg.partID(hn));
   }
 
-  hg.reset();
   hg.setPartition(new_partition);
 
   Partitioner().partition(hg, temporary_context);
