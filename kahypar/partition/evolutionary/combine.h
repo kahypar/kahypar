@@ -202,7 +202,7 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
   DBG << "action.decision() = population_stable_net";
   DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
-    stablenet::stableNetsFromMultipleIndividuals(context,
+    stablenet::stableNetsFromIndividuals(context,
                                                  population.listOfBest(context.evolutionary.stable_net_amount),
                                                  hg.initialNumEdges());
   DBG << V(stable_nets.size());
@@ -221,7 +221,7 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
 Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph&,
                                                                  const Population&,
                                                                  Context&) {
-  // context.evolutionary.stable_nets_final = stablenet::stableNetsFromMultipleIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
+  // context.evolutionary.stable_nets_final = stablenet::stableNetsFromIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   // std::vector<PartitionID> result;
   // std::vector<HyperedgeID> cutWeak;
   // std::vector<HyperedgeID> cutStrong;

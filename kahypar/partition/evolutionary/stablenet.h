@@ -75,7 +75,7 @@ void removeStableNets(Hypergraph& hg, const Context& context,
   }
 }
 
-static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context& context,
+static std::vector<HyperedgeID> stableNetsFromIndividuals(const Context& context,
                                                                   const Individuals& individuals,
                                                                   const std::size_t& size) {
   const std::vector<size_t> frequency = combine::computeEdgeFrequency(individuals, size);
