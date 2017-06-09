@@ -112,15 +112,13 @@ class EvoPartitioner {
 
 
   inline void performCombine(Hypergraph& hg, const Context& context) {
-    const auto& parents = _population.tournamentSelect();
     switch (context.evolutionary.combine_strategy) {
       case EvoCombineStrategy::basic:
         // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-        _population.insert(combine::partitions(hg, parents, context), context);
+        _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
         break;
       case EvoCombineStrategy::with_edge_frequency_information:
         _population.insert(combine::edgeFrequencyWithAdditionalPartitionInformation(hg,
-                                                                                    parents,
                                                                                     context,
                                                                                     _population),
                            context);
