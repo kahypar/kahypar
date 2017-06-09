@@ -205,7 +205,14 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
     stablenet::stableNetsFromMultipleIndividuals(context,
                                                  population.listOfBest(context.evolutionary.stable_net_amount),
                                                  hg.initialNumEdges());
+  DBG << V(stable_nets.size());
   stablenet::removeStableNets(hg, context, stable_nets);
+
+  Context temporary_context(context);
+  hg.reset();
+  Partitioner().partition(hg, temporary_context);
+  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+
   return Individual(hg);
 }
 
