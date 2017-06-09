@@ -135,6 +135,7 @@ enum class EvoMutateStrategy : uint8_t {
   new_initial_partitioning_vcycle,
   vcycle,
   single_stable_net,
+  edge_frequency
 };
 
 enum class EvoCrossCombineStrategy : uint8_t {
@@ -149,7 +150,6 @@ enum class EvoDecision :uint8_t {
   normal,
   mutation,
   combine,
-  edge_frequency,
   cross_combine,
   diversify
 };
@@ -180,6 +180,7 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
       return os << "new_initial_partitioning_vcycle";
     case EvoMutateStrategy::vcycle: return os << "vcycle";
     case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
+    case EvoMutateStrategy::edge_frequency:  return os << "edge_frequency";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mutation);
@@ -203,7 +204,6 @@ std::ostream& operator<< (std::ostream& os, EvoDecision decision) {
     case EvoDecision::normal:  return os << "normal";
     case EvoDecision::mutation:  return os << "mutation";
     case EvoDecision::combine:  return os << "combine";
-    case EvoDecision::edge_frequency:  return os << "edge_frequency";
     case EvoDecision::cross_combine:  return os << "cross_combine";
     case EvoDecision::diversify: return os << "diversify";
       // omit default case to trigger compiler warning for missing cases
@@ -438,6 +438,8 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
+  } else if (strat == "edge_frequency") {
+    return EvoMutateStrategy::edge_frequency;
   } else if (strat == "single_stable_net") {
     return EvoMutateStrategy::single_stable_net;
   }

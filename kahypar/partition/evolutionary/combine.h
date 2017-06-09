@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "kahypar/io/config_file_reader.h"
-#include "kahypar/partition/evolutionary/edgefrequency.h"
+#include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/stablenet.h"
 
@@ -153,27 +153,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   return ret;
 }
 
-Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
-  hg.reset();
-  Context temporary_context(context);
 
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::edge_frequency)>() };
-
-  temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-  temporary_context.coarsening.rating.heavy_node_penalty_policy =
-    HeavyNodePenaltyPolicy::edge_frequency_penalty;
-
-  temporary_context.evolutionary.edge_frequency =
-    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
-                         hg.initialNumEdges());
-
-  DBG << V(temporary_context.evolutionary.action.decision());
-
-  Partitioner().partition(hg, temporary_context);
-  return Individual(hg);
-}
 Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,
                                                            const Context& context,
                                                            const Population& population) {
@@ -203,8 +183,8 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
   DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
     stablenet::stableNetsFromIndividuals(context,
-                                                 population.listOfBest(context.evolutionary.stable_net_amount),
-                                                 hg.initialNumEdges());
+                                         population.listOfBest(context.evolutionary.stable_net_amount),
+                                         hg.initialNumEdges());
   DBG << V(stable_nets.size());
   stablenet::removeStableNets(hg, context, stable_nets);
 

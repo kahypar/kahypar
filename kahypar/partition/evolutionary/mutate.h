@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/stablenet.h"
 #include "kahypar/partition/partitioner.h"
 
@@ -93,6 +94,29 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  return Individual(hg);
+}
+
+Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
+  hg.reset();
+  Context temporary_context(context);
+
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+             meta::Int2Type<static_cast<int>(EvoMutateStrategy::edge_frequency)>() };
+
+  temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+  temporary_context.coarsening.rating.heavy_node_penalty_policy =
+    HeavyNodePenaltyPolicy::edge_frequency_penalty;
+
+  temporary_context.evolutionary.edge_frequency =
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
+                         hg.initialNumEdges());
+
+  DBG << V(temporary_context.evolutionary.action.decision());
+
+  Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
 }  // namespace mutate

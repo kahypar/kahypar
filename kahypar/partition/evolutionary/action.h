@@ -53,13 +53,6 @@ class Action {
     _requires.invalidation_of_second_partition = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(EvoDecision::edge_frequency)>) :
-    _decision(EvoDecision::edge_frequency),
-    _requires() {
-    _requires.initial_partitioning = true;
-  }
-
-
   Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
          meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>) :
     _decision(EvoDecision::mutation),
@@ -69,6 +62,13 @@ class Action {
 
   Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
          meta::Int2Type<static_cast<int>(EvoMutateStrategy::new_initial_partitioning_vcycle)>) :
+    _decision(EvoDecision::mutation),
+    _requires() {
+    _requires.initial_partitioning = true;
+  }
+
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
+         meta::Int2Type<static_cast<int>(EvoMutateStrategy::edge_frequency)>) :
     _decision(EvoDecision::mutation),
     _requires() {
     _requires.initial_partitioning = true;

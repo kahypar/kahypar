@@ -24,7 +24,6 @@
 #include "kahypar/partition/evolutionary/individual.h"
 
 namespace kahypar {
-namespace combine {
 std::vector<size_t> computeEdgeFrequency(const Individuals& edge_frequency_targets,
                                          const HyperedgeID num_hyperedges) {
   std::vector<size_t> result(num_hyperedges, 0);
@@ -35,5 +34,4 @@ std::vector<size_t> computeEdgeFrequency(const Individuals& edge_frequency_targe
   }
   return result;
 }
-}  // namespace combine
 }  // namespace kahypar

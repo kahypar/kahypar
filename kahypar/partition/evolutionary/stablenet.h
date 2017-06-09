@@ -54,8 +54,7 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
 }
 
 void removeStableNets(Hypergraph& hg, const Context& context,
-                      std::vector<HyperedgeID>& stable_nets  ) {
-
+                      std::vector<HyperedgeID>& stable_nets) {
   Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
   std::vector<bool> touched_hns(hg.initialNumNodes(), false);
   for (const HyperedgeID& stable_net : stable_nets) {
@@ -76,13 +75,13 @@ void removeStableNets(Hypergraph& hg, const Context& context,
 }
 
 static std::vector<HyperedgeID> stableNetsFromIndividuals(const Context& context,
-                                                                  const Individuals& individuals,
-                                                                  const std::size_t& size) {
-  const std::vector<size_t> frequency = combine::computeEdgeFrequency(individuals, size);
+                                                          const Individuals& individuals,
+                                                          const std::size_t& size) {
+  const std::vector<size_t> frequency = computeEdgeFrequency(individuals, size);
   const double threshold = context.evolutionary.stable_net_factor * individuals.size();
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
-    if (frequency[i] >= threshold ) {
+    if (frequency[i] >= threshold) {
       stable_nets.push_back(i);
     }
   }

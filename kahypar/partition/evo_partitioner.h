@@ -73,9 +73,6 @@ class EvoPartitioner {
         case EvoDecision::mutation:
           performMutation(hg, context);
           break;
-        case EvoDecision::edge_frequency:
-          performEdgeFrequency(hg, context);
-          break;
         case EvoDecision::cross_combine:
           performCrossCombine(hg, context);
           break;
@@ -96,10 +93,6 @@ class EvoPartitioner {
     if (context.evolutionary.diversify_interval != -1 &&
         _iteration % context.evolutionary.diversify_interval == 0) {
       return EvoDecision::diversify;
-    }
-    if (context.evolutionary.perform_edge_frequency_interval != -1 &&
-        _iteration % context.evolutionary.perform_edge_frequency_interval == 0) {
-      return EvoDecision::edge_frequency;
     }
     if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
@@ -151,12 +144,10 @@ class EvoPartitioner {
                                                          _population.individualAt(mutationPosition),
                                                          context), mutationPosition);
         break;
+      case EvoMutateStrategy::edge_frequency:
+        _population.insert(mutate::edgeFrequency(hg, context, _population), context);
+        break;
     }
-  }
-
-
-  inline void performEdgeFrequency(Hypergraph& hg, const Context& context) {
-    _population.insert(combine::edgeFrequency(hg, context, _population), context);
   }
 
   inline void diversify();
