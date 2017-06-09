@@ -437,7 +437,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
   if (strat == "new_initial_partitioning_vcycle") {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
-    EvoMutateStrategy::vcycle;
+    return EvoMutateStrategy::vcycle;
   } else if (strat == "single_stable_net") {
     return EvoMutateStrategy::single_stable_net;
   }
