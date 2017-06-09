@@ -36,7 +36,10 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
            meta::Int2Type<static_cast<int>(EvoMutateStrategy::new_initial_partitioning_vcycle)>());
 
   DBG << V(temporary_context.evolutionary.action.decision());
+  DBG << "initial" <<  V(in.fitness()) << V(metrics::imbalance(hg,context));
+  DBG << "initial" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
   Partitioner().partition(hg, temporary_context);
+  DBG << "after mutate" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
   return Individual(hg);
 }
 Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
