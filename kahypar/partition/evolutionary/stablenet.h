@@ -79,9 +79,10 @@ static std::vector<HyperedgeID> stableNetsFromMultipleIndividuals(const Context&
                                                                   const Individuals& individuals,
                                                                   const std::size_t& size) {
   const std::vector<size_t> frequency = combine::computeEdgeFrequency(individuals, size);
+  const double threshold = context.evolutionary.stable_net_factor * individuals.size();
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
-    if (frequency[i] >= context.evolutionary.stable_net_amount * individuals.size()) {
+    if (frequency[i] >= threshold ) {
       stable_nets.push_back(i);
     }
   }

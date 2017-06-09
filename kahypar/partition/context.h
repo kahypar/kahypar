@@ -321,7 +321,9 @@ struct EvolutionaryParameters {
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
-  size_t stable_net_amount = 10;
+  // TODO(andre): fix/refactor this
+  size_t stable_net_amount = 3;
+  double stable_net_factor = 0.75;
   int cross_combine_lower_limit_kfactor = 4;
   int cross_combine_upper_limit_kfactor = 4;
   float cross_combine_epsilon_upper_limit = 0.25;
