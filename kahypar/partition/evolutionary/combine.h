@@ -48,11 +48,26 @@ Individual partitions(Hypergraph& hg,
   temporary_context.evolutionary.parent1 = &parents.first.partition();
   temporary_context.evolutionary.parent2 = &parents.second.partition();
 
-  hg.reset();
-
   DBG << V(temporary_context.evolutionary.action.decision());
+  DBG << "Parent 1: initial" << V(parents.first.fitness());
+  DBG << "Parent 2: initial" << V(parents.second.fitness());
 
+#ifndef NDEBUG
+  hg.setPartition(parents.first.partition());
+  ASSERT(parents.first.fitness() == metrics::km1(hg));
+  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  hg.setPartition(parents.second.partition());
+  ASSERT(parents.second.fitness() == metrics::km1(hg));
+  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  hg.reset();
+#endif
+
+  hg.reset();
   Partitioner().partition(hg, temporary_context);
+
+  DBG << "Offspring" << V(metrics::km1(hg));
+  ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
+
   return Individual(hg);
 }
 
@@ -180,9 +195,9 @@ Individual populationStableNet(Hypergraph& hg, const Population& population, con
   DBG << "action.decision() = population_stable_net";
   DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
-      stablenet::stableNetsFromMultipleIndividuals(context,
-                                      population.listOfBest(context.evolutionary.stable_net_amount),
-                                      hg.initialNumEdges());
+    stablenet::stableNetsFromMultipleIndividuals(context,
+                                                 population.listOfBest(context.evolutionary.stable_net_amount),
+                                                 hg.initialNumEdges());
   stablenet::removeStableNets(hg, context, stable_nets);
   return Individual(hg);
 }
