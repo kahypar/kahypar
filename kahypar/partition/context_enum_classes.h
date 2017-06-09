@@ -135,6 +135,7 @@ enum class EvoMutateStrategy : uint8_t {
   new_initial_partitioning_vcycle,
   vcycle,
   single_stable_net,
+  population_stable_net,
   edge_frequency
 };
 
@@ -180,6 +181,7 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
       return os << "new_initial_partitioning_vcycle";
     case EvoMutateStrategy::vcycle: return os << "vcycle";
     case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
+    case EvoMutateStrategy::population_stable_net:  return os << "population_stable_net";
     case EvoMutateStrategy::edge_frequency:  return os << "edge_frequency";
       // omit default case to trigger compiler warning for missing cases
   }
@@ -442,6 +444,8 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
     return EvoMutateStrategy::edge_frequency;
   } else if (strat == "single_stable_net") {
     return EvoMutateStrategy::single_stable_net;
+  } else if (strat == "population_stable_net") {
+    return EvoMutateStrategy::population_stable_net;
   }
   std::cout << "No valid mutate strategy. " << std::endl;
   exit(0);

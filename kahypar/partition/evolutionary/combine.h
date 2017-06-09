@@ -177,30 +177,10 @@ Individual edgeFrequencyWithAdditionalPartitionInformation(Hypergraph& hg,
 }
 
 
-Individual populationStableNet(Hypergraph& hg, const Population& population, const Context& context) {
-  // No action required as we do not access the partitioner for this
-  DBG << "action.decision() = population_stable_net";
-  DBG << V(context.evolutionary.stable_net_amount);
-  std::vector<HyperedgeID> stable_nets =
-    stablenet::stableNetsFromIndividuals(context,
-                                         population.listOfBest(context.evolutionary.stable_net_amount),
-                                         hg.initialNumEdges());
-  DBG << V(stable_nets.size());
-  stablenet::removeStableNets(hg, context, stable_nets);
-
-  Context temporary_context(context);
-  hg.reset();
-  Partitioner().partition(hg, temporary_context);
-  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-
-  return Individual(hg);
-}
-
-
 // TODO(andre) is this even viable?
-Individual populationStableNetWithAdditionalPartitionInformation(Hypergraph&,
-                                                                 const Population&,
-                                                                 Context&) {
+Individual removePopulationStableNetsWithAdditionalPartitionInformation(Hypergraph&,
+                                                                        const Population&,
+                                                                        Context&) {
   // context.evolutionary.stable_nets_final = stablenet::stableNetsFromIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
   // std::vector<PartitionID> result;
   // std::vector<HyperedgeID> cutWeak;

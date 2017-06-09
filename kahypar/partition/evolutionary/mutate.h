@@ -119,6 +119,25 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   Partitioner().partition(hg, temporary_context);
   return Individual(hg);
 }
+
+Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Context& context) {
+  // No action required as we do not access the partitioner for this
+  DBG << "action.decision() = population_stable_net";
+  DBG << V(context.evolutionary.stable_net_amount);
+  std::vector<HyperedgeID> stable_nets =
+    stablenet::stableNetsFromIndividuals(context,
+                                         population.listOfBest(context.evolutionary.stable_net_amount),
+                                         hg.initialNumEdges());
+  DBG << V(stable_nets.size());
+  stablenet::removeStableNets(hg, context, stable_nets);
+
+  Context temporary_context(context);
+  hg.reset();
+  Partitioner().partition(hg, temporary_context);
+  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+
+  return Individual(hg);
+}
 }  // namespace mutate
 }  // namespace partition
 }  // namespace kahypar

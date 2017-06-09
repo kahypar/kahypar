@@ -144,6 +144,9 @@ class EvoPartitioner {
                                                          _population.individualAt(mutationPosition),
                                                          context), mutationPosition);
         break;
+      case EvoMutateStrategy::population_stable_net:
+        _population.insert(mutate::removePopulationStableNets(hg, _population, context), context);
+        break;
       case EvoMutateStrategy::edge_frequency:
         _population.insert(mutate::edgeFrequency(hg, context, _population), context);
         break;
