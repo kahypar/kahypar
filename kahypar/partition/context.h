@@ -129,6 +129,7 @@ inline std::ostream& operator<< (std::ostream& str, const RatingParameters& para
   str << "    Use Community Structure:          " << params.community_policy << std::endl;
   str << "    Heavy Node Penalty:               " << params.heavy_node_penalty_policy << std::endl;
   str << "    Acceptance Policy:                " << params.acceptance_policy << std::endl;
+  str << "    Partition Policy:                 " << params.partition_policy << std::endl;
   return str;
 }
 
@@ -340,9 +341,9 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Population Size:                    " << params.population_size << std::endl;
   str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
   str << "  Cross Combine Chance                " << params.cross_combine_chance << std::endl;
-  str << "  Replace Strategy                    " << toString(params.replace_strategy) << std::endl;
-  str << "  Combine Strategy                    " << toString(params.combine_strategy) << std::endl;
-  str << "  Mutation Strategy                   " << toString(params.mutate_strategy) << std::endl;
+  str << "  Replace Strategy                    " << params.replace_strategy << std::endl;
+  str << "  Combine Strategy                    " << params.combine_strategy << std::endl;
+  str << "  Mutation Strategy                   " << params.mutate_strategy << std::endl;
   str << "  Edge Frequency Interval             " << params.perform_edge_frequency_interval << std::endl;
   str << "  Diversification Interval            " << params.diversify_interval << std::endl;
   return str;

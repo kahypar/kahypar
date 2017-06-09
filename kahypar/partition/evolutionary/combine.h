@@ -141,7 +141,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   DBG << "------------------------------------------------------------";
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "---------------------------CROSSCOMBINE---------------------";
-  DBG << "Cross Combine Objective: " << toString(context.evolutionary.cross_combine_objective);
+  DBG << "Cross Combine Objective: " << context.evolutionary.cross_combine_objective;
   DBG << "Original Individuum ";
   in.printDebug();
   DBG << "Cross Combine Individuum ";

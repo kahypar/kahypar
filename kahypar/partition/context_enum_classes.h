@@ -201,7 +201,7 @@ std::ostream& operator<< (std::ostream& os, const EvoCrossCombineStrategy& cross
 }
 
 
-std::ostream& operator<< (std::ostream& os, EvoDecision decision) {
+std::ostream& operator<< (std::ostream& os, const EvoDecision& decision) {
   switch (decision) {
     case EvoDecision::normal:  return os << "normal";
     case EvoDecision::mutation:  return os << "mutation";
@@ -213,64 +213,13 @@ std::ostream& operator<< (std::ostream& os, EvoDecision decision) {
   return os << static_cast<uint8_t>(decision);
 }
 
-
-static std::string toString(const RatingPartitionPolicy& policy) {
+std::ostream& operator<< (std::ostream& os, const RatingPartitionPolicy& policy) {
   switch (policy) {
-    case RatingPartitionPolicy::normal:
-      return std::string("normal");
-    case RatingPartitionPolicy::evolutionary:
-      return std::string("evolutionary");
-    default:
-      return std::string("UNDEFINED");
+    case RatingPartitionPolicy::normal: return os << "normal";
+    case RatingPartitionPolicy::evolutionary: return os << "evolutionary";
+      // omit default case to trigger compiler warning for missing cases
   }
-}
-static std::string toString(const EvoCrossCombineStrategy& ccobj) {
-  switch (ccobj) {
-    case EvoCrossCombineStrategy::k:
-      return std::string("k");
-    case EvoCrossCombineStrategy::epsilon:
-      return std::string("epsilon");
-    case EvoCrossCombineStrategy::objective:
-      return std::string("objective");
-    case EvoCrossCombineStrategy::mode:
-      return std::string("mode");
-    case EvoCrossCombineStrategy::louvain:
-      return std::string("louvain");
-    default:
-      return std::string("UNDEFINED");
-  }
-}
-static std::string toString(const EvoMutateStrategy& strat) {
-  switch (strat) {
-    case EvoMutateStrategy::new_initial_partitioning_vcycle:
-      return std::string("vcycle with new initial partitioning");
-    case EvoMutateStrategy::single_stable_net:
-      return std::string("single stable net");
-    default:
-      return std::string("UNDEFINED");
-  }
-}
-static std::string toString(const EvoCombineStrategy& strat) {
-  switch (strat) {
-    case EvoCombineStrategy::basic:
-      return std::string("basic");
-    case EvoCombineStrategy::with_edge_frequency_information:
-      return std::string("with edge frequency information");
-    default:
-      return std::string("UNDEFINED");
-  }
-}
-static std::string toString(const EvoReplaceStrategy& strategy) {
-  switch (strategy) {
-    case EvoReplaceStrategy::worst:
-      return std::string("worst");
-    case EvoReplaceStrategy::diverse:
-      return std::string("diverse");
-    case EvoReplaceStrategy::strong_diverse:
-      return std::string("strong-diverse");
-    default:
-      return std::string("UNDEFINED");
-  }
+  return os << static_cast<uint8_t>(policy);
 }
 
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
