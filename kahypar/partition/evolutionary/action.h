@@ -72,6 +72,11 @@ class Action {
     _requires.initial_partitioning = true;
   }
 
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
+         meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>) :
+    _decision(EvoDecision::mutation),
+    _requires() { }
+
   void print() {
     std::cout << _decision << std::endl
               << _requires.initial_partitioning << std::endl

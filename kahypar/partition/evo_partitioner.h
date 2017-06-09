@@ -143,6 +143,11 @@ class EvoPartitioner {
                                                    _population.individualAt(mutationPosition),
                                                    context), mutationPosition);
         break;
+      case EvoMutateStrategy::vcycle:
+        _population.forceInsert(
+          mutate::vCycle(hg, _population.individualAt(mutationPosition), context),
+          mutationPosition);
+        break;
       case EvoMutateStrategy::single_stable_net:
         _population.forceInsert(mutate::removeStableNets(hg,
                                                          _population.individualAt(mutationPosition),

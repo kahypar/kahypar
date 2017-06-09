@@ -19,8 +19,10 @@
 ******************************************************************************/
 #pragma once
 
-#include "kahypar/partition/partitioner.h"
+#include <vector>
+
 #include "kahypar/partition/evolutionary/stablenet.h"
+#include "kahypar/partition/partitioner.h"
 
 namespace kahypar {
 namespace partition {
@@ -36,12 +38,29 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
            meta::Int2Type<static_cast<int>(EvoMutateStrategy::new_initial_partitioning_vcycle)>());
 
   DBG << V(temporary_context.evolutionary.action.decision());
-  DBG << "initial" <<  V(in.fitness()) << V(metrics::imbalance(hg,context));
-  DBG << "initial" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+  DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
+  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   Partitioner().partition(hg, temporary_context);
-  DBG << "after mutate" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   return Individual(hg);
 }
+
+Individual vCycle(Hypergraph& hg, const Individual& in,
+                  const Context& context) {
+  hg.setPartition(in.partition());
+  Context temporary_context(context);
+  temporary_context.evolutionary.action =
+    Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+           meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>());
+
+  DBG << V(temporary_context.evolutionary.action.decision());
+  DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
+  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  Partitioner().partition(hg, temporary_context);
+  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  return Individual(hg);
+}
+
 Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
   Context temporary_context(context);
   hg.setPartition(in.partition());
@@ -53,17 +72,17 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
   temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
 
-  DBG << "initial" <<  V(in.fitness()) << V(metrics::imbalance(hg,context));
-  DBG << "initial" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+  DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
+  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   Partitioner().partition(hg, temporary_context);
   DBG << "after vcycle for stable net collection"
       << V(metrics::km1(hg))
-      << V(metrics::imbalance(hg,context));
+      << V(metrics::imbalance(hg, context));
 
   stablenet::removeStableNets(hg, temporary_context,
                               temporary_context.evolutionary.stable_nets_final);
 
-  DBG << "after stable net removal:" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+  DBG << "after stable net removal:" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
 
   std::vector<PartitionID> new_partition;
   for (const HypernodeID& hn : hg.nodes()) {
@@ -74,7 +93,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
   hg.setPartition(new_partition);
 
   Partitioner().partition(hg, temporary_context);
-  DBG << "final result" <<  V(metrics::km1(hg)) << V(metrics::imbalance(hg,context));
+  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   return Individual(hg);
 }
 }  // namespace mutate
