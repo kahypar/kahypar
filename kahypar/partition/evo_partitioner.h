@@ -26,7 +26,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/combine.h"
-#include "kahypar/partition/evolutionary/diversifyer.h"
+#include "kahypar/partition/evolutionary/diversifier.h"
 #include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/population.h"
 
