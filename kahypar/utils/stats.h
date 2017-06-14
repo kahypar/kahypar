@@ -20,6 +20,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <sstream>
 #include <string>
@@ -118,7 +119,7 @@ class Stats {
   void serialize(const Log& log, const StatTag& tag, std::ostringstream& oss) {
     for (auto it = log.cbegin(); it != log.cend(); ++it) {
       oss << "vcycle_" << std::to_string(_context.partition.current_v_cycle)
-          << "-" << toString(_context.type)
+          << "-" << _context.type
           << "-bisection_" << std::to_string(_context.partition.rb_lower_k)
           << "_" << std::to_string(_context.partition.rb_upper_k)
           << "-" << tag << "-" << it->first << "=" << it->second << " ";
