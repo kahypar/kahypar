@@ -334,6 +334,7 @@ struct EvolutionaryParameters {
   mutable std::vector<HyperedgeID> stable_nets_final;
   mutable std::vector<size_t> edge_frequency;
   mutable Action action;
+  mutable std::vector<ClusterID> communities;
 };
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;

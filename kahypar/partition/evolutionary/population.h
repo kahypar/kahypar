@@ -54,6 +54,13 @@ class Population {
     DBG << V(position) << V(individual.fitness());
     _individuals[position] = std::move(individual);
   }
+  inline void forceInsertSaveBest(Individual&& individual, const size_t position) {
+    DBG << V(position) << V(individual.fitness());
+    if(individual.fitness() <= _individuals[position].fitness() || position != best()) {
+       _individuals[position] = std::move(individual);
+    } 
+   
+  }
   inline const Individual & singleTournamentSelection() const {
     const size_t first_pos = randomIndividual();
     const size_t second_pos = randomIndividualExcept(first_pos);

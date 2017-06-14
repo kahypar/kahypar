@@ -121,9 +121,11 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       LOG << "Cross Combine Mode unspecified ";
       std::exit(1);
     case EvoCrossCombineStrategy::louvain: {
-        detectCommunities(hg, temporary_context);
-        std::vector<HyperedgeID> dummy;
-        const Individual lovain_individual = Individual(hg.communities());
+        // Removed, now vector in config
+        //detectCommunities(hg, temporary_context);
+        //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created
+        ASSERT(temporary_context.evolutionary.communities.size != 0);
+        const Individual lovain_individual = Individual(temporary_context.evolutionary.communities);
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
       }

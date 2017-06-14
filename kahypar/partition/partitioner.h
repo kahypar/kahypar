@@ -204,7 +204,16 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
   if (context.partition.mode != Mode::recursive_bisection &&
       context.preprocessing.enable_community_detection) {
+
+      detectCommunities(hypergraph, context);
+    
+
+
+  }
+  //In evolutionary mode, we want to perform community detection only once, for runtime
+  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0) {
     detectCommunities(hypergraph, context);
+    context.evolutionary.communities = hypergraph.communities();
   }
 }
 

@@ -124,23 +124,24 @@ class EvoPartitioner {
                                              context), context);
   }
 
-
+  //TODO the best element may be mutated, but the result must be better
   inline void performMutation(Hypergraph& hg, const Context& context) {
-    const size_t mutationPosition = _population.randomIndividualExcept(_population.best());
+    const size_t mutation_position = _population.randomIndividual();
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle:
-        _population.forceInsert(
+     
+        _population.forceInsertSaveBest(
           mutate::vCycleWithNewInitialPartitioning(hg,
-                                                   _population.individualAt(mutationPosition),
-                                                   context), mutationPosition);
+                                                   _population.individualAt(mutation_position),
+                                                   context), mutation_position);
         break;
       case EvoMutateStrategy::vcycle:
-        _population.forceInsert(
-          mutate::vCycle(hg, _population.individualAt(mutationPosition), context),
+        _population.forceInsertSaveBest(
+          mutate::vCycle(hg, _population.individualAt(mutation_position), context),
           mutationPosition);
         break;
       case EvoMutateStrategy::single_stable_net:
-        _population.forceInsert(mutate::removeStableNets(hg,
+        _population.forceInsertSaveBest(mutate::removeStableNets(hg,
                                                          _population.individualAt(mutationPosition),
                                                          context), mutationPosition);
         break;

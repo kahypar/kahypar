@@ -64,6 +64,9 @@ class Individual {
       if (hypergraph.connectivity(he) > 1) {
         _cut_edges.push_back(he);
         // TODO(robin): why did this loop start from 1?
+        // The general idea is to add the connectivity (#blocks - 1)
+        // instead of the # of blocks (However there should not be that much of a difference)
+        // Edit: No difference at all
         for (PartitionID i = 0; i < hypergraph.connectivity(he); ++i) {
           _strong_cut_edges.push_back(he);
         }
