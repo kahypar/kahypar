@@ -1,6 +1,3 @@
-[submodule "external_tools/sqlplot-tools"]
-	path = external_tools/sqlplot-tools
-	url = https://github.com/bingmann/sqlplot-tools.git
 [submodule "external_tools/googletest"]
 	path = external_tools/googletest
 	url = https://github.com/google/googletest.git
