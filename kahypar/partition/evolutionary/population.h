@@ -89,6 +89,7 @@ class Population {
   }
 
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
+          
     Partitioner partitioner;
     hg.reset();
     partitioner.partition(hg, context);
@@ -167,9 +168,15 @@ class Population {
   }
 
   inline void print() const {
+    /*LOG << "\n********************************************************************************";
+    LOG << "*                                       Population..                           *";
+    LOG << "********************************************************************************";*/
+    std::cout << std::endl << "Population Fitness: ";
     for (size_t i = 0; i < _individuals.size(); ++i) {
-      _individuals[i].print();
+
+      std::cout << _individuals[i].fitness() << " ";
     }
+    std::cout << std::endl;
   }
 
  private:

@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
-
+  context.partition_evolutionary = true;
   EvoPartitioner partitioner(context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.evo_partition(hypergraph, context);

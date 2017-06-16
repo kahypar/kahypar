@@ -52,6 +52,9 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
+    if(context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
+      hypergraph.reset();
+    }
     io::printInitialPartitioningBanner(context);
 
     start = std::chrono::high_resolution_clock::now();
@@ -82,6 +85,7 @@ static inline void partition(Hypergraph& hypergraph,
 
   if (context.partition_evolutionary &&
       context.evolutionary.action.requires().evolutionary_parent_contraction) {
+    hypergraph.reset();
     ASSERT(!context.evolutionary.action.requires().initial_partitioning);
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet

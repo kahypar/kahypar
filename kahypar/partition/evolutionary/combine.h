@@ -53,7 +53,7 @@ Individual partitions(Hypergraph& hg,
   hg.reset();
   Partitioner().partition(hg, context);
 
-  DBG << "Offspring" << V(metrics::km1(hg));
+  DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
 
   return Individual(hg);

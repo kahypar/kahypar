@@ -32,6 +32,7 @@ static constexpr bool debug = true;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
+  hg.reset();
   hg.setPartition(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
@@ -42,7 +43,20 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   Partitioner().partition(hg, temporary_context);
-  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context, true));
+  io::serializer::serializeEvolutionary(temporary_context, hg);
+  Individual result = Individual(hg);
+  int k0 = 0;
+  int k1 = 0;
+  for(int i = 0; i < result.partition().size(); ++i) {
+    if(result.partition()[i] == 0) {
+      ++k0;
+    }
+    else {
+      ++k1;
+    }
+  }
+  std::cout << "K0: "<<k0 <<" K1: " <<k1<<std::endl;
   return Individual(hg);
 }
 
@@ -59,6 +73,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   Partitioner().partition(hg, temporary_context);
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
 
@@ -94,6 +109,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
 
@@ -117,11 +133,13 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   DBG << V(temporary_context.evolutionary.action.decision());
 
   Partitioner().partition(hg, temporary_context);
+  io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
 
 Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Context& context) {
   // No action required as we do not access the partitioner for this
+
   DBG << "action.decision() = population_stable_net";
   DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
@@ -132,10 +150,15 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
   stablenet::removeStableNets(hg, context, stable_nets);
 
   Context temporary_context(context);
+  //TODO action is required for output but population_stable_net does not want to be casted
+
   hg.reset();
   Partitioner().partition(hg, temporary_context);
+    temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+             meta::Int2Type<static_cast<int>(EvoMutateStrategy::population_stable_net)>() };
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-
+  io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
 }  // namespace mutate

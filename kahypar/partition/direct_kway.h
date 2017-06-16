@@ -78,6 +78,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
   std::unique_ptr<IRefiner> refiner(
     RefinerFactory::getInstance().createObject(
       context.local_search.algorithm, hypergraph, context));
+
   multilevel::partition(hypergraph, *coarsener, *refiner, context);
 
 #ifndef NDEBUG

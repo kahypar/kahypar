@@ -198,7 +198,7 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
         << "unconnected HNs could have been removed" << "\033[0m";
   }
 }
-
+//TODO(robin): find a clever way to read in the communities only if needed
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
@@ -210,11 +210,11 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
 
 
   }
-  //In evolutionary mode, we want to perform community detection only once, for runtime
+  /*//In evolutionary mode, we want to perform community detection only once, for runtime
   if (context.partition_evolutionary && context.evolutionary.communities.size() == 0) {
     detectCommunities(hypergraph, context);
     context.evolutionary.communities = hypergraph.communities();
-  }
+  }*/
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
@@ -263,20 +263,25 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
   std::cout << toString(context.coarsening.rating.partition_policy);
   std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;*/
+   
   setupContext(hypergraph, context);
+  
   io::printInputInformation(context, hypergraph);
-
+  
   sanitize(hypergraph, context);
-
+  
   if (context.preprocessing.min_hash_sparsifier.is_active) {
+
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
     partition::partition(sparseHypergraph, context);
     postprocess(hypergraph, sparseHypergraph, context);
+
   } else {
     preprocess(hypergraph, context);
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
+
   }
 }
 }  // namespace kahypar

@@ -187,8 +187,60 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
-static inline void serializeEvolutionary(const Context&, const Hypergraph&,
-                                         const std::chrono::duration<double>&) { }
+static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) { 
+   std::ostringstream oss;
+   std::cout << " fitness=" << metrics::km1(hg);
+   std::cout << " imbalance=" << metrics::imbalance(hg, context);
+   context.evolutionary.action.print();
+   //oss << " time=" << time.count();
+   //fitness
+   //action
+   //imbalance
+   //time
+   //rest of context junk
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ }
 }  // namespace serializer
 }  // namespace io
 }  // namespace kahypar
