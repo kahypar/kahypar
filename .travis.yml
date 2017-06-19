@@ -65,7 +65,7 @@ before_script:
 
 script:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" ]]; then
+    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make -j4; sonar-scanner;
     elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
       make -j4;
