@@ -24,24 +24,30 @@ matrix:
             - g++-6
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
+            - lcov
         sonarqube:
           organization: "sebastianschlag-github"
 
     # gcc 6 - Release Build
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS=""
+    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS="" COV="OFF"
+      os: linux
+      addons: *gcc6
+
+    # gcc 6 - CodeCov
+    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Debug" COMPILER_FLAGS="" COV="ON"
       os: linux
       addons: *gcc6
 
       # gcc 6 - RelWithDebInfo Build - end to end tests
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="RelWithDebInfo" COMPILER_FLAGS=""
+    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="RelWithDebInfo" COMPILER_FLAGS="" COV="OFF"
       os: linux
       addons: *gcc6
 
     # clang 3.7 on MacOSX
-    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COMPILER_FLAGS=""
+    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COMPILER_FLAGS="" COV="OFF"
       os: osx
 
-    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COMPILER_FLAGS=""
+    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COMPILER_FLAGS="" COV="OFF"
       os: osx
 
 before_script:
@@ -53,7 +59,7 @@ before_script:
   - mkdir build; cp sonar-project.properties build; cd build
   - cmake
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-      -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX"
+      -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX" -DKAHYPAR_USE_GCOV="$COV"
       -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
       $CMAKE_ARGS ..
 
@@ -61,6 +67,13 @@ script:
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make -j4; sonar-scanner;
+    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
+      make -j4;
+      cd ${TRAVIS_BUILD_DIR};
+      lcov --directory . --capture --output-file coverage.info;
+      lcov --remove coverage.info '/usr/*' --output-file coverage.info;
+      lcov --list coverage.info;
+      bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
     elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
