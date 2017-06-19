@@ -24,6 +24,9 @@ option(KAHYPAR_USE_GCOV
   "Compile and run tests with gcov for coverage analysis." OFF)
 
 if(KAHYPAR_USE_GCOV)
+   include(CodeCoverage)
+   setup_target_for_coverage(${PROJECT_NAME}_coverage tests coverage)
+
   # find programs
   find_program(GENHTML genhtml)
   find_program(LCOV lcov)
