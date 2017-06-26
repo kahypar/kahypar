@@ -26,9 +26,10 @@
 #include "kahypar/definitions.h"
 
 namespace kahypar {
+
 class Individual {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   Individual() :
@@ -121,14 +122,21 @@ class Individual {
     }
     LOG << "\n--------------------------------------------------";
   }
-
+  
  private:
   std::vector<PartitionID> _partition;
   std::vector<HyperedgeID> _cut_edges;
   std::vector<HyperedgeID> _strong_cut_edges;
   HyperedgeWeight _fitness;
 };
-
+std::ostream& operator<< (std::ostream& os, const Individual& individual) {
+   os << "Fitness: " << individual.fitness() << std::endl;
+   os << "Partition:------------------------------------" << std::endl;
+   for(int i = 0; i < individual.partition().size(); ++i) {
+     os << individual.partition()[i] << " ";
+   }
+   return os;
+}
 using Individuals = std::vector<std::reference_wrapper<const Individual> >;
 using Parents = std::pair<const Individual&, const Individual&>;
 }  // namespace kahypar

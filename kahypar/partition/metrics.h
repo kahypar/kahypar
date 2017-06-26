@@ -95,7 +95,7 @@ inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
 }
 }  // namespace internal
 
-static inline double imbalance(const Hypergraph& hypergraph, const Context& context, bool debug = false) {
+static inline double imbalance(const Hypergraph& hypergraph, const Context& context) {
   ASSERT(context.partition.k == 2 ||
          context.partition.perfect_balance_part_weights[0]
          == context.partition.perfect_balance_part_weights[1],
@@ -103,10 +103,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
 
   double max_balance = (hypergraph.partWeight(0) /
                         static_cast<double>(context.partition.perfect_balance_part_weights[0]));
-                          if(debug) {
-                          std::cout << "SPEED: "<<hypergraph.partWeight(0) << " " << static_cast<double>(context.partition.perfect_balance_part_weights[0])<<std::endl;
-    std::cout << "MAX POWER : "<<max_balance << std::endl;
-  }
+
   for (PartitionID i = 1; i != context.partition.k; ++i) {
     // If k > 2, then perfect_balance_part_weights[0] ==
     // perfect_balance_part_weights[1] == perfect_balance_part_weights[i], because then we
@@ -115,9 +112,6 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
       (hypergraph.partWeight(i) /
        static_cast<double>(context.partition.perfect_balance_part_weights[1]));
     max_balance = std::max(max_balance, balance_i);
-      if(debug) {
-    std::cout << "MAXIMUM : "<<balance_i << std::endl;
-  }
   }
 
   // If we are in RB-mode and k!=2^x or we don't want to further partition blocks 0 and 1 into

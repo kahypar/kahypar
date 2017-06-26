@@ -43,20 +43,8 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   Partitioner().partition(hg, temporary_context);
-  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context, true));
+  DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
-  Individual result = Individual(hg);
-  int k0 = 0;
-  int k1 = 0;
-  for(int i = 0; i < result.partition().size(); ++i) {
-    if(result.partition()[i] == 0) {
-      ++k0;
-    }
-    else {
-      ++k1;
-    }
-  }
-  std::cout << "K0: "<<k0 <<" K1: " <<k1<<std::endl;
   return Individual(hg);
 }
 
@@ -109,7 +97,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::serializer::serializeEvolutionary(context, hg);
   return Individual(hg);
 }
 

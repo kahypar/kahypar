@@ -39,8 +39,8 @@ static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
-  io::printCoarseningBanner(context);
 
+  io::printCoarseningBanner(context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -87,11 +87,15 @@ static inline void partition(Hypergraph& hypergraph,
       context.evolutionary.action.requires().evolutionary_parent_contraction) {
     hypergraph.reset();
     ASSERT(!context.evolutionary.action.requires().initial_partitioning);
+
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet
+    
+
     hypergraph.setPartition(*context.evolutionary.parent1);
 
     if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
+
       const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
       hypergraph.setPartition(*context.evolutionary.parent2);
       const HyperedgeWeight parent_2_objective = metrics::km1(hypergraph);
@@ -103,6 +107,7 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   // TODO(andre): verify that this is correct
+
   if (context.partition_evolutionary) {
       hypergraph.initializeNumCutHyperedges();
   }

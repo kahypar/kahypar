@@ -35,7 +35,7 @@ namespace kahypar {
 namespace partition {
 class EvoPartitioner {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   explicit EvoPartitioner(const Context& context) :
@@ -54,18 +54,57 @@ class EvoPartitioner {
            elapsed_seconds_total.count() <= _timelimit) {
       ++_iteration;
       _population.generateIndividual(hg, context);
+      io::serializer::serializeEvolutionary(context, hg);
       elapsed_seconds_total = measureTime();
-      _population.print();
+      LOG <<_population;
     }
 
     // TODO(somebody): remove this
-   // performCombine(hg, context);
-    
-    context.evolutionary.mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-    performMutation(hg, context);
-    _population.print();
-    return;
+    /*
+    enum class EvoReplaceStrategy : uint8_t {
+  worst,
+  diverse,
+  strong_diverse
+};
+enum class EvoCombineStrategy : uint8_t {
+  basic,
+  with_edge_frequency_information
+};
+enum class EvoMutateStrategy : uint8_t {
+  new_initial_partitioning_vcycle,
+  vcycle,
+  single_stable_net,
+  population_stable_net,
+  edge_frequency
+};
 
+enum class EvoCrossCombineStrategy : uint8_t {
+  k,
+  epsilon,
+  objective,
+  mode,
+  louvain
+};
+    
+    */
+    context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
+    //context.evolutionary.mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
+    //performMutation(hg, context);
+    //_population.print();
+    //return;
+    /*performCrossCombine(hg,context);
+    LOG <<_population;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+    return;*/
     while (elapsed_seconds_total.count() <= _timelimit) {
       ++_iteration;
       EvoDecision decision = decideNextMove(context);
@@ -73,14 +112,17 @@ class EvoPartitioner {
       switch (decision) {
         case EvoDecision::diversify:
           kahypar::partition::diversify(context);
-        case EvoDecision::mutation:
+          case EvoDecision::mutation:
           performMutation(hg, context);
+          LOG <<_population;
           break;
         case EvoDecision::cross_combine:
           performCrossCombine(hg, context);
+          LOG <<_population;
           break;
         case EvoDecision::combine:
           performCombine(hg, context);
+          LOG <<_population;
           break;
         default:
           LOG << "Error in evo_partitioner.h: Non-covered case in decision making";

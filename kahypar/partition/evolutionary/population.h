@@ -30,7 +30,7 @@
 namespace kahypar {
 class Population {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   explicit Population() :
@@ -101,6 +101,7 @@ class Population {
     DBG << "Individual" << _individuals.size() - 1
         << V(_individuals.back().fitness())
         << V(metrics::km1(hg));
+
     return _individuals.back();
   }
 
@@ -237,4 +238,10 @@ class Population {
 
   std::vector<Individual> _individuals;
 };
+std::ostream& operator<< (std::ostream& os, const Population& population) {
+   for(int i = 0; i < population.size(); ++i) {
+     os << population.individualAt(i).fitness() << " ";
+   }
+   return os;
+}
 }  // namespace kahypar

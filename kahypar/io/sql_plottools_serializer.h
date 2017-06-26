@@ -30,6 +30,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/evolutionary/individual.h"
 
 namespace kahypar {
 namespace io {
@@ -187,11 +188,15 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
-static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) { 
-   std::ostringstream oss;
-   std::cout << " fitness=" << metrics::km1(hg);
-   std::cout << " imbalance=" << metrics::imbalance(hg, context);
-   context.evolutionary.action.print();
+static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
+  std::ofstream out_file;
+  
+  out_file.open(std::string("../../../../results/") +std::string("EVOLUTIONARY"), std::ios_base::app);
+   out_file << metrics::km1(hg) << " "
+            << context.evolutionary.action.decision() << " "
+            << std::endl;
+   //std::cout << " fitness=" << ;
+   out_file.close();
    //oss << " time=" << time.count();
    //fitness
    //action

@@ -49,10 +49,10 @@ class Action {
   Action(meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>) :
     _decision(EvoDecision::cross_combine),
     _requires() {
+    _requires.initial_partitioning = false;
     _requires.evolutionary_parent_contraction = true;
     _requires.invalidation_of_second_partition = true;
   }
-
   Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
          meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>) :
     _decision(EvoDecision::mutation),

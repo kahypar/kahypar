@@ -31,7 +31,7 @@
 
 namespace kahypar {
 namespace combine {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
@@ -55,7 +55,7 @@ Individual partitions(Hypergraph& hg,
 
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
-
+  io::serializer::serializeEvolutionary(context, hg);
   return Individual(hg);
 }
 
@@ -77,11 +77,14 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
 
 
 Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& context) {
+  //For the creation of the Cross Combine Individual
   Context temporary_context(context);
+  //For the combine afterwards
   Context combine_context(context);
-
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
+  combine_context.evolutionary.parent1 = &in.partition();
+  
+  //the initial action is a simple partition and should be treated that way
+  temporary_context.evolutionary.action = Action();
 
   switch (context.evolutionary.cross_combine_objective) {
     case EvoCrossCombineStrategy::k: {
@@ -121,33 +124,48 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       LOG << "Cross Combine Mode unspecified ";
       std::exit(1);
     case EvoCrossCombineStrategy::louvain: {
+    
+    
+         if (context.evolutionary.communities.size() == 0) {
+ 
+          detectCommunities(hg, context);
+
+          context.evolutionary.communities = hg.communities();
+
+        }
         // Removed, now vector in config
         //detectCommunities(hg, temporary_context);
         //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created
-        ASSERT(temporary_context.evolutionary.communities.size != 0);
-        const Individual lovain_individual = Individual(temporary_context.evolutionary.communities);
+        ASSERT(context.evolutionary.communities.size() != 0);
+        const Individual lovain_individual = Individual(context.evolutionary.communities);
+
+        DBG << lovain_individual;
+        temporary_context.evolutionary.action =   Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
       }
   }
 
-  hg.changeK(temporary_context.partition.k);
+  
   hg.reset();
+  hg.changeK(temporary_context.partition.k);
   Partitioner().partition(hg, temporary_context);
   const Individual cross_combine_individual = Individual(hg);
   hg.reset();
   hg.changeK(context.partition.k);
+  combine_context.evolutionary.action =
+           Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
   Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), combine_context);
   DBG << "------------------------------------------------------------";
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "---------------------------CROSSCOMBINE---------------------";
   DBG << "Cross Combine Objective: " << context.evolutionary.cross_combine_objective;
   DBG << "Original Individuum ";
-  in.printDebug();
+  //in.print();
   DBG << "Cross Combine Individuum ";
-  cross_combine_individual.printDebug();
+  //cross_combine_individual.print();
   DBG << "Result Individuum ";
-  ret.printDebug();
+  //ret.print();
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "------------------------------------------------------------";
   return ret;

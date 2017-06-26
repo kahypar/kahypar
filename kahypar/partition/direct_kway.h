@@ -70,6 +70,7 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
 
 
 static inline void partition(Hypergraph& hypergraph, const Context& context) {
+
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
       context.coarsening.algorithm, hypergraph, context,
@@ -80,7 +81,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
       context.local_search.algorithm, hypergraph, context));
 
   multilevel::partition(hypergraph, *coarsener, *refiner, context);
-
+   
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight initial_km1 = std::numeric_limits<HyperedgeWeight>::max();
