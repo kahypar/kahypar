@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "kahypar/partition/evolutionary/individual.h"
+#include "kahypar/partition/partitioner.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
@@ -89,7 +90,6 @@ class Population {
   }
 
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
-          
     Partitioner partitioner;
     hg.reset();
     partitioner.partition(hg, context);
@@ -239,7 +239,7 @@ class Population {
   std::vector<Individual> _individuals;
 };
 std::ostream& operator<< (std::ostream& os, const Population& population) {
-   for(int i = 0; i < population.size(); ++i) {
+   for(size_t i = 0; i < population.size(); ++i) {
      os << population.individualAt(i).fitness() << " ";
    }
    return os;

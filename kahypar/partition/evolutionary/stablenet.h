@@ -65,6 +65,7 @@ void removeStableNets(Hypergraph& hg, const Context& context,
         break;
       }
     }
+    DBG << "stable_net was touched: " << stable_net << " " << he_was_touched;
     if (!he_was_touched) {
       for (const HypernodeID pin : hg.pins(stable_net)) {
         touched_hns[pin] = true;

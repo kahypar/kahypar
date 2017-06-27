@@ -65,10 +65,11 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
         }
         return true;
       } ());
-
   switch (context.partition.mode) {
     case Mode::recursive_bisection:
+
       recursive_bisection::partition(hypergraph, context);
+
       break;
     case Mode::direct_kway:
       direct_kway::partition(hypergraph, context);
@@ -203,7 +204,8 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
 
 //In evolutionary mode, we want to perform community detection only once, for runtime
-  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0) {
+  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0 && !context.evolutionary.action.requires().community_detection) {
+  
     detectCommunities(hypergraph, context);
     context.evolutionary.communities = hypergraph.communities();
   }
@@ -264,6 +266,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
+
   /*std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
   std::cout << toString(context.coarsening.rating.partition_policy);
   std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
@@ -275,21 +278,18 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   setupContext(hypergraph, context);
 
   io::printInputInformation(context, hypergraph);
- 
+
   sanitize(hypergraph, context);
   
   if (context.preprocessing.min_hash_sparsifier.is_active) {
-
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
     partition::partition(sparseHypergraph, context);
     postprocess(hypergraph, sparseHypergraph, context);
-
   } else {
     preprocess(hypergraph, context);
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
-
   }
   
 }

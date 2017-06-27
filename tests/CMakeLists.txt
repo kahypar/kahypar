@@ -1,3 +1,4 @@
+add_subdirectory(partition/evolutionary)
 add_subdirectory(meta)
 add_subdirectory(end_to_end)
 add_subdirectory(regression)
@@ -9,3 +10,4 @@ add_subdirectory(partition/preprocessing)
 add_subdirectory(partition/coarsening)
 add_subdirectory(partition/initial_partitioning)
 add_subdirectory(partition/refinement)
+

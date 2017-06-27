@@ -134,6 +134,11 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
     stablenet::stableNetsFromIndividuals(context,
                                          population.listOfBest(context.evolutionary.stable_net_amount),
                                          hg.initialNumEdges());
+  DBG << "Stable Net Vector: ";
+  for(size_t i = 0; i < stable_nets.size(); ++i) {
+    std::cout << stable_nets[i] << " ";
+  }                              
+  DBG << "_------------------";      
   DBG << V(stable_nets.size());
   stablenet::removeStableNets(hg, context, stable_nets);
 

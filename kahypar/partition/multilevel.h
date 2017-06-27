@@ -32,6 +32,7 @@
 #include "kahypar/utils/timer.h"
 
 namespace kahypar {
+
 namespace multilevel {
 static constexpr bool debug = false;
 

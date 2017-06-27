@@ -17,9 +17,12 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
+#pragma once
 #include <boost/program_options.hpp>
 
+#include "kahypar/partition/context.h"
 #include <limits>
+#include <fstream>
 #include <string>
 
 namespace po = boost::program_options;

@@ -35,7 +35,7 @@ namespace kahypar {
 namespace partition {
 class EvoPartitioner {
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
  public:
   explicit EvoPartitioner(const Context& context) :
@@ -88,10 +88,10 @@ enum class EvoCrossCombineStrategy : uint8_t {
     
     */
     context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
-    //context.evolutionary.mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-    //performMutation(hg, context);
-    //_population.print();
-    //return;
+    context.evolutionary.mutate_strategy = EvoMutateStrategy::population_stable_net;
+    performMutation(hg, context);
+    _population.print();
+    return;
     /*performCrossCombine(hg,context);
     LOG <<_population;
     performCrossCombine(hg,context);
@@ -171,7 +171,9 @@ enum class EvoCrossCombineStrategy : uint8_t {
 
   //TODO the best element may be mutated, but in that case the result must be better
   inline void performMutation(Hypergraph& hg, const Context& context) {
-    const size_t mutation_position = _population.randomIndividual();
+    //const size_t mutation_position = _population.randomIndividual();
+    const size_t mutation_position = 1;
+    DBG << V(mutation_position);
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle:
      

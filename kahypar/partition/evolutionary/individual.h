@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-
+#include "kahypar/partition/metrics.h"
 namespace kahypar {
 
 class Individual {
@@ -38,13 +38,17 @@ class Individual {
     _strong_cut_edges(),
     _fitness() { }
 
-  Individual(std::vector<PartitionID>&& partition, std::vector<HyperedgeID>&& cut_edges,
+  /*Individual(std::vector<PartitionID>&& partition, std::vector<HyperedgeID>&& cut_edges,
              std::vector<HyperedgeID>&& strong_edges, HyperedgeWeight fitness) :
     _partition(std::move(partition)),
     _cut_edges(std::move(cut_edges)),
     _strong_cut_edges(std::move(strong_edges)),
-    _fitness(fitness) { }
-
+    _fitness(fitness) { }*/
+  Individual(HyperedgeWeight fitness) :
+    _partition(),
+    _cut_edges(),
+    _strong_cut_edges(),
+    _fitness(fitness) { } 
   explicit Individual(const std::vector<PartitionID>& partition) :
     _partition(std::move(partition)),
     _cut_edges(),
@@ -64,11 +68,10 @@ class Individual {
     for (const HyperedgeID& he : hypergraph.edges()) {
       if (hypergraph.connectivity(he) > 1) {
         _cut_edges.push_back(he);
-        // TODO(robin): why did this loop start from 1?
         // The general idea is to add the connectivity (#blocks - 1)
         // instead of the # of blocks (However there should not be that much of a difference)
-        // Edit: No difference at all
-        for (PartitionID i = 0; i < hypergraph.connectivity(he); ++i) {
+        // Edit: For Test Purposes this loop starts with 1.
+        for (PartitionID i = 1; i < hypergraph.connectivity(he); ++i) {
           _strong_cut_edges.push_back(he);
         }
       }
@@ -132,7 +135,7 @@ class Individual {
 std::ostream& operator<< (std::ostream& os, const Individual& individual) {
    os << "Fitness: " << individual.fitness() << std::endl;
    os << "Partition:------------------------------------" << std::endl;
-   for(int i = 0; i < individual.partition().size(); ++i) {
+   for(size_t i = 0; i < individual.partition().size(); ++i) {
      os << individual.partition()[i] << " ";
    }
    return os;

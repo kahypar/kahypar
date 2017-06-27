@@ -30,6 +30,7 @@ class Action {
     bool evolutionary_parent_contraction = false;
     bool vcycle_stable_net_collection = false;
     bool invalidation_of_second_partition = false;
+    bool community_detection = false;
   };
 
  public:
@@ -45,7 +46,14 @@ class Action {
     _requires() {
     _requires.evolutionary_parent_contraction = true;
   }
-
+    Action(meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>) :
+    _decision(EvoDecision::cross_combine),
+    _requires() {
+    _requires.initial_partitioning = false;
+    _requires.evolutionary_parent_contraction = true;
+    _requires.invalidation_of_second_partition = true;
+    _requires.community_detection = true;
+  }
   Action(meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>) :
     _decision(EvoDecision::cross_combine),
     _requires() {

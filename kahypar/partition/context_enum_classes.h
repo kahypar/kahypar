@@ -152,6 +152,7 @@ enum class EvoDecision :uint8_t {
   mutation,
   combine,
   cross_combine,
+  cross_combine_louvain,
   diversify
 };
 

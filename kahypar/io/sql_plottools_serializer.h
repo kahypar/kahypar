@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 #pragma once
-
+#include <boost/program_options.hpp>
 #include <array>
 #include <chrono>
 #include <fstream>

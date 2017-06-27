@@ -23,8 +23,9 @@
 #include <limits>
 #include <utility>
 #include <vector>
-
-#include "kahypar/io/config_file_reader.h"
+#include <boost/program_options.hpp>
+//#include "kahypar/io/config_file_reader.h"
+#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/stablenet.h"
@@ -40,8 +41,10 @@ Individual partitions(Hypergraph& hg,
   DBG << "Parent 1: initial" << V(parents.first.fitness());
   DBG << "Parent 2: initial" << V(parents.second.fitness());
 
+
 #ifndef NDEBUG
   hg.setPartition(parents.first.partition());
+  
   ASSERT(parents.first.fitness() == metrics::km1(hg));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   hg.setPartition(parents.second.partition());
@@ -49,10 +52,9 @@ Individual partitions(Hypergraph& hg,
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   hg.reset();
 #endif
-
   hg.reset();
+ 
   Partitioner().partition(hg, context);
-
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
@@ -105,20 +107,20 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
     case EvoCrossCombineStrategy::objective:
 
       if (context.partition.objective == Objective::km1) {
-        io::readInBisectionContext(temporary_context);
+        //io::readInBisectionContext(temporary_context);
         break;
       } else if (context.partition.objective == Objective::cut) {
-        io::readInDirectKwayContext(temporary_context);
+        //io::readInDirectKwayContext(temporary_context);
         break;
       }
       LOG << "Cross Combine Objective unspecified ";
       std::exit(1);
     case EvoCrossCombineStrategy::mode:
       if (context.partition.mode == Mode::recursive_bisection) {
-        io::readInDirectKwayContext(temporary_context);
+        //io::readInDirectKwayContext(temporary_context);
         break;
       } else if (context.partition.mode == Mode::direct_kway) {
-        io::readInBisectionContext(temporary_context);
+        //io::readInBisectionContext(temporary_context);
         break;
       }
       LOG << "Cross Combine Mode unspecified ";
@@ -140,7 +142,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         const Individual lovain_individual = Individual(context.evolutionary.communities);
 
         DBG << lovain_individual;
-        temporary_context.evolutionary.action =   Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
+        temporary_context.evolutionary.action =   Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>() };
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
       }
