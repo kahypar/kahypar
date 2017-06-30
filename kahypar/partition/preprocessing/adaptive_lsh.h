@@ -139,7 +139,9 @@ class AdaptiveLSHWithConnectedComponents {
       inactive_clusters.clear();
 
       if (num_cl <= _hypergraph.currentNumNodes() / 2) {
-        LOG << "Adaptively chosen number of hash functions:" << main_hash_set.getHashNum();
+        if (!_context.partition.quiet_mode) {
+          LOG << "Adaptively chosen number of hash functions:" << main_hash_set.getHashNum();
+        }
         break;
       }
     }
