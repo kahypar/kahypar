@@ -318,7 +318,9 @@ struct EvolutionaryParameters {
   mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
   int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
-  mutable EvoCrossCombineStrategy cross_combine_objective = EvoCrossCombineStrategy::k;
+  mutable EvoCrossCombineStrategy cross_combine_strategy = EvoCrossCombineStrategy::k;
+  bool log_output = false;
+  std::string filename = "";
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
@@ -373,6 +375,7 @@ class Context {
     coarsening(other.coarsening),
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
+    evolutionary(other.evolutionary),
     type(other.type),
     stats(*this, &other.stats.topLevel()),
     partition_evolutionary(other.partition_evolutionary) { }

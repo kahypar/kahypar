@@ -160,11 +160,13 @@ class Population {
     }
 
     std::partial_sort(sorting.begin(), sorting.begin() + amount, sorting.end());
-
+    
     Individuals best_individuals;
+    std::cout << std::endl;
     for (size_t i = 0; i < amount; ++i) {
       best_individuals.push_back(_individuals[sorting[i].second]);
     }
+       std::cout << std::endl;
     return best_individuals;
   }
 

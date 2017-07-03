@@ -386,15 +386,15 @@ static EvoCrossCombineStrategy crossCombineStrategyFromString(const std::string&
   exit(0);
 }
 static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
-  if (strat == "new_initial_partitioning_vcycle") {
+  if (strat == "new-initial-partitioning-vcycle") {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
-  } else if (strat == "edge_frequency") {
+  } else if (strat == "edge-frequency") {
     return EvoMutateStrategy::edge_frequency;
-  } else if (strat == "single_stable_net") {
+  } else if (strat == "single-stable-net") {
     return EvoMutateStrategy::single_stable_net;
-  } else if (strat == "population_stable_net") {
+  } else if (strat == "population-stable-net") {
     return EvoMutateStrategy::population_stable_net;
   }
   std::cout << "No valid mutate strategy. " << std::endl;
@@ -403,7 +403,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
 static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
   if (strat == "basic") {
     return EvoCombineStrategy::basic;
-  } else if (strat == "with_edge_frequency") {
+  } else if (strat == "with-edge-frequency") {
     return EvoCombineStrategy::with_edge_frequency_information;
   }
   std::cout << "No valid combine strategy. " << std::endl;

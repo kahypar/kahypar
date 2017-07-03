@@ -25,7 +25,7 @@
 #include "kahypar/definitions.h"
 namespace kahypar {
 namespace stablenet {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   const PartitionID k = hg.k();

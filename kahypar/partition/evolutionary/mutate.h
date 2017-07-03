@@ -28,7 +28,7 @@
 namespace kahypar {
 namespace partition {
 namespace mutate {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
@@ -121,6 +121,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   DBG << V(temporary_context.evolutionary.action.decision());
 
   Partitioner().partition(hg, temporary_context);
+  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
@@ -134,11 +135,7 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
     stablenet::stableNetsFromIndividuals(context,
                                          population.listOfBest(context.evolutionary.stable_net_amount),
                                          hg.initialNumEdges());
-  DBG << "Stable Net Vector: ";
-  for(size_t i = 0; i < stable_nets.size(); ++i) {
-    std::cout << stable_nets[i] << " ";
-  }                              
-  DBG << "_------------------";      
+  
   DBG << V(stable_nets.size());
   stablenet::removeStableNets(hg, context, stable_nets);
 

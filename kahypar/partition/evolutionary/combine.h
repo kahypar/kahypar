@@ -58,6 +58,7 @@ Individual partitions(Hypergraph& hg,
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
+  Individual indi = Individual(hg);
   return Individual(hg);
 }
 
@@ -88,7 +89,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   //the initial action is a simple partition and should be treated that way
   temporary_context.evolutionary.action = Action();
 
-  switch (context.evolutionary.cross_combine_objective) {
+  switch (context.evolutionary.cross_combine_strategy) {
     case EvoCrossCombineStrategy::k: {
         const PartitionID lowerbound = std::max(context.partition.k /
                                                 context.evolutionary.cross_combine_lower_limit_kfactor, 2);
@@ -129,19 +130,17 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
     
     
          if (context.evolutionary.communities.size() == 0) {
- 
           detectCommunities(hg, context);
-
           context.evolutionary.communities = hg.communities();
-
         }
         // Removed, now vector in config
         //detectCommunities(hg, temporary_context);
         //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created
         ASSERT(context.evolutionary.communities.size() != 0);
+
+
         const Individual lovain_individual = Individual(context.evolutionary.communities);
 
-        DBG << lovain_individual;
         temporary_context.evolutionary.action =   Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>() };
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
@@ -161,7 +160,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   DBG << "------------------------------------------------------------";
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "---------------------------CROSSCOMBINE---------------------";
-  DBG << "Cross Combine Objective: " << context.evolutionary.cross_combine_objective;
+  DBG << "Cross Combine Strategy: " << context.evolutionary.cross_combine_strategy;
   DBG << "Original Individuum ";
   //in.print();
   DBG << "Cross Combine Individuum ";

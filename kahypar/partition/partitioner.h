@@ -204,7 +204,7 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
 
 //In evolutionary mode, we want to perform community detection only once, for runtime
-  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0 && !context.evolutionary.action.requires().community_detection) {
+  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0      &&context.evolutionary.action.requires().community_detection) {
   
     detectCommunities(hypergraph, context);
     context.evolutionary.communities = hypergraph.communities();

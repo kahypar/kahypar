@@ -87,11 +87,11 @@ enum class EvoCrossCombineStrategy : uint8_t {
 };
     
     */
-    context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
-    context.evolutionary.mutate_strategy = EvoMutateStrategy::population_stable_net;
+    /*context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
+    context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
-    return;
+    return;*/
     /*performCrossCombine(hg,context);
     LOG <<_population;
     performCrossCombine(hg,context);
@@ -105,6 +105,11 @@ enum class EvoCrossCombineStrategy : uint8_t {
     performCrossCombine(hg,context);
     LOG <<_population;
     return;*/
+    /*context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg, context);
+    LOG <<_population;
+    return;*/
+    //context.evolutionary.mutate_strategy = EvoMutateStrategy::single_stable_net;
     while (elapsed_seconds_total.count() <= _timelimit) {
       ++_iteration;
       EvoDecision decision = decideNextMove(context);
@@ -171,8 +176,7 @@ enum class EvoCrossCombineStrategy : uint8_t {
 
   //TODO the best element may be mutated, but in that case the result must be better
   inline void performMutation(Hypergraph& hg, const Context& context) {
-    //const size_t mutation_position = _population.randomIndividual();
-    const size_t mutation_position = 1;
+    const size_t mutation_position = _population.randomIndividual();
     DBG << V(mutation_position);
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle:
@@ -193,6 +197,7 @@ enum class EvoCrossCombineStrategy : uint8_t {
                                                          context), mutation_position);
         break;
       case EvoMutateStrategy::population_stable_net:
+      //TODO perhaps a forceInsertSaveBest would be more appropriate
         _population.insert(mutate::removePopulationStableNets(hg, _population, context), context);
         break;
       case EvoMutateStrategy::edge_frequency:

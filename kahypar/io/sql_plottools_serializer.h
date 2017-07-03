@@ -189,11 +189,22 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   std::cout << oss.str() << std::endl;
 }
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
+  if(!context.evolutionary.log_output || context.evolutionary.filename == "") {
+    return;
+  }
   std::ofstream out_file;
   
-  out_file.open(std::string("../../../../results/") +std::string("EVOLUTIONARY"), std::ios_base::app);
-   out_file << metrics::km1(hg) << " "
-            << context.evolutionary.action.decision() << " "
+  out_file.open(context.evolutionary.filename, std::ios_base::app);
+   out_file << "connectivity=" << metrics::km1(hg) 
+            <<" action=" << context.evolutionary.action.decision() 
+            <<" replace-strategy=" << context.evolutionary.replace_strategy 
+            <<" combine-strategy=" << context.evolutionary.combine_strategy
+            <<" mutate-strategy=" << context.evolutionary.mutate_strategy
+            <<" population-size=" << context.evolutionary.population_size 
+            <<" mutation-chance=" << context.evolutionary.mutation_chance 
+            <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
+            <<" seed=" << context.partition.seed  
+            <<" graph-name=" << context.partition.graph_filename 
             << std::endl;
    //std::cout << " fitness=" << ;
    out_file.close();
