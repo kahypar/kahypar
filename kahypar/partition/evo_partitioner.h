@@ -41,52 +41,26 @@ class EvoPartitioner {
   explicit EvoPartitioner(const Context& context) :
     _globalstart(),
     _timelimit(),
-    _population(),
-    _iteration(0) {
+    _population()
+    {
     _globalstart = std::chrono::high_resolution_clock::now();
     _timelimit = context.evolutionary.time_limit_seconds;
   }
 
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
-    std::chrono::duration<double> elapsed_seconds_total = measureTime();
+    context.evolutionary.elapsed_seconds_total = measureTime();
     while (_population.size() < context.evolutionary.population_size &&
-           elapsed_seconds_total.count() <= _timelimit) {
-      ++_iteration;
+           context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+      ++context.evolutionary.iteration;
       _population.generateIndividual(hg, context);
       io::serializer::serializeEvolutionary(context, hg);
-      elapsed_seconds_total = measureTime();
-      LOG <<_population;
+      context.evolutionary.elapsed_seconds_total = measureTime();
+      LOG << _population;
+      
     }
 
-    // TODO(somebody): remove this
-    /*
-    enum class EvoReplaceStrategy : uint8_t {
-  worst,
-  diverse,
-  strong_diverse
-};
-enum class EvoCombineStrategy : uint8_t {
-  basic,
-  with_edge_frequency_information
-};
-enum class EvoMutateStrategy : uint8_t {
-  new_initial_partitioning_vcycle,
-  vcycle,
-  single_stable_net,
-  population_stable_net,
-  edge_frequency
-};
 
-enum class EvoCrossCombineStrategy : uint8_t {
-  k,
-  epsilon,
-  objective,
-  mode,
-  louvain
-};
-    
-    */
     /*context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
     context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
@@ -110,14 +84,21 @@ enum class EvoCrossCombineStrategy : uint8_t {
     LOG <<_population;
     return;*/
     //context.evolutionary.mutate_strategy = EvoMutateStrategy::single_stable_net;
-    while (elapsed_seconds_total.count() <= _timelimit) {
-      ++_iteration;
+    while (context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+      ++context.evolutionary.iteration;
+      
+      
+      if (context.evolutionary.diversify_interval != -1 &&
+        context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
+        kahypar::partition::diversify(context);
+      }
+      
+      
       EvoDecision decision = decideNextMove(context);
       DBG << V(decision);
       switch (decision) {
-        case EvoDecision::diversify:
-          kahypar::partition::diversify(context);
-          case EvoDecision::mutation:
+           
+        case EvoDecision::mutation:
           performMutation(hg, context);
           LOG <<_population;
           break;
@@ -134,16 +115,17 @@ enum class EvoCrossCombineStrategy : uint8_t {
           std::exit(EXIT_FAILURE);
       }
 
-      elapsed_seconds_total = measureTime();
+      context.evolutionary.elapsed_seconds_total = measureTime();
     }
   }
 
  private:
   inline EvoDecision decideNextMove(const Context& context) {
-    if (context.evolutionary.diversify_interval != -1 &&
-        _iteration % context.evolutionary.diversify_interval == 0) {
+    /*if (context.evolutionary.diversify_interval != -1 &&
+        context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
+      
       return EvoDecision::diversify;
-    }
+    }*/
     if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
     }
@@ -216,7 +198,7 @@ enum class EvoCrossCombineStrategy : uint8_t {
   HighResClockTimepoint _globalstart;
   int _timelimit;
   Population _population;
-  int _iteration;
+
 };
 }  // namespace partition
 }  // namespace kahypar

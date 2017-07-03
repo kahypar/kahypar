@@ -332,6 +332,9 @@ struct EvolutionaryParameters {
   float cross_combine_epsilon_upper_limit = 0.25;
   const std::vector<PartitionID>* parent1 = nullptr;
   const std::vector<PartitionID>* parent2 = nullptr;
+  //mutable HyperedgeWeight best_partition;
+  mutable int iteration;
+  mutable std::chrono::duration<double> elapsed_seconds_total;
   mutable std::vector<HyperedgeID> stable_nets_vcycle;
   mutable std::vector<HyperedgeID> stable_nets_final;
   mutable std::vector<size_t> edge_frequency;

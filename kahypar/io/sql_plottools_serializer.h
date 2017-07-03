@@ -197,14 +197,24 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
   out_file.open(context.evolutionary.filename, std::ios_base::app);
    out_file << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
+            <<" time-total=" << context.evolutionary.elapsed_seconds_total.count()
+            //<<" best=" << context.evolutionary.best_partition
+            <<" iteration=" << context.evolutionary.iteration
             <<" replace-strategy=" << context.evolutionary.replace_strategy 
             <<" combine-strategy=" << context.evolutionary.combine_strategy
             <<" mutate-strategy=" << context.evolutionary.mutate_strategy
+            <<" cross-combine-strategy=" << context.evolutionary.cross_combine_strategy
             <<" population-size=" << context.evolutionary.population_size 
             <<" mutation-chance=" << context.evolutionary.mutation_chance 
             <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
+            <<" edge-frequency-interval=" << context.evolutionary.perform_edge_frequency_interval
+            <<" diversify-interval=" << context.evolutionary.diversify_interval
             <<" seed=" << context.partition.seed  
             <<" graph-name=" << context.partition.graph_filename 
+            <<" SOED=" << metrics::soed(hg)
+            <<" cut=" << metrics::hyperedgeCut(hg)
+            <<" absorption="<<metrics::absorption(hg)
+            <<" imbalance=" << metrics::imbalance(hg, context)
             << std::endl;
    //std::cout << " fitness=" << ;
    out_file.close();

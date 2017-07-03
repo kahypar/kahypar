@@ -23,7 +23,7 @@
 #include <limits>
 #include <utility>
 #include <vector>
-
+#include "kahypar/partition/metrics.h"
 #include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/utils/randomize.h"
@@ -134,7 +134,24 @@ class Population {
     DBG << V(best_position) << V(best_fitness);
     return best_position;
   }
-
+  inline HyperedgeWeight bestFitness() const {
+    size_t best_position = std::numeric_limits<size_t>::max();
+    HyperedgeWeight best_fitness = std::numeric_limits<int>::max();
+    if(size() == 0) {
+      DBG << "SIZE IS 0";
+      return best_fitness;
+    }
+    for (size_t i = 0; i < size(); ++i) {
+      const HyperedgeWeight result = _individuals[i].fitness();
+      if (result < best_fitness) {
+        best_position = i;
+        best_fitness = result;
+      }
+    }
+    ASSERT(best_position != std::numeric_limits<size_t>::max());
+    DBG << V(best_position) << V(best_fitness);
+    return best_fitness;
+  }
   inline size_t worst() {
     size_t worst_position = std::numeric_limits<size_t>::max();
     HyperedgeWeight worst_fitness = std::numeric_limits<int>::min();

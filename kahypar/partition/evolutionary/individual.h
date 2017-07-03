@@ -22,9 +22,9 @@
 #include <limits>
 #include <utility>
 #include <vector>
-
-#include "kahypar/definitions.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/definitions.h"
+
 namespace kahypar {
 
 class Individual {

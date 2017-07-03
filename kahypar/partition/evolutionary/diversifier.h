@@ -37,7 +37,7 @@ static void diversify(Context& context) {
   context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
 
   context.coarsening.algorithm = static_cast<CoarseningAlgorithm>(Randomize::instance().flipCoin());
-  context.preprocessing.enable_community_detection = Randomize::instance().flipCoin();
+  //context.preprocessing.enable_community_detection = Randomize::instance().flipCoin();
 }
 }  // namespace partition
 }  // namespace kahypar
