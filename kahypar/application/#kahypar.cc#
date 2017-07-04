@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
                                           context.partition.k));
 
   Partitioner partitioner;
+  context.partition
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   while(context.evolutionary.elapsed_seconds_total.count() < context.evolutionary.time_limit_seconds) {
       const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();

@@ -50,13 +50,26 @@ class EvoPartitioner {
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
     context.evolutionary.elapsed_seconds_total = measureTime();
+    if(context.evolutionary.dynamic_population_size) {
+      _population.generateIndividual(hg, context);
+      ++context.evolutionary.iteration;
+      context.evolutionary.elapsed_seconds_total = measureTime();
+      int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
+                                           * context.evolutionary.time_limit_seconds
+                                           / context.evolutionary.elapsed_seconds_total.count());
+      int minimal_size = std::max(dynamic_population_size, 3);
+      
+      context.evolutionary.population_size = std::min(minimal_size, 50);
+      DBG << context.evolutionary.population_size;
+      DBG << _population;
+    }
     while (_population.size() < context.evolutionary.population_size &&
-           context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+      context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
       _population.generateIndividual(hg, context);
       io::serializer::serializeEvolutionary(context, hg);
       context.evolutionary.elapsed_seconds_total = measureTime();
-      LOG << _population;
+      DBG << _population;
       
     }
 
@@ -100,15 +113,15 @@ class EvoPartitioner {
            
         case EvoDecision::mutation:
           performMutation(hg, context);
-          LOG <<_population;
+          DBG <<_population;
           break;
         case EvoDecision::cross_combine:
           performCrossCombine(hg, context);
-          LOG <<_population;
+          DBG <<_population;
           break;
         case EvoDecision::combine:
           performCombine(hg, context);
-          LOG <<_population;
+          DBG <<_population;
           break;
         default:
           LOG << "Error in evo_partitioner.h: Non-covered case in decision making";

@@ -209,6 +209,8 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
             <<" edge-frequency-interval=" << context.evolutionary.perform_edge_frequency_interval
             <<" diversify-interval=" << context.evolutionary.diversify_interval
+            <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
+            <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
             <<" seed=" << context.partition.seed  
             <<" graph-name=" << context.partition.graph_filename 
             <<" SOED=" << metrics::soed(hg)
