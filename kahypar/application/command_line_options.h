@@ -451,104 +451,133 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   po::options_description evolutionary_options("Evolutionary Options", num_columns);
   evolutionary_options.add_options()
-      ("time-limit",
-       po::value<int>()->value_name("<int>")->notifier(
-           [&](const int& time_limit) {
-             context.evolutionary.time_limit_seconds = time_limit;
-           }),
-       "Time Limit for Algorithm in seconds\n"
-       "(default 5 hours = 18000 seconds)")
-      ("population-size",
-       po::value<size_t>()->value_name("<size_t>")->notifier(
-           [&](const size_t& pop_size) {
-             context.evolutionary.population_size = pop_size;
-           }),
-       "Population Size for Evolutionary Partitioning\n"
-       "(default 10)")
-      ("replace-strategy",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& replace_strat) {
-             context.evolutionary.replace_strategy = kahypar::replaceStrategyFromString(replace_strat);
-           }),
-       "Replacement Strategy for Population Management\n"
-       "- worst: new partitions replace the current worst partition in the population\n"
-       "- diverse: new partitions replace the most similar partition based on cut difference\n"
-       "- strong-diverse: new partitions replace the most similar partition based on connectivity difference\n"
-       "(for diverse/strong-diverse better partitions are not considered for replacement)\n"
-       "(default: strong-diverse)")
-      ("combine-strategy",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& combine_strat) {
-             context.evolutionary.combine_strategy = kahypar::combineStrategyFromString(combine_strat);
-           }),
-       "Combine Strategy to be used for a regular combine operation\n"
-       "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
-       "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
-       "(default: basic)")
-      ("mutate-strategy",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& mutate_strat) {
-             context.evolutionary.mutate_strategy = kahypar::mutateStrategyFromString(mutate_strat);
-           }),
-       "Mutation Strategy for the mutation operation \n"
-       "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
-       "- vcycle: a regular vcycle on an existing partition\n"
-       "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
-       "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
-       "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
-       "(default: new-initial-partitioning-vcycle)")
-      ("perform-edge-frequency-interval",
-       po::value<int>()->value_name("<int>")->notifier(
-           [&](const int& edge_freq_interval) {
-             context.evolutionary.perform_edge_frequency_interval = edge_freq_interval;
-           }),
-       "The Frequency in which an edge frequency operation should be performed(regardless of selected mutation strategy)\n"
-       "(default: 5)(-1 disables)")
-      ("diversify-interval",
-       po::value<int>()->value_name("<int>")->notifier(
-           [&](const int& div_interval) {
-             context.evolutionary.diversify_interval = div_interval;
-           }),
-       "The Frequency in which diversfication should be performed\n"
-       "(default: -1)(-1 disables)")
-      ("log-output",
-       po::value<bool>()->value_name("<bool>")->notifier(
-           [&](const bool& log_output) {
-             context.evolutionary.log_output = log_output;
-           }),
-       "Option to toggle evolutionary logging into a file")
-      ("filename",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& filename) {
-             context.evolutionary.filename = filename;
-           }),
-       "The filename in which the logging should occur")
-      ("cross-combine-chance",
-       po::value<float>()->value_name("<float>")->notifier(
-           [&](const float& cc_chance) {
-             context.evolutionary.cross_combine_chance = cc_chance;
-           }),
-       "The Chance of a cross combine being selected as operation\n"
-       "default: 0.2)")
-      ("mutate-chance",
-       po::value<float>()->value_name("<float>")->notifier(
-           [&](const float& mutate_chance) {
-             context.evolutionary.mutation_chance = mutate_chance;
-           }),
-       "The Chance of a mutation being selected as operation\n"
-       "default: 0.1)")
-      ("cross-combine-strategy",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& cross_combine_strat) {
-             context.evolutionary.cross_combine_strategy = kahypar::crossCombineStrategyFromString(cross_combine_strat);
-           }),
-       "Cross Combine Strategy to be used in cross combines\n"
-       "- k: combining with a different individual where k is varied and epsilon\n"
-       "- epsilon: combining with a different individual where epsilon is varied\n"
-       "- objective: combining with an individual optimized for a different metric (cut/connectivity)\n"
-       "- mode: combining with an individual partitioned with another mode (direct k way/recursive bisection)\n"
-       "- louvain: combining with the community detection\n");
-    
+    ("time-limit",
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& time_limit) {
+      context.evolutionary.time_limit_seconds = time_limit;
+    }),
+    "Time Limit for Algorithm in seconds\n"
+    "(default 5 hours = 18000 seconds)")
+    ("population-size", 
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t& pop_size) {
+      context.evolutionary.population_size = pop_size;
+    }),
+    "Population Size for Evolutionary Partitioning\n"
+    "(default 10)")
+    ("replace-strategy", 
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& replace_strat) {
+      context.evolutionary.replace_strategy = kahypar::replaceStrategyFromString(replace_strat);
+    }),
+    "Replacement Strategy for Population Management\n"
+    "- worst: new partitions replace the current worst partition in the population\n"
+    "- diverse: new partitions replace the most similar partition based on cut difference\n"
+    "- strong-diverse: new partitions replace the most similar partition based on connectivity difference\n"
+    "(for diverse/strong-diverse better partitions are not considered for replacement)\n"
+    "(default: strong-diverse)")
+    ("combine-strategy", 
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& combine_strat) {
+      context.evolutionary.combine_strategy = kahypar::combineStrategyFromString(combine_strat);
+    }),
+    "Combine Strategy to be used for a regular combine operation\n"
+    "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
+    "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
+    "(default: basic)")
+    ("mutate-strategy", 
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& mutate_strat) {
+      context.evolutionary.mutate_strategy = kahypar::mutateStrategyFromString(mutate_strat);
+    }),
+    "Mutation Strategy for the mutation operation \n"
+    "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
+    "- vcycle: a regular vcycle on an existing partition\n"
+    "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
+    "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
+    "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
+    "(default: new-initial-partitioning-vcycle)")
+    ("perform-edge-frequency-interval", 
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& edge_freq_interval) {
+      context.evolutionary.perform_edge_frequency_interval = edge_freq_interval;
+    }),
+    "The Frequency in which an edge frequency operation should be performed(regardless of selected mutation strategy)\n"
+    "(default: 5)(-1 disables)")
+    ("diversify-interval", 
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& div_interval) {
+      context.evolutionary.diversify_interval = div_interval;
+    }),
+    "The Frequency in which diversfication should be performed\n"
+    "(default: -1)(-1 disables)")
+    ("log-output", 
+        po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& log_output) {
+      context.evolutionary.log_output = log_output;
+    }),
+    "Option to toggle evolutionary logging into a file")
+    ("filename", 
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& filename) {
+      context.evolutionary.filename = filename;
+    }),
+    "The filename in which the logging should occur")
+
+    ("cross-combine-chance", 
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& cc_chance) {
+      context.evolutionary.cross_combine_chance = cc_chance;
+    }),
+    "The Chance of a cross combine being selected as operation\n"
+    "default: 0.2)")
+    ("dynamic-population-size", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& dynamic_pop) {
+      context.evolutionary.dynamic_population_size = dynamic_pop;
+    }),
+    "Whether the population size should be determined by runtime\n"
+    "default: on)")
+    ("random-combine", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_combine) {
+      context.evolutionary.random_combine_strategy = random_combine;
+    }),
+    "Whether random combines should be picked\n"
+    "default: off)")
+    ("random-mutate", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_mutate) {
+      context.evolutionary.random_mutate_strategy = random_mutate;
+    }),
+    "Wheter random mutates should be picked\n"
+    "default: off)")
+    ("random-cross-combine", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_cross_combine) {
+      context.evolutionary.random_cross_combine_strategy = random_cross_combine;
+    }),
+    "Whether random cross combines should be picked\n"
+    "default: off)")
+    ("mutate-chance", 
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& mutate_chance) {
+      context.evolutionary.mutation_chance = mutate_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.1)")
+    ("cross-combine-strategy", 
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& cross_combine_strat) {
+      context.evolutionary.cross_combine_strategy = kahypar::crossCombineStrategyFromString(cross_combine_strat);
+    }),
+    "Cross Combine Strategy to be used in cross combines\n"
+    "- k: combining with a different individual where k is varied and epsilon\n"
+    "- epsilon: combining with a different individual where epsilon is varied\n"
+    "- objective: combining with an individual optimized for a different metric (cut/connectivity)\n"
+    "- mode: combining with an individual partitioned with another mode (direct k way/recursive bisection)\n"
+    "- louvain: combining with the community detection\n");
+
      
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)

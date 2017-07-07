@@ -334,7 +334,9 @@ struct EvolutionaryParameters {
   const std::vector<PartitionID>* parent2 = nullptr;
   bool dynamic_population_size = true;
   float dynamic_population_amount_of_time = 0.15;
-  //mutable HyperedgeWeight best_partition;
+  bool random_combine_strategy = false;
+  bool random_mutate_strategy = false;
+  bool random_cross_combine_strategy = false;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
   mutable std::vector<HyperedgeID> stable_nets_vcycle;

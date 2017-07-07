@@ -29,7 +29,7 @@
 #include "kahypar/partition/evolutionary/diversifier.h"
 #include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/population.h"
-
+#include "kahypar/partition/evolutionary/probability_tables.h"
 
 namespace kahypar {
 namespace partition {
@@ -150,6 +150,8 @@ class EvoPartitioner {
 
 
   inline void performCombine(Hypergraph& hg, const Context& context) {
+    EvoCombineStrategy original_strategy = context.evolutionary.combine_strategy;
+    context.evolutionary.combine_strategy = pick::appropriateCombineStrategy(context);
     switch (context.evolutionary.combine_strategy) {
       case EvoCombineStrategy::basic:
         // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
@@ -160,11 +162,14 @@ class EvoPartitioner {
                                                                              context,
                                                                              _population),
                            context);
+        break;
     }
+    context.evolutionary.combine_strategy = original_strategy;
   }
 
 
   inline void performCrossCombine(Hypergraph& hg, const Context& context) {
+    context.evolutionary.cross_combine_strategy = pick::appropriateCrossCombineStrategy(context);
     _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
                                              context), context);
   }
@@ -172,6 +177,9 @@ class EvoPartitioner {
   //TODO the best element may be mutated, but in that case the result must be better
   inline void performMutation(Hypergraph& hg, const Context& context) {
     const size_t mutation_position = _population.randomIndividual();
+    EvoMutateStrategy original_strategy = context.evolutionary.mutate_strategy;
+    context.evolutionary.mutate_strategy = pick::appropriateMutateStrategy(context);
+    DBG << V(context.evolutionary.mutate_strategy);
     DBG << V(mutation_position);
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle:
@@ -199,6 +207,7 @@ class EvoPartitioner {
         _population.insert(mutate::edgeFrequency(hg, context, _population), context);
         break;
     }
+    context.evolutionary.mutate_strategy = original_strategy;
   }
 
   inline void diversify();
