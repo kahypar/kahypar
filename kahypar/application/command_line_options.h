@@ -559,6 +559,13 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Whether random cross combines should be picked\n"
     "default: off)")
+    ("log-everything", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& log) {
+      context.evolutionary.log_everything = log;
+    }),
+    "Whether all step results shall be logged\n"
+    "default: off)")
     ("mutate-chance", 
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {

@@ -51,9 +51,10 @@ class EvoPartitioner {
     context.partition_evolutionary = true;
     context.evolutionary.elapsed_seconds_total = measureTime();
     if(context.evolutionary.dynamic_population_size) {
-      _population.generateIndividual(hg, context);
+      _population.generateIndividual(hg, context); 
       ++context.evolutionary.iteration;
       context.evolutionary.elapsed_seconds_total = measureTime();
+      io::serializer::serializeEvolutionary(context, hg);
       int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                            * context.evolutionary.time_limit_seconds
                                            / context.evolutionary.elapsed_seconds_total.count());
@@ -67,8 +68,9 @@ class EvoPartitioner {
       context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
       _population.generateIndividual(hg, context);
-      io::serializer::serializeEvolutionary(context, hg);
       context.evolutionary.elapsed_seconds_total = measureTime();
+      io::serializer::serializeEvolutionary(context, hg);
+
       DBG << _population;
       
     }

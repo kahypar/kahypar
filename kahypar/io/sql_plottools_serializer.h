@@ -35,6 +35,7 @@
 namespace kahypar {
 namespace io {
 namespace serializer {
+
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds) {
   const auto& timings = Timer::instance().result();
@@ -188,14 +189,21 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
+static std::ofstream out_file;
+static HyperedgeWeight best = std::numeric_limits<int32_t>::max();
+static inline void open(const Context& context) {
+  out_file.open(context.evolutionary.filename, std::ios_base::app);
+}
+static inline void close() {
+  out_file.close();
+}
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
   if(!context.evolutionary.log_output || context.evolutionary.filename == "") {
     return;
   }
-  std::ofstream out_file;
-  
-  out_file.open(context.evolutionary.filename, std::ios_base::app);
-   out_file << "connectivity=" << metrics::km1(hg) 
+  if(metrics::km1(hg) < best || context.evolutionary.log_everything) {
+    best = metrics::km1(hg);
+    out_file << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
             <<" time-total=" << context.evolutionary.elapsed_seconds_total.count()
             //<<" best=" << context.evolutionary.best_partition
@@ -217,9 +225,13 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" cut=" << metrics::hyperedgeCut(hg)
             <<" absorption="<<metrics::absorption(hg)
             <<" imbalance=" << metrics::imbalance(hg, context)
+            <<" k=" << context.partition.k
+            <<" best=" << best
             << std::endl;
+  }
+   
    //std::cout << " fitness=" << ;
-   out_file.close();
+
    //oss << " time=" << time.count();
    //fitness
    //action

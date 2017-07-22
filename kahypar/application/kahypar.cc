@@ -60,21 +60,23 @@ int main(int argc, char* argv[]) {
                                           context.partition.k));
 
   Partitioner partitioner;
+  kahypar::io::serializer::open(context);
   
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   while(context.evolutionary.elapsed_seconds_total.count() < context.evolutionary.time_limit_seconds) {
-      const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+
+
+     partitioner.partition(hypergraph, context);
+     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
      std::chrono::duration<double> elapsed_seconds = end - start;
      context.evolutionary.elapsed_seconds_total = elapsed_seconds;
-     partitioner.partition(hypergraph, context);
      ++context.evolutionary.iteration;
      kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
      hypergraph.reset();
   }
- 
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-
+  kahypar::io::serializer::close();
 #ifdef GATHER_STATS
   LOG << "*******************************";
   LOG << "***** GATHER_STATS ACTIVE *****";

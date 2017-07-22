@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
@@ -337,6 +338,7 @@ struct EvolutionaryParameters {
   bool random_combine_strategy = false;
   bool random_mutate_strategy = false;
   bool random_cross_combine_strategy = false;
+  bool log_everything = false;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
   mutable std::vector<HyperedgeID> stable_nets_vcycle;
@@ -345,6 +347,7 @@ struct EvolutionaryParameters {
   mutable Action action;
   mutable std::vector<ClusterID> communities;
 };
+
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;
   str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
@@ -392,6 +395,9 @@ class Context {
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }
+  std::vector<ClusterID> getCommunities() const {
+  return evolutionary.communities;
+}
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {

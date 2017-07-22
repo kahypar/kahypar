@@ -60,20 +60,20 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
+  kahypar::io::serializer::open(context);
   context.partition_evolutionary = true;
   EvoPartitioner partitioner(context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.evo_partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-
 #ifdef GATHER_STATS
   LOG << "*******************************";
   LOG << "***** GATHER_STATS ACTIVE *****";
   LOG << "*******************************";
   kahypar::io::printPartitioningStatistics();
 #endif
-
+  kahypar::io::serializer::close();
   if (!context.partition.quiet_mode) {
     kahypar::io::printPartitioningResults(hypergraph, context, elapsed_seconds);
     LOG << "";
