@@ -32,7 +32,7 @@
 
 namespace kahypar {
 namespace combine {
-static constexpr bool debug = false;
+static constexpr bool debug = true;
 
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
@@ -40,11 +40,10 @@ Individual partitions(Hypergraph& hg,
   DBG << V(context.evolutionary.action.decision());
   DBG << "Parent 1: initial" << V(parents.first.fitness());
   DBG << "Parent 2: initial" << V(parents.second.fitness());
-
-
+  context.evolutionary.parent1 = &parents.first.partition();
+  context.evolutionary.parent2 = &parents.second.partition();
 #ifndef NDEBUG
   hg.setPartition(parents.first.partition());
-  
   ASSERT(parents.first.fitness() == metrics::km1(hg));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   hg.setPartition(parents.second.partition());
@@ -53,8 +52,9 @@ Individual partitions(Hypergraph& hg,
   hg.reset();
 #endif
   hg.reset();
- 
+
   Partitioner().partition(hg, context);
+
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
@@ -72,8 +72,11 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
   const auto& parents = population.tournamentSelect();
-  temporary_context.evolutionary.parent1 = &parents.first.get().partition();
-  temporary_context.evolutionary.parent2 = &parents.second.get().partition();
+  
+  //TODO remove
+  
+  //temporary_context.evolutionary.parent1 = &parents.first.get().partition();
+  //temporary_context.evolutionary.parent2 = &parents.second.get().partition();
   if(context.evolutionary.unlimited_coarsening_contraction) {
     temporary_context.coarsening.contraction_limit_multiplier = 1;
   }
@@ -158,6 +161,8 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   hg.changeK(context.partition.k);
   combine_context.evolutionary.action =
            Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
+  combine_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
+  combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
   Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), combine_context);
   DBG << "------------------------------------------------------------";
   DBG << "---------------------------DEBUG----------------------------";
@@ -190,8 +195,11 @@ Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
                          hg.initialNumEdges());
 
   const auto& parents = population.tournamentSelect();
-  temporary_context.evolutionary.parent1 = &parents.first.get().partition();
-  temporary_context.evolutionary.parent2 = &parents.second.get().partition();
+  
+  //TODO remove
+  
+  //temporary_context.evolutionary.parent1 = &parents.first.get().partition();
+  //temporary_context.evolutionary.parent2 = &parents.second.get().partition();
 
   DBG << V(temporary_context.evolutionary.action.decision());
   return combine::partitions(hg, parents, temporary_context);

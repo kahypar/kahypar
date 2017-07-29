@@ -76,15 +76,12 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
-
     while (_hg.currentNumNodes() > limit) {
       DBG << V(pass_nr);
       DBG << V(_hg.currentNumNodes());
       DBG << V(_hg.currentNumEdges());
-
       _rater.resetMatches();
       current_hns.clear();
-
       const HypernodeID num_hns_before_pass = _hg.currentNumNodes();
       for (const HypernodeID& hn : _hg.nodes()) {
         current_hns.push_back(hn);

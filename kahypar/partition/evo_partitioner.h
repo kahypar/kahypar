@@ -79,10 +79,12 @@ class EvoPartitioner {
     }
 
     
-    /*context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::mode;
+    context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::objective;
     performCrossCombine(hg, context);
+    performCrossCombine(hg, context);
+    performCombine(hg, context);
     _population.print();
-    return;*/
+    return;
     /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
