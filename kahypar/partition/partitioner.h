@@ -204,17 +204,22 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
 //In evolutionary mode, we want to perform community detection only once, for runtime
 
-  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0) {
+  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0 && context.evolutionary.action.requires().community_detection) {
 
     detectCommunities(hypergraph, context);
     context.evolutionary.communities = hypergraph.communities();
     return;
   }
   if(context.partition_evolutionary){
-    hypergraph.setCommunities(context.getCommunities());
+    if(context.evolutionary.action.requires().community_detection) {
+      hypergraph.setCommunities(context.getCommunities());
+    }
+    
+    
     //detectCommunities(hypergraph, context);
     return;
   }
+  
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
   

@@ -41,7 +41,6 @@ using kahypar::Context;
 
 int main(int argc, char* argv[]) {
   Context context;
-
   kahypar::processCommandLineInput(context, argc, argv);
   kahypar::sanityCheck(context);
 

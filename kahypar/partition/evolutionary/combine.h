@@ -74,7 +74,9 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
   const auto& parents = population.tournamentSelect();
   temporary_context.evolutionary.parent1 = &parents.first.get().partition();
   temporary_context.evolutionary.parent2 = &parents.second.get().partition();
-
+  if(context.evolutionary.unlimited_coarsening_contraction) {
+    temporary_context.coarsening.contraction_limit_multiplier = 1;
+  }
   return combine::partitions(hg, parents, temporary_context);
 }
 
@@ -108,20 +110,20 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
     case EvoCrossCombineStrategy::objective:
 
       if (context.partition.objective == Objective::km1) {
-        //io::readInBisectionContext(temporary_context);
+        io::readInBisectionContext(temporary_context);
         break;
       } else if (context.partition.objective == Objective::cut) {
-        //io::readInDirectKwayContext(temporary_context);
+        io::readInDirectKwayContext(temporary_context);
         break;
       }
       LOG << "Cross Combine Objective unspecified ";
       std::exit(1);
     case EvoCrossCombineStrategy::mode:
       if (context.partition.mode == Mode::recursive_bisection) {
-        //io::readInDirectKwayContext(temporary_context);
+        io::readInDirectKwayContext(temporary_context);
         break;
       } else if (context.partition.mode == Mode::direct_kway) {
-        //io::readInBisectionContext(temporary_context);
+        io::readInBisectionContext(temporary_context);
         break;
       }
       LOG << "Cross Combine Mode unspecified ";

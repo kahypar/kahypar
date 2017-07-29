@@ -38,6 +38,7 @@ class Action {
     _decision(EvoDecision::normal),
     _requires() {
     _requires.initial_partitioning = true;
+    _requires.community_detection = true;
   }
 
   // TODO(robin): Verfiy the settings
@@ -97,7 +98,8 @@ class Action {
               << _requires.initial_partitioning << std::endl
               << _requires.evolutionary_parent_contraction << std::endl
               << _requires.vcycle_stable_net_collection << std::endl
-              << _requires.invalidation_of_second_partition << std::endl;
+              << _requires.invalidation_of_second_partition << std::endl
+              << _requires.community_detection << std::endl;
   }
 
   EvoDecision decision() const {

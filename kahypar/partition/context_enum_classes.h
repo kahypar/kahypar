@@ -209,6 +209,7 @@ std::ostream& operator<< (std::ostream& os, const EvoDecision& decision) {
     case EvoDecision::combine:  return os << "combine";
     case EvoDecision::cross_combine:  return os << "cross_combine";
     case EvoDecision::diversify: return os << "diversify";
+    case EvoDecision::cross_combine_louvain:  return os << "cross_combine_louvain";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);

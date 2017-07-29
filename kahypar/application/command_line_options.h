@@ -465,6 +465,27 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Population Size for Evolutionary Partitioning\n"
     "(default 10)")
+    ("stable-net-amount", 
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t& amount) {
+      context.evolutionary.stable_net_amount = amount;
+    }),
+    "Amount of individuals for stable net removal\n"
+    "(default sqrt(popsize)")
+    ("gamma", 
+    po::value<double>()->value_name("<double>")->notifier(
+      [&](const double gamma) {
+      context.evolutionary.gamma = gamma;
+    }),
+    "The dampening factor for edge frequency\n"
+    "(default 0.5)")
+    ("stable-net-factor", 
+    po::value<double>()->value_name("<double>")->notifier(
+      [&](const double factor) {
+      context.evolutionary.stable_net_factor = factor;
+    }),
+    "The threshold for stable net removal\n"
+    "(default 0.75)")
     ("replace-strategy", 
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& replace_strat) {
@@ -565,6 +586,13 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       context.evolutionary.log_everything = log;
     }),
     "Whether all step results shall be logged\n"
+    "default: off)")
+    ("unlimited-coarsening", 
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& unlimited_c) {
+      context.evolutionary.unlimited_coarsening_contraction = unlimited_c;
+    }),
+    "Whether combine operations should not be limited in contraction\n"
     "default: off)")
     ("mutate-chance", 
     po::value<float>()->value_name("<float>")->notifier(

@@ -20,7 +20,7 @@
 #pragma once
 
 #include <chrono>
-
+#include <math.h>
 #include "kahypar/datastructure/hypergraph.h"
 #include "kahypar/io/evolutionary_io.h"
 #include "kahypar/partition/context.h"
@@ -64,6 +64,9 @@ class EvoPartitioner {
       DBG << context.evolutionary.population_size;
       DBG << _population;
     }
+    //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
+    context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
+    context.evolutionary.stable_net_amount = sqrt(context.evolutionary.population_size);
     while (_population.size() < context.evolutionary.population_size &&
       context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
@@ -75,9 +78,12 @@ class EvoPartitioner {
       
     }
 
-
-    /*context.evolutionary.cross_combine_objective = EvoCrossCombineStrategy::louvain;
-    context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
+    
+    /*context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::mode;
+    performCrossCombine(hg, context);
+    _population.print();
+    return;*/
+    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
     return;*/
