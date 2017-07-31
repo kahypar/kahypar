@@ -346,7 +346,7 @@ struct EvolutionaryParameters {
   mutable std::vector<size_t> edge_frequency;
   mutable Action action;
   mutable std::vector<ClusterID> communities;
-  bool unlimited_coarsening_contraction = false;
+  bool unlimited_coarsening_contraction = true;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {

@@ -32,7 +32,7 @@
 
 namespace kahypar {
 namespace combine {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
@@ -52,9 +52,12 @@ Individual partitions(Hypergraph& hg,
   hg.reset();
 #endif
   hg.reset();
-
+  HypernodeID original_contraction_limit_multiplier = context.coarsening.contraction_limit_multiplier;
+  if(context.evolutionary.unlimited_coarsening_contraction) {
+    context.coarsening.contraction_limit_multiplier = 1;
+  }
   Partitioner().partition(hg, context);
-
+  context.coarsening.contraction_limit_multiplier =  original_contraction_limit_multiplier;
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
@@ -73,13 +76,7 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
 
   const auto& parents = population.tournamentSelect();
   
-  //TODO remove
-  
-  //temporary_context.evolutionary.parent1 = &parents.first.get().partition();
-  //temporary_context.evolutionary.parent2 = &parents.second.get().partition();
-  if(context.evolutionary.unlimited_coarsening_contraction) {
-    temporary_context.coarsening.contraction_limit_multiplier = 1;
-  }
+
   return combine::partitions(hg, parents, temporary_context);
 }
 

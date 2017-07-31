@@ -77,15 +77,8 @@ class EvoPartitioner {
       DBG << _population;
       
     }
-
-    
-    context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::objective;
-    performCrossCombine(hg, context);
-    performCrossCombine(hg, context);
-    performCombine(hg, context);
-    _population.print();
-    return;
-    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
+  
+   /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
     return;*/
