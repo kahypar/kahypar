@@ -176,6 +176,30 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   return ret;
 }
 
+Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
+  hg.reset();
+  Context temporary_context(context);
+
+  temporary_context.evolutionary.action =
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::combine)>(),
+             meta::Int2Type<static_cast<int>(EvoCombineStrategy::edge_frequency)>() };
+
+  temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
+  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
+  temporary_context.coarsening.rating.heavy_node_penalty_policy =
+    HeavyNodePenaltyPolicy::edge_frequency_penalty;
+
+  temporary_context.evolutionary.edge_frequency =
+    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
+                         hg.initialNumEdges());
+
+  DBG << V(temporary_context.evolutionary.action.decision());
+
+  Partitioner().partition(hg, temporary_context);
+  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+  io::serializer::serializeEvolutionary(temporary_context, hg);
+  return Individual(hg);
+}
 
 Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
                                                     const Context& context,

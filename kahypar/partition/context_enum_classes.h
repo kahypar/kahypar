@@ -127,16 +127,20 @@ enum class EvoReplaceStrategy : uint8_t {
   diverse,
   strong_diverse
 };
+
+//NOTE: with_edge_frequency_information will not be picked by the random combine selector.
+//In partition/evolutionary/probability_tables.h
 enum class EvoCombineStrategy : uint8_t {
   basic,
+  edge_frequency,
   with_edge_frequency_information
+  
 };
 enum class EvoMutateStrategy : uint8_t {
   new_initial_partitioning_vcycle,
   vcycle,
   single_stable_net,
-  population_stable_net,
-  edge_frequency
+  population_stable_net
 };
 
 enum class EvoCrossCombineStrategy : uint8_t {
@@ -171,6 +175,7 @@ std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
     case EvoCombineStrategy::basic: return os << "basic";
     case EvoCombineStrategy::with_edge_frequency_information:
       return os << "with_edge_frequency_information";
+    case EvoCombineStrategy::edge_frequency: return os << "edge_frequency";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(combine);
@@ -183,7 +188,6 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
     case EvoMutateStrategy::vcycle: return os << "vcycle";
     case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
     case EvoMutateStrategy::population_stable_net:  return os << "population_stable_net";
-    case EvoMutateStrategy::edge_frequency:  return os << "edge_frequency";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mutation);
@@ -391,9 +395,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
-  } else if (strat == "edge-frequency") {
-    return EvoMutateStrategy::edge_frequency;
-  } else if (strat == "single-stable-net") {
+  }  else if (strat == "single-stable-net") {
     return EvoMutateStrategy::single_stable_net;
   } else if (strat == "population-stable-net") {
     return EvoMutateStrategy::population_stable_net;
@@ -406,6 +408,8 @@ static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
     return EvoCombineStrategy::basic;
   } else if (strat == "with-edge-frequency") {
     return EvoCombineStrategy::with_edge_frequency_information;
+  } else if (strat == "edge-frequency") {
+    return EvoCombineStrategy::edge_frequency;
   }
   std::cout << "No valid combine strategy. " << std::endl;
   exit(0);

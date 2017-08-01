@@ -80,6 +80,7 @@ class EvoPartitioner {
       DBG << _population;
       
     }
+
     /*context.evolutionary.mutate_strategy = EvoMutateStrategy::population_stable_net;
     performMutation(hg, context);
     performCombine(hg, context);
@@ -172,6 +173,10 @@ class EvoPartitioner {
                                                                              context,
                                                                              _population),
                            context);
+                          
+        break;
+      case EvoCombineStrategy::edge_frequency:
+        _population.insert(combine::edgeFrequency(hg, context, _population), context);
         break;
     }
     context.evolutionary.combine_strategy = original_strategy;
@@ -213,9 +218,6 @@ class EvoPartitioner {
       
         _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
        //_population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  context);
-        break;
-      case EvoMutateStrategy::edge_frequency:
-        _population.insert(mutate::edgeFrequency(hg, context, _population), context);
         break;
     }
     context.evolutionary.mutate_strategy = original_strategy;

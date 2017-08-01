@@ -2,6 +2,8 @@
 #include "kahypar/utils/randomize.h"
 namespace kahypar {
 namespace pick {
+
+  // NOTE: edge-frequency-information will not be picked by the random strategy.
   inline static EvoCombineStrategy appropriateCombineStrategy(const Context& context) {
     if(context.evolutionary.random_combine_strategy) {
       int random_pick = Randomize::instance().getRandomInt(0,1);
@@ -13,7 +15,7 @@ namespace pick {
   }
   inline static EvoMutateStrategy appropriateMutateStrategy(const Context& context) {
     if(context.evolutionary.random_mutate_strategy) {
-      int random_pick = Randomize::instance().getRandomInt(0,4);
+      int random_pick = Randomize::instance().getRandomInt(0,3);
       return static_cast<EvoMutateStrategy>(random_pick);
     }
     else {

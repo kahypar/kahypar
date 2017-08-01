@@ -505,6 +505,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Combine Strategy to be used for a regular combine operation\n"
     "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
     "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
+        "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
     "(default: basic)")
     ("mutate-strategy", 
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -514,7 +515,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Mutation Strategy for the mutation operation \n"
     "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
     "- vcycle: a regular vcycle on an existing partition\n"
-    "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
     "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
     "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
     "(default: new-initial-partitioning-vcycle)")

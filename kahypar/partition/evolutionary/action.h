@@ -81,9 +81,9 @@ class Action {
     _requires.initial_partitioning = true;
   }
 
-  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
-         meta::Int2Type<static_cast<int>(EvoMutateStrategy::edge_frequency)>) :
-    _decision(EvoDecision::mutation),
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::combine)>,
+         meta::Int2Type<static_cast<int>(EvoCombineStrategy::edge_frequency)>) :
+    _decision(EvoDecision::combine),
     _requires() {
     _requires.initial_partitioning = true;
   }
