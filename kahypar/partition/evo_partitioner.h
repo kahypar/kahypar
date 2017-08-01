@@ -80,7 +80,10 @@ class EvoPartitioner {
       DBG << _population;
       
     }
-
+    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::population_stable_net;
+    performMutation(hg, context);
+    performCombine(hg, context);
+    return;*/
     //START EVOLUTIONARY
    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
@@ -207,8 +210,9 @@ class EvoPartitioner {
                                                          context), mutation_position);
         break;
       case EvoMutateStrategy::population_stable_net:
-      //TODO perhaps a forceInsertSaveBest would be more appropriate
-        _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population, context),  context);
+      
+        _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
+       //_population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  context);
         break;
       case EvoMutateStrategy::edge_frequency:
         _population.insert(mutate::edgeFrequency(hg, context, _population), context);

@@ -83,6 +83,7 @@ static std::vector<HyperedgeID> stableNetsFromIndividuals(const Context& context
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
     if (frequency[i] >= threshold) {
+      if(debug) {std::cout << i << " ";}
       stable_nets.push_back(i);
     }
   }

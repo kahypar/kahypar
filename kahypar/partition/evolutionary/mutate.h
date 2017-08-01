@@ -126,7 +126,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   return Individual(hg);
 }
 
-Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Context& context) {
+Individual removePopulationStableNets(Hypergraph& hg, const Population& population,const Individual& in, const Context& context) {
   // No action required as we do not access the partitioner for this
 
   DBG << "action.decision() = population_stable_net";
@@ -137,14 +137,15 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
                                          hg.initialNumEdges());
   
   DBG << V(stable_nets.size());
-  //hg.reset();
-  //hg.setPartition(in.partition());
+  hg.reset();
+  hg.setPartition(in.partition());
   stablenet::removeStableNets(hg, context, stable_nets);
 
   Context temporary_context(context);
-  //TODO action is required for output but population_stable_net does not want to be casted
-
-  hg.reset();
+  temporary_context.evolutionary.action =
+  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+           meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>());
+           
   Partitioner().partition(hg, temporary_context);
   
   
