@@ -126,7 +126,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   return Individual(hg);
 }
 
-Individual removePopulationStableNets(Hypergraph& hg, const Population& population const Context& context) {
+Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Context& context) {
   // No action required as we do not access the partitioner for this
 
   DBG << "action.decision() = population_stable_net";
