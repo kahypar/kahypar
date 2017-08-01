@@ -198,7 +198,12 @@ class Population {
     }
     std::cout << std::endl;
   }
+  inline void printDebug() const {
+      for (size_t i = 0; i < _individuals.size(); ++i) {
 
+      _individuals[i].printDebug();
+    }
+  }
  private:
   inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {

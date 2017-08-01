@@ -35,7 +35,7 @@ namespace kahypar {
 namespace partition {
 class EvoPartitioner {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   explicit EvoPartitioner(const Context& context) :
@@ -50,6 +50,7 @@ class EvoPartitioner {
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
     context.evolutionary.elapsed_seconds_total = measureTime();
+    //INITIAL POPULATION
     if(context.evolutionary.dynamic_population_size) {
       _population.generateIndividual(hg, context); 
       ++context.evolutionary.iteration;
@@ -67,6 +68,8 @@ class EvoPartitioner {
     //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
     context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
     context.evolutionary.stable_net_amount = sqrt(context.evolutionary.population_size);
+    DBG << "EDGE-FREQUENCY-AMOUNT";
+    DBG << context.evolutionary.edge_frequency_amount;
     while (_population.size() < context.evolutionary.population_size &&
       context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
@@ -77,7 +80,8 @@ class EvoPartitioner {
       DBG << _population;
       
     }
-  
+
+    //START EVOLUTIONARY
    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
@@ -204,7 +208,7 @@ class EvoPartitioner {
         break;
       case EvoMutateStrategy::population_stable_net:
       //TODO perhaps a forceInsertSaveBest would be more appropriate
-        _population.insert(mutate::removePopulationStableNets(hg, _population, context), context);
+        _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population, context),  context);
         break;
       case EvoMutateStrategy::edge_frequency:
         _population.insert(mutate::edgeFrequency(hg, context, _population), context);
