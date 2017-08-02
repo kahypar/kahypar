@@ -32,11 +32,6 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   PartitionID lightest_part = std::numeric_limits<PartitionID>::max();
   HypernodeWeight lightest_part_weight = std::numeric_limits<HypernodeWeight>::max();
 
-  HypernodeWeight pin_weight = 0;
-  for (const HypernodeID& pin : hg.pins(he)) {
-    pin_weight += hg.nodeWeight(pin);
-  }
-
   for (PartitionID i = 0; i < k; ++i) {
     if (hg.partWeight(i) < lightest_part_weight) {
       lightest_part = i;
@@ -44,10 +39,19 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
     }
   }
 
+  HypernodeWeight pin_weight = 0;
+  for (const HypernodeID& pin : hg.pins(he)) {
+    if (hg.partID(pin) != lightest_part) {
+      pin_weight += hg.nodeWeight(pin);
+    }
+  }
+
   // mod ensures that this also works is we are in recursive bisection mode
   if (lightest_part_weight + pin_weight <= context.partition.max_part_weights[lightest_part % 2]) {
     for (const HypernodeID& hn : hg.pins(he)) {
-      hg.changeNodePart(hn, hg.partID(hn), lightest_part);
+      if (hg.partID(pin) != lightest_part) {
+        hg.changeNodePart(hn, hg.partID(hn), lightest_part);
+      }
     }
     DBG << "moved stable net" << he << "to block" << lightest_part;
   }
@@ -83,7 +87,9 @@ static std::vector<HyperedgeID> stableNetsFromIndividuals(const Context& context
   std::vector<HyperedgeID> stable_nets;
   for (HyperedgeID i = 0; i < frequency.size(); ++i) {
     if (frequency[i] >= threshold) {
-      if(debug) {std::cout << i << " ";}
+      if (debug) {
+        std::cout << i << " ";
+      }
       stable_nets.push_back(i);
     }
   }
