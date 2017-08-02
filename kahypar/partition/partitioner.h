@@ -281,17 +281,9 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
-
-  /*std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
-  std::cout << toString(context.coarsening.rating.partition_policy);
-  std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
   configurePreprocessing(hypergraph, context);
-  std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;
-  std::cout << toString(context.coarsening.rating.partition_policy);
-  std::cout << std::endl<< std::endl<< std::endl<< std::endl<< std::endl;*/
 
   setupContext(hypergraph, context);
-
   io::printInputInformation(context, hypergraph);
 
   sanitize(hypergraph, context);
