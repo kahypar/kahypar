@@ -18,6 +18,15 @@ namespace pick {
       int random_pick = Randomize::instance().getRandomInt(0,3);
       return static_cast<EvoMutateStrategy>(random_pick);
     }
+    if(context.evolutionary.random_vcycles) {
+      if(Randomize::instance().flipCoin()) {
+        return EvoMutateStrategy::vcycle;
+      } 
+      
+      else {
+        return EvoMutateStrategy::new_initial_partitioning_vcycle;
+      }
+    }
     else {
       return context.evolutionary.mutate_strategy;
     }

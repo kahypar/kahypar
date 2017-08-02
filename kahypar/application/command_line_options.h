@@ -547,6 +547,12 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       context.evolutionary.log_output = log_output;
     }),
     "Option to toggle evolutionary logging into a file")
+    ("random-vcycles",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_vcycle) {
+      context.evolutionary.random_vcycles = random_vcycle;
+    }),
+    "Whether vcycle mutations should be randomized")
     ("filename",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& filename) {
