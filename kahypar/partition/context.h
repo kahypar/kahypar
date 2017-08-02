@@ -23,12 +23,12 @@
 #include <array>
 #include <cctype>
 #include <cstdint>
+#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
@@ -328,6 +328,7 @@ struct EvolutionaryParameters {
   // TODO(andre): fix/refactor this
   size_t stable_net_amount = 3;
   double stable_net_factor = 0.75;
+  StableNetOrder stable_net_order = StableNetOrder::random;
   int cross_combine_lower_limit_kfactor = 4;
   int cross_combine_upper_limit_kfactor = 4;
   float cross_combine_epsilon_upper_limit = 0.25;
@@ -397,8 +398,8 @@ class Context {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }
   std::vector<ClusterID> getCommunities() const {
-  return evolutionary.communities;
-}
+    return evolutionary.communities;
+  }
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {

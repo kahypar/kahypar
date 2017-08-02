@@ -458,35 +458,44 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Time Limit for Algorithm in seconds\n"
     "(default 5 hours = 18000 seconds)")
-    ("population-size", 
+    ("population-size",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& pop_size) {
       context.evolutionary.population_size = pop_size;
     }),
     "Population Size for Evolutionary Partitioning\n"
     "(default 10)")
-    ("stable-net-amount", 
+    ("stable-net-amount",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& amount) {
       context.evolutionary.stable_net_amount = amount;
     }),
     "Amount of individuals for stable net removal\n"
     "(default sqrt(popsize)")
-    ("gamma", 
+    ("stable-net-order",
+     po::value<std::string>()->value_name("<string>")->notifier(
+         [&](const std::string& order) {
+        context.evolutionary.stable_net_order = kahypar::stableNetOrderFromString(order);
+    }),
+    "Order in which stable nets are traversed\n"
+    "random: (default)\n"
+    "increasing:  net size\n"
+    "decreasing: net size\n")
+    ("gamma",
     po::value<double>()->value_name("<double>")->notifier(
       [&](const double gamma) {
       context.evolutionary.gamma = gamma;
     }),
     "The dampening factor for edge frequency\n"
     "(default 0.5)")
-    ("stable-net-factor", 
+    ("stable-net-factor",
     po::value<double>()->value_name("<double>")->notifier(
       [&](const double factor) {
       context.evolutionary.stable_net_factor = factor;
     }),
     "The threshold for stable net removal\n"
     "(default 0.75)")
-    ("replace-strategy", 
+    ("replace-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& replace_strat) {
       context.evolutionary.replace_strategy = kahypar::replaceStrategyFromString(replace_strat);
@@ -497,7 +506,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "- strong-diverse: new partitions replace the most similar partition based on connectivity difference\n"
     "(for diverse/strong-diverse better partitions are not considered for replacement)\n"
     "(default: strong-diverse)")
-    ("combine-strategy", 
+    ("combine-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& combine_strat) {
       context.evolutionary.combine_strategy = kahypar::combineStrategyFromString(combine_strat);
@@ -505,9 +514,9 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Combine Strategy to be used for a regular combine operation\n"
     "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
     "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
-        "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
+    "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
     "(default: basic)")
-    ("mutate-strategy", 
+    ("mutate-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& mutate_strat) {
       context.evolutionary.mutate_strategy = kahypar::mutateStrategyFromString(mutate_strat);
@@ -518,90 +527,90 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
     "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
     "(default: new-initial-partitioning-vcycle)")
-    ("perform-edge-frequency-interval", 
+    ("perform-edge-frequency-interval",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& edge_freq_interval) {
       context.evolutionary.perform_edge_frequency_interval = edge_freq_interval;
     }),
     "The Frequency in which an edge frequency operation should be performed(regardless of selected mutation strategy)\n"
     "(default: 5)(-1 disables)")
-    ("diversify-interval", 
+    ("diversify-interval",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& div_interval) {
       context.evolutionary.diversify_interval = div_interval;
     }),
     "The Frequency in which diversfication should be performed\n"
     "(default: -1)(-1 disables)")
-    ("log-output", 
-        po::value<bool>()->value_name("<bool>")->notifier(
+    ("log-output",
+    po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& log_output) {
       context.evolutionary.log_output = log_output;
     }),
     "Option to toggle evolutionary logging into a file")
-    ("filename", 
+    ("filename",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& filename) {
       context.evolutionary.filename = filename;
     }),
     "The filename in which the logging should occur")
 
-    ("cross-combine-chance", 
+    ("cross-combine-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& cc_chance) {
       context.evolutionary.cross_combine_chance = cc_chance;
     }),
     "The Chance of a cross combine being selected as operation\n"
     "default: 0.2)")
-    ("dynamic-population-size", 
+    ("dynamic-population-size",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& dynamic_pop) {
       context.evolutionary.dynamic_population_size = dynamic_pop;
     }),
     "Whether the population size should be determined by runtime\n"
     "default: on)")
-    ("random-combine", 
+    ("random-combine",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& random_combine) {
       context.evolutionary.random_combine_strategy = random_combine;
     }),
     "Whether random combines should be picked\n"
     "default: off)")
-    ("random-mutate", 
+    ("random-mutate",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& random_mutate) {
       context.evolutionary.random_mutate_strategy = random_mutate;
     }),
     "Wheter random mutates should be picked\n"
     "default: off)")
-    ("random-cross-combine", 
+    ("random-cross-combine",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& random_cross_combine) {
       context.evolutionary.random_cross_combine_strategy = random_cross_combine;
     }),
     "Whether random cross combines should be picked\n"
     "default: off)")
-    ("log-everything", 
+    ("log-everything",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& log) {
       context.evolutionary.log_everything = log;
     }),
     "Whether all step results shall be logged\n"
     "default: off)")
-    ("unlimited-coarsening", 
+    ("unlimited-coarsening",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& unlimited_c) {
       context.evolutionary.unlimited_coarsening_contraction = unlimited_c;
     }),
     "Whether combine operations should not be limited in contraction\n"
     "default: off)")
-    ("mutate-chance", 
+    ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {
       context.evolutionary.mutation_chance = mutate_chance;
     }),
     "The Chance of a mutation being selected as operation\n"
     "default: 0.1)")
-    ("cross-combine-strategy", 
+    ("cross-combine-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& cross_combine_strat) {
       context.evolutionary.cross_combine_strategy = kahypar::crossCombineStrategyFromString(cross_combine_strat);
@@ -613,7 +622,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "- mode: combining with an individual partitioned with another mode (direct k way/recursive bisection)\n"
     "- louvain: combining with the community detection\n");
 
-     
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
       .add(required_options)

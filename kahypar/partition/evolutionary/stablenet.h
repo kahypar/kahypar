@@ -19,6 +19,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <vector>
 
@@ -59,10 +60,32 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
 
 void removeStableNets(Hypergraph& hg, const Context& context,
                       std::vector<HyperedgeID>& stable_nets) {
-  Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
+  switch (context.evolutionary.stable_net_order) {
+    case StableNetOrder::random:
+      Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
+      break;
+    case StableNetOrder::increasing_net_size:
+      std::sort(stable_nets.begin(), stable_nets.end(),
+                [&](const HyperedgeID a, const HyperedgeID b) {
+          return hg.edgeSize(a) < hg.edgeSize(b);
+        });
+      break;
+    case StableNetOrder::decreasing_net_size:
+      std::sort(stable_nets.begin(), stable_nets.end(),
+                [&](const HyperedgeID a, const HyperedgeID b) {
+          return hg.edgeSize(a) > hg.edgeSize(b);
+        });
+      break;
+    default:
+      LOG << "Unknown stable net order";
+      exit(-1);
+  }
+
+
   std::vector<bool> touched_hns(hg.initialNumNodes(), false);
 
   const size_t stable_net_amount = stable_nets.size() * context.evolutionary.stable_net_factor;
+  DBG << V(stable_net_amount);
   for (size_t i = 0; i < stable_net_amount; ++i) {
     const HyperedgeID stable_net = stable_nets[i];
     bool he_was_touched = false;
