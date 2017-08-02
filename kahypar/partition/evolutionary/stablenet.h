@@ -59,9 +59,12 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
 
 void removeStableNets(Hypergraph& hg, const Context& context,
                       std::vector<HyperedgeID>& stable_nets) {
-  Randomize::instance().shuffleVector(stable_nets, stable_nets.size() * context.evolutionary.stable_net_factor);
+  Randomize::instance().shuffleVector(stable_nets, stable_nets.size());
   std::vector<bool> touched_hns(hg.initialNumNodes(), false);
-  for (const HyperedgeID& stable_net : stable_nets) {
+
+  const size_t stable_net_amount = stable_nets.size() * context.evolutionary.stable_net_factor;
+  for (size_t i = 0; i < stable_net_amount; ++i) {
+    const HyperedgeID stable_net = stable_nets[i];
     bool he_was_touched = false;
     for (const HypernodeID& pin : hg.pins(stable_net)) {
       if (touched_hns[pin]) {
