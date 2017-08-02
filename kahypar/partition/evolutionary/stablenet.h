@@ -49,7 +49,7 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   // mod ensures that this also works is we are in recursive bisection mode
   if (lightest_part_weight + pin_weight <= context.partition.max_part_weights[lightest_part % 2]) {
     for (const HypernodeID& hn : hg.pins(he)) {
-      if (hg.partID(pin) != lightest_part) {
+      if (hg.partID(hn) != lightest_part) {
         hg.changeNodePart(hn, hg.partID(hn), lightest_part);
       }
     }
