@@ -88,13 +88,6 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 
   DBG << "after stable net removal:" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
 
-  std::vector<PartitionID> new_partition;
-  for (const HypernodeID& hn : hg.nodes()) {
-    new_partition.push_back(hg.partID(hn));
-  }
-
-  hg.setPartition(new_partition);
-
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(context, hg);
