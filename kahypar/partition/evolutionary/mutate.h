@@ -102,8 +102,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 }
 
 
-
-Individual removePopulationStableNets(Hypergraph& hg, const Population& population,const Individual& in, const Context& context) {
+Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Individual& in, const Context& context) {
   // No action required as we do not access the partitioner for this
 
   DBG << "action.decision() = population_stable_net";
@@ -112,7 +111,7 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
     stablenet::stableNetsFromIndividuals(context,
                                          population.listOfBest(context.evolutionary.stable_net_amount),
                                          hg.initialNumEdges());
-  
+
   DBG << V(stable_nets.size());
   hg.reset();
   hg.setPartition(in.partition());
@@ -120,17 +119,17 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
 
   Context temporary_context(context);
   temporary_context.evolutionary.action =
-  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
+    Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
            meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>());
-           
+
   Partitioner().partition(hg, temporary_context);
-  
-  
+
+
   // Output action for logging
-    temporary_context.evolutionary.action =
+  temporary_context.evolutionary.action =
     Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
              meta::Int2Type<static_cast<int>(EvoMutateStrategy::population_stable_net)>() };
-  //Output action
+  // Output action
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);

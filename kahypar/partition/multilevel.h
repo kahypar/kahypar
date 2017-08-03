@@ -32,7 +32,6 @@
 #include "kahypar/utils/timer.h"
 
 namespace kahypar {
-
 namespace multilevel {
 static constexpr bool debug = false;
 
@@ -40,6 +39,17 @@ static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
+  // because we remove parallel nets, we have to collect the initial
+  // cut nets _before_ coarsening
+  std::vector<HyperedgeID> stable_net_before_uncoarsen;
+  if (context.partition_evolutionary &&
+      context.evolutionary.action.requires().vcycle_stable_net_collection) {
+    for (HyperedgeID u : hypergraph.edges()) {
+      if (hypergraph.connectivity(u) > 1) {
+        stable_net_before_uncoarsen.push_back(u);
+      }
+    }
+  }
 
   io::printCoarseningBanner(context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -53,7 +63,7 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
-    if(context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
+    if (context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
       hypergraph.reset();
     }
     io::printInitialPartitioningBanner(context);
@@ -110,7 +120,7 @@ static inline void partition(Hypergraph& hypergraph,
   // TODO(andre): verify that this is correct
 
   if (context.partition_evolutionary) {
-      hypergraph.initializeNumCutHyperedges();
+    hypergraph.initializeNumCutHyperedges();
   }
   DBG << V(metrics::km1(hypergraph));
 
@@ -124,7 +134,7 @@ static inline void partition(Hypergraph& hypergraph,
     }
   }
 
-
+  io::printLocalSearchBanner(context);
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
