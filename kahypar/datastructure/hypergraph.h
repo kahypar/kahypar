@@ -1369,7 +1369,11 @@ class GenericHypergraph {
     std::fill(_communities.begin(), _communities.end(), 0);
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
       hyperedge(i).hash = kEdgeHashSeed;
-      for (const HypernodeID& pin : pins(i)) {
+      // not using pins(i) because it contains an assertion for hyperedge validity
+      auto pins_begin = _incidence_array.cbegin() + hyperedge(i).firstEntry();
+      const auto pins_end = _incidence_array.cbegin() + hyperedge(i).firstInvalidEntry();
+      for (; pins_begin != pins_end; ++pins_begin) {
+        const auto pin = *pins_begin;
         hyperedge(i).hash += math::hash(pin);
         hyperedge(i).contraction_type = ContractionType::Initial;
       }
