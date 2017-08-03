@@ -154,8 +154,11 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
     }
   }
 
-  if (context.preprocessing.enable_community_detection &&
-      context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
+  if ((context.preprocessing.enable_community_detection &&
+       context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) ||
+      (context.partition_evolutionary &&
+       context.evolutionary.communities.size() == 0 &&
+       context.evolutionary.action.requires().community_detection)) {
     const double density = static_cast<double>(hypergraph.initialNumEdges()) /
                            static_cast<double>(hypergraph.initialNumNodes());
     if (density < 0.75) {
@@ -200,46 +203,38 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
         << "unconnected HNs could have been removed" << "\033[0m";
   }
 }
-//TODO(robin): find a clever way to read in the communities only if needed
+// TODO(robin): find a clever way to read in the communities only if needed
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
-//In evolutionary mode, we want to perform community detection only once, for runtime
+// In evolutionary mode, we want to perform community detection only once, for runtime
 
-  if (context.partition_evolutionary && context.evolutionary.communities.size() == 0 && context.evolutionary.action.requires().community_detection) {
-
+  if (context.partition_evolutionary &&
+      context.evolutionary.communities.size() == 0 &&
+      context.evolutionary.action.requires().community_detection) {
     detectCommunities(hypergraph, context);
     context.evolutionary.communities = hypergraph.communities();
     return;
   }
-  if(context.partition_evolutionary){
-    if(context.evolutionary.action.requires().community_detection) {
+  if (context.partition_evolutionary) {
+    if (context.evolutionary.action.requires().community_detection) {
       hypergraph.setCommunities(context.getCommunities());
     }
-    
-    
-    //detectCommunities(hypergraph, context);
+    // detectCommunities(hypergraph, context);
     return;
   }
-  
+
   // In recursive bisection mode, we perform community detection before each
   // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
-  
-  
+
+
   if (context.partition.mode != Mode::recursive_bisection &&
       context.preprocessing.enable_community_detection) {
-      if(context.evolutionary.communities.size() == 0){
-        detectCommunities(hypergraph, context);
-        context.evolutionary.communities = hypergraph.communities();
-      }
-      else {
-        hypergraph.setCommunities(context.getCommunities());
-      }
-      
-    
-
-
+    if (context.evolutionary.communities.size() == 0) {
+      detectCommunities(hypergraph, context);
+      context.evolutionary.communities = hypergraph.communities();
+    } else {
+      hypergraph.setCommunities(context.getCommunities());
+    }
   }
-  
-
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
@@ -287,7 +282,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   io::printInputInformation(context, hypergraph);
 
   sanitize(hypergraph, context);
-  
+
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
@@ -298,6 +293,5 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
   }
-  
 }
 }  // namespace kahypar
