@@ -28,7 +28,7 @@ namespace kahypar {
 namespace stablenet {
 static constexpr bool debug = false;
 
-void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
+bool forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
   const PartitionID k = hg.k();
   PartitionID lightest_part = std::numeric_limits<PartitionID>::max();
   HypernodeWeight lightest_part_weight = std::numeric_limits<HypernodeWeight>::max();
@@ -54,8 +54,10 @@ void forceBlock(const HyperedgeID he, Hypergraph& hg, const Context& context) {
         hg.changeNodePart(hn, hg.partID(hn), lightest_part);
       }
     }
+    return true;
     DBG << "moved stable net" << he << "to block" << lightest_part;
   }
+  return false;
 }
 
 void removeStableNets(Hypergraph& hg, const Context& context,
@@ -85,9 +87,11 @@ void removeStableNets(Hypergraph& hg, const Context& context,
   std::vector<bool> touched_hns(hg.initialNumNodes(), false);
 
   const size_t stable_net_amount = stable_nets.size() * context.evolutionary.stable_net_factor;
-  DBG << V(stable_net_amount);
-  for (size_t i = 0; i < stable_net_amount; ++i) {
-    const HyperedgeID stable_net = stable_nets[i];
+  size_t num_removed_stable_nets = 0;
+
+  DBG << V(stable_nets.size()) << V(stable_net_amount);
+
+  for (const auto& stable_net : stable_nets) {
     bool he_was_touched = false;
     for (const HypernodeID& pin : hg.pins(stable_net)) {
       if (touched_hns[pin]) {
@@ -100,9 +104,13 @@ void removeStableNets(Hypergraph& hg, const Context& context,
       for (const HypernodeID pin : hg.pins(stable_net)) {
         touched_hns[pin] = true;
       }
-      forceBlock(stable_net, hg, context);
+      num_removed_stable_nets += forceBlock(stable_net, hg, context);
+    }
+    if (num_removed_stable_nets == stable_net_amount) {
+      break;
     }
   }
+  DBG << V(stable_net_amount) << V(num_removed_stable_nets);
 }
 
 static std::vector<HyperedgeID> stableNetsFromIndividuals(const Context& context,
