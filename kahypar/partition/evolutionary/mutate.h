@@ -50,6 +50,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
 
 Individual vCycle(Hypergraph& hg, const Individual& in,
                   const Context& context) {
+  hg.reset();
   hg.setPartition(in.partition());
   Context temporary_context(context);
   temporary_context.evolutionary.action =
@@ -67,6 +68,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
 
 Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
   Context temporary_context(context);
+  hg.reset();
   hg.setPartition(in.partition());
 
   temporary_context.evolutionary.action =
