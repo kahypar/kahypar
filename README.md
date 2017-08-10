@@ -157,7 +157,7 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
                   Sebastian Schlag},
      title     = {Improving Coarsening Schemes for Hypergraph Partitioning by Exploiting Community Structure},
      booktitle = {16th International Symposium on Experimental Algorithms, (SEA 2017)},
-     pages     = {50:1--50:19},
+     pages     = {21:1--21:19},
      year      = {2017},
     }
 
