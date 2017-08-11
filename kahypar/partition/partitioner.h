@@ -286,7 +286,58 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
-    partition::partition(sparseHypergraph, context);
+
+
+    // Quick fix: In evolutionary partitioning mode, we have to map the original
+    // partitions of the individuals to the corresponding partition of the sparse
+    // hypergraph.
+    Context temp_context(context);
+    LOG << V(sparseHypergraph.initialNumNodes());
+    std::vector<PartitionID> sparse_parent1(sparseHypergraph.initialNumNodes(), -1);
+    std::vector<PartitionID> sparse_parent2(sparseHypergraph.initialNumNodes(), -1);
+    const auto& hn_to_sparse_hn = _pin_sparsifier.hnToSparsifiedHnMapping();
+
+    if (context.evolutionary.parent1 != nullptr) {
+      for (const auto& hn : hypergraph.nodes()) {
+        const HypernodeID sparse_hn = hn_to_sparse_hn[hn];
+        ALWAYS_ASSERT(sparse_parent1[sparse_hn] == -1 ||
+                      (sparse_parent1[sparse_hn] == (*context.evolutionary.parent1)[hn]), "");
+        sparse_parent1[sparse_hn] = (*context.evolutionary.parent1)[hn];
+      }
+      ALWAYS_ASSERT(std::none_of(sparse_parent1.cbegin(), sparse_parent1.cend(),
+                                 [](PartitionID part){ return part == -1;}),"");
+      temp_context.evolutionary.parent1 = &sparse_parent1;
+    }
+
+    if (context.evolutionary.parent2 != nullptr) {
+      for (const auto& hn : hypergraph.nodes()) {
+        const HypernodeID sparse_hn = hn_to_sparse_hn[hn];
+        ALWAYS_ASSERT(sparse_parent2[sparse_hn] == -1 ||
+                      (sparse_parent2[sparse_hn] ==  (*context.evolutionary.parent2)[hn]),"");
+        sparse_parent2[sparse_hn] = (*context.evolutionary.parent2)[hn];
+      }
+      ALWAYS_ASSERT(std::none_of(sparse_parent2.cbegin(), sparse_parent2.cend(),
+                                 [](PartitionID part){ return part == -1;}),"");
+      temp_context.evolutionary.parent2 = &sparse_parent2;
+    }
+
+    // Quick Fix: Weak mutations set the partition of the hypergraph.
+    // Since we use the sparsified version internally, we have to adapt
+    // the partition of the sparse graph accordingly.
+    sparseHypergraph.reset();
+    for (const auto& hn : hypergraph.nodes()) {
+      const HypernodeID sparse_hn = hn_to_sparse_hn[hn];
+      const PartitionID hn_part = hypergraph.partID(hn);
+      if (sparseHypergraph.partID(sparse_hn) != hn_part){
+        sparseHypergraph.setNodePart(sparse_hn, hn_part);
+      }
+    }
+
+    partition::partition(sparseHypergraph, temp_context);
+
+    // In evolutionary mode, this might be necessary
+    hypergraph.reset();
+
     postprocess(hypergraph, sparseHypergraph, context);
   } else {
     preprocess(hypergraph, context);
