@@ -53,7 +53,7 @@ class Action {
     _requires.initial_partitioning = false;
     _requires.evolutionary_parent_contraction = true;
     _requires.invalidation_of_second_partition = true;
-    _requires.community_detection = true;
+    //_requires.community_detection = true; Not correct anymore
   }
   Action(meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>) :
     _decision(EvoDecision::cross_combine),

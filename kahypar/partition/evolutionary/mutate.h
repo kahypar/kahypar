@@ -92,7 +92,7 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
 
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  io::serializer::serializeEvolutionary(context, hg);
+  io::serializer::serializeEvolutionary(temporary_context, hg);
   return Individual(hg);
 }
 

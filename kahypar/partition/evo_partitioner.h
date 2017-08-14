@@ -35,7 +35,7 @@ namespace kahypar {
 namespace partition {
 class EvoPartitioner {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   explicit EvoPartitioner(const Context& context) :
@@ -81,28 +81,41 @@ class EvoPartitioner {
       
     }
 
-    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::population_stable_net;
-    performMutation(hg, context);
-    performCombine(hg, context);
-    return;*/
     //START EVOLUTIONARY
    /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
     performMutation(hg, context);
     _population.print();
     return;*/
-    /*performCrossCombine(hg,context);
-    LOG <<_population;
+   /*  context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::epsilon;
     performCrossCombine(hg,context);
     LOG <<_population;
+     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::objective;
     performCrossCombine(hg,context);
     LOG <<_population;
+     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::mode;
     performCrossCombine(hg,context);
     LOG <<_population;
+     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
     performCrossCombine(hg,context);
     LOG <<_population;
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
     performCrossCombine(hg,context);
     LOG <<_population;
-    return;*/
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg,context);
+    LOG <<_population;
+         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
+    performCrossCombine(hg,context);
+    LOG <<_population;*/
     /*context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
     performCrossCombine(hg, context);
     LOG <<_population;
