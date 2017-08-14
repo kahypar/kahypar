@@ -137,7 +137,6 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         }
         temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
         temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-        std::cout << combine_context;
         // Removed, now vector in config
         //detectCommunities(hg, temporary_context);
         //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created

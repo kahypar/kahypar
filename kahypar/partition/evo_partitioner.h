@@ -82,45 +82,7 @@ class EvoPartitioner {
     }
 
     //START EVOLUTIONARY
-   /*context.evolutionary.mutate_strategy = EvoMutateStrategy::edge_frequency;
-    performMutation(hg, context);
-    _population.print();
-    return;*/
-   /*  context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::epsilon;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::objective;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::mode;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-     context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;
-         context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg,context);
-    LOG <<_population;*/
-    /*context.evolutionary.cross_combine_strategy = EvoCrossCombineStrategy::louvain;
-    performCrossCombine(hg, context);
-    LOG <<_population;
-    return;*/
-    //context.evolutionary.mutate_strategy = EvoMutateStrategy::single_stable_net;
+
     while (context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
       
