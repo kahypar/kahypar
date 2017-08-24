@@ -3,7 +3,7 @@ gems:
   - jekyll-seo-tag
 
 title: "KaHyPar - Karlsruhe Hypergraph Partitioning"
-description: "A high-quality hypergraph partitioning framework supporting both direct k-way and recursive bisection based partitioning"
+description: "A multilevel hypergraph partitioning framework providing direct k-way and recursive bisection based partitioning algorithms that compute solutions of very high quality."
 author: "Sebastian Schlag"
 social:
   name: Sebastian Schlag
