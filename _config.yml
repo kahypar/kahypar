@@ -1,0 +1,16 @@
+theme: jekyll-theme-minimal
+gems:
+  - jekyll-seo-tag
+
+title: "KaHyPar - Karlsruhe Hypergraph Partitioning"
+description: "A high-quality hypergraph partitioning framework supporting both direct k-way and recursive bisection based partitioning"
+author: "Sebastian Schlag"
+social:
+  name: Sebastian Schlag
+  links:
+    - https://www.linkedin.com/in/SebastianSchlag
+    - https://github.com/SebastianSchlag
+    - https://algo2.iti.kit.edu/sebastian.schlag.php
+    - http://www.sebastianschlag.de/
+
+google_site_verification: 2cEH9AhrJ-QdTWqpK9dKNvuPsSASwfxL2rU3hLeUe0o

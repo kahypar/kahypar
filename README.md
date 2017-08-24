@@ -53,9 +53,18 @@ algorithm if its corresponding ratio values are below those of the other algorit
 
 **Interactive** visualizations of the performance plots and detailed per-instance results can be found on
 the website accompanying each publication:
- - KaHyPar-CA: [SEA'17][SEA'17bench] (latest version of KaHyPar)
- - KaHyPar-K:  [ALENEX'17][ALENEX'17bench] (referred to as KaHyPar in the picture above)
- - KaHyPar-R:  [ALENEX'16][ALENEX'16bench] (only experimental results)
+ - KaHyPar-CA (latest version of KaHyPar):
+   * [Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)
+   * [Slides](http://algo2.iti.kit.edu/sea17schlag.php)
+   * [Experimentel Results][SEA'17bench]
+ - KaHyPar-K (referred to as KaHyPar in the picture above):
+   * [Paper][ALENEX'17]
+   * [Slides](http://algo2.iti.kit.edu/3214.php)
+   * [Experimental Results][ALENEX'17bench]
+ - KaHyPar-R:
+   * [Paper][ALENEX'16]
+   * [Slides](http://algo2.iti.kit.edu/3034.php)
+   * [Experimental Results][ALENEX'16bench]
 
 Requirements:
 -----------
