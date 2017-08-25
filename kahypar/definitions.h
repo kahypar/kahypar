@@ -25,7 +25,6 @@
 #include <utility>
 
 #include "datastructure/hypergraph.h"
-// #include "datastructure/GenericHypergraph2.h"
 
 // Use bucket PQ for FM refinement.
 // #define USE_BUCKET_QUEUE
@@ -73,20 +72,4 @@ static kahypar::IncidenceIterator end(const std::pair<kahypar::IncidenceIterator
                                                       kahypar::IncidenceIterator>& x) {
   return x.second;
 }
-
-// static const kahypar::HypernodeID* begin(std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
-//   return x.first;
-// }
-
-// static const kahypar::HypernodeID* end(std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
-//   return x.second;
-// }
-
-// static const kahypar::HypernodeID* begin(const std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
-//   return x.first;
-// }
-
-// static const kahypar::HypernodeID* end(const std::pair<const kahypar::HypernodeID*, const kahypar::HypernodeID*>& x) {
-//   return x.second;
-// }
 }  // namespace std
