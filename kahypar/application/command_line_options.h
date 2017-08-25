@@ -62,69 +62,9 @@ int getProcessID() {
 }
 }  // namespace platform
 
-void processCommandLineInput(Context& context, int argc, char* argv[]) {
-  const int num_columns = platform::getTerminalWidth();
-
-  po::options_description generic_options("Generic Options", num_columns);
-  generic_options.add_options()
-    ("help", "show help message")
-    ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
-    "Verbose main partitioning output")
-    ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
-    "Verbose initial partitioning output")
-    ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
-    "Quiet Mode: Completely suppress console output")
-    ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
-    "Summarize partitioning results in RESULT line compatible with sqlplottools "
-    "(https://github.com/bingmann/sqlplottools)");
-
-  po::options_description required_options("Required Options", num_columns);
-  required_options.add_options()
-    ("hypergraph,h",
-    po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
-    "Hypergraph filename")
-    ("blocks,k",
-    po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
-      [&](const PartitionID) {
-      context.partition.rb_lower_k = 0;
-      context.partition.rb_upper_k = 0;
-    }),
-    "Number of blocks")
-    ("epsilon,e",
-    po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
-    "Imbalance parameter epsilon")
-    ("objective,o",
-    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
-      if (s == "cut") {
-        context.partition.objective = Objective::cut;
-      } else if (s == "km1") {
-        context.partition.objective = Objective::km1;
-      }
-    }),
-    "Objective: \n"
-    " - cut : cut-net metric \n"
-    " - km1 : (lambda-1) metric")
-    ("mode,m",
-    po::value<std::string>()->value_name("<string>")->required()->notifier(
-      [&](const std::string& mode) {
-      context.partition.mode = kahypar::modeFromString(mode);
-    }),
-    "Partitioning mode: \n"
-    " - (recursive) bisection \n"
-    " - (direct) k-way");
-
-  std::string context_path;
-  po::options_description preset_options("Preset Options", num_columns);
-  preset_options.add_options()
-    ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
-    "Context Presets (see config directory):\n"
-    " - km1_direct_kway_sea17.ini\n"
-    " - direct_kway_km1_alenex17.ini\n"
-    " - rb_cut_alenex16.ini\n"
-    " - <path-to-custom-ini-file>");
-
-  po::options_description general_options("General Options", num_columns);
-  general_options.add_options()
+po::options_description createGeneralOptionsDescription(Context& context, const int num_columns) {
+  po::options_description options("General Options", num_columns);
+  options.add_options()
     ("seed",
     po::value<int>(&context.partition.seed)->value_name("<int>"),
     "Seed for random number generator \n"
@@ -140,58 +80,13 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("vcycles",
     po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
     "# V-cycle iterations for direct k-way partitioning");
+  return options;
+}
 
-  po::options_description preprocessing_options("Preprocessing Options", num_columns);
-  preprocessing_options.add_options()
-    ("p-use-sparsifier",
-    po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
-    "Use min-hash pin sparsifier before partitioning")
-    ("p-sparsifier-min-median-he-size",
-    po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
-    "Minimum median hyperedge size necessary for sparsifier application")
-    ("p-sparsifier-max-hyperedge-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
-    "Max hyperedge size allowed considered by sparsifier")
-    ("p-sparsifier-max-cluster-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
-    "Max cluster size which is built by sparsifier")
-    ("p-sparsifier-min-cluster-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
-    "Min cluster size which is built by sparsifier")
-    ("p-sparsifier-num-hash-func",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
-    "Number of hash functions")
-    ("p-sparsifier-combined-num-hash-func",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
-    "Number of combined hash functions")
-    ("p-detect-communities",
-    po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
-    "Using louvain community detection for coarsening")
-    ("p-detect-communities-in-ip",
-    po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
-    "Using louvain community detection for coarsening during initial partitioning")
-    ("p-max-louvain-pass-iterations",
-    po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
-    "Maximum number of iterations over all nodes of one louvain pass")
-    ("p-min-eps-improvement",
-    po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
-    "Minimum improvement of quality during a louvain pass which leads to further passes")
-    ("p-louvain-edge-weight",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ptype) {
-      context.preprocessing.community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
-    }),
-    "Weights:\n"
-    " - hybrid \n"
-    " - uniform\n"
-    " - non_uniform\n"
-    " - degree")
-    ("p-reuse-communities",
-    po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
-    "Reuse the community structure identified in the first bisection for all other bisections.");
-
-  po::options_description coarsening_options("Coarsening Options", num_columns);
-  coarsening_options.add_options()
+po::options_description createCoarseningOptionsDescription(Context& context,
+                                                           const int num_columns) {
+  po::options_description options("Coarsening Options", num_columns);
+  options.add_options()
     ("c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ctype) {
@@ -246,10 +141,13 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random "
     "prefer_unmatched");
+  return options;
+}
 
-
-  po::options_description ip_options("Initial Partitioning Options", num_columns);
-  ip_options.add_options()
+po::options_description createInitialPartitioningOptionsDescription(Context& context,
+                                                                    const int num_columns) {
+  po::options_description options("Initial Partitioning Options", num_columns);
+  options.add_options()
     ("i-mode",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_mode) {
@@ -367,9 +265,67 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Max. # local search repetitions on each level \n"
     "(no limit:-1)");
+  return options;
+}
 
-  po::options_description refinement_options("Refinement Options", num_columns);
-  refinement_options.add_options()
+
+po::options_description createPreprocessingOptionsDescription(Context& context,
+                                                              const int num_columns) {
+  po::options_description options("Preprocessing Options", num_columns);
+  options.add_options()
+    ("p-use-sparsifier",
+    po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
+    "Use min-hash pin sparsifier before partitioning")
+    ("p-sparsifier-min-median-he-size",
+    po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
+    "Minimum median hyperedge size necessary for sparsifier application")
+    ("p-sparsifier-max-hyperedge-size",
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
+    "Max hyperedge size allowed considered by sparsifier")
+    ("p-sparsifier-max-cluster-size",
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
+    "Max cluster size which is built by sparsifier")
+    ("p-sparsifier-min-cluster-size",
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
+    "Min cluster size which is built by sparsifier")
+    ("p-sparsifier-num-hash-func",
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
+    "Number of hash functions")
+    ("p-sparsifier-combined-num-hash-func",
+    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
+    "Number of combined hash functions")
+    ("p-detect-communities",
+    po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
+    "Using louvain community detection for coarsening")
+    ("p-detect-communities-in-ip",
+    po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
+    "Using louvain community detection for coarsening during initial partitioning")
+    ("p-max-louvain-pass-iterations",
+    po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
+    "Maximum number of iterations over all nodes of one louvain pass")
+    ("p-min-eps-improvement",
+    po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
+    "Minimum improvement of quality during a louvain pass which leads to further passes")
+    ("p-louvain-edge-weight",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ptype) {
+      context.preprocessing.community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
+    }),
+    "Weights:\n"
+    " - hybrid \n"
+    " - uniform\n"
+    " - non_uniform\n"
+    " - degree")
+    ("p-reuse-communities",
+    po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
+    "Reuse the community structure identified in the first bisection for all other bisections.");
+  return options;
+}
+
+po::options_description createRefinementOptionsDescription(Context& context,
+                                                           const int num_columns) {
+  po::options_description options("Refinement Options", num_columns);
+  options.add_options()
     ("r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rtype) {
@@ -408,6 +364,86 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rule \n"
     "(infinity: -1)");
+  return options;
+}
+
+
+void processCommandLineInput(Context& context, int argc, char* argv[]) {
+  const int num_columns = platform::getTerminalWidth();
+
+  po::options_description generic_options("Generic Options", num_columns);
+  generic_options.add_options()
+    ("help", "show help message")
+    ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
+    "Verbose main partitioning output")
+    ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
+    "Verbose initial partitioning output")
+    ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
+    "Quiet Mode: Completely suppress console output")
+    ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
+    "Summarize partitioning results in RESULT line compatible with sqlplottools "
+    "(https://github.com/bingmann/sqlplottools)");
+
+  po::options_description required_options("Required Options", num_columns);
+  required_options.add_options()
+    ("hypergraph,h",
+    po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
+    "Hypergraph filename")
+    ("blocks,k",
+    po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
+      [&](const PartitionID) {
+      context.partition.rb_lower_k = 0;
+      context.partition.rb_upper_k = 0;
+    }),
+    "Number of blocks")
+    ("epsilon,e",
+    po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
+    "Imbalance parameter epsilon")
+    ("objective,o",
+    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
+      if (s == "cut") {
+        context.partition.objective = Objective::cut;
+      } else if (s == "km1") {
+        context.partition.objective = Objective::km1;
+      }
+    }),
+    "Objective: \n"
+    " - cut : cut-net metric \n"
+    " - km1 : (lambda-1) metric")
+    ("mode,m",
+    po::value<std::string>()->value_name("<string>")->required()->notifier(
+      [&](const std::string& mode) {
+      context.partition.mode = kahypar::modeFromString(mode);
+    }),
+    "Partitioning mode: \n"
+    " - (recursive) bisection \n"
+    " - (direct) k-way");
+
+  std::string context_path;
+  po::options_description preset_options("Preset Options", num_columns);
+  preset_options.add_options()
+    ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
+    "Context Presets (see config directory):\n"
+    " - km1_direct_kway_sea17.ini\n"
+    " - direct_kway_km1_alenex17.ini\n"
+    " - rb_cut_alenex16.ini\n"
+    " - <path-to-custom-ini-file>");
+
+  po::options_description general_options = createGeneralOptionsDescription(context, num_columns);
+
+  po::options_description preprocessing_options =
+    createPreprocessingOptionsDescription(context, num_columns);
+
+  po::options_description coarsening_options = createCoarseningOptionsDescription(context,
+                                                                                  num_columns);
+
+
+  po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
+                                                                                   num_columns);
+
+
+  po::options_description refinement_options =
+    createRefinementOptionsDescription(context, num_columns);
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
@@ -461,5 +497,26 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     + ".seed"
     + std::to_string(context.partition.seed)
     + ".KaHyPar";
+}
+
+
+void parseIniToContext(Context& context, const std::string& ini_filename) {
+  std::ifstream file(ini_filename.c_str());
+  if (!file) {
+    std::cerr << "Could not load context file at: " << ini_filename << std::endl;
+    std::exit(-1);
+  }
+  const int num_columns = 80;
+
+  po::variables_map cmd_vm;
+  po::options_description ini_line_options;
+  ini_line_options.add(createGeneralOptionsDescription(context, num_columns))
+  .add(createPreprocessingOptionsDescription(context, num_columns))
+  .add(createCoarseningOptionsDescription(context, num_columns))
+  .add(createInitialPartitioningOptionsDescription(context, num_columns))
+  .add(createRefinementOptionsDescription(context, num_columns));
+
+  po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
+  po::notify(cmd_vm);
 }
 }  // namespace kahypar
