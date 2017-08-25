@@ -494,6 +494,10 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   context.partition.epsilon = 0.02;
   context.partition.k = 2;
   context.partition.objective = Objective::cut;
+  // To ensure that we can call moveIsFeasable.
+  // This test is actcually legacy, since the current implementation does not
+  // use the moveIsFeasible method anymore.
+  context.partition.mode = Mode::direct_kway;
   context.partition.perfect_balance_part_weights[0] = ceil(hypergraph.initialNumNodes() /
                                                            static_cast<double>(context.partition.k));
   context.partition.perfect_balance_part_weights[1] = ceil(hypergraph.initialNumNodes() /
