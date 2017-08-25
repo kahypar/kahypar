@@ -105,6 +105,9 @@ class GenericHypergraph2 {
   // forward declaration
   enum class ContractionType : size_t;
 
+  // seed for edge hashes used for parallel net detection
+  static constexpr size_t kEdgeHashSeed = 42;
+
  private:
   /*!
    * Hypernode traits defining the data types
@@ -359,16 +362,6 @@ class GenericHypergraph2 {
 
 
   struct Memento {
-    Memento(const Memento& other) = delete;
-    Memento& operator= (const Memento& other) = delete;
-
-    Memento(Memento&& other) = default;
-    Memento& operator= (Memento&& other) = default;
-
-    Memento(const HypernodeID u_, const HypernodeID v_) :
-      u(u_),
-      v(v_) { }
-
     const HypernodeID u;
     const HypernodeID v;
   };
@@ -481,6 +474,7 @@ class GenericHypergraph2 {
     _hyperedges(),
     _incident_hes(),
     _pins(),
+    _communities(_num_hypernodes, 0),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k) {
@@ -556,6 +550,7 @@ class GenericHypergraph2 {
     _hyperedges(),
     _incident_hes(),
     _pins(),
+    _communities(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets() { }
@@ -571,12 +566,12 @@ class GenericHypergraph2 {
    * Print internal information of all hyperedges to stdout.
    */
   void printHyperedgeInfo() const {
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isDisabled()) {
-        LOG << "hyperedge" << i << ": begin=" << hyperedge(i).firstEntry() << "size="
-            << hyperedge(i).size() << "weight=" << hyperedge(i).weight();
-      }
-    }
+    // for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+    //   if (!hyperedge(i).isDisabled()) {
+    //     LOG << "hyperedge" << i << ": begin=" << hyperedge(i).firstEntry() << "size="
+    //         << hyperedge(i).size() << "weight=" << hyperedge(i).weight();
+    //   }
+    // }
   }
 
   /*!
@@ -584,12 +579,12 @@ class GenericHypergraph2 {
    * Print internal information of all hypernodes to stdout.
    */
   void printHypernodeInfo() const {
-    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isDisabled()) {
-        LOG << "hypernode" << i << ": begin=" << hypernode(i).firstEntry() << "size="
-            << hypernode(i).size() << "weight=" << hypernode(i).weight();
-      }
-    }
+    // for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+    //   if (!hypernode(i).isDisabled()) {
+    //     LOG << "hypernode" << i << ": begin=" << hypernode(i).firstEntry() << "size="
+    //         << hypernode(i).size() << "weight=" << hypernode(i).weight();
+    //   }
+    // }
   }
 
   /*!
@@ -597,9 +592,9 @@ class GenericHypergraph2 {
    * Print the internal incidence structure to stdout.
    */
   void printIncidenceArray() const {
-    for (VertexID i = 0; i < _incidence_array.size(); ++i) {
-      LOG << "_incidence_array[" << i << "]=" << _incidence_array[i];
-    }
+    // for (VertexID i = 0; i < _incidence_array.size(); ++i) {
+    //   LOG << "_incidence_array[" << i << "]=" << _incidence_array[i];
+    // }
   }
 
   /*!
@@ -607,12 +602,12 @@ class GenericHypergraph2 {
    * Print the current state of all hyperedges to stdout.
    */
   void printHyperedges() const {
-    LOG << "Hyperedges:";
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      if (!hyperedge(i).isDisabled()) {
-        printEdgeState(i);
-      }
-    }
+    // LOG << "Hyperedges:";
+    // for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+    //   if (!hyperedge(i).isDisabled()) {
+    //     printEdgeState(i);
+    //   }
+    // }
   }
 
   /*!
@@ -620,12 +615,12 @@ class GenericHypergraph2 {
    * Print the current state of all hypernodes to stdout.
    */
   void printHypernodes() const {
-    LOG << "Hypernodes:";
-    for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-      if (!hypernode(i).isDisabled()) {
-        printNodeState(i);
-      }
-    }
+    // LOG << "Hypernodes:";
+    // for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
+    //   if (!hypernode(i).isDisabled()) {
+    //     printNodeState(i);
+    //   }
+    // }
   }
 
   /*!
@@ -782,7 +777,7 @@ class GenericHypergraph2 {
     hypernode(v).disable();
     --_current_num_hypernodes;
     DBG << "DONE (" << u << "," << v << ")";
-    return Memento(u, v);
+    return Memento{u, v};
   }
 
   /*!
@@ -1217,6 +1212,7 @@ class GenericHypergraph2 {
   void resetPartitioning() {
     for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
       hypernode(i).part_id = kInvalidPartition;
+      hypernode(i).num_incident_cut_hes = 0;
     }
     std::fill(_part_info.begin(), _part_info.end(), PartInfo());
     std::fill(_pins_in_part.begin(), _pins_in_part.end(), 0);
@@ -1228,6 +1224,20 @@ class GenericHypergraph2 {
       hypernode(i).num_incident_cut_hes = 0;
     }
   }
+
+   // ! Resets the hypergraph to initial state after construction
+  void reset() {
+    resetPartitioning();
+    std::fill(_communities.begin(), _communities.end(), 0);
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      hyperedge(i).hash = kEdgeHashSeed;
+      for (const HypernodeID& pin : pins(i)) {
+        hyperedge(i).hash += math::hash(pin);
+        hyperedge(i).contraction_type = ContractionType::Initial;
+      }
+    }
+  }
+
 
   Type type() const {
     if (isModified()) {
@@ -1493,6 +1503,31 @@ class GenericHypergraph2 {
     return _total_weight;
   }
 
+  // ! Returns the community structure of the hypergraph
+  const std::vector<PartitionID> & communities() const {
+    return _communities;
+  }
+
+ // ! Sets the community structure of the hypergraph
+  void setCommunities(std::vector<PartitionID>&& communities) {
+    ASSERT(communities.size() == _current_num_hypernodes);
+    _communities = std::move(communities);
+  }
+
+  void resetCommunities() {
+    std::fill(_communities.begin(), _communities.end(), 0);
+  }
+
+    void resetEdgeHashes() {
+    for (const HyperedgeID& he : edges()) {
+      hyperedge(he).hash = kEdgeHashSeed;
+      hyperedge(he).contraction_type = ContractionType::Initial;
+      for (const HypernodeID& pin : pins(he)) {
+        hyperedge(he).hash += math::hash(pin);
+      }
+    }
+  }
+
   // ! Returns the sum of the weights of all hypernodes in a block
   HypernodeWeight partWeight(const PartitionID id) const {
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID" << id << "is out of bounds");
@@ -1749,6 +1784,10 @@ class GenericHypergraph2 {
   std::vector<IncidenceSet<HyperedgeID> > _incident_hes;
   std::vector<IncidenceSet<HypernodeID> > _pins;
 
+    // ! Stores the community structure revealed by community detection algorithms.
+  // ! If community detection is disabled, all HNs are in the same community.
+  std::vector<PartitionID> _communities;
+
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
   // ! For each hyperedge and each block, _pins_in_part stores the number of pins in that block
@@ -1760,7 +1799,7 @@ class GenericHypergraph2 {
   friend std ::pair<std::unique_ptr<Hypergraph>,
                     std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                                                                                      const typename Hypergraph::PartitionID part,
-                                                                                                                     const bool split_nets);
+                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -1867,6 +1906,19 @@ reindex(const Hypergraph& hypergraph) {
     ++num_hypernodes;
   }
 
+   if (!hypergraph._communities.empty()) {
+    reindexed_hypergraph->_communities.resize(num_hypernodes, -1);
+    for (const HypernodeID& hn : hypergraph.nodes()) {
+      const HypernodeID reindexed_hn = original_to_reindexed[hn];
+      reindexed_hypergraph->_communities[reindexed_hn] = hypergraph._communities[hn];
+    }
+    ASSERT(std::none_of(reindexed_hypergraph->_communities.cbegin(),
+                        reindexed_hypergraph->_communities.cend(),
+                        [](typename Hypergraph::PartitionID i) {
+          return i == -1;
+        }));
+  }
+
   reindexed_hypergraph->_hypernodes.resize(num_hypernodes);
   reindexed_hypergraph->_incident_hes.resize(num_hypernodes);
   reindexed_hypergraph->_num_hypernodes = num_hypernodes;
@@ -1916,7 +1968,7 @@ std::pair<std::unique_ptr<Hypergraph>,
           std::vector<typename Hypergraph::HypernodeID> >
 extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
                                                  const typename Hypergraph::PartitionID part,
-                                                 const bool split_nets = false) {
+                                                 const Objective& objective) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
@@ -1938,9 +1990,22 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     subhypergraph->_incident_hes.resize(num_hypernodes);
     subhypergraph->_num_hypernodes = num_hypernodes;
 
+    if (!hypergraph._communities.empty()) {
+      subhypergraph->_communities.resize(num_hypernodes, -1);
+      for (const HypernodeID& subhypergraph_hn : subhypergraph->nodes()) {
+        const HypernodeID original_hn = subhypergraph_to_hypergraph[subhypergraph_hn];
+        subhypergraph->_communities[subhypergraph_hn] = hypergraph._communities[original_hn];
+      }
+      ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
+                          subhypergraph->_communities.cend(),
+                          [](typename Hypergraph::PartitionID i) {
+            return i == -1;
+          }));
+    }
+
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
-    if (split_nets) {
+    if (objective == Objective::km1) {
       // Cut-Net Splitting is used to optimize connectivity-1 metric.
       for (const HyperedgeID& he : hypergraph.edges()) {
         ASSERT(hypergraph.edgeSize(he) > 1, V(he));
