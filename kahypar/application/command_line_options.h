@@ -428,7 +428,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("r-fm-stop-i",
     po::value<int>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
     "Max. # fruitless moves before stopping local search using simple stopping rule \n"
-    "(default: 250)")
+    "(default: 350)")
     ("r-fm-stop-alpha",
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rule \n"
