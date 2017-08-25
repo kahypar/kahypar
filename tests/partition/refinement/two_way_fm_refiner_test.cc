@@ -48,6 +48,8 @@ class ATwoWayFMRefiner : public Test {
     hypergraph->setNodePart(6, 1);
     hypergraph->initializeNumCutHyperedges();
     context.partition.epsilon = 0.15;
+    context.partition.k = 2;
+    context.partition.objective = Objective::cut;
     context.partition.total_graph_weight = 7;
     context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
                                                              static_cast<double>(context.partition.k));
@@ -73,6 +75,8 @@ class AGainUpdateMethod : public Test {
  public:
   AGainUpdateMethod() :
     context() {
+    context.partition.k = 2;
+    context.partition.objective = Objective::cut;
     context.local_search.fm.max_number_of_fruitless_moves = 50;
   }
 
@@ -488,6 +492,8 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
 
   Context context;
   context.partition.epsilon = 0.02;
+  context.partition.k = 2;
+  context.partition.objective = Objective::cut;
   context.partition.perfect_balance_part_weights[0] = ceil(hypergraph.initialNumNodes() /
                                                            static_cast<double>(context.partition.k));
   context.partition.perfect_balance_part_weights[1] = ceil(hypergraph.initialNumNodes() /

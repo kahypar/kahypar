@@ -40,14 +40,23 @@ class KaHyParCA : public ::testing::Test {
     context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
     context.coarsening.max_allowed_weight_multiplier = 1;
     context.coarsening.contraction_limit_multiplier = 160;
+    context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
+    context.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+    context.coarsening.rating.heavy_node_penalty_policy =
+      HeavyNodePenaltyPolicy::multiplicative_penalty;
+    context.coarsening.rating.acceptance_policy = AcceptancePolicy::best;
     context.initial_partitioning.mode = Mode::recursive_bisection;
     context.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
     context.initial_partitioning.coarsening.algorithm = CoarseningAlgorithm::ml_style;
     context.initial_partitioning.coarsening.max_allowed_weight_multiplier = 1;
+    context.initial_partitioning.coarsening.contraction_limit_multiplier = 150;
     context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     context.initial_partitioning.nruns = 20;
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
-    context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
+    context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
+    context.initial_partitioning.local_search.iterations_per_level =
+      std::numeric_limits<int>::max();
     context.local_search.iterations_per_level = std::numeric_limits<int>::max();
     context.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
     context.local_search.fm.adaptive_stopping_alpha = 1;

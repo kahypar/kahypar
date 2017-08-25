@@ -224,15 +224,24 @@ class APartitionOfAHypergraph : public Test {
     _hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                 HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     _context(),
-    _coarsener(new FirstWinsCoarsener(_hypergraph, _context,  /* heaviest_node_weight */ 1)),
-    _refiner(new Refiner(_hypergraph, _context)) {
+    _coarsener(nullptr),
+    _refiner(nullptr) {
     _context.partition.k = 2;
+    _context.partition.objective = Objective::cut;
     _context.partition.rb_lower_k = 0;
     _context.partition.rb_upper_k = _context.partition.k - 1;
     _context.partition.total_graph_weight = 7;
     _context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     _context.coarsening.contraction_limit = 2;
     _context.coarsening.max_allowed_node_weight = 5;
+    _context.coarsening.max_allowed_node_weight = 5;
+    _context.initial_partitioning.mode = Mode::recursive_bisection;
+    _context.initial_partitioning.technique = InitialPartitioningTechnique::flat;
+    _context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+    _context.initial_partitioning.nruns = 20;
+    _context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    _context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
+    _context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
     _context.partition.graph_filename = "APartitionOfAHypergraphTest";
     _context.partition.graph_partition_filename = "APartitionOfAHypergraphTest.hgr.part.2.KaHyPar";
     _context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
@@ -241,6 +250,8 @@ class APartitionOfAHypergraph : public Test {
                                              * _context.partition.perfect_balance_part_weights[0];
     _context.partition.max_part_weights[1] = (1 + _context.partition.epsilon) *
                                              _context.partition.perfect_balance_part_weights[1];
+    _coarsener.reset(new FirstWinsCoarsener(_hypergraph, _context,  /* heaviest_node_weight */ 1));
+    _refiner.reset(new Refiner(_hypergraph, _context));
   }
 
   void TearDown() {

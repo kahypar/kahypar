@@ -49,7 +49,8 @@ class ACoarsenerBase : public Test {
     coarsener(*hypergraph, context,  /* heaviest_node_weight */ 1),
     refiner(new DoNothingRefiner()) {
     refiner->initialize(999999);
-
+    context.partition.k = 2;
+    context.partition.objective = Objective::cut;
     context.partition.epsilon = 0.3;
     context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
     context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
@@ -188,6 +189,8 @@ void restoresParallelHyperedgesInReverseOrder() {
 
   Context context;
   context.partition.epsilon = 1.0;
+  context.partition.k = 2;
+  context.partition.objective = Objective::cut;
   context.partition.perfect_balance_part_weights[0] = ceil(52.0 / 2);
   context.partition.perfect_balance_part_weights[1] = ceil(52.0 / 2);
   context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
@@ -230,6 +233,8 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
 
   Context context;
   context.partition.epsilon = 1.0;
+  context.partition.k = 2;
+  context.partition.objective = Objective::cut;
   context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
   context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
   context.partition.max_part_weights[0] = (1 + context.partition.epsilon)

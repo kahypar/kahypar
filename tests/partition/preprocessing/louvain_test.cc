@@ -201,7 +201,8 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
     }
   }
   Context context;
-
+  context.preprocessing.community_detection.max_pass_iterations = 100;
+  context.preprocessing.community_detection.min_eps_improvement = 0.0001;
   context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
   Graph graph(adj_array, edges);
   Louvain<Modularity, false> louvain(adj_array, edges, context);

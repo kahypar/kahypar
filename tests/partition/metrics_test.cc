@@ -66,9 +66,10 @@ class APartitionedHypergraph : public Test {
     hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
     context(),
-    coarsener(new FirstWinsCoarsener(hypergraph, context,  /* heaviest_node_weight */ 1)),
-    refiner(new Refiner(hypergraph, context)) {
+    coarsener(nullptr),
+    refiner(nullptr) {
     context.partition.k = 2;
+    context.partition.objective = Objective::cut;
     context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.coarsening.contraction_limit = 2;
     context.partition.total_graph_weight = 7;
@@ -82,6 +83,16 @@ class APartitionedHypergraph : public Test {
                                             * context.partition.perfect_balance_part_weights[0];
     context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
                                             * context.partition.perfect_balance_part_weights[1];
+    context.coarsening.max_allowed_node_weight = 5;
+    context.initial_partitioning.mode = Mode::recursive_bisection;
+    context.initial_partitioning.technique = InitialPartitioningTechnique::flat;
+    context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+    context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
+    context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
+    coarsener.reset(new FirstWinsCoarsener(hypergraph, context,  /* heaviest_node_weight */ 1));
+    refiner.reset(new Refiner(hypergraph, context));
     multilevel::partition(hypergraph, *coarsener, *refiner, context);
   }
 
