@@ -136,23 +136,19 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         context.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
       }
     }),
-    "Hyperedges larger than cmaxnet are ignored during partitioning process. \n"
-    "(default: -1, disabled)")
+    "Hyperedges larger than cmaxnet are ignored during partitioning process.")
     ("vcycles",
     po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
-    "# V-cycle iterations for direct k-way partitioning \n"
-    "(default: 0)");
+    "# V-cycle iterations for direct k-way partitioning");
 
   po::options_description preprocessing_options("Preprocessing Options", num_columns);
   preprocessing_options.add_options()
     ("p-use-sparsifier",
     po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
-    "Use min-hash pin sparsifier before partitioning \n"
-    "(default: false)")
+    "Use min-hash pin sparsifier before partitioning")
     ("p-sparsifier-min-median-he-size",
     po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
-    "Minimum median hyperedge size necessary for sparsifier application \n"
-    "(default: 28)")
+    "Minimum median hyperedge size necessary for sparsifier application")
     ("p-sparsifier-max-hyperedge-size",
     po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
     "Max hyperedge size allowed considered by sparsifier")
@@ -170,20 +166,16 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Number of combined hash functions")
     ("p-detect-communities",
     po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
-    "Using louvain community detection for coarsening\n"
-    "(default: false)")
+    "Using louvain community detection for coarsening")
     ("p-detect-communities-in-ip",
     po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
-    "Using louvain community detection for coarsening during initial partitioning\n"
-    "(default: false)")
+    "Using louvain community detection for coarsening during initial partitioning")
     ("p-max-louvain-pass-iterations",
     po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
-    "Maximum number of iterations over all nodes of one louvain pass\n"
-    "(default: 100)")
+    "Maximum number of iterations over all nodes of one louvain pass")
     ("p-min-eps-improvement",
     po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
-    "Minimum improvement of quality during a louvain pass which leads to further passes\n"
-    "(default: 0.001)")
+    "Minimum improvement of quality during a louvain pass which leads to further passes")
     ("p-louvain-edge-weight",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ptype) {
@@ -193,12 +185,10 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - hybrid \n"
     " - uniform\n"
     " - non_uniform\n"
-    " - degree \n"
-    "(default: hybrid)")
+    " - degree")
     ("p-reuse-communities",
     po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
-    "Reuse the community structure identified in the first bisection for all other bisections.\n"
-    "(default: false)");
+    "Reuse the community structure identified in the first bisection for all other bisections.");
 
   po::options_description coarsening_options("Coarsening Options", num_columns);
   coarsening_options.add_options()
@@ -210,17 +200,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
-    " - heavy_lazy \n"
-    "(default: ml_style)")
+    " - heavy_lazy")
     ("c-s",
     po::value<double>(&context.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
-    "(s * w(H)) / (t * k)\n"
-    "(default: 1)")
+    "(s * w(H)) / (t * k)\n")
     ("c-t",
     po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
-    "Coarsening stops when there are no more than t * k hypernodes left\n"
-    "(default: 160)")
+    "Coarsening stops when there are no more than t * k hypernodes left")
     ("c-rating-score",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rating_score) {
@@ -228,7 +215,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::ratingFunctionFromString(rating_score);
     }),
     "Rating function used to calculate scores for vertex pairs:\n"
-    "heavy_edge (default)"
+    "heavy_edge "
     "edge_frequency")
     ("c-rating-use-communities",
     po::value<bool>()->value_name("<bool>")->notifier(
@@ -239,7 +226,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         context.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
       }
     }),
-    "Use community information during rating. If c-rating-use-communities=true (default),\n"
+    "Use community information during rating. If c-rating-use-communities=true ,\n"
     "only neighbors belonging to the same community will be considered as contraction partner.")
     ("c-rating-heavy_node_penalty",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -248,7 +235,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::heavyNodePenaltyFromString(penalty);
     }),
     "Penalty function to discourage heavy vertices:\n"
-    "multiplicative (default)"
+    "multiplicative "
     "no_penalty")
     ("c-rating-acceptance-criterion",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -257,7 +244,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::acceptanceCriterionFromString(crit);
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-    "random (default)"
+    "random "
     "prefer_unmatched");
 
 
@@ -270,8 +257,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "IP mode: \n"
     " - (recursive) bisection  \n"
-    " - (direct) k-way\n"
-    "(default: rb)")
+    " - (direct) k-way")
     ("i-technique",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
@@ -280,15 +266,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "IP Technique:\n"
     " - flat\n"
-    " - (multi)level\n"
-    "(default: multi)")
+    " - (multi)level")
     ("i-algo",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_algo) {
       context.initial_partitioning.algo =
         kahypar::initialPartitioningAlgorithmFromString(ip_algo);
     }),
-    "Algorithm used to create initial partition: pool (default)")
+    "Algorithm used to create initial partition: pool ")
     ("i-c-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_ctype) {
@@ -298,17 +283,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "IP Coarsening Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
-    " - heavy_lazy \n"
-    "(default: ml_style)")
+    " - heavy_lazy")
     ("i-c-s",
     po::value<double>(&context.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
-    "(i-c-s * w(H)) / (i-c-t * k)\n"
-    "(default: 1)")
+    "(i-c-s * w(H)) / (i-c-t * k)")
     ("i-c-t",
     po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
-    "IP coarsening stops when there are no more than i-c-t * k hypernodes left \n"
-    "(default: 150)")
+    "IP coarsening stops when there are no more than i-c-t * k hypernodes left")
     ("i-c-rating-score",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& rating_score) {
@@ -316,7 +298,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::ratingFunctionFromString(rating_score);
     }),
     "Rating function used to calculate scores for vertex pairs:\n"
-    "heavy_edge (default)"
+    "heavy_edge "
     "edge_frequency")
     ("i-c-rating-use-communities",
     po::value<bool>()->value_name("<bool>")->notifier(
@@ -329,7 +311,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
           CommunityPolicy::ignore_communities;
       }
     }),
-    "Use community information during rating. If c-rating-use-communities=true (default),\n"
+    "Use community information during rating. If c-rating-use-communities=true ,\n"
     "only neighbors belonging to the same community will be considered as contraction partner.")
     ("i-c-rating-heavy_node_penalty",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -338,7 +320,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::heavyNodePenaltyFromString(penalty);
     }),
     "Penalty function to discourage heavy vertices:\n"
-    "multiplicative (default)"
+    "multiplicative "
     "no_penalty")
     ("i-c-rating-acceptance-criterion",
     po::value<std::string>()->value_name("<string>")->notifier(
@@ -347,12 +329,11 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
         kahypar::acceptanceCriterionFromString(crit);
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-    "random (default)"
+    "random"
     "prefer_unmatched")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
-    "# initial partition trials \n"
-    "(default: 20)")
+    "# initial partition trials")
     ("i-r-type",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_rtype) {
@@ -363,8 +344,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - twoway_fm   : 2-way FM algorithm\n"
     " - kway_fm     : k-way FM algorithm\n"
     " - kway_fm_km1 : k-way FM algorithm optimizing km1 metric\n"
-    " - sclap       : Size-constrained Label Propagation \n"
-    "(default: twoway_fm)")
+    " - sclap       : Size-constrained Label Propagation")
     ("i-r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_stopfm) {
@@ -373,12 +353,10 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Stopping Rule for IP Local Search: \n"
     " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-    " - simple:       ALENEX'16 threshold based on i-r-i\n"
-    "(default: simple)")
+    " - simple:       ALENEX'16 threshold based on i-r-i")
     ("i-r-fm-stop-i",
     po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-    "Max. # fruitless moves before stopping local search \n"
-    "(default: 50)")
+    "Max. # fruitless moves before stopping local search")
     ("i-r-runs",
     po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
@@ -388,7 +366,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       }
     }),
     "Max. # local search repetitions on each level \n"
-    "(default:1, no limit:-1)");
+    "(no limit:-1)");
 
   po::options_description refinement_options("Refinement Options", num_columns);
   refinement_options.add_options()
@@ -401,8 +379,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - twoway_fm   : 2-way FM algorithm\n"
     " - kway_fm     : k-way FM algorithm (cut) \n"
     " - kway_fm_km1 : k-way FM algorithm (km1)\n"
-    " - sclap       : Size-constrained Label Propagation \n"
-    "(default: twoway_fm)")
+    " - sclap       : Size-constrained Label Propagation")
     ("r-runs",
     po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
@@ -411,11 +388,11 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       }
     }),
     "Max. # local search repetitions on each level\n"
-    "(default:1, no limit:-1)")
+    "(no limit:-1)")
     ("r-sclap-runs",
     po::value<int>(&context.local_search.sclap.max_number_iterations)->value_name("<int>"),
     "Maximum # iterations for ScLaP-based refinement \n"
-    "(default: -1 infinite)")
+    "(no limit: -1)")
     ("r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& stopfm) {
@@ -423,16 +400,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "Stopping Rule for Local Search: \n"
     " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-    " - simple:       ALENEX'16 threshold based on r-fm-stop-i\n"
-    "(default: simple)")
+    " - simple:       ALENEX'16 threshold based on r-fm-stop-i")
     ("r-fm-stop-i",
     po::value<uint32_t>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-    "Max. # fruitless moves before stopping local search using simple stopping rule \n"
-    "(default: 350)")
+    "Max. # fruitless moves before stopping local search using simple stopping rule")
     ("r-fm-stop-alpha",
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rule \n"
-    "(default: 1,infinity: -1)");
+    "(infinity: -1)");
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
