@@ -173,7 +173,7 @@ class Louvain {
 
   EdgeWeight louvain_pass(Graph& graph, QualityMeasure& quality) {
     size_t node_moves = 0;
-    int iterations = 0;
+    uint32_t iterations = 0;
 
     _random_node_order.clear();
     for (const NodeID& node : graph.nodes()) {

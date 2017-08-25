@@ -31,39 +31,46 @@ enum class ContextType : bool {
 
 enum class Mode : uint8_t {
   recursive_bisection,
-  direct_kway
+  direct_kway,
+  UNDEFINED
 };
 
 enum class InitialPartitioningTechnique : uint8_t {
   multilevel,
-  flat
+  flat,
+  UNDEFINED
 };
 
 enum class RatingFunction : uint8_t {
   heavy_edge,
-  edge_frequency
+  edge_frequency,
+  UNDEFINED
 };
 
 enum class CommunityPolicy : uint8_t {
   use_communities,
-  ignore_communities
+  ignore_communities,
+  UNDEFINED
 };
 
 enum class HeavyNodePenaltyPolicy : uint8_t {
   no_penalty,
-  multiplicative_penalty
+  multiplicative_penalty,
+  UNDEFINED
 };
 
 enum class AcceptancePolicy : uint8_t {
   best,
-  best_prefer_unmatched
+  best_prefer_unmatched,
+  UNDEFINED
 };
 
 enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
   ml_style,
-  do_nothing
+  do_nothing,
+  UNDEFINED
 };
 
 enum class RefinementAlgorithm : uint8_t {
@@ -72,7 +79,8 @@ enum class RefinementAlgorithm : uint8_t {
   kway_fm_maxgain,
   kway_fm_km1,
   label_propagation,
-  do_nothing
+  do_nothing,
+  UNDEFINED
 };
 
 enum class InitialPartitionerAlgorithm : uint8_t {
@@ -88,30 +96,35 @@ enum class InitialPartitionerAlgorithm : uint8_t {
   bfs,
   random,
   lp,
-  pool
+  pool,
+  UNDEFINED
 };
 
 enum class LouvainEdgeWeight : uint8_t {
   hybrid,
   uniform,
   non_uniform,
-  degree
+  degree,
+  UNDEFINED
 };
 
 enum class RefinementStoppingRule : uint8_t {
   simple,
   adaptive_opt,
+  UNDEFINED
 };
 
 enum class Objective : uint8_t {
   cut,
-  km1
+  km1,
+  UNDEFINED
 };
 
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection: return os << "recursive";
     case Mode::direct_kway: return os << "direct";
+    case Mode::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mode);
@@ -127,10 +140,11 @@ std::ostream& operator<< (std::ostream& os, const ContextType& type) {
 }
 
 std::ostream& operator<< (std::ostream& os, const CommunityPolicy& comm_policy) {
-  if (comm_policy == CommunityPolicy::use_communities) {
-    return os << "true";
-  } else {
-    return os << "false";
+  switch (comm_policy) {
+    case CommunityPolicy::use_communities: return os << "true";
+    case CommunityPolicy::ignore_communities: return os << "false";
+    case CommunityPolicy::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(comm_policy);
 }
@@ -139,6 +153,7 @@ std::ostream& operator<< (std::ostream& os, const HeavyNodePenaltyPolicy& heavy_
   switch (heavy_hn_policy) {
     case HeavyNodePenaltyPolicy::multiplicative_penalty: return os << "multiplicative";
     case HeavyNodePenaltyPolicy::no_penalty: return os << "no_penalty";
+    case HeavyNodePenaltyPolicy::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(heavy_hn_policy);
@@ -148,6 +163,7 @@ std::ostream& operator<< (std::ostream& os, const AcceptancePolicy& acceptance_p
   switch (acceptance_policy) {
     case AcceptancePolicy::best: return os << "best";
     case AcceptancePolicy::best_prefer_unmatched: return os << "best_prefer_unmatched";
+    case AcceptancePolicy::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(acceptance_policy);
@@ -157,6 +173,7 @@ std::ostream& operator<< (std::ostream& os, const RatingFunction& func) {
   switch (func) {
     case RatingFunction::heavy_edge: return os << "heavy_edge";
     case RatingFunction::edge_frequency: return os << "edge_frequency";
+    case RatingFunction::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(func);
@@ -166,6 +183,7 @@ std::ostream& operator<< (std::ostream& os, const Objective& objective) {
   switch (objective) {
     case Objective::cut: return os << "cut";
     case Objective::km1: return os << "km1";
+    case Objective::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(objective);
@@ -175,6 +193,7 @@ std::ostream& operator<< (std::ostream& os, const InitialPartitioningTechnique& 
   switch (technique) {
     case InitialPartitioningTechnique::flat: return os << "flat";
     case InitialPartitioningTechnique::multilevel: return os << "multilevel";
+    case InitialPartitioningTechnique::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(technique);
@@ -186,6 +205,7 @@ std::ostream& operator<< (std::ostream& os, const CoarseningAlgorithm& algo) {
     case CoarseningAlgorithm::heavy_lazy: return os << "heavy_lazy";
     case CoarseningAlgorithm::ml_style: return os << "ml_style";
     case CoarseningAlgorithm::do_nothing: return os << "do_nothing";
+    case CoarseningAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(algo);
@@ -199,6 +219,7 @@ std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
     case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
     case RefinementAlgorithm::label_propagation: return os << "label_propagation";
     case RefinementAlgorithm::do_nothing: return os << "do_nothing";
+    case RefinementAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(algo);
@@ -219,6 +240,7 @@ std::ostream& operator<< (std::ostream& os, const InitialPartitionerAlgorithm& a
     case InitialPartitionerAlgorithm::random: return os << "random";
     case InitialPartitionerAlgorithm::lp: return os << "lp";
     case InitialPartitionerAlgorithm::pool: return os << "pool";
+    case InitialPartitionerAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(algo);
@@ -230,6 +252,7 @@ std::ostream& operator<< (std::ostream& os, const LouvainEdgeWeight& weight) {
     case LouvainEdgeWeight::uniform: return os << "uniform";
     case LouvainEdgeWeight::non_uniform: return os << "non_uniform";
     case LouvainEdgeWeight::degree: return os << "degree";
+    case LouvainEdgeWeight::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(weight);
@@ -239,6 +262,7 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   switch (rule) {
     case RefinementStoppingRule::simple: return os << "simple";
     case RefinementStoppingRule::adaptive_opt: return os << "adaptive_opt";
+    case RefinementStoppingRule::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(rule);

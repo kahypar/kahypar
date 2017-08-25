@@ -86,7 +86,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
   HyperedgeWeight initial_km1 = std::numeric_limits<HyperedgeWeight>::max();
 #endif
 
-  for (int vcycle = 1; vcycle <= context.partition.global_search_iterations; ++vcycle) {
+  for (uint32_t vcycle = 1; vcycle <= context.partition.global_search_iterations; ++vcycle) {
     context.partition.current_v_cycle = vcycle;
     const bool improved_quality = partitionVCycle(hypergraph, *coarsener, *refiner, context);
 

@@ -35,7 +35,7 @@ class StoppingPolicy : public meta::PolicyBase {
 
 class NumberOfFruitlessMovesStopsSearch : public StoppingPolicy {
  public:
-  bool searchShouldStop(const int num_moves, const Context& context,
+  bool searchShouldStop(const uint32_t num_moves, const Context& context,
                         const double, const HyperedgeWeight, const HyperedgeWeight) {
     return num_moves >= context.local_search.fm.max_number_of_fruitless_moves;
   }

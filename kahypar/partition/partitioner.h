@@ -72,6 +72,9 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
     case Mode::direct_kway:
       direct_kway::partition(hypergraph, context);
       break;
+    case Mode::UNDEFINED:
+      LOG << "Partitioning Mode undefined!";
+      std::exit(-1);
   }
 }
 }  // namespace partition

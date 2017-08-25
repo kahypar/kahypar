@@ -139,7 +139,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Hyperedges larger than cmaxnet are ignored during partitioning process. \n"
     "(default: -1, disabled)")
     ("vcycles",
-    po::value<int>(&context.partition.global_search_iterations)->value_name("<int>"),
+    po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
     "# V-cycle iterations for direct k-way partitioning \n"
     "(default: 0)");
 
@@ -177,7 +177,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Using louvain community detection for coarsening during initial partitioning\n"
     "(default: false)")
     ("p-max-louvain-pass-iterations",
-    po::value<int>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<int>"),
+    po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
     "Maximum number of iterations over all nodes of one louvain pass\n"
     "(default: 100)")
     ("p-min-eps-improvement",
@@ -350,7 +350,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "random (default)"
     "prefer_unmatched")
     ("i-runs",
-    po::value<int>(&context.initial_partitioning.nruns)->value_name("<int>"),
+    po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials \n"
     "(default: 20)")
     ("i-r-type",
@@ -376,7 +376,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - simple:       ALENEX'16 threshold based on i-r-i\n"
     "(default: simple)")
     ("i-r-fm-stop-i",
-    po::value<int>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
     "Max. # fruitless moves before stopping local search \n"
     "(default: 50)")
     ("i-r-runs",
@@ -426,7 +426,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     " - simple:       ALENEX'16 threshold based on r-fm-stop-i\n"
     "(default: simple)")
     ("r-fm-stop-i",
-    po::value<int>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<int>"),
+    po::value<uint32_t>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
     "Max. # fruitless moves before stopping local search using simple stopping rule \n"
     "(default: 350)")
     ("r-fm-stop-alpha",
