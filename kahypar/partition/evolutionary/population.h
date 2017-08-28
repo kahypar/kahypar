@@ -37,29 +37,32 @@ class Population {
   explicit Population() :
     _individuals() { }
 
-  inline void insert(Individual&& individual, const Context& context) {
+  inline size_t insert(Individual&& individual, const Context& context) {
     DBG << context.evolutionary.replace_strategy;
     switch (context.evolutionary.replace_strategy) {
       case EvoReplaceStrategy::worst:
-        forceInsert(std::move(individual), worst());
-        return;
+        return forceInsert(std::move(individual), worst());
+        
       case EvoReplaceStrategy::diverse:
-        replaceDiverse(std::move(individual), false);
-        return;
+        return replaceDiverse(std::move(individual), false);
+        
       case EvoReplaceStrategy::strong_diverse:
-        replaceDiverse(std::move(individual), true);
-        return;
+        return replaceDiverse(std::move(individual), true);
+      default : 
+      return std::numeric_limits<int>::max();  
     }
   }
-  inline void forceInsert(Individual&& individual, const size_t position) {
+  inline size_t forceInsert(Individual&& individual, const size_t position) {
     DBG << V(position) << V(individual.fitness());
     _individuals[position] = std::move(individual);
+    return position;
   }
-  inline void forceInsertSaveBest(Individual&& individual, const size_t position) {
+  inline size_t forceInsertSaveBest(Individual&& individual, const size_t position) {
     DBG << V(position) << V(individual.fitness());
     if(individual.fitness() <= _individuals[position].fitness() || position != best()) {
        _individuals[position] = std::move(individual);
     } 
+    return position;
    
   }
   inline const Individual & singleTournamentSelection() const {
@@ -179,11 +182,9 @@ class Population {
     std::partial_sort(sorting.begin(), sorting.begin() + amount, sorting.end());
     
     Individuals best_individuals;
-    std::cout << std::endl;
     for (size_t i = 0; i < amount; ++i) {
       best_individuals.push_back(_individuals[sorting[i].second]);
     }
-       std::cout << std::endl;
     return best_individuals;
   }
 
@@ -204,8 +205,7 @@ class Population {
       _individuals[i].printDebug();
     }
   }
- private:
-  inline size_t difference(const Individual& individual, const size_t position,
+    inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
     if (strong_set) {
@@ -232,6 +232,8 @@ class Population {
     DBG << V(output_diff.size());
     return output_diff.size();
   }
+ private:
+
 
   inline size_t replaceDiverse(Individual&& individual, const bool strong_set) {
     // TODO fix, that these can be inserted

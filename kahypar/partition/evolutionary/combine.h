@@ -46,10 +46,14 @@ Individual partitions(Hypergraph& hg,
   hg.setPartition(parents.first.partition());
   ASSERT(parents.first.fitness() == metrics::km1(hg));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  hg.setPartition(parents.second.partition());
-  ASSERT(parents.second.fitness() == metrics::km1(hg));
-  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   hg.reset();
+  if(!context.evolutionary.action.requires().invalidation_of_second_partition) {
+  
+    hg.setPartition(parents.second.partition());
+    ASSERT(parents.second.fitness() == metrics::km1(hg));
+    DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
+    hg.reset();
+  }
 #endif
   hg.reset();
   HypernodeID original_contraction_limit_multiplier = context.coarsening.contraction_limit_multiplier;
@@ -61,6 +65,7 @@ Individual partitions(Hypergraph& hg,
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
+  io::printEvolutionaryInformation(context);
   Individual indi = Individual(hg);
   return Individual(hg);
 }
@@ -142,7 +147,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created
         ASSERT(context.evolutionary.communities.size() != 0);
 
-
+        
         const Individual lovain_individual = Individual(context.evolutionary.communities);
 
         combine_context.evolutionary.action = Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>() };
@@ -202,6 +207,7 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg);
 }
 

@@ -38,10 +38,9 @@ class Action {
     _decision(EvoDecision::normal),
     _requires() {
     _requires.initial_partitioning = true;
-    _requires.community_detection = true;
+    _requires.community_detection = false;
   }
 
-  // TODO(robin): Verfiy the settings
   Action(meta::Int2Type<static_cast<int>(EvoDecision::combine)>) :
     _decision(EvoDecision::combine),
     _requires() {

@@ -76,7 +76,7 @@ class EvoPartitioner {
       _population.generateIndividual(hg, context);
       context.evolutionary.elapsed_seconds_total = measureTime();
       io::serializer::serializeEvolutionary(context, hg);
-
+      verbose(context, 0);
       DBG << _population;
       
     }
@@ -139,20 +139,25 @@ class EvoPartitioner {
     EvoCombineStrategy original_strategy = context.evolutionary.combine_strategy;
     context.evolutionary.combine_strategy = pick::appropriateCombineStrategy(context);
     switch (context.evolutionary.combine_strategy) {
-      case EvoCombineStrategy::basic:
+      case EvoCombineStrategy::basic: {
         // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-        _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
+        size_t insert_position = _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
+        verbose(context, insert_position);
         break;
-      case EvoCombineStrategy::with_edge_frequency_information:
-        _population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
+        }
+      case EvoCombineStrategy::with_edge_frequency_information: {
+        size_t insert_position =_population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
                                                                              context,
                                                                              _population),
                            context);
-                          
+        verbose(context, insert_position);      
         break;
-      case EvoCombineStrategy::edge_frequency:
-        _population.insert(combine::edgeFrequency(hg, context, _population), context);
+        }
+      case EvoCombineStrategy::edge_frequency: {
+        size_t insert_position =_population.insert(combine::edgeFrequency(hg, context, _population), context);
+        verbose(context, insert_position);
         break;
+        }
     }
     context.evolutionary.combine_strategy = original_strategy;
   }
@@ -160,8 +165,9 @@ class EvoPartitioner {
 
   inline void performCrossCombine(Hypergraph& hg, const Context& context) {
     context.evolutionary.cross_combine_strategy = pick::appropriateCrossCombineStrategy(context);
-    _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
+    size_t insert_position = _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
                                              context), context);
+    verbose(context, insert_position);
   }
 
   //TODO the best element may be mutated, but in that case the result must be better
@@ -172,34 +178,73 @@ class EvoPartitioner {
     DBG << V(context.evolutionary.mutate_strategy);
     DBG << V(mutation_position);
     switch (context.evolutionary.mutate_strategy) {
-      case EvoMutateStrategy::new_initial_partitioning_vcycle:
+      case EvoMutateStrategy::new_initial_partitioning_vcycle: {
      
         _population.forceInsertSaveBest(
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutation_position),
                                                    context), mutation_position);
+        verbose(context, mutation_position);
         break;
-      case EvoMutateStrategy::vcycle:
+        }
+      case EvoMutateStrategy::vcycle: {
         _population.forceInsertSaveBest(
           mutate::vCycle(hg, _population.individualAt(mutation_position), context),
           mutation_position);
+        verbose(context, mutation_position);
         break;
-      case EvoMutateStrategy::single_stable_net:
+        }
+      case EvoMutateStrategy::single_stable_net: {
         _population.forceInsertSaveBest(mutate::removeStableNets(hg,
                                                          _population.individualAt(mutation_position),
                                                          context), mutation_position);
+        verbose(context, mutation_position);
         break;
-      case EvoMutateStrategy::population_stable_net:
+        }
+      case EvoMutateStrategy::population_stable_net: {
       
         _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
-       //_population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  context);
+        verbose(context, mutation_position);
         break;
+        }
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
-
+    bool initial_partitioning = false;
+    bool evolutionary_parent_contraction = false;
+    bool vcycle_stable_net_collection = false;
+    bool invalidation_of_second_partition = false;
+    bool community_detection = false;
   inline void diversify();
-
+  inline void verbose(const Context& context, size_t position) {
+    io::printPopulationBanner(context);
+    //LOG << _population.individualAt(_population.worst()).fitness();
+    unsigned number_of_digits = 0;
+    unsigned n = _population.individualAt(_population.worst()).fitness();
+    unsigned best = _population.best();
+      do {
+        ++number_of_digits; 
+        n /= 10;
+      } while (n);
+    
+    for(int i = 0; i < _population.size(); ++i) {
+      if(i == position) {
+        std::cout  <<">" <<  _population.individualAt(i).fitness() << "<";
+      } else 
+      if(i == best) {
+        std::cout   <<"(" <<  _population.individualAt(i).fitness() << ")";
+      } else {
+        std::cout  <<" " <<  _population.individualAt(i).fitness() << " ";
+      }
+      
+    }LOG << "";
+    for(int i = 0; i < _population.size(); ++i) {
+      std::cout << " ";
+      std::cout << std::setw(number_of_digits) << _population.difference(_population.individualAt(best), i, true);
+      std::cout << " ";
+    }
+    LOG << "";
+  }
   inline std::chrono::duration<double> measureTime() {
     const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
     return currentTime - _globalstart;

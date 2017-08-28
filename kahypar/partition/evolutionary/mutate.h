@@ -45,6 +45,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   Partitioner().partition(hg, temporary_context);
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg);
 }
 
@@ -63,6 +64,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   Partitioner().partition(hg, temporary_context);
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg);
 }
 
@@ -93,13 +95,13 @@ Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context&
   Partitioner().partition(hg, temporary_context);
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg);
 }
 
 
 Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Individual& in, const Context& context) {
   // No action required as we do not access the partitioner for this
-
   DBG << "action.decision() = population_stable_net";
   DBG << V(context.evolutionary.stable_net_amount);
   std::vector<HyperedgeID> stable_nets =
@@ -116,9 +118,7 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
   temporary_context.evolutionary.action =
     Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
            meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>());
-
   Partitioner().partition(hg, temporary_context);
-
 
   // Output action for logging
   temporary_context.evolutionary.action =
@@ -127,6 +127,7 @@ Individual removePopulationStableNets(Hypergraph& hg, const Population& populati
   // Output action
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
+  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg);
 }
 }  // namespace mutate

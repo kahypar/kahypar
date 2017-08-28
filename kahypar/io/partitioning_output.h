@@ -193,7 +193,26 @@ inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
   }
 }
 
-
+inline void printEvolutionaryInformation(const Context& context) {
+    return;
+    LOG << "Action Type:" << context.evolutionary.action.decision();
+    switch(context.evolutionary.action.decision()) {
+      case EvoDecision::combine : 
+      LOG << "Action Subtype:" << context.evolutionary.combine_strategy;
+      break;
+      case EvoDecision::mutation : 
+      LOG << "Action Subtype:" << context.evolutionary.mutate_strategy;
+      break;                            
+      case EvoDecision::cross_combine : LOG << "Action Subtype:" << context.evolutionary.cross_combine_strategy;
+      break;
+    }
+    LOG << "Requirements:";
+    LOG << "  initial partitioning            :" << std::boolalpha << context.evolutionary.action.requires().initial_partitioning;
+    LOG << "  evolutionary parent contraction :" << std::boolalpha << context.evolutionary.action.requires().evolutionary_parent_contraction;
+    LOG << "  vcycle stable nets              :" << std::boolalpha << context.evolutionary.action.requires().vcycle_stable_net_collection;
+    LOG << "  invalidation of second partition:" << std::boolalpha << context.evolutionary.action.requires().invalidation_of_second_partition;
+    LOG << "  community detection             :" << std::boolalpha << context.evolutionary.action.requires().community_detection;
+}
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Context& context,
                                      const std::chrono::duration<double>& elapsed_seconds) {
@@ -345,7 +364,13 @@ static inline void printLocalSearchBanner(const Context& context) {
     LOG << "********************************************************************************";
   }
 }
-
+static inline void printPopulationBanner(const Context& context) {
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    LOG << "\n********************************************************************************";
+    LOG << "*                                Population...                                 *";
+    LOG << "********************************************************************************";
+  } 
+}
 static inline void printVcycleBanner(const Context& context) {
   if (context.partition.verbose_output && context.type == ContextType::main) {
     if (context.partition.verbose_output) {
