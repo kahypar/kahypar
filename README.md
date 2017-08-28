@@ -8,7 +8,7 @@ License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarQube|
 What is a Hypergraph? What is Hypergraph Partitioning?
 -----------
 [Hypergraphs][HYPERGRAPHWIKI] are a generalization of graphs, where each (hyper)edge (also called net) can
-connect more than two vertices. The *k*-way hypergraph partitioning problem is the generalization of the well-known graph partitioning problem: partition the vertex set into *k* disjoint
+connect more than two vertices. The *k*-way hypergraph partitioning problem is the generalization of the well-known [graph partitioning][GraphPartition] problem: partition the vertex set into *k* disjoint
 blocks of bounded size (at most 1 + ε times the average block size), while minimizing an
 objective function defined on the nets. 
 
@@ -186,3 +186,4 @@ feel free to contact me or create an issue on the
 [ALENEX'16bench]: http://dx.doi.org/10.5281/zenodo.30176
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
+[GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
