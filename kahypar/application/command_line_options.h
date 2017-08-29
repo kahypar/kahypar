@@ -255,6 +255,10 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     ("i-r-fm-stop-i",
     po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
     "Max. # fruitless moves before stopping local search")
+    ("i-r-fm-stop-alpha",
+    po::value<double>(&context.initial_partitioning.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
+    "Parameter alpha for adaptive stopping rule \n"
+    "(infinity: -1)")
     ("i-r-runs",
     po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
