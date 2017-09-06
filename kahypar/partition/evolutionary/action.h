@@ -38,7 +38,7 @@ class Action {
     _decision(EvoDecision::normal),
     _requires() {
     _requires.initial_partitioning = true;
-    _requires.community_detection = false;
+    _requires.community_detection = true;
   }
 
   Action(meta::Int2Type<static_cast<int>(EvoDecision::combine)>) :

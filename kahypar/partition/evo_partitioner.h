@@ -171,6 +171,9 @@ class EvoPartitioner {
   }
 
   //TODO the best element may be mutated, but in that case the result must be better
+  
+  //REMEMBER: When switching back to calling force inserts, add the position i.e:
+  //_population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
   inline void performMutation(Hypergraph& hg, const Context& context) {
     const size_t mutation_position = _population.randomIndividual();
     EvoMutateStrategy original_strategy = context.evolutionary.mutate_strategy;
@@ -180,30 +183,29 @@ class EvoPartitioner {
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle: {
      
-        _population.forceInsertSaveBest(
+        _population.insert(
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutation_position),
-                                                   context), mutation_position);
+                                                   context), context);
         verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::vcycle: {
-        _population.forceInsertSaveBest(
-          mutate::vCycle(hg, _population.individualAt(mutation_position), context),
-          mutation_position);
+        _population.insert(
+          mutate::vCycle(hg, _population.individualAt(mutation_position), context), context);
         verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::single_stable_net: {
-        _population.forceInsertSaveBest(mutate::removeStableNets(hg,
+        _population.insert(mutate::removeStableNets(hg,
                                                          _population.individualAt(mutation_position),
-                                                         context), mutation_position);
+                                                         context), context);
         verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::population_stable_net: {
       
-        _population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
+        _population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context), context);
         verbose(context, mutation_position);
         break;
         }
