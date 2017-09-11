@@ -19,7 +19,7 @@
 ******************************************************************************/
 
 #pragma once
-#include <boost/program_options.hpp>
+
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -194,24 +194,30 @@ inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
 }
 
 inline void printEvolutionaryInformation(const Context& context) {
-    return;
-    LOG << "Action Type:" << context.evolutionary.action.decision();
-    switch(context.evolutionary.action.decision()) {
-      case EvoDecision::combine : 
+  return;
+  LOG << "Action Type:" << context.evolutionary.action.decision();
+  switch (context.evolutionary.action.decision()) {
+    case EvoDecision::normal:
+      break;
+    case EvoDecision::combine:
       LOG << "Action Subtype:" << context.evolutionary.combine_strategy;
       break;
-      case EvoDecision::mutation : 
+    case EvoDecision::mutation:
       LOG << "Action Subtype:" << context.evolutionary.mutate_strategy;
-      break;                            
-      case EvoDecision::cross_combine : LOG << "Action Subtype:" << context.evolutionary.cross_combine_strategy;
       break;
-    }
-    LOG << "Requirements:";
-    LOG << "  initial partitioning            :" << std::boolalpha << context.evolutionary.action.requires().initial_partitioning;
-    LOG << "  evolutionary parent contraction :" << std::boolalpha << context.evolutionary.action.requires().evolutionary_parent_contraction;
-    LOG << "  vcycle stable nets              :" << std::boolalpha << context.evolutionary.action.requires().vcycle_stable_net_collection;
-    LOG << "  invalidation of second partition:" << std::boolalpha << context.evolutionary.action.requires().invalidation_of_second_partition;
-    LOG << "  community detection             :" << std::boolalpha << context.evolutionary.action.requires().community_detection;
+    case EvoDecision::cross_combine:
+      LOG << "Action Subtype:" << context.evolutionary.cross_combine_strategy;
+      break;
+  }
+  LOG << "Requirements:";
+  LOG << "  initial partitioning            :" << std::boolalpha
+      << context.evolutionary.action.requires().initial_partitioning;
+  LOG << "  evolutionary parent contraction :" << std::boolalpha
+      << context.evolutionary.action.requires().evolutionary_parent_contraction;
+  LOG << "  vcycle stable nets              :" << std::boolalpha
+      << context.evolutionary.action.requires().vcycle_stable_net_collection;
+  LOG << "  invalidation of second partition:" << std::boolalpha
+      << context.evolutionary.action.requires().invalidation_of_second_partition;
 }
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Context& context,
@@ -369,7 +375,7 @@ static inline void printPopulationBanner(const Context& context) {
     LOG << "\n********************************************************************************";
     LOG << "*                                Population...                                 *";
     LOG << "********************************************************************************";
-  } 
+  }
 }
 static inline void printVcycleBanner(const Context& context) {
   if (context.partition.verbose_output && context.type == ContextType::main) {

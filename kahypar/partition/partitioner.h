@@ -154,11 +154,8 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
     }
   }
 
-  if ((context.preprocessing.enable_community_detection &&
-       context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) ||
-      (context.partition_evolutionary &&
-       context.evolutionary.communities.size() == 0 &&
-       context.evolutionary.action.requires().community_detection)) {
+  if (context.preprocessing.enable_community_detection &&
+       context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
     const double density = static_cast<double>(hypergraph.initialNumEdges()) /
                            static_cast<double>(hypergraph.initialNumNodes());
     if (density < 0.75) {
@@ -205,27 +202,19 @@ inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context
 }
 
 inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& context) {
-// In evolutionary mode, we want to perform community detection only once, for runtime
-  if (context.partition_evolutionary &&
-      context.evolutionary.action.requires().community_detection) {
-    if (context.evolutionary.communities.empty()) {
+  // In recursive bisection mode, we perform community detection before each
+  // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
+  if (context.partition.mode != Mode::recursive_bisection &&
+      context.preprocessing.enable_community_detection) {
+    // Repeated executions of non-evolutionary KaHyPar also re-use the community structure.
+    if (context.evolutionary.communities.empty() ||
+        context.preprocessing.min_hash_sparsifier.is_active) {
+      // If sparsification is enabled, we can't reuse the community structure
+      // since each sparsification call might return a different hypergraph.
       detectCommunities(hypergraph, context);
       context.evolutionary.communities = hypergraph.communities();
     } else {
       hypergraph.setCommunities(context.getCommunities());
-    }
-  } else {
-    // In recursive bisection mode, we perform community detection before each
-    // bisection. Therefore the 'top-level' preprocessing is disabled in this case.
-    if (context.partition.mode != Mode::recursive_bisection &&
-        context.preprocessing.enable_community_detection) {
-      // Repeated executions of non-evolutionary KaHyPar also re-use the community structure.
-      if (context.evolutionary.communities.empty()) {
-        detectCommunities(hypergraph, context);
-        context.evolutionary.communities = hypergraph.communities();
-      } else {
-        hypergraph.setCommunities(context.getCommunities());
-      }
     }
   }
 }
