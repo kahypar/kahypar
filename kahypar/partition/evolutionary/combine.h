@@ -23,8 +23,7 @@
 #include <limits>
 #include <utility>
 #include <vector>
-#include <boost/program_options.hpp>
-//#include "kahypar/io/config_file_reader.h"
+
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/population.h"
@@ -47,8 +46,7 @@ Individual partitions(Hypergraph& hg,
   ASSERT(parents.first.fitness() == metrics::km1(hg));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   hg.reset();
-  if(!context.evolutionary.action.requires().invalidation_of_second_partition) {
-  
+  if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
     hg.setPartition(parents.second.partition());
     ASSERT(parents.second.fitness() == metrics::km1(hg));
     DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
@@ -57,11 +55,11 @@ Individual partitions(Hypergraph& hg,
 #endif
   hg.reset();
   HypernodeID original_contraction_limit_multiplier = context.coarsening.contraction_limit_multiplier;
-  if(context.evolutionary.unlimited_coarsening_contraction) {
+  if (context.evolutionary.unlimited_coarsening_contraction) {
     context.coarsening.contraction_limit_multiplier = 1;
   }
   Partitioner().partition(hg, context);
-  context.coarsening.contraction_limit_multiplier =  original_contraction_limit_multiplier;
+  context.coarsening.contraction_limit_multiplier = original_contraction_limit_multiplier;
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
@@ -80,20 +78,20 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
   temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
 
   const auto& parents = population.tournamentSelect();
-  
+
 
   return combine::partitions(hg, parents, temporary_context);
 }
 
 
 Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& context) {
-  //For the creation of the Cross Combine Individual
+  // For the creation of the Cross Combine Individual
   Context temporary_context(context);
-  //For the combine afterwards
+  // For the combine afterwards
   Context combine_context(context);
   combine_context.evolutionary.parent1 = &in.partition();
-  
-  //the initial action is a simple partition and should be treated that way
+
+  // the initial action is a simple partition and should be treated that way
   temporary_context.evolutionary.action = Action();
 
   switch (context.evolutionary.cross_combine_strategy) {
@@ -134,31 +132,26 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
       LOG << "Cross Combine Mode unspecified ";
       std::exit(1);
     case EvoCrossCombineStrategy::louvain: {
-    
-    
-         if (context.evolutionary.communities.size() == 0) {
+        if (context.evolutionary.communities.empty()) {
           detectCommunities(hg, context);
           context.evolutionary.communities = hg.communities();
         }
         temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
         temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-        // Removed, now vector in config
-        //detectCommunities(hg, temporary_context);
-        //TODO currently i have to hope that the Graph is partitioned at least once, and the communities are created
-        ASSERT(context.evolutionary.communities.size() != 0);
+        ASSERT(!context.evolutionary.communities.empty());
 
-        
+
         const Individual lovain_individual = Individual(context.evolutionary.communities);
 
         combine_context.evolutionary.action = Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>() };
         combine_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-  combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
+        combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
       }
   }
 
-  
+
   hg.reset();
   hg.changeK(temporary_context.partition.k);
   Partitioner().partition(hg, temporary_context);
@@ -166,7 +159,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   hg.reset();
   hg.changeK(context.partition.k);
   combine_context.evolutionary.action =
-           Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
+    Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
   combine_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
   combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
   Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), combine_context);
@@ -175,11 +168,11 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
   DBG << "---------------------------CROSSCOMBINE---------------------";
   DBG << "Cross Combine Strategy: " << context.evolutionary.cross_combine_strategy;
   DBG << "Original Individuum ";
-  //in.print();
+  // in.print();
   DBG << "Cross Combine Individuum ";
-  //cross_combine_individual.print();
+  // cross_combine_individual.print();
   DBG << "Result Individuum ";
-  //ret.print();
+  // ret.print();
   DBG << "---------------------------DEBUG----------------------------";
   DBG << "------------------------------------------------------------";
   return ret;
@@ -226,11 +219,11 @@ Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
                          hg.initialNumEdges());
 
   const auto& parents = population.tournamentSelect();
-  
-  //TODO remove
-  
-  //temporary_context.evolutionary.parent1 = &parents.first.get().partition();
-  //temporary_context.evolutionary.parent2 = &parents.second.get().partition();
+
+  // TODO remove
+
+  // temporary_context.evolutionary.parent1 = &parents.first.get().partition();
+  // temporary_context.evolutionary.parent2 = &parents.second.get().partition();
 
   DBG << V(temporary_context.evolutionary.action.decision());
   return combine::partitions(hg, parents, temporary_context);
