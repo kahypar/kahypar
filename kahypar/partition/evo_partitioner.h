@@ -49,12 +49,12 @@ class EvoPartitioner {
 
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
-    context.evolutionary.elapsed_seconds_total = measureTime();
+    context.measureTime();
     //INITIAL POPULATION
     if(context.evolutionary.dynamic_population_size) {
       _population.generateIndividual(hg, context); 
       ++context.evolutionary.iteration;
-      context.evolutionary.elapsed_seconds_total = measureTime();
+      context.measureTime();
       io::serializer::serializeEvolutionary(context, hg);
       int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                            * context.evolutionary.time_limit_seconds
@@ -74,7 +74,7 @@ class EvoPartitioner {
       context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
       _population.generateIndividual(hg, context);
-      context.evolutionary.elapsed_seconds_total = measureTime();
+      context.measureTime();
       io::serializer::serializeEvolutionary(context, hg);
       verbose(context, 0);
       DBG << _population;
@@ -114,7 +114,7 @@ class EvoPartitioner {
           std::exit(EXIT_FAILURE);
       }
 
-      context.evolutionary.elapsed_seconds_total = measureTime();
+      context.measureTime();
     }
   }
 

@@ -342,6 +342,7 @@ struct EvolutionaryParameters {
   bool log_everything = false;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
+  HighResClockTimepoint start_time = std::chrono::high_resolution_clock::now();
   mutable std::vector<HyperedgeID> stable_nets_vcycle;
   mutable std::vector<HyperedgeID> stable_nets_final;
   mutable std::vector<size_t> edge_frequency;
@@ -394,12 +395,16 @@ class Context {
     partition_evolutionary(other.partition_evolutionary) { }
 
   Context& operator= (const Context&) = delete;
-
+  
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }
   std::vector<ClusterID> getCommunities() const {
     return evolutionary.communities;
+  }
+  void measureTime() const {
+    const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
+    evolutionary.elapsed_seconds_total = currentTime - evolutionary.start_time;
   }
 };
 

@@ -198,6 +198,7 @@ static inline void close() {
   out_file.close();
 }
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
+  context.measureTime();
   if(!context.evolutionary.log_output || context.evolutionary.filename == "") {
     return;
   }
