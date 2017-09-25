@@ -350,6 +350,7 @@ struct EvolutionaryParameters {
   mutable std::vector<ClusterID> communities;
   bool unlimited_coarsening_contraction = true;
   bool random_vcycles = false;
+  float edge_frequency_chance = 0.5;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {

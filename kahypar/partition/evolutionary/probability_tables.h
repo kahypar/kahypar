@@ -6,8 +6,13 @@ namespace pick {
   // NOTE: edge-frequency-information will not be picked by the random strategy.
   inline static EvoCombineStrategy appropriateCombineStrategy(const Context& context) {
     if(context.evolutionary.random_combine_strategy) {
-      int random_pick = Randomize::instance().getRandomInt(0,1);
-      return static_cast<EvoCombineStrategy>(random_pick);
+      float random_pick = Randomize::instance().getRandomFloat(0,1);
+      if(context.evolutionary.edge_frequency_chance >= random_pick) {
+        return static_cast<EvoCombineStrategy>(1);
+      }
+      else {
+        return static_cast<EvoCombineStrategy>(0);
+      }
     }
     else {
       return context.evolutionary.combine_strategy;

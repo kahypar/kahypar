@@ -616,6 +616,13 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     }),
     "The Chance of a mutation being selected as operation\n"
     "default: 0.1)")
+    ("edge-frequency-chance",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& edge_chance) {
+      context.evolutionary.edge_frequency_chance = edge_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.1)")
     ("cross-combine-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& cross_combine_strat) {
