@@ -98,4 +98,51 @@ TEST(ALazyUpdateCoarsener, InvalidatesAdjacentHypernodesInsteadOfReratingThem) {
   ASSERT_THAT(coarsener._outdated_rating[3], Eq(true));
   ASSERT_THAT(coarsener._outdated_rating[4], Eq(true));
 }
+
+
+// By adding the cmaxnet parameter for ml-style coarsening, we introduced
+// the a bug in the lazy coarsener, which violated it's main invariant
+// that for any two possible contraction partners both are in the priority queue.
+// Using cmaxnet can lead to a coarsening process that violates
+// this invariant in the following way:
+// Assume that v0 is a vertex incident two two nets. Let n0 be a net smaller
+// than cmaxnet and n1 a net just above the cmaxnet threshold. Further
+// assume that n1 contains only one pin v1 (also incident to n0)
+// light enough to be contracted with v0. All other pins of n1 are to heavy,
+// while all other pins of n0 are light enough to be contracted
+// with v0/v1.
+// Because of this setup, the only possible contraction is (v0,v1), since
+// all other pins of n1 are to heavy and the pins of n0 are ignored during
+// rating because |n0| > cmaxnet.
+// Now, the LazyCoarsener starts by contracting (v0,v1).
+// After contracting (v0,v1), |n0| <= cmaxnet.
+// This leads to new possible contractions of v0 with pins of n0.
+// However, since these pins have been ignored previously, none of the is in
+// the priority queue. Therefore assertion
+// ASSERT(_pq.contains(contracted_node), V(contracted_node)); fails!
+
+TEST(ALazyUpdateCoarsener, HandlesHyperedgeSizeRestrictionsCorrectlyDuringCoarsening) {
+  Hypergraph hypergraph(12, 2, HyperedgeIndexVector { 0, 10,  /*sentinel*/ 14 },
+                        HyperedgeVector { 0, 1, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3 });
+
+  hypergraph.setNodeWeight(0, 1);
+  hypergraph.setNodeWeight(1, 1);
+  hypergraph.setNodeWeight(2, 100);
+  hypergraph.setNodeWeight(3, 100);
+  hypergraph.setNodeWeight(4, 1);
+  hypergraph.setNodeWeight(5, 1);
+  hypergraph.setNodeWeight(6, 1);
+  hypergraph.setNodeWeight(7, 1);
+  hypergraph.setNodeWeight(8, 1);
+  hypergraph.setNodeWeight(9, 1);
+  hypergraph.setNodeWeight(10, 1);
+  hypergraph.setNodeWeight(11, 1);
+
+  Context context;
+  context.coarsening.max_allowed_node_weight = 5;
+  context.partition.hyperedge_size_threshold = 9;
+
+  CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
+  coarsener.coarsen(4);
+}
 }  // namespace kahypar

@@ -100,8 +100,14 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                V(_pq.topKey()) << V(_rater.rate(rep_node).value));
 
         performContraction(rep_node, contracted_node);
-        ASSERT(_pq.contains(contracted_node), V(contracted_node));
-        _pq.remove(contracted_node);
+
+        // This assertion does not hold if the cmaxnet parameter is used
+        // to restrict the rating function to incident hyperedges of size
+        // <= cmaxnet.
+        // ASSERT(_pq.contains(contracted_node), V(contracted_node));
+        if (_pq.contains(contracted_node)) {
+          _pq.remove(contracted_node);
+        }
 
         // this also invalidates rep_node, however rep_node
         // will be re-rated and updated afterwards
