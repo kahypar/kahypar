@@ -1,4 +1,4 @@
-theme: jekyll-theme-dinky
+theme: jekyll-theme-minimal
 gems:
   - jekyll-seo-tag
 
