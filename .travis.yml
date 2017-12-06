@@ -25,7 +25,7 @@ matrix:
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
             - lcov
-        sonarqube:
+        sonarcloud:
           organization: "sebastianschlag-github"
 
     # gcc 6 - Release Build
