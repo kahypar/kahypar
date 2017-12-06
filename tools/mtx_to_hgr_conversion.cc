@@ -246,6 +246,6 @@ Matrix readMatrix(const std::string& matrix_filename) {
   MatrixData matrix_data;
   parseMatrixEntries(mtx_file, info, matrix_data);
   mtx_file.close();
-  return { info, matrix_data };
+  return Matrix { info, matrix_data };
 }
 }  // namespace mtxconversion
