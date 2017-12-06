@@ -39,8 +39,8 @@ struct MatrixInfo {
 using MatrixData = std::vector<std::vector<int> >;
 
 struct Matrix {
-  MatrixInfo info;
-  MatrixData data;
+  MatrixInfo info { };
+  MatrixData data { };
 };
 
 MatrixInfo parseHeader(std::ifstream& file);
