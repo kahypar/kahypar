@@ -66,11 +66,11 @@ before_script:
 script:
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make -j4; sonar-scanner;
+      build-wrapper --out-dir bw-output make -j4; sonar-scanner;
     elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
       make -j4;
     elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
+      build-wrapper --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
     else
       make -j4;
