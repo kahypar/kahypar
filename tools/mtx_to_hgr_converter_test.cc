@@ -18,13 +18,14 @@
  *
  ******************************************************************************/
 
-#include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "tools/mtx_to_hgr_conversion.h"
 
-using ::testing::Test;
+using::testing::Test;
+using::testing::ContainerEq;
 
 using namespace kahypar;
 
@@ -87,5 +88,46 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
 
   ASSERT_EQ(kahypar::ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                correct_hypergraph), true);
+}
+
+TEST(MTXfiles, CanBeConvertedToHgrsForNonsymmetricLAMAparitioning) {
+  std::string mtx_filename("test_instances/CoordinateGeneral.mtx");
+  std::string hgr_filename("test_instances/CoordinateGeneral_lama.hgr");
+
+  mtxconversion::convertMtxToHgrForNonsymmetricParallelSPM(mtx_filename, hgr_filename);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+
+  ASSERT_EQ(hypergraph.initialNumNodes(), 10);
+  ASSERT_EQ(hypergraph.initialNumEdges(), 5);
+
+  ASSERT_TRUE(hypergraph.type() == Hypergraph::Type::NodeWeights);
+
+  ASSERT_EQ(hypergraph.edgeWeight(0), 1);
+  ASSERT_EQ(hypergraph.edgeWeight(1), 1);
+  ASSERT_EQ(hypergraph.edgeWeight(2), 1);
+  ASSERT_EQ(hypergraph.edgeWeight(3), 1);
+  ASSERT_EQ(hypergraph.edgeWeight(4), 1);
+
+  ASSERT_EQ(hypergraph.nodeWeight(0), 2);
+  ASSERT_EQ(hypergraph.nodeWeight(1), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(2), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(3), 3);
+  ASSERT_EQ(hypergraph.nodeWeight(4), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(5), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(6), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(7), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(8), 1);
+  ASSERT_EQ(hypergraph.nodeWeight(9), 1);
+
+  ASSERT_THAT(std::vector<HypernodeID>(hypergraph.pins(0).first, hypergraph.pins(0).second),
+              ContainerEq(std::vector<HypernodeID>{ 5, 0 }));
+  ASSERT_THAT(std::vector<HypernodeID>(hypergraph.pins(1).first, hypergraph.pins(1).second),
+              ContainerEq(std::vector<HypernodeID>{ 6, 1, 3 }));
+  ASSERT_THAT(std::vector<HypernodeID>(hypergraph.pins(2).first, hypergraph.pins(2).second),
+              ContainerEq(std::vector<HypernodeID>{ 7, 2 }));
+  ASSERT_THAT(std::vector<HypernodeID>(hypergraph.pins(3).first, hypergraph.pins(3).second),
+              ContainerEq(std::vector<HypernodeID>{ 8, 0, 3 }));
+  ASSERT_THAT(std::vector<HypernodeID>(hypergraph.pins(4).first, hypergraph.pins(4).second),
+              ContainerEq(std::vector<HypernodeID>{ 9, 3, 4 }));
 }
 }  // namespace mtxconversion

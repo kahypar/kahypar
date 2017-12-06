@@ -38,10 +38,21 @@ struct MatrixInfo {
 
 using MatrixData = std::vector<std::vector<int> >;
 
+struct Matrix {
+  MatrixInfo info;
+  MatrixData data;
+};
+
 MatrixInfo parseHeader(std::ifstream& file);
 void parseDimensionInformation(std::ifstream& file, MatrixInfo& info);
 void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
 void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
-void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data, const std::string& filename);
-void convertMtxToHgr(const std::string& matrix_filename, const std::string& hypergraph_filename);
+void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
+                            const std::string& filename);
+void convertMtxToHgr(const std::string& matrix_filename,
+                     const std::string& hypergraph_filename);
+void convertMtxToHgrForNonsymmetricParallelSPM(const std::string& matrix_filename,
+                                               const std::string& hypergraph_filename);
+
+Matrix readMatrix(const std::string& matrix_filename);
 }  // namespace mtxconversion
