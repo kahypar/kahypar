@@ -41,6 +41,10 @@ using MatrixData = std::vector<std::vector<int> >;
 struct Matrix {
   MatrixInfo info { };
   MatrixData data { };
+  Matrix(const MatrixInfo& matrix_info, const MatrixData& matrix_data) :
+    info(matrix_info),
+    data(matrix_data) { }
+  Matrix() { }
 };
 
 MatrixInfo parseHeader(std::ifstream& file);
