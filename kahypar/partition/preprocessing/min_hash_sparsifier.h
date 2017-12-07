@@ -34,7 +34,7 @@ namespace kahypar {
 class MinHashSparsifier {
  private:
   struct Edge {
-    Edge()  :
+    Edge() :
       _begin(),
       _end() { }
 
@@ -162,7 +162,7 @@ class MinHashSparsifier {
         parallel_edges.insert(std::make_pair(edge, std::make_pair(non_disabled_edge_id - removed_edges,
                                                                   hypergraph.edgeWeight(edge_id))));
       } else {
-        ++parallel_edges[edge].second;
+        parallel_edges[edge].second += hypergraph.edgeWeight(edge_id);
 
         ++removed_edges;
         pins_of_edges.resize(pins_of_edges.size() - new_pins.size());
@@ -174,8 +174,8 @@ class MinHashSparsifier {
     // 2 : calculate weights of vertices in contracted graph
     std::vector<HypernodeWeight> vertex_weights(num_vertices);
 
-    for (const auto& cluster_id : _clusters) {
-      ++vertex_weights[cluster_id];
+    for (const auto& vertex : hypergraph.nodes()) {
+      vertex_weights[_clusters[vertex]] += hypergraph.nodeWeight(vertex);
     }
 
     // 3 : calculate weights of hyper edgs in contracted graph
