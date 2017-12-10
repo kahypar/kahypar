@@ -64,6 +64,6 @@ class IRefiner {
                           const UncontractionGainChanges& uncontraction_changes,
                           Metrics& best_metrics) = 0;
 
-  virtual void initializeImpl(HyperedgeWeight) = 0;
+  virtual void initializeImpl(const HyperedgeWeight) = 0;
 };
 }  // namespace kahypar

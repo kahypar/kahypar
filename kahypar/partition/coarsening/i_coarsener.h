@@ -49,7 +49,7 @@ class ICoarsener {
   ICoarsener() = default;
 
  private:
-  virtual void coarsenImpl(HypernodeID limit) = 0;
+  virtual void coarsenImpl(const HypernodeID limit) = 0;
   virtual bool uncoarsenImpl(IRefiner& refiner) = 0;
 };
 }  // namespace kahypar

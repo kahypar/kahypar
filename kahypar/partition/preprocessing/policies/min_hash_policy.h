@@ -98,7 +98,7 @@ class MinHashPolicy {
     return _dim;
   }
 
-  uint32_t getHashNum() const {
+  size_t getHashNum() const {
     return _hash_func_vector.getHashNum();
   }
 

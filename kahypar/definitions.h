@@ -35,7 +35,7 @@
 namespace kahypar {
 using HypernodeID = uint32_t;
 using HyperedgeID = uint32_t;
-using HypernodeWeight = uint32_t;
+using HypernodeWeight = int32_t;
 using HyperedgeWeight = int32_t;
 using PartitionID = int32_t;
 using Gain = HyperedgeWeight;

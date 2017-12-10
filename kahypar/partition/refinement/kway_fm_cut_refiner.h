@@ -727,7 +727,7 @@ class KWayFMRefiner final : public IRefiner,
       const HypernodeID pin_count_to_part_before_move = _hg.pinCountInPart(he, to_part) - 1;
       const HypernodeID pin_count_to_part_after_move = pin_count_to_part_before_move + 1;
       const HypernodeID he_size = _hg.edgeSize(he);
-      const HypernodeWeight he_weight = _hg.edgeWeight(he);
+      const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       if (pin_count_from_part_before_move == he_size) {
         // Update pin of a HE that is not cut before applying the move.
         for (const PartitionID& part : _gain_cache.adjacentParts(moved_hn)) {
