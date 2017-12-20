@@ -70,11 +70,10 @@ enum class RatingPartitionPolicy : uint8_t {
   evolutionary
 };
 enum class CoarseningAlgorithm : uint8_t {
-  heavy_full,
-  heavy_lazy,
   ml_style,
-  do_nothing,
-  UNDEFINED
+  heavy_lazy,
+  heavy_full,
+  do_nothing
 };
 
 enum class RefinementAlgorithm : uint8_t {
@@ -482,7 +481,6 @@ static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& pena
     return HeavyNodePenaltyPolicy::no_penalty;
   } else if (penalty == "edge_frequency_penalty") {
     return HeavyNodePenaltyPolicy::edge_frequency_penalty;
-    // omit default case to trigger compiler warning for missing cases
   }
   std::cout << "No valid edge penalty policy for rating." << std::endl;
   exit(0);

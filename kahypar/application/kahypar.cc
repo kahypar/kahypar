@@ -23,11 +23,11 @@
 #include <memory>
 #include <string>
 
+#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/io/partitioning_output.h"
-#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
@@ -60,11 +60,23 @@ int main(int argc, char* argv[]) {
                                           context.partition.k));
 
   Partitioner partitioner;
+  kahypar::io::serializer::open(context);
+  
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  partitioner.partition(hypergraph, context);
+  while(context.evolutionary.elapsed_seconds_total.count() < context.evolutionary.time_limit_seconds) {
+
+
+     partitioner.partition(hypergraph, context);
+     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+     std::chrono::duration<double> elapsed_seconds = end - start;
+     context.evolutionary.elapsed_seconds_total = elapsed_seconds;
+     ++context.evolutionary.iteration;
+     kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
+     hypergraph.reset();
+  }
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-
+  kahypar::io::serializer::close();
 #ifdef GATHER_STATS
   LOG << "*******************************";
   LOG << "***** GATHER_STATS ACTIVE *****";

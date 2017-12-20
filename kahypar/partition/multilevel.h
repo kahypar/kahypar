@@ -52,7 +52,6 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   io::printCoarseningBanner(context);
-
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   coarsener.coarsen(context.coarsening.contraction_limit);
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -75,23 +74,24 @@ static inline void partition(Hypergraph& hypergraph,
     Timer::instance().add(context, Timepoint::initial_partitioning,
                           std::chrono::duration<double>(end - start).count());
 
-    hypergraph.initializeNumCutHyperedges();
-    if (context.partition.verbose_output && context.type == ContextType::main) {
-      LOG << "Initial Partitioning Result:";
-      LOG << "Initial" << context.partition.objective << "      ="
-          << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
-              metrics::km1(hypergraph));
-      LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
-      LOG << "Initial part sizes and weights:";
-      io::printPartSizesAndWeights(hypergraph);
-      LLOG << "Target weights:";
-      if (context.partition.mode == Mode::direct_kway) {
-        LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
-      } else {
-        LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
-             << "w(1)=" << context.partition.max_part_weights[1] << "\n";
-      }
+  hypergraph.initializeNumCutHyperedges();
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    LOG << "Initial Partitioning Result:";
+    LOG << "Initial" << toString(context.partition.objective) << "      ="
+        << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+        metrics::km1(hypergraph));
+    LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
+    LOG << "Initial part sizes and weights:";
+    io::printPartSizesAndWeights(hypergraph);
+    LLOG << "Target weights:";
+    if (context.partition.mode == Mode::direct_kway) {
+      LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
+    } else {
+      LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
+           << "w(1)=" << context.partition.max_part_weights[1] << "\n";
     }
+     io::printLocalSearchBanner(context);
+  }
   }
 
   if (context.partition_evolutionary &&
@@ -123,12 +123,18 @@ static inline void partition(Hypergraph& hypergraph,
     hypergraph.initializeNumCutHyperedges();
   }
   DBG << V(metrics::km1(hypergraph));
-  DBG << V(metrics::imbalance(hypergraph, context));
 
-  if (context.partition.verbose_output && context.type == ContextType::main) {
-    io::printLocalSearchBanner(context);
+  std::vector<HyperedgeID> stable_net_before_uncoarsen;
+  if (context.partition_evolutionary &&
+      context.evolutionary.action.requires().vcycle_stable_net_collection) {
+    for (HyperedgeID u : hypergraph.edges()) {
+      if (hypergraph.connectivity(u) > 1) {
+        stable_net_before_uncoarsen.push_back(u);
+      }
+    }
   }
 
+  io::printLocalSearchBanner(context);
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
@@ -147,6 +153,7 @@ static inline void partition(Hypergraph& hypergraph,
                           stable_net_after_uncoarsen.end(),
                           back_inserter(context.evolutionary.stable_nets_final));
   }
+
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
 
