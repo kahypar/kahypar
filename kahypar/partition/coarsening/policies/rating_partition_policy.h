@@ -44,10 +44,6 @@ class EvoPartitionPolicy final : public meta::PolicyBase {
                                                             const HypernodeID& v) {
     ASSERT(context.evolutionary.parent1 != nullptr);
     ASSERT(context.evolutionary.parent2 != nullptr);
-    /*if (((*context.evolutionary.parent1)[u] == (*context.evolutionary.parent1)[v] &&
-        (*context.evolutionary.parent2)[u] == (*context.evolutionary.parent2)[v]) == (hypergraph.partID(u) == hypergraph.partID(v))) {
-        std::cout << u << " " << v << ";";
-        }*/
     return (*context.evolutionary.parent1)[u] == (*context.evolutionary.parent1)[v] &&
         (*context.evolutionary.parent2)[u] == (*context.evolutionary.parent2)[v];
   }
