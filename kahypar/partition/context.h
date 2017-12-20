@@ -23,7 +23,6 @@
 #include <array>
 #include <cctype>
 #include <cstdint>
-#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <sstream>
@@ -31,7 +30,6 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/meta/int_to_type.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
 #include "kahypar/utils/stats.h"
@@ -122,6 +120,7 @@ struct RatingParameters {
   CommunityPolicy community_policy = CommunityPolicy::UNDEFINED;
   HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::UNDEFINED;
   AcceptancePolicy acceptance_policy = AcceptancePolicy::UNDEFINED;
+  RatingPartitionPolicy partition_policy = RatingPartitionPolicy::normal;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
@@ -400,13 +399,16 @@ class Context {
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }
+
   std::vector<ClusterID> getCommunities() const {
     return evolutionary.communities;
   }
+
   void measureTime() const {
     const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
     evolutionary.elapsed_seconds_total = currentTime - evolutionary.start_time;
   }
+
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {

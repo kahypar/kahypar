@@ -371,85 +371,9 @@ po::options_description createRefinementOptionsDescription(Context& context,
   return options;
 }
 
-
-void processCommandLineInput(Context& context, int argc, char* argv[]) {
-  const int num_columns = platform::getTerminalWidth();
-
-  po::options_description generic_options("Generic Options", num_columns);
-  generic_options.add_options()
-      ("help", "show help message")
-      ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
-       "Verbose main partitioning output")
-      ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
-       "Verbose initial partitioning output")
-      ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
-       "Quiet Mode: Completely suppress console output")
-      ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
-       "Summarize partitioning results in RESULT line compatible with sqlplottools "
-       "(https://github.com/bingmann/sqlplottools)");
-
-  po::options_description required_options("Required Options", num_columns);
-  required_options.add_options()
-      ("hypergraph,h",
-       po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
-       "Hypergraph filename")
-      ("blocks,k",
-       po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
-           [&](const PartitionID) {
-             context.partition.rb_lower_k = 0;
-             context.partition.rb_upper_k = 0;
-           }),
-       "Number of blocks")
-      ("epsilon,e",
-       po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
-       "Imbalance parameter epsilon")
-      ("objective,o",
-       po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
-           if (s == "cut") {
-             context.partition.objective = Objective::cut;
-           } else if (s == "km1") {
-             context.partition.objective = Objective::km1;
-           }
-         }),
-       "Objective: \n"
-       " - cut : cut-net metric \n"
-       " - km1 : (lambda-1) metric")
-      ("mode,m",
-       po::value<std::string>()->value_name("<string>")->required()->notifier(
-           [&](const std::string& mode) {
-             context.partition.mode = kahypar::modeFromString(mode);
-           }),
-       "Partitioning mode: \n"
-       " - (recursive) bisection \n"
-       " - (direct) k-way");
-
-  std::string context_path;
-  po::options_description preset_options("Preset Options", num_columns);
-  preset_options.add_options()
-      ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
-       "Context Presets (see config directory):\n"
-       " - km1_direct_kway_sea17.ini\n"
-       " - direct_kway_km1_alenex17.ini\n"
-       " - rb_cut_alenex16.ini\n"
-       " - <path-to-custom-ini-file>");
-
-  po::options_description general_options = createGeneralOptionsDescription(context, num_columns);
-
-  po::options_description preprocessing_options =
-      createPreprocessingOptionsDescription(context, num_columns);
-
-  po::options_description coarsening_options = createCoarseningOptionsDescription(context,
-                                                                                  num_columns);
-
-
-  po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
-                                                                                   num_columns);
-
-
-  po::options_description refinement_options =
-      createRefinementOptionsDescription(context, num_columns);
-
-  po::options_description evolutionary_options("Evolutionary Options", num_columns);
+po::options_description createEvolutionaryOptionsDescription(Context& context,
+                                                             const int num_columns) {
+   po::options_description evolutionary_options("Evolutionary Options", num_columns);
   evolutionary_options.add_options()
     ("time-limit",
     po::value<int>()->value_name("<int>")->notifier(
@@ -634,6 +558,88 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "- objective: combining with an individual optimized for a different metric (cut/connectivity)\n"
     "- mode: combining with an individual partitioned with another mode (direct k way/recursive bisection)\n"
     "- louvain: combining with the community detection\n");
+  return evolutionary_options;
+}
+
+void processCommandLineInput(Context& context, int argc, char* argv[]) {
+  const int num_columns = platform::getTerminalWidth();
+
+  po::options_description generic_options("Generic Options", num_columns);
+  generic_options.add_options()
+      ("help", "show help message")
+      ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
+       "Verbose main partitioning output")
+      ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
+       "Verbose initial partitioning output")
+      ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
+       "Quiet Mode: Completely suppress console output")
+      ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
+       "Summarize partitioning results in RESULT line compatible with sqlplottools "
+       "(https://github.com/bingmann/sqlplottools)");
+
+  po::options_description required_options("Required Options", num_columns);
+  required_options.add_options()
+      ("hypergraph,h",
+       po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
+       "Hypergraph filename")
+      ("blocks,k",
+       po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
+           [&](const PartitionID) {
+             context.partition.rb_lower_k = 0;
+             context.partition.rb_upper_k = 0;
+           }),
+       "Number of blocks")
+      ("epsilon,e",
+       po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
+       "Imbalance parameter epsilon")
+      ("objective,o",
+       po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
+           if (s == "cut") {
+             context.partition.objective = Objective::cut;
+           } else if (s == "km1") {
+             context.partition.objective = Objective::km1;
+           }
+         }),
+       "Objective: \n"
+       " - cut : cut-net metric \n"
+       " - km1 : (lambda-1) metric")
+      ("mode,m",
+       po::value<std::string>()->value_name("<string>")->required()->notifier(
+           [&](const std::string& mode) {
+             context.partition.mode = kahypar::modeFromString(mode);
+           }),
+       "Partitioning mode: \n"
+       " - (recursive) bisection \n"
+       " - (direct) k-way");
+
+  std::string context_path;
+  po::options_description preset_options("Preset Options", num_columns);
+  preset_options.add_options()
+      ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
+       "Context Presets (see config directory):\n"
+       " - km1_direct_kway_sea17.ini\n"
+       " - direct_kway_km1_alenex17.ini\n"
+       " - rb_cut_alenex16.ini\n"
+       " - <path-to-custom-ini-file>");
+
+  po::options_description general_options = createGeneralOptionsDescription(context, num_columns);
+
+  po::options_description preprocessing_options =
+      createPreprocessingOptionsDescription(context, num_columns);
+
+  po::options_description coarsening_options = createCoarseningOptionsDescription(context,
+                                                                                  num_columns);
+
+
+  po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
+                                                                                   num_columns);
+
+
+  po::options_description refinement_options =
+      createRefinementOptionsDescription(context, num_columns);
+
+  po::options_description evolutionary_options =
+      createEvolutionaryOptionsDescription(context, num_columns);
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
