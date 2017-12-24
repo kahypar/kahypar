@@ -27,6 +27,8 @@ matrix:
             - lcov
         sonarcloud:
           organization: "sebastianschlag-github"
+          token:
+            secure: "keXaJUgHgUQnfLV9Fg/q1IB0X7rfvV5Wm19bFPz2v7nn9Hd4PiGKj9vCkFeH5zFvT+thzatKiYp6IVbf0kvowbree28YFlNd82jCql76UcvPhyHju7UbrM7/ClDcolaft5T2fLz5jthOdoCaPXOcfIcGt3mIMZ6HLLYbXtxubTAUbhcYPI/0PoUzGjIvX5jZnfY2vWDbKllB7t2SIR1mw+hV0F+TXLedCbf0WfUAsdX5Ls/OE6E7OWFNNKLmCFkt9kmaV9NVQh2CreU5SHbYHFDU+ow4PKUOjnGj2XCtV36B48uZwmwCFEkQ3q6zjDlhxBO87mbw6uae1zDdj9lRI3cO8D/uvfU/RvQrhpXbZeVqvR7X8i5ydShq8C37eCPy1mzMluJ1EfoTmMO+D+BtBd35w9rl/U1SwlrO4rVhEkLs2Tg8nzx/fjK9/VtNihKMfiyFzFO6nw4AIk5RV+PaaQtHkgyRgPr5dxuuK71HiPNvZ2xYTpA27N6092r+1fKFdWF2W0owa3H39IqJ/08QwPnzSDv20jYneVqxRrDSGHVCak9OX0hJvEQJVfgImNRuZJAzrYyydu1TTRLwxXAWFcxkxaaMNDTsrRv5tcEKHLEvC6+B3O4zj2sU5tTLuZrHz9BR23rBuGw0mpP0KiKJPDKsnVYLJgtopIbDndAA1s8="
 
     # gcc 6 - Release Build
     - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COMPILER_FLAGS="" COV="OFF"
@@ -66,11 +68,13 @@ before_script:
 script:
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make -j4; sonar-scanner;
+      build-wrapper-linux-x86-64 --out-dir bw-output make -j4;
+      sonar-scanner;
     elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
       make -j4;
     elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
+      build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests;
+      sonar-scanner;
       ../scripts/run_regression_tests.sh;
     else
       make -j4;
