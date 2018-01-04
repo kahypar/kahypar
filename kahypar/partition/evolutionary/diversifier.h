@@ -36,7 +36,14 @@ static void diversify(Context& context) {
   context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
   context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
 
-  context.coarsening.algorithm = static_cast<CoarseningAlgorithm>(Randomize::instance().flipCoin());
+  const bool use_lazy_coarsening = Randomize::instance().flipCoin();
+
+  if (use_lazy_coarsening) {
+    context.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
+  } else {
+    context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+
+  }
   //context.preprocessing.enable_community_detection = Randomize::instance().flipCoin();
 }
 }  // namespace partition
