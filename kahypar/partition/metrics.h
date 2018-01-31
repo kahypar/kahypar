@@ -81,6 +81,16 @@ static inline double absorption(const Hypergraph& hg) {
   return absorption_val;
 }
 
+static inline HyperedgeWeight objective(const Hypergraph& hg, const Objective& objective) {
+  switch (objective) {
+    case Objective::cut: return hyperedgeCut(hg);
+    case Objective::km1: return km1(hg);
+    default:
+      LOG << "Unknown Objective";
+      exit(-1);
+  }
+}
+
 
 // Hide original imbalance definition that assumes Lmax0=Lmax1=Lmax
 // This definition should only be used in assertions.
