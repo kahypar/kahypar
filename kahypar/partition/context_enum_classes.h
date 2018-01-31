@@ -79,6 +79,10 @@ enum class RefinementAlgorithm : uint8_t {
   kway_fm_maxgain,
   kway_fm_km1,
   label_propagation,
+  twoway_flow,
+  twoway_fm_flow,
+  kway_flow,
+  kway_fm_flow_km1,
   do_nothing,
   UNDEFINED
 };
@@ -117,6 +121,29 @@ enum class RefinementStoppingRule : uint8_t {
 enum class Objective : uint8_t {
   cut,
   km1,
+  UNDEFINED
+};
+
+enum class FlowAlgorithm : uint8_t {
+  edmond_karp,
+  goldberg_tarjan,
+  boykov_kolmogorov,
+  ibfs,
+  UNDEFINED
+};
+
+enum class FlowNetworkType : uint8_t {
+  lawler,
+  heuer,
+  wong,
+  hybrid,
+  UNDEFINED
+};
+
+enum class FlowExecutionPolicy : uint8_t {
+  constant,
+  multilevel,
+  exponential,
   UNDEFINED
 };
 
@@ -218,6 +245,10 @@ std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
     case RefinementAlgorithm::kway_fm_maxgain: return os << "kway_fm_maxgain";
     case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
     case RefinementAlgorithm::label_propagation: return os << "label_propagation";
+    case RefinementAlgorithm::twoway_flow: return os << "twoway_flow";
+    case RefinementAlgorithm::twoway_fm_flow: return os << "twoway_fm_flow";
+    case RefinementAlgorithm::kway_flow: return os << "kway_flow";
+    case RefinementAlgorithm::kway_fm_flow_km1: return os << "kway_fm_flow_km1";
     case RefinementAlgorithm::do_nothing: return os << "do_nothing";
     case RefinementAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -266,6 +297,41 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(rule);
+}
+
+std::ostream& operator<< (std::ostream& os, const FlowAlgorithm& algo) {
+  switch (algo) {
+    case FlowAlgorithm::edmond_karp: return os << "edmond_karp";
+    case FlowAlgorithm::goldberg_tarjan: return os << "goldberg_tarjan";
+    case FlowAlgorithm::boykov_kolmogorov: return os << "boykov_kolmogorov";
+    case FlowAlgorithm::ibfs: return os << "ibfs";
+    case FlowAlgorithm::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(algo);
+}
+
+std::ostream& operator<< (std::ostream& os, const FlowNetworkType& type) {
+  switch (type) {
+    case FlowNetworkType::lawler: return os << "lawler";
+    case FlowNetworkType::heuer: return os << "heuer";
+    case FlowNetworkType::wong: return os << "wong";
+    case FlowNetworkType::hybrid: return os << "hybrid";
+    case FlowNetworkType::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(type);
+}
+
+std::ostream& operator<< (std::ostream& os, const FlowExecutionPolicy& mode) {
+  switch (mode) {
+    case FlowExecutionPolicy::constant: return os << "constant";
+    case FlowExecutionPolicy::multilevel: return os << "multilevel";
+    case FlowExecutionPolicy::exponential: return os << "exponential";
+    case FlowExecutionPolicy::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(mode);
 }
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
@@ -336,7 +402,15 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm_maxgain;
   } else if (type == "sclap") {
     return RefinementAlgorithm::label_propagation;
-  }
+  } else if(type == "twoway_flow") {
+    return RefinementAlgorithm::twoway_flow;
+  } else if (type == "twoway_fm_flow") {
+    return RefinementAlgorithm::twoway_fm_flow;
+  } else if(type == "kway_flow") {
+    return RefinementAlgorithm::kway_flow;
+  } else if(type == "kway_fm_flow_km1") {
+    return RefinementAlgorithm::kway_fm_flow_km1;
+  } 
   std::cout << "Illegal option:" << type << std::endl;
   exit(0);
   return RefinementAlgorithm::kway_fm;
@@ -411,4 +485,49 @@ static Mode modeFromString(const std::string& mode) {
   exit(0);
   return Mode::direct_kway;
 }
+
+static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
+  if (type == "edmond_karp") {
+    return FlowAlgorithm::edmond_karp;
+  } else if (type == "goldberg_tarjan") {
+    return FlowAlgorithm::goldberg_tarjan;
+  } else if (type == "boykov_kolmogorov") {
+    return FlowAlgorithm::boykov_kolmogorov;
+  } else if (type == "ibfs") {
+    return FlowAlgorithm::ibfs;
+  }  
+  std::cout << "Illegal option:" << type << std::endl;
+  exit(0);
+  return FlowAlgorithm::ibfs;
+}
+
+static FlowNetworkType flowNetworkFromString(const std::string& type) {
+  if (type == "lawler") {
+    return FlowNetworkType::lawler;
+  } else if (type == "heuer") {
+    return FlowNetworkType::heuer;
+  } else if (type == "wong") {
+    return FlowNetworkType::wong;
+  } else if (type == "hybrid") {
+    return FlowNetworkType::hybrid;
+  }
+  std::cout << "No valid flow network type." << std::endl;
+  exit(0);
+  return FlowNetworkType::hybrid;
+}
+
+static FlowExecutionPolicy flowExecutionPolicyFromString(const std::string& mode) {
+  if (mode == "constant") {
+    return FlowExecutionPolicy::constant;
+  } else if (mode == "multilevel") {
+    return FlowExecutionPolicy::multilevel;
+  } else if (mode == "exponential") {
+    return FlowExecutionPolicy::exponential;
+  } 
+  std::cout << "No valid flow execution mode." << std::endl;
+  exit(0);
+  return FlowExecutionPolicy::exponential;
+}
+
+
 }  // namespace kahypar

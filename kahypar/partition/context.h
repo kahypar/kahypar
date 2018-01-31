@@ -184,8 +184,21 @@ struct LocalSearchParameters {
     int max_number_iterations = std::numeric_limits<int>::max();
   };
 
+  struct Flow {
+    FlowAlgorithm algorithm = FlowAlgorithm::ibfs;
+    FlowNetworkType network = FlowNetworkType::hybrid;
+    FlowExecutionPolicy execution_policy = FlowExecutionPolicy::exponential;
+    double alpha = 16.0;
+    size_t beta = 1024;
+    bool use_most_balanced_minimum_cut = true;
+    bool use_adaptive_alpha_stopping_rule = true;
+    bool ignore_small_hyperedge_cut = true;
+    bool use_improvement_history = true;
+  };
+
   FM fm { };
   Sclap sclap { };
+  Flow flow { };
   RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
   int iterations_per_level = std::numeric_limits<int>::max();
 };
@@ -205,6 +218,22 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     }
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
+  } else if(params.algorithm == RefinementAlgorithm::twoway_flow ||
+            params.algorithm == RefinementAlgorithm::kway_flow ||
+            params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+            params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+      str << "  Flow Refinement Parameters:" << std::endl;
+      str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
+      str << "    flow network:                     " << params.flow.network << std::endl;
+      str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
+      str << "    most balanced minimum cut:        " << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
+      str << "    alpha:                            " << params.flow.alpha << std::endl;
+      if(params.flow.execution_policy == FlowExecutionPolicy::constant) {
+        str << "    beta:                             " << params.flow.beta << std::endl;        
+      }
+      str << "    adaptive alpha stopping rule:     " << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
+      str << "    ignore small HE cut:              " << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
+      str << "    use improvement history:          " << std::boolalpha << params.flow.use_improvement_history << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
     str << "  no coarsening!  " << std::endl;
   }
@@ -353,38 +382,57 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
 }
 
 static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
-  if (algo == RefinementAlgorithm::kway_fm) {
+  if (algo == RefinementAlgorithm::kway_fm ||
+      algo == RefinementAlgorithm::kway_fm_km1 ||
+      algo == RefinementAlgorithm::kway_flow ||
+      algo == RefinementAlgorithm::kway_fm_flow_km1) {
     LOG << "WARNING: local search algorithm is set to"
         << algo
-        << ". However" << RefinementAlgorithm::twoway_fm
+        << ". However, the 2-way counterpart "
         << "is better and faster.";
-    LOG << "Should the local search algorithm be changed to"
-        << RefinementAlgorithm::twoway_fm << "(Y/N)?";
+    LOG << "Should the local search algorithm be changed (Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
+      if (algo == RefinementAlgorithm::kway_fm || algo == RefinementAlgorithm::kway_fm_km1) {
+        algo = RefinementAlgorithm::twoway_fm;
+      } else if (algo == RefinementAlgorithm::kway_flow) {
+        algo = RefinementAlgorithm::twoway_flow;
+      } else if (algo == RefinementAlgorithm::kway_fm_flow_km1) {
+        algo = RefinementAlgorithm::twoway_fm_flow;
+      } 
       LOG << "Changing local search algorithm to"
-          << RefinementAlgorithm::twoway_fm;
-      algo = RefinementAlgorithm::twoway_fm;
+          << algo;
     }
   }
 }
 
-void checkDirectKwayMode(RefinementAlgorithm& algo) {
-  if (algo == RefinementAlgorithm::twoway_fm) {
+void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
+  if (algo == RefinementAlgorithm::twoway_fm ||
+      algo == RefinementAlgorithm::twoway_flow ||
+      algo == RefinementAlgorithm::twoway_fm_flow) {
     LOG << "WARNING: local search algorithm is set to"
         << algo
         << ". This algorithm cannot be used for direct k-way partitioning with k>2.";
-    LOG << "Should the local search algorithm be changed to"
-        << RefinementAlgorithm::kway_fm << "(Y/N)?";
+    LOG << "Should the local search algorithm be changed to corresponding k-way counterpart (Y/N)?";
     char answer = 'N';
     std::cin >> answer;
     answer = std::toupper(answer);
     if (answer == 'Y') {
+      if (algo == RefinementAlgorithm::twoway_fm && objective == Objective::cut) {
+        algo = RefinementAlgorithm::kway_fm;
+      } else if (algo == RefinementAlgorithm::twoway_fm && objective == Objective::km1) {
+        algo = RefinementAlgorithm::kway_fm_km1;
+      } else if (algo == RefinementAlgorithm::twoway_flow) {
+        algo = RefinementAlgorithm::kway_flow;
+      } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::km1) {
+        algo = RefinementAlgorithm::kway_fm_flow_km1;
+      } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::cut) {
+        algo = RefinementAlgorithm::kway_flow;
+      } 
       LOG << "Changing local search algorithm to"
-          << RefinementAlgorithm::kway_fm;
-      algo = RefinementAlgorithm::kway_fm;
+          << algo;
     }
   }
 }
@@ -422,7 +470,7 @@ static inline void sanityCheck(Context& context) {
                     context.initial_partitioning.technique == InitialPartitioningTechnique::flat,
                     context.initial_partitioning.mode
                     << context.initial_partitioning.technique);
-      checkDirectKwayMode(context.local_search.algorithm);
+      checkDirectKwayMode(context.local_search.algorithm, context.partition.objective);
       break;
     default:
       // should never happen, because partitioning is either done via RB or directly
@@ -437,7 +485,7 @@ static inline void sanityCheck(Context& context) {
       // partitioner running in direct mode can use two-way FM as a local search
       // algorithm because we only perform bisections.
       if (context.partition.mode != Mode::recursive_bisection) {
-        checkDirectKwayMode(context.initial_partitioning.local_search.algorithm);
+        checkDirectKwayMode(context.initial_partitioning.local_search.algorithm, context.partition.objective);
       }
       break;
     default:
