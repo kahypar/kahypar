@@ -72,4 +72,14 @@ static kahypar::IncidenceIterator end(const std::pair<kahypar::IncidenceIterator
                                                       kahypar::IncidenceIterator>& x) {
   return x.second;
 }
+
+template <typename Iterator>
+Iterator begin(std::pair<Iterator, Iterator>& x) {
+  return x.first;
+}
+
+template <typename Iterator>
+Iterator end(std::pair<Iterator, Iterator>& x) {
+  return x.second;
+}
 }  // namespace std
