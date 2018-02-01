@@ -58,6 +58,8 @@
 	For description, license, example usage see README.TXT.
 */
 
+#pragma once
+
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
@@ -73,6 +75,10 @@
 using namespace kahypar;
 
 namespace maxflow {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
+#pragma GCC diagnostic ignored "-Weffc++"
 
 // captype: type of edge capacities (excluding t-links)
 // tcaptype: type of t-links (edges between nodes and terminals)
@@ -1302,6 +1308,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	}
 }
 
+#pragma GCC diagnostic pop
 
 } // end namespace 
 

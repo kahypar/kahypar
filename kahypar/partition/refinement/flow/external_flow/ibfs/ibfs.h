@@ -39,6 +39,7 @@ If you require another license, please contact the above.
 
 */
 
+#pragma once
 
 #ifndef _IBFS_H__
 #define _IBFS_H__
@@ -49,6 +50,10 @@ If you require another license, please contact the above.
 #include <string.h>
 
 #include "kahypar/partition/refinement/flow/flow_network.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverflow"
+#pragma GCC diagnostic ignored "-Weffc++"
 
 using namespace kahypar;
 
@@ -207,8 +212,6 @@ public:
 
 private:
 	Arc *arcIter;
-	bool readFromFile(char *filename, bool checkCompile);
-	bool readCompiled(FILE *pFile);
 	void augment(Arc *bridge);
 	template<bool sTree> int augmentPath(Node *x, int push);
 	template<bool sTree> int augmentExcess(Node *x, int push);
@@ -2391,255 +2394,10 @@ template<bool sTree> void IBFSGraph::pushRelabelDischarge(Node *x)
 
 
 
-///////////////////////////////////////////////////
-// file reading
-///////////////////////////////////////////////////
-bool IBFSGraph::readFromFile(char *filename)
-{
-	return readFromFile(filename, false);
-}
-bool IBFSGraph::readFromFileCompile(char *filename)
-{
-	return readFromFile(filename, true);
-}
-bool IBFSGraph::readFromFile(char *filename, bool checkCompile)
-{
-	const int MAX_LINE_LEN = 100;
-	char line[MAX_LINE_LEN];
-	int declaredNumOfNodes, declaredNumOfEdges, nodeId1, nodeId2;
-	int currentNumOfEdges = 0;
-	char c, c1, c2, c3;
-	int capacity, capacity2;
-	int numLines=0;
-	// only for compile mode
-	const int bufferSize = sizeof(char) + sizeof(int)*4;
-	char buffer[bufferSize];
-
-	char *filenameCompiled = new char[strlen(filename) + strlen(".compiled") + 1];
-	strcpy(filenameCompiled, filename);
-	strcat(filenameCompiled, ".compiled");
-
-	FILE *pFile;
-	FILE *pFileCompiled = NULL;
-	if (checkCompile) {
-		if (fileIsCompiled) {
-			delete []filenameCompiled;
-			return readCompiled(file);
-		} else if (file == NULL && (pFileCompiled = fopen(filenameCompiled, "rb")) != NULL) {
-			delete []filenameCompiled;
-			return readCompiled(pFileCompiled);
-		}
-	}
-	if (file == NULL) {
-		if ((pFile = fopen(filename, "r")) == NULL) {
-			fprintf(stdout, "Could not open file %s\n", filename);
-			delete []filenameCompiled;
-			return false;
-		}
-		if (checkCompile && (pFileCompiled = fopen(filenameCompiled, "wb")) == NULL) {
-			fprintf(stdout, "Could not open file %s\n", filenameCompiled);
-			delete []filenameCompiled;
-			return false;
-		}
-	} else {
-		pFile = file;
-		if (checkCompile) pFileCompiled = fileCompiled;
-	}
-	delete []filenameCompiled;
-
-	// read from file into temporary structure
-	fileHasMore = false;
-	while (!fileHasMore && fgets(line, MAX_LINE_LEN, pFile) != NULL)
-	{
-		numLines++;
-		switch (line[0])
-	    {
-			case 'c':
-			case '\n':
-			case '\0':
-			default:
-				break;
-			case 'p':
-				if (!isInitializedGraph())
-				{
-					sscanf(line, "%c %c%c%c", &c, &c1, &c2, &c3);
-					if (c1=='m' && c2=='a' && c3=='x') {
-						sscanf(line, "%c %c%c%c %d %d", &c, &c1, &c2, &c3, &declaredNumOfNodes, &declaredNumOfEdges);
-					} else {
-						sscanf(line, "%c %d %d", &c, &declaredNumOfNodes, &declaredNumOfEdges);
-					}
-					initSize(declaredNumOfNodes, declaredNumOfEdges);
-					if (checkCompile) {
-						fwrite(&declaredNumOfNodes, sizeof(int), 1, pFileCompiled);
-						fwrite(&declaredNumOfEdges, sizeof(int), 1, pFileCompiled);
-					}
-				}
-				else
-				{
-					if (checkCompile) {
-						memset(buffer, 0, bufferSize);
-						buffer[0] = 'p';
-						fwrite(&buffer, 1, bufferSize, pFileCompiled);
-					}
-					fileHasMore = true;
-				}
-				break;
-
-			//
-			// Read Nodes
-			//
-			case 'n':
-				sscanf(line, "%c %d %d %d ", &c, &nodeId1, &capacity, &capacity2);
-				if (capacity == 0 && capacity2 == 0) break;
-				if (file == NULL) {
-					addNode(nodeId1, capacity, capacity2);
-				} else {
-					incNode(nodeId1, capacity, capacity2);
-				}
-				if (checkCompile) {
-					buffer[0] = 'n';
-					memcpy(buffer+sizeof(char), &nodeId1, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int), &nodeId1, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int)+sizeof(int), &capacity, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int)+sizeof(int)+sizeof(int), &capacity2, sizeof(int));
-					fwrite(&buffer, 1, bufferSize, pFileCompiled);
-				}
-				break;
-
-			//
-			// Read Arcs
-			//
-			case 'a':
-				sscanf(line, "%c %d %d %d %d", &c,
-					&nodeId1, &nodeId2, &capacity, &capacity2);
-				if (nodeId1 < 0 ||
-					nodeId1 >= (nodeEnd-nodes) ||
-					nodeId2 < 0 ||
-					nodeId2 >= (nodeEnd-nodes))
-				{
-					fprintf(stdout, "inconsistent node index %d or %d (Line %d)\n", nodeId1, nodeId2, numLines);
-					return false;
-				}
-				if (file == NULL)
-				{
-					if (currentNumOfEdges >= declaredNumOfEdges) {
-						fprintf(stdout, "inconsistent number of edges (Line %d)\n", numLines);
-						return false;
-					}
-					currentNumOfEdges++;
-					addEdge(nodeId1, nodeId2, capacity, capacity2,nullptr,nullptr);
-				}
-				else
-				{
-					incEdge(nodeId1, nodeId2, capacity, capacity2);
-				}
-				if (checkCompile) {
-					buffer[0] = 'a';
-					memcpy(buffer+sizeof(char), &nodeId1, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int), &nodeId2, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int)+sizeof(int), &capacity, sizeof(int));
-					memcpy(buffer+sizeof(char)+sizeof(int)+sizeof(int)+sizeof(int), &capacity2, sizeof(int));
-					fwrite(&buffer, 1, bufferSize, pFileCompiled);
-				}
-				break;
-		}
-	}
-	if (file == NULL && currentNumOfEdges > declaredNumOfEdges) {
-		fprintf(stdout, "inconsistent number of edges: differs from declared %d != %d\n",
-				currentNumOfEdges, declaredNumOfEdges);
-		return false;
-	}
-
-	file = pFile;
-	fileCompiled = pFileCompiled;
-	fileIsCompiled = false;
-	if (!fileHasMore) {
-		if (checkCompile) {
-			buffer[0] = 'x';
-			fwrite(&buffer, 1, bufferSize, pFileCompiled);
-			fclose(fileCompiled);
-			fileCompiled = NULL;
-		}
-		fclose(file);
-		file = NULL;
-	}
-	return true;
-}
-
-
-
-bool IBFSGraph::readCompiled(FILE *pFile)
-{
-	int declaredNumOfNodes, declaredNumOfEdges, nodeId1, nodeId2;
-	int capacity, capacity2;
-	const int bufferSize = sizeof(char)+sizeof(int)*4;
-	char buffer[bufferSize];
-
-	// read from file into htemporary structure
-	fprintf(stdout, "c reading compiled file\n");
-	if (!isInitializedGraph()) {
-		if (fread(&declaredNumOfNodes, sizeof(int), 1, (pFile)) < 1 ||
-				fread(&declaredNumOfEdges, sizeof(int), 1, (pFile)) < 1) {
-			fprintf(stdout, "ERROR while reading compiled num nodes/edges, EOF=%d\n", feof(pFile));
-			fclose(pFile);
-			return false;
-		}
-		initSize(declaredNumOfNodes, declaredNumOfEdges);
-	}
-	fileHasMore = false;
-	for (int line=0; !fileHasMore && !feof(pFile); line++) {
-		if (fread(&buffer, 1, bufferSize, pFile) < bufferSize) {
-			fprintf(stdout, "ERROR while reading compiled line %d, EOF=%d\n", line, feof(pFile));
-			fclose(pFile);
-			return false;
-		}
-		memcpy(&nodeId1,   buffer+sizeof(char), sizeof(int));
-		memcpy(&nodeId2,   buffer+sizeof(char)+sizeof(int), sizeof(int));
-		memcpy(&capacity,  buffer+sizeof(char)+sizeof(int)+sizeof(int), sizeof(int));
-		memcpy(&capacity2, buffer+sizeof(char)+sizeof(int)+sizeof(int)+sizeof(int), sizeof(int));
-		if (buffer[0] == 'x')  break;
-		switch(buffer[0])
-		{
-		case 'n':
-			if (capacity == 0 && capacity2 == 0) break;
-			if (file == NULL) {
-				addNode(nodeId1, capacity, capacity2);
-			} else {
-				incNode(nodeId1, capacity, capacity2);
-			}
-			break;
-		case 'a':
-			if (nodeId1 < 0 ||
-				nodeId1 >= (nodeEnd-nodes) ||
-				nodeId2 < 0 ||
-				nodeId2 >= (nodeEnd-nodes))
-			{
-				fprintf(stdout, "inconsistent node index in compiled file %d or %d (Line %d)\n", nodeId1, nodeId2, line);
-				return false;
-			}
-			if (file == NULL) {
-				addEdge(nodeId1, nodeId2, capacity, capacity2,nullptr,nullptr);
-			} else {
-				incEdge(nodeId1, nodeId2, capacity, capacity2);
-			}
-			break;
-		case 'p':
-			fileHasMore = true;
-			break;
-		}
-	}
-
-	file = pFile;
-	fileCompiled = NULL;
-	fileIsCompiled = true;
-	if (!fileHasMore) {
-		fclose(file);
-		file = NULL;
-	}
-	return true;
-}
 
 } //namespace ibfs
+
+#pragma GCC diagnostic pop
 
 #endif
 

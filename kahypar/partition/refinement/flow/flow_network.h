@@ -562,10 +562,6 @@ class FlowNetwork {
     _heVisited.set(he, true);
     for (const HyperedgeID& target : _hg.incidentEdges(hn)) {
       if (!_heVisited[target]) {
-        ASSERT(containsNode(mapToOutgoingHyperedgeID(he)),
-               "Hyperedge node not contained in flow network!");
-        ASSERT(containsNode(mapToIncommingHyperedgeID(target)),
-               "Hyperedge node not contained in flow network!");
         addEdge(mapToOutgoingHyperedgeID(he), mapToIncommingHyperedgeID(target), INFTY);
         _heVisited.set(target, true);
       }

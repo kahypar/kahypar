@@ -109,6 +109,8 @@
 	deallocated only when the destructor is called.
 */
 
+#pragma once
+
 #ifndef __BLOCK_H__
 #define __BLOCK_H__
 
@@ -119,6 +121,9 @@
 /***********************************************************************/
 
 namespace maxflow {
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 
 template <class Type> class Block
 {
@@ -313,6 +318,8 @@ private:
 
 	void	(*error_function)(const char *);
 };
+
+#pragma GCC diagnostic pop
 
 } // end namespace maxflow
 
