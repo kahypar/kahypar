@@ -39,6 +39,8 @@
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
+#include "kahypar/partition/refinement/flow/maximum_flow.h"
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
@@ -78,4 +80,10 @@ using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
 using KWayKMinusOneFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayKMinusOneRefiner,
                                                                         IRefiner,
                                                                         meta::Typelist<StoppingPolicyClasses> >;
+
+template<class Network = Mandatory>
+using FlowAlgorithmFactory = meta::Factory<FlowAlgorithm,
+                                           MaximumFlow<Network>* (*)(Hypergraph&, const Context&, Network&)>;
+
+
 }  // namespace kahypar

@@ -102,6 +102,19 @@ class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::se
   Network flowNetwork;
 };
 
+using BasicFlowNetworkTest = FlowNetworkTest<LawlerNetwork>;
+
+// ###################### Basic Flow Network Test ######################
+
+TEST_F(BasicFlowNetworkTest, FlowNetworkStats) {
+  setupFlowNetwork();
+  ASSERT_EQ(20, flowNetwork.numNodes());
+  ASSERT_EQ(35, flowNetwork.numEdges());
+  ASSERT_EQ(7, flowNetwork.totalWeightHyperedges());
+  ASSERT_EQ(0, flowNetwork.numUndirectedEdges());
+  ASSERT_EQ(24, flowNetwork.initialSize());
+}
+
 // ###################### Lawler Flow Network Test ######################
 
 using LawlerNetworkTest = FlowNetworkTest<LawlerNetwork>;

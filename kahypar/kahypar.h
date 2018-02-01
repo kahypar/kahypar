@@ -66,6 +66,13 @@
       return new ip(hypergraph, context);                                    \
     })
 
+#define REGISTER_FLOW_ALGORITHM_FOR_NETWORK(id, flow, network)                                           \
+  static meta::Registrar<FlowAlgorithmFactory<network> > register_ ## flow ## network(                   \
+    id,                                                                                                  \
+    [](Hypergraph& hypergraph, const Context& context, network& flow_network) -> MaximumFlow<network>* { \
+    return new flow<network>(hypergraph, context, flow_network);                                         \
+  })
+
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
   static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
     id,                                                           \
@@ -232,6 +239,35 @@ REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
                 NumberOfFruitlessMovesStopsSearch);
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
+
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
+                LawlerNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
+                HeuerNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
+                WongNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
+                HybridNetworkPolicy);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
 
 // //////////////////////////////////////////////////////////////////////////////
 //                           Local Search Algorithms
