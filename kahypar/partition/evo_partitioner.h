@@ -76,7 +76,7 @@ class EvoPartitioner {
       _population.generateIndividual(hg, context);
       context.measureTime();
       io::serializer::serializeEvolutionary(context, hg);
-      verbose(context, 0);
+      //verbose(context, 0);
       DBG << _population;
       
     }
@@ -116,6 +116,8 @@ class EvoPartitioner {
 
       context.measureTime();
     }
+    hg.reset();
+    hg.setPartition(_population.individualAt(_population.best()).partition());
   }
 
  private:
@@ -142,7 +144,7 @@ class EvoPartitioner {
       case EvoCombineStrategy::basic: {
         // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
         size_t insert_position = _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
-        verbose(context, insert_position);
+        //verbose(context, insert_position);
         break;
         }
       case EvoCombineStrategy::with_edge_frequency_information: {
@@ -150,12 +152,12 @@ class EvoPartitioner {
                                                                              context,
                                                                              _population),
                            context);
-        verbose(context, insert_position);      
+        //verbose(context, insert_position);      
         break;
         }
       case EvoCombineStrategy::edge_frequency: {
         size_t insert_position =_population.insert(combine::edgeFrequency(hg, context, _population), context);
-        verbose(context, insert_position);
+        //verbose(context, insert_position);
         break;
         }
     }
@@ -167,7 +169,7 @@ class EvoPartitioner {
     context.evolutionary.cross_combine_strategy = pick::appropriateCrossCombineStrategy(context);
     size_t insert_position = _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
                                              context), context);
-    verbose(context, insert_position);
+    //verbose(context, insert_position);
   }
 
   //TODO the best element may be mutated, but in that case the result must be better
@@ -187,26 +189,26 @@ class EvoPartitioner {
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutation_position),
                                                    context), context);
-        verbose(context, mutation_position);
+        //verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::vcycle: {
         _population.insert(
           mutate::vCycle(hg, _population.individualAt(mutation_position), context), context);
-        verbose(context, mutation_position);
+        //verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::single_stable_net: {
         _population.insert(mutate::removeStableNets(hg,
                                                          _population.individualAt(mutation_position),
                                                          context), context);
-        verbose(context, mutation_position);
+        //verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::population_stable_net: {
       
         _population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context), context);
-        verbose(context, mutation_position);
+        //verbose(context, mutation_position);
         break;
         }
     }

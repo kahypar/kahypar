@@ -1,0 +1,1 @@
+/software/gcc/7.1.0/bin/g++    -W -Wall -Wextra  -Wunused  -Wmaybe-uninitialized -Wfatal-errors -Wcast-qual -Woverloaded-virtual -Wredundant-decls -Winit-self -pedantic -Wnoexcept -DPARANOID  -Weffc++ -Wno-unused-function -msse4.2 -mcrc32 -g -pthread -g3    CMakeFiles/HgrToBipartiteMetisGraph.dir/hgr_to_bipartite_metis_graph_converter.cc.o  -o HgrToBipartiteMetisGraph -rdynamic 

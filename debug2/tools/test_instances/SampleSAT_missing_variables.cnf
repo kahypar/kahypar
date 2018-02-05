@@ -1,0 +1,10 @@
+c
+c The number of variables in a .cnf file just denotes
+c the highest possible variable ID. However not all
+c possible variable IDs actually have to appear in
+c the formula
+c
+p cnf 10 3
+-7 2 -5 0
+3 -4 10 0
+1 -2 7 8 0

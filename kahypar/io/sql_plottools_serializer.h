@@ -189,22 +189,21 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
-static std::ofstream out_file;
-static HyperedgeWeight best = std::numeric_limits<int32_t>::max();
-static inline void open(const Context& context) {
-  out_file.open(context.evolutionary.filename, std::ios_base::app);
-}
-static inline void close() {
-  out_file.close();
-}
+//static std::ofstream out_file;
+//static HyperedgeWeight best = std::numeric_limits<int32_t>::max();
+//static inline void open(const Context& context) {
+//  out_file.open(context.evolutionary.filename, std::ios_base::app);
+//}
+//static inline void close() {
+//  out_file.close();
+//}
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
   context.measureTime();
-  if(!context.evolutionary.log_output || context.evolutionary.filename == "") {
-    return;
-  }
-  if(metrics::km1(hg) < best || context.evolutionary.log_everything) {
-    best = metrics::km1(hg);
-    out_file << "connectivity=" << metrics::km1(hg) 
+  std::ostringstream oss;
+  
+    //best = metrics::km1(hg);
+  oss << "RESULT " 
+      << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
             <<" time-total=" << context.evolutionary.elapsed_seconds_total.count()
             //<<" best=" << context.evolutionary.best_partition
@@ -227,9 +226,9 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" absorption="<<metrics::absorption(hg)
             <<" imbalance=" << metrics::imbalance(hg, context)
             <<" k=" << context.partition.k
-            <<" best=" << best
+            <<" best=" << metrics::km1(hg) 
             << std::endl;
-  }
+  std::cout << oss.str() << std::endl;
    
    //std::cout << " fitness=" << ;
 

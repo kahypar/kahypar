@@ -1,0 +1,1 @@
+/usr/bin/c++    -W -Wall -Wextra  -Wunused  -Wmaybe-uninitialized -Wfatal-errors -Wcast-qual -Woverloaded-virtual -Wredundant-decls -Winit-self -pedantic -Wnoexcept -DPARANOID  -Weffc++ -Wno-unused-function -msse4.2 -mcrc32   CMakeFiles/HypergraphAnalyzer.dir/hypergraph_analyzer.cc.o  -o HypergraphAnalyzer -rdynamic 

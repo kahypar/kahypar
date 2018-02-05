@@ -1,0 +1,108 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2673634714/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2673634714.dir/build.make CMakeFiles/cmTryCompileExec2673634714.dir/build
+make[1]: Entering directory `/home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2673634714.dir/CheckSymbolExists.c.o
+/software/gcc/6.1.0/bin/gcc    -o CMakeFiles/cmTryCompileExec2673634714.dir/CheckSymbolExists.c.o   -c /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec2673634714
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2673634714.dir/link.txt --verbose=1
+/software/gcc/6.1.0/bin/gcc       CMakeFiles/cmTryCompileExec2673634714.dir/CheckSymbolExists.c.o  -o cmTryCompileExec2673634714 -rdynamic 
+CMakeFiles/cmTryCompileExec2673634714.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x16): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+make[1]: Leaving directory `/home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp'
+make[1]: *** [cmTryCompileExec2673634714] Error 1
+make: *** [cmTryCompileExec2673634714/fast] Error 2
+
+File /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec1270043939/fast"
+/usr/bin/make -f CMakeFiles/cmTryCompileExec1270043939.dir/build.make CMakeFiles/cmTryCompileExec1270043939.dir/build
+make[1]: Entering directory `/home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp'
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec1270043939.dir/CheckFunctionExists.c.o
+/software/gcc/6.1.0/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec1270043939.dir/CheckFunctionExists.c.o   -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec1270043939
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec1270043939.dir/link.txt --verbose=1
+/software/gcc/6.1.0/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec1270043939.dir/CheckFunctionExists.c.o  -o cmTryCompileExec1270043939 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [cmTryCompileExec1270043939] Error 1
+make[1]: Leaving directory `/home/andre/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp'
+make: *** [cmTryCompileExec1270043939/fast] Error 2
+
+
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_9c1f0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_9c1f0.dir/build.make CMakeFiles/cmTC_9c1f0.dir/build
+make[1]: Verzeichnis „/home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp“ wird betreten
+Building C object CMakeFiles/cmTC_9c1f0.dir/CheckSymbolExists.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_9c1f0.dir/CheckSymbolExists.c.o   -c /home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_9c1f0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9c1f0.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_9c1f0.dir/CheckSymbolExists.c.o  -o cmTC_9c1f0 -rdynamic 
+CMakeFiles/cmTC_9c1f0.dir/CheckSymbolExists.c.o: In Funktion `main':
+CheckSymbolExists.c:(.text+0x16): Nicht definierter Verweis auf `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_9c1f0.dir/build.make:97: die Regel für Ziel „cmTC_9c1f0“ scheiterte
+make[1]: *** [cmTC_9c1f0] Fehler 1
+make[1]: Verzeichnis „/home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp“ wird verlassen
+Makefile:126: die Regel für Ziel „cmTC_9c1f0/fast“ scheiterte
+make: *** [cmTC_9c1f0/fast] Fehler 2
+
+File /home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_a5219/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a5219.dir/build.make CMakeFiles/cmTC_a5219.dir/build
+make[1]: Verzeichnis „/home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp“ wird betreten
+Building C object CMakeFiles/cmTC_a5219.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_a5219.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_a5219
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a5219.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_a5219.dir/CheckFunctionExists.c.o  -o cmTC_a5219 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_a5219.dir/build.make:97: die Regel für Ziel „cmTC_a5219“ scheiterte
+make[1]: *** [cmTC_a5219] Fehler 1
+make[1]: Verzeichnis „/home/andre/server-home/finalkahypar/kahypar-1/i10pc127/CMakeFiles/CMakeTmp“ wird verlassen
+Makefile:126: die Regel für Ziel „cmTC_a5219/fast“ scheiterte
+make: *** [cmTC_a5219/fast] Fehler 2
+
+

@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
-  kahypar::io::serializer::open(context);
+  //kahypar::io::serializer::open(context);
   context.partition_evolutionary = true;
   EvoPartitioner partitioner(context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
   LOG << "*******************************";
   kahypar::io::printPartitioningStatistics();
 #endif
-  kahypar::io::serializer::close();
+  //kahypar::io::serializer::close();
   if (!context.partition.quiet_mode) {
     kahypar::io::printPartitioningResults(hypergraph, context, elapsed_seconds);
     LOG << "";

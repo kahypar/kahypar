@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?> <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+<key for="node" id="d3" yfiles.type="nodegraphics"/>
+<graph id="G" edgedefault="undirected">
+<node id="n0">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n1">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n2">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n3">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n4">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n5">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n6">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#FA0000" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<node id="n7">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#000CFA" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<edge id="e0" source="n0" target="n7"/>
+<edge id="e1" source="n1" target="n7"/>
+<node id="n8">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#000CFA" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<edge id="e2" source="n0" target="n8"/>
+<edge id="e3" source="n6" target="n8"/>
+<edge id="e4" source="n4" target="n8"/>
+<edge id="e5" source="n5" target="n8"/>
+<node id="n9">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#000CFA" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<edge id="e6" source="n4" target="n9"/>
+<edge id="e7" source="n5" target="n9"/>
+<edge id="e8" source="n3" target="n9"/>
+<node id="n10">
+<data key="d3">
+<y:ShapeNode><y:Fill color="#000CFA" transparent="false"/></y:ShapeNode>
+</data>
+</node>
+<edge id="e9" source="n1" target="n10"/>
+<edge id="e10" source="n2" target="n10"/>
+<edge id="e11" source="n3" target="n10"/>
+</graph>
+</graphml>

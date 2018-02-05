@@ -1,0 +1,61 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec2250520256/fast"
+make[1]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird betreten
+make[1]: Achtung: Datei »Makefile« hat Änderungsdatum 71 s in der Zukunft
+/usr/bin/make -f CMakeFiles/cmTryCompileExec2250520256.dir/build.make CMakeFiles/cmTryCompileExec2250520256.dir/build
+make[2]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird betreten
+make[2]: Achtung: Datei »CMakeFiles/cmTryCompileExec2250520256.dir/flags.make« hat Änderungsdatum 71 s in der Zukunft
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2250520256.dir/CheckSymbolExists.c.o
+/software/gcc/7.1.0/bin/gcc    -o CMakeFiles/cmTryCompileExec2250520256.dir/CheckSymbolExists.c.o   -c /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTryCompileExec2250520256
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2250520256.dir/link.txt --verbose=1
+/software/gcc/7.1.0/bin/gcc       CMakeFiles/cmTryCompileExec2250520256.dir/CheckSymbolExists.c.o  -o cmTryCompileExec2250520256 -rdynamic 
+CMakeFiles/cmTryCompileExec2250520256.dir/CheckSymbolExists.c.o: In Funktion `main':
+CheckSymbolExists.c:(.text+0x16): Nicht definierter Verweis auf `pthread_create'
+collect2: Fehler: ld gab 1 als Ende-Status zurück
+make[2]: *** [cmTryCompileExec2250520256] Fehler 1
+make[2]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird verlassen
+make[1]: *** [cmTryCompileExec2250520256/fast] Fehler 2
+make[1]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird verlassen
+
+File /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTryCompileExec3450710754/fast"
+make[1]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird betreten
+make[1]: Achtung: Datei »Makefile« hat Änderungsdatum 71 s in der Zukunft
+/usr/bin/make -f CMakeFiles/cmTryCompileExec3450710754.dir/build.make CMakeFiles/cmTryCompileExec3450710754.dir/build
+make[2]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird betreten
+make[2]: Achtung: Datei »CMakeFiles/cmTryCompileExec3450710754.dir/flags.make« hat Änderungsdatum 71 s in der Zukunft
+/software/cmake-3.0.1/bin/cmake -E cmake_progress_report /home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3450710754.dir/CheckFunctionExists.c.o
+/software/gcc/7.1.0/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTryCompileExec3450710754.dir/CheckFunctionExists.c.o   -c /software/cmake-3.0.1/share/cmake-3.0/Modules/CheckFunctionExists.c
+Linking C executable cmTryCompileExec3450710754
+/software/cmake-3.0.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec3450710754.dir/link.txt --verbose=1
+/software/gcc/7.1.0/bin/gcc   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTryCompileExec3450710754.dir/CheckFunctionExists.c.o  -o cmTryCompileExec3450710754 -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: Fehler: ld gab 1 als Ende-Status zurück
+make[2]: *** [cmTryCompileExec3450710754] Fehler 1
+make[2]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird verlassen
+make[1]: *** [cmTryCompileExec3450710754/fast] Fehler 2
+make[1]: Verzeichnis »/home/andre/finalkahypar/kahypar-1/i10pc128/CMakeFiles/CMakeTmp« wird verlassen
+
+

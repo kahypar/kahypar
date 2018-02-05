@@ -1,0 +1,25 @@
+UCLA nets 1.0
+# Created  :  Nov  9 2016
+# User     :  Sebastian Schlag, KIT
+# Format   :  Enhanced bookshelf format used in DAC 2012 contest
+
+NumNets  :  3
+NumPins  :  14
+
+NetDegree  :  4    n0
+        o979929   I  :      0.0000     -1.5000
+	o979813   I  :      0.0000     -1.5000
+         p16587   I  :      0.0000      0.0000
+             p0   O  :      0.0000      0.0000
+NetDegree  :  7    n1
+        o979813   I  :      0.0000     -1.5000
+	   o933   I  :      0.0000     -1.5000
+	    o23   I  :      0.0000     -1.5000
+         p16591   I  :      0.0000      0.0000
+             p7   O  :      0.0000      0.0000
+             p5   O  :      0.0000      0.0000
+             p0   O  :      0.0000      0.0000
+NetDegree  :  3    n2
+            o42   I  :      0.0000     -1.5000	
+            o42   I  :      0.0000      0.0000
+            p23   O  :      0.0000      0.0000

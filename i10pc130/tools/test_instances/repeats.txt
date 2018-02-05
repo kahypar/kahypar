@@ -1,0 +1,22 @@
+#  Tree  Sites:
+#	 12345
+#     7	 GGCCG
+#    /	 
+#   3	 
+#  / \	 
+# /   6  AAGGA
+#1	 
+# \   5  CTCGT
+#  \ /	 
+#   2	 
+#    \	 
+#     4  GCAGC
+# Lines are sorted by node IDs in the tree
+5
+1 2 3 4 2
+1 2 3 4 2
+1 1 2 2 1
+1 2 3 1 2
+1 2 1 3 2
+1 1 2 2 1
+1 1 2 2 1
