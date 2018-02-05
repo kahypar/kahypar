@@ -1,1 +1,0 @@
-/usr/bin/c++    -W -Wall -Wextra  -Wunused  -Wmaybe-uninitialized -Wfatal-errors -Wcast-qual -Woverloaded-virtual -Wredundant-decls -Winit-self -pedantic -Wnoexcept -DPARANOID  -Weffc++ -Wno-unused-function -msse4.2 -mcrc32   CMakeFiles/GraphToHgr.dir/graph_to_hgr_converter.cc.o  -o GraphToHgr -rdynamic 
