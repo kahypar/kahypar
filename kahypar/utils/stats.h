@@ -51,7 +51,7 @@ std::ostream& operator<< (std::ostream& os, StatTag tag) {
   return os << static_cast<uint8_t>(tag);
 }
 
-#ifdef GATHER_STATS
+// #ifdef GATHER_STATS
 template <class Context>
 class Stats {
   using Log = std::map<std::string, double>;
@@ -87,6 +87,11 @@ class Stats {
 
   void add(const StatTag& tag, const std::string& key, const double& value) {
     _logs[static_cast<size_t>(tag)][key] = value;
+  }
+
+  // TODO(heuer): Method only temporarly added
+  double get(const StatTag& tag, const std::string& key) {
+    return _logs[static_cast<size_t>(tag)][key];
   }
 
   Stats & topLevel() {
@@ -132,7 +137,8 @@ class Stats {
   std::array<Log, static_cast<int>(StatTag::COUNT)> _logs;
 };
 
-#else
+// TODO(heuer): Use this after refactoring again
+/*#else
 template <class Context>
 class Stats {
   using Log = std::map<std::string, double>;
@@ -167,5 +173,5 @@ class Stats {
 };
 
 
-#endif
+#endif*/
 }  // namespace kahypar

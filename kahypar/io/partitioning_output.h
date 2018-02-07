@@ -254,6 +254,28 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
           << ")        =" << timing.time << "s";
     }
   }
+
+  // TODO(heuer): refactor -> | bisection ...
+  if (context.local_search.algorithm == RefinementAlgorithm::twoway_flow ||
+      context.local_search.algorithm == RefinementAlgorithm::kway_flow ||
+      context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+    LOG << "    | build flow network           ="
+        << context.stats.get(StatTag::LocalSearch, "BuildFlowNetwork") << "s";
+    LOG << "      | region build bfs           ="
+        << context.stats.get(StatTag::LocalSearch, "RegionBuildBFS") << "s";
+    LOG << "      | build flow graph           ="
+        << context.stats.get(StatTag::LocalSearch, "BuildFlowGraph") << "s";
+    LOG << "      | build source and sink      ="
+        << context.stats.get(StatTag::LocalSearch, "BuildSourceAndSink") << "s";
+    LOG << "    | flow execution               ="
+        << context.stats.get(StatTag::LocalSearch, "FlowExecution") << "s";
+    LOG << "      | maximum flow               ="
+        << context.stats.get(StatTag::LocalSearch, "MaxFlow") << "s";
+    LOG << "      | minimum cut                ="
+        << context.stats.get(StatTag::LocalSearch, "MinCut") << "s";
+  }
+
   if (context.partition.global_search_iterations > 0) {
     LOG << "  + V-Cycle Coarsening             =" << timings.total_v_cycle_coarsening << "s";
     int i = 1;

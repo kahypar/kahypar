@@ -631,7 +631,6 @@ class IBFS : public MaximumFlow<Network>{
   }
 
  private:
-
   void mapToExternalFlowNetwork() {
     _flowGraph.initSize(_flowNetwork.numNodes(), _flowNetwork.numEdges() - _flowNetwork.numUndirectedEdges());
     _visited.reset();

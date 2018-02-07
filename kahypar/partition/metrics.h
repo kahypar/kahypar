@@ -33,6 +33,30 @@ struct Metrics {
   HyperedgeWeight cut;
   HyperedgeWeight km1;
   double imbalance;
+
+  void updateMetric(const HyperedgeWeight value, const Objective objective) {
+    switch (objective) {
+      case Objective::cut:
+        cut = value;
+        break;
+      case Objective::km1:
+        km1 = value;
+        break;
+      default:
+        LOG << "Unknown Objective";
+        exit(-1);
+    }
+  }
+
+  HyperedgeWeight getMetric(const Objective objective) {
+    switch (objective) {
+      case Objective::cut: return cut;
+      case Objective::km1: return km1;
+      default:
+        LOG << "Unknown Objective";
+        exit(-1);
+    }
+  }
 };
 
 

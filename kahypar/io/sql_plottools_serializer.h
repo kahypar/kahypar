@@ -148,7 +148,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
           << std::boolalpha << context.initial_partitioning.local_search.flow.use_most_balanced_minimum_cut
           << " IP_flow_max_alpha=" 
           << context.initial_partitioning.local_search.flow.alpha;
-      if(context.initial_partitioning.local_search.flow.execution_policy == FlowExecutionPolicy::constant) {
+      if(context.initial_partitioning.local_search.flow.execution_policy == FlowExecutionMode::constant) {
           oss << " IP_flow_beta=" 
               << context.initial_partitioning.local_search.flow.beta;        
       }
@@ -188,7 +188,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
           << std::boolalpha << context.local_search.flow.use_most_balanced_minimum_cut
           << " flow_max_alpha=" 
           << context.local_search.flow.alpha;
-      if(context.local_search.flow.execution_policy == FlowExecutionPolicy::constant) {
+      if(context.local_search.flow.execution_policy == FlowExecutionMode::constant) {
           oss << " flow_beta=" 
               << context.local_search.flow.beta;        
       }

@@ -140,7 +140,7 @@ enum class FlowNetworkType : uint8_t {
   UNDEFINED
 };
 
-enum class FlowExecutionPolicy : uint8_t {
+enum class FlowExecutionMode : uint8_t {
   constant,
   multilevel,
   exponential,
@@ -323,12 +323,12 @@ std::ostream& operator<< (std::ostream& os, const FlowNetworkType& type) {
   return os << static_cast<uint8_t>(type);
 }
 
-std::ostream& operator<< (std::ostream& os, const FlowExecutionPolicy& mode) {
+std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
   switch (mode) {
-    case FlowExecutionPolicy::constant: return os << "constant";
-    case FlowExecutionPolicy::multilevel: return os << "multilevel";
-    case FlowExecutionPolicy::exponential: return os << "exponential";
-    case FlowExecutionPolicy::UNDEFINED: return os << "UNDEFINED";
+    case FlowExecutionMode::constant: return os << "constant";
+    case FlowExecutionMode::multilevel: return os << "multilevel";
+    case FlowExecutionMode::exponential: return os << "exponential";
+    case FlowExecutionMode::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mode);
@@ -516,17 +516,17 @@ static FlowNetworkType flowNetworkFromString(const std::string& type) {
   return FlowNetworkType::hybrid;
 }
 
-static FlowExecutionPolicy flowExecutionPolicyFromString(const std::string& mode) {
+static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) {
   if (mode == "constant") {
-    return FlowExecutionPolicy::constant;
+    return FlowExecutionMode::constant;
   } else if (mode == "multilevel") {
-    return FlowExecutionPolicy::multilevel;
+    return FlowExecutionMode::multilevel;
   } else if (mode == "exponential") {
-    return FlowExecutionPolicy::exponential;
+    return FlowExecutionMode::exponential;
   } 
   std::cout << "No valid flow execution mode." << std::endl;
   exit(0);
-  return FlowExecutionPolicy::exponential;
+  return FlowExecutionMode::exponential;
 }
 
 

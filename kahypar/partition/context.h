@@ -187,7 +187,7 @@ struct LocalSearchParameters {
   struct Flow {
     FlowAlgorithm algorithm = FlowAlgorithm::ibfs;
     FlowNetworkType network = FlowNetworkType::hybrid;
-    FlowExecutionPolicy execution_policy = FlowExecutionPolicy::exponential;
+    FlowExecutionMode execution_policy = FlowExecutionMode::exponential;
     double alpha = 16.0;
     size_t beta = 1024;
     bool use_most_balanced_minimum_cut = true;
@@ -218,22 +218,26 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     }
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
-  } else if(params.algorithm == RefinementAlgorithm::twoway_flow ||
-            params.algorithm == RefinementAlgorithm::kway_flow ||
-            params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-            params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+  } else if (params.algorithm == RefinementAlgorithm::twoway_flow ||
+             params.algorithm == RefinementAlgorithm::kway_flow ||
+             params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+             params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
       str << "  Flow Refinement Parameters:" << std::endl;
       str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
       str << "    flow network:                     " << params.flow.network << std::endl;
       str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
-      str << "    most balanced minimum cut:        " << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
+      str << "    most balanced minimum cut:        "
+          << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
       str << "    alpha:                            " << params.flow.alpha << std::endl;
-      if(params.flow.execution_policy == FlowExecutionPolicy::constant) {
-        str << "    beta:                             " << params.flow.beta << std::endl;        
+      if (params.flow.execution_policy == FlowExecutionMode::constant) {
+        str << "    beta:                             " << params.flow.beta << std::endl;
       }
-      str << "    adaptive alpha stopping rule:     " << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
-      str << "    ignore small HE cut:              " << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
-      str << "    use improvement history:          " << std::boolalpha << params.flow.use_improvement_history << std::endl;
+      str << "    adaptive alpha stopping rule:     "
+          << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
+      str << "    ignore small HE cut:              "
+          << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
+      str << "    use improvement history:          "
+          << std::boolalpha << params.flow.use_improvement_history << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
     str << "  no coarsening!  " << std::endl;
   }

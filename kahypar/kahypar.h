@@ -240,6 +240,13 @@ REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
 
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::constant,
+                ConstantFlowExecution);
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
+                MultilevelFlowExecution);
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
+                ExponentialFlowExecution);
+
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
                 LawlerNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
@@ -280,14 +287,16 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
                             KWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               context.local_search.fm.stopping_rule));
-/*REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
-                            KWayKMinusOneFactoryDispatcher,
-                            meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                              context.local_search.fm.stopping_rule));*/
-REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
                             KWayKMinusOneFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               context.local_search.fm.stopping_rule));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_flow,
+                            TwoWayFlowFactoryDispatcher,
+                            meta::PolicyRegistry<FlowNetworkType>::getInstance().getPolicy(
+                              context.local_search.flow.network),
+                            meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
+                              context.local_search.flow.execution_policy));
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar
