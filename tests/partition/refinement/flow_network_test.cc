@@ -66,8 +66,6 @@ class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::se
     size_t num_sources = 0;
     size_t num_sinks = 0;
     for (const NodeID& node : flowNetwork.nodes()) {
-      /*LOG << V(node) << V(flowNetwork.mapToHyperedgeID(node)) << V(flowNetwork.isSource(node)) << V(flowNetwork.isSink(node))
-          << "(" << (sources.find(node) != sources.end()) << "," << (sinks.find(node) != sinks.end()) << ")";*/
       if (sources.find(node) != sources.end()) {
         ASSERT_TRUE(flowNetwork.isSource(node));
         num_sources++;
@@ -81,8 +79,8 @@ class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::se
         ASSERT_FALSE(flowNetwork.isSink(node));
       }
     }
-    ASSERT_EQ(num_sources, sources.size());
-    ASSERT_EQ(num_sinks, sinks.size());
+    ASSERT_EQ(sources.size(), num_sources);
+    ASSERT_EQ(sinks.size(), num_sinks);
   }
 
   void testIncidentEdges(const NodeID node, const std::set<edge> edges) {
@@ -93,7 +91,7 @@ class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::se
         ASSERT_TRUE(edges.find(EDGE(e.target, e.capacity)) != edges.end());
       }
     }
-    ASSERT_EQ(num_edges, edges.size());
+    ASSERT_EQ(edges.size(), num_edges);
   }
 
 
@@ -161,7 +159,7 @@ TEST_F(LawlerNetworkTest, SourceAndSinkSetup) {
                       { OUTGOING(0), OUTGOING(5) });
 }
 
-// ###################### Node Degree Flow Network Test ######################
+// ###################### Heuer Flow Network Test ######################
 
 using HeuerNetworkTest = FlowNetworkTest<HeuerNetwork>;
 
@@ -176,7 +174,7 @@ TEST_F(HeuerNetworkTest, NodesInFlowProblem) {
   ASSERT_EQ(num_nodes, nodes.size());
 }
 
-INSTANTIATE_TEST_CASE_P(NodeDegreeNetworkStructure,
+INSTANTIATE_TEST_CASE_P(HeuerNetworkStructure,
                         HeuerNetworkTest,
                         ::testing::Values(std::make_pair(10, std::set<edge>({ EDGE(17, 1) })),
                                           std::make_pair(17, std::set<edge>({ EDGE(11, INFTY) })),
@@ -206,7 +204,7 @@ TEST_F(HeuerNetworkTest, SourceAndSinkSetup) {
                       { OUTGOING(0), OUTGOING(5) });
 }
 
-// ###################### Edge Size Flow Network Test ######################
+// ###################### Wong Flow Network Test ######################
 
 using WongNetworkTest = FlowNetworkTest<WongNetwork>;
 
@@ -221,7 +219,7 @@ TEST_F(WongNetworkTest, NodesInFlowProblem) {
   ASSERT_EQ(num_nodes, nodes.size());
 }
 
-INSTANTIATE_TEST_CASE_P(EdgeSizeNetworkStructure,
+INSTANTIATE_TEST_CASE_P(WongNetworkStructure,
                         WongNetworkTest,
                         ::testing::Values(std::make_pair(4, std::set<edge>({ EDGE(5, 1),
                                                                              EDGE(10, INFTY) })),

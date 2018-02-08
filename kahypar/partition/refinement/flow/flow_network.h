@@ -130,12 +130,7 @@ class FlowNetwork {
   }
 
   HyperedgeWeight build(const PartitionID block_0, const PartitionID block_1) {
-    HighResClockTimepoint start, end;
-    start = std::chrono::high_resolution_clock::now();
     buildFlowGraph();
-    end = std::chrono::high_resolution_clock::now();
-    _context.stats.add(StatTag::LocalSearch, "BuildFlowGraph",
-                       std::chrono::duration<double>(end - start).count());
 
     ASSERT([&]() {
              for (const HypernodeID& hn : hypernodes()) {
@@ -150,11 +145,7 @@ class FlowNetwork {
              return true;
            } (), "Hypernodes not correctly added or removed from flow network!");
 
-    start = std::chrono::high_resolution_clock::now();
     HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
-    end = std::chrono::high_resolution_clock::now();
-    _context.stats.add(StatTag::LocalSearch, "BuildSourceAndSink",
-                       std::chrono::duration<double>(end - start).count());
     return cut;
   }
 
@@ -224,12 +215,13 @@ class FlowNetwork {
   }
 
   HyperedgeID mapToHyperedgeID(const NodeID node) const {
-    ASSERT(node >= _hg.initialNumNodes(), "Node " << node << " is not a hyperedge node!");
+    // ASSERT(node >= _hg.initialNumNodes(), "Node " << node << " is not a hyperedge node!");
     if (node >= _hg.initialNumNodes() + _hg.initialNumEdges()) {
       return node - _hg.initialNumNodes() - _hg.initialNumEdges();
     } else {
       return node - _hg.initialNumNodes();
     }
+    return node;
   }
 
   bool interpreteHyperedge(const NodeID node, bool outgoing = true) const {
@@ -491,40 +483,8 @@ class FlowNetwork {
     if (containsHypernode(v)) std::swap(u, v);
     addNode(u);
 
-    // Case 1: Both hypernodes of hyperedge he are in flow problem
-    //         => add an undirected flow edge between the two hypernodes
     if (containsHypernode(v)) {
       addEdge(u, v, _hg.edgeWeight(he), true);
-    } else {
-      // Case, if one hypernode is not contained in the flow problem
-      if (_context.partition.objective == Objective::km1 ||
-          _hg.partID(v) == _curBlock0 ||
-          _hg.partID(v) == _curBlock1) {
-        if (_hg.partID(v) == _curBlock0) {
-          // Case 2: v is not contained in the flow problem and in block '_curBlock0'
-          //         => outgoing hyperedge node will be a source node
-          //         => add a directed flow edge from u to the incomming hyperedge node
-          //            of he with capacity w(he).
-          v = mapToIncommingHyperedgeID(he);
-          addNode(v);
-          ASSERT(_flowGraph[v].size() == 0, "Pin of size 1 hyperedge already added in flow graph!");
-          addEdge(v, u, _hg.edgeWeight(he));
-          _numHyperedges++;
-        } else if (_hg.partID(v) == _curBlock1) {
-          // Case 3: v is not contained in the flow problem and in block '_curBlock1'
-          //         => outgoing hyperedge node will be a sink node
-          //         => add a directed flow edge from u to the outgoing hyperedge node
-          //            of he with capacity w(he).
-          v = mapToOutgoingHyperedgeID(he);
-          addNode(v);
-          ASSERT(_flowGraph[v].size() == 0, "Pin of size 1 hyperedge already added in flow graph!");
-          addEdge(u, v, _hg.edgeWeight(he));
-          _numHyperedges++;
-        }
-      } else {
-        addHyperedge(he);
-        addPin(he, u);
-      }
     }
   }
 
@@ -715,20 +675,21 @@ class WongNetwork final : public FlowNetwork<WongNetwork>{
     for (const HypernodeID& hn : hypernodes()) {
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
-          // Treat hyperedges of size 2 as graph edges
-          // => remove hyperedge nodes in flow network
-          if (_hg.edgeSize(he) == 2) {
-            addGraphEdge(he);
-          } else {
+          if (isHyperedgeOfSize(he, 1) || _hg.edgeSize(he) != 2) {
             // Add a directed flow edge between the incomming
             // and outgoing hyperedge node of he with
             // capacity w(he)
             addHyperedge(he);
+          } else {
+          // Treat hyperedges of size 2 as graph edges
+          // => remove hyperedge nodes in flow network
+            addGraphEdge(he);
           }
+
           _visited.set(he, true);
         }
 
-        if (_hg.edgeSize(he) != 2) {
+        if (isHyperedgeOfSize(he, 1) || _hg.edgeSize(he) != 2) {
           addPin(he, hn);
         }
       }
@@ -763,15 +724,15 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
     for (const HypernodeID& hn : hypernodes()) {
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
-          // Treat hyperedges of size 2 as graph edges
-          // => remove hyperedge nodes in flow network
-          if (_hg.edgeSize(he) == 2) {
-            addGraphEdge(he);
-          } else if (isHyperedgeOfSize(he, 1)) {
+          if (isHyperedgeOfSize(he, 1)) {
             addHyperedge(he);
             addPin(he, hn);
             _containsGraphHyperedges.set(hn, true);
-          } else {
+          } else if (_hg.edgeSize(he) == 2) {
+            // Treat hyperedges of size 2 as graph edges
+            // => remove hyperedge nodes in flow network
+            addGraphEdge(he);
+          }  else {
             // Add a directed flow edge between the incomming
             // and outgoing hyperedge node of he with
             // capacity w(he)

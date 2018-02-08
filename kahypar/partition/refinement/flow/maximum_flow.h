@@ -77,21 +77,13 @@ class MaximumFlow {
       moveHypernode(hn, defaultPart);
     }
 
-    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     HyperedgeWeight cut = maximumFlow();
-    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    _context.stats.add(StatTag::LocalSearch, "MaxFlow",
-                       std::chrono::duration<double>(end - start).count());
 
-    start = std::chrono::high_resolution_clock::now();
     if (_context.local_search.flow.use_most_balanced_minimum_cut) {
       _mbmc.mostBalancedMinimumCut(block_0, block_1);
     } else {
       bfs<true>(block_0);
     }
-    end = std::chrono::high_resolution_clock::now();
-    _context.stats.add(StatTag::LocalSearch, "MinCut",
-                       std::chrono::duration<double>(end - start).count());
 
     return cut;
   }

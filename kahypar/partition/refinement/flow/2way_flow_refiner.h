@@ -141,7 +141,6 @@ using Network = typename FlowNetworkPolicy::Network;
         << V(_context.partition.objective)
         << V(metrics::objective(_hg, _context.partition.objective));
 
-    HighResClockTimepoint start, end;
     bool improvement = false;
     double cur_alpha = _context.local_search.flow.alpha * 2.0;
 
@@ -177,26 +176,18 @@ using Network = typename FlowNetworkPolicy::Network;
         std::random_shuffle(cut_hes.begin(), cut_hes.end());
 
         // Build Flow Problem
-        start = std::chrono::high_resolution_clock::now();
         CutBuildPolicy::buildFlowNetwork(_hg, _context, _flowNetwork,
                                          cut_hes, cur_alpha, _block0, _block1,
                                          _visited);
         HyperedgeWeight cut_flow_network_before = _flowNetwork.build(_block0, _block1);
         DBG << V(_flowNetwork.numNodes()) << V(_flowNetwork.numEdges());
-        end = std::chrono::high_resolution_clock::now();
-        _context.stats.add(StatTag::LocalSearch, "BuildFlowNetwork",
-            std::chrono::duration<double>(end - start).count());
 
         DBG << V(metrics::imbalance(_hg, _context))
             << V(_context.partition.objective)
             << V(metrics::objective(_hg, _context.partition.objective));
 
         // Find minimum (S,T)-bipartition
-        start = std::chrono::high_resolution_clock::now();
         HyperedgeWeight cut_flow_network_after = _maximumFlow->minimumSTCut(_block0, _block1);
-        end = std::chrono::high_resolution_clock::now();
-        _context.stats.add(StatTag::LocalSearch, "FlowExecution",
-            std::chrono::duration<double>(end - start).count());
 
         // Maximum Flow algorithm returns infinity, if all
         // hypernodes contained in the flow problem are either

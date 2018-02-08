@@ -114,15 +114,10 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
                                              * context.partition.perfect_balance_part_weights[0]
                                              - hg.partWeight(block_0)), 0.0);
 
-        HighResClockTimepoint start, end;
-        start = std::chrono::high_resolution_clock::now();
         FlowRegionBuildPolicy::bfs<Network>(hg, flowNetwork, start_nodes_block_0,
                                             block_0, max_part_weight_0, visited);
         FlowRegionBuildPolicy::bfs<Network>(hg, flowNetwork, start_nodes_block_1,
                                             block_1, max_part_weight_1, visited);
-        end = std::chrono::high_resolution_clock::now();
-        context.stats.add(StatTag::LocalSearch, "RegionBuildBFS",
-            std::chrono::duration<double>(end - start).count());
 
         ASSERT([&]() {
             HypernodeWeight weight_block_0 = 0;
