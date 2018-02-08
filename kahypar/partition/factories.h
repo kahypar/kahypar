@@ -42,6 +42,7 @@
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
 #include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
@@ -86,6 +87,11 @@ using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory< TwoWayFlow
                                                                       IRefiner,
                                                                       meta::Typelist<FlowNetworkPolicyClasses,
                                                                                      FlowExecutionPolicyClasses> >;
+
+using KWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFlowRefiner,
+                                                                   IRefiner,
+                                                                   meta::Typelist<FlowNetworkPolicyClasses,
+                                                                                  FlowExecutionPolicyClasses> >;
 
 
 }  // namespace kahypar

@@ -66,7 +66,7 @@ using Network = typename FlowNetworkPolicy::Network;
     _quotientGraph(nullptr),
     _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
     _originalPartId(_hg.initialNumNodes(), -1),
-    _moved_hns(_hg.initialNumNodes()),
+    _movedHNs(_hg.initialNumNodes()),
     _block0(0),
     _block1(1),
     _rollback(false),
@@ -78,7 +78,7 @@ using Network = typename FlowNetworkPolicy::Network;
   TwoWayFlowRefiner& operator= (TwoWayFlowRefiner&&) = delete;
 
   std::pair<const NodeID *, const NodeID *> movedHypernodes() {
-      return std::make_pair(_moved_hns.begin(), _moved_hns.end());
+      return std::make_pair(_movedHNs.begin(), _movedHNs.end());
   }
 
   /*
@@ -92,7 +92,7 @@ using Network = typename FlowNetworkPolicy::Network;
    *
    * FM Refiner:
    * FM refiners performs delta gain updates. Moving nodes inside the
-   * flow refiner without notify the FM refiner invalidate the gain
+   * flow refiner without notifying the FM refiner invalidate the gain
    * cache. Therefore we need to rollback all changes after flow
    * refinement and let the FM refiner perform the moves with
    * the correct update of the gain cache.
@@ -140,17 +140,18 @@ using Network = typename FlowNetworkPolicy::Network;
     DBG << V(metrics::imbalance(_hg, _context))
         << V(_context.partition.objective)
         << V(metrics::objective(_hg, _context.partition.objective));
+    DBG << "Refine " << V(_block0) << "and" << V(_block1);
 
     bool improvement = false;
-    double cur_alpha = _context.local_search.flow.alpha * 2.0;
+    double alpha = _context.local_search.flow.alpha * 2.0;
 
     // Adaptive Flow Iterations
     do {
-        cur_alpha /= 2.0;
+        alpha /= 2.0;
         _flowNetwork.reset(_block0, _block1);
 
         DBG << "";
-        DBG << V(cur_alpha);
+        DBG << V(alpha);
 
         // Initialize set of cut hyperedges for blocks '_block0' and '_block1'
         std::vector<HyperedgeID> cut_hes;
@@ -177,14 +178,12 @@ using Network = typename FlowNetworkPolicy::Network;
 
         // Build Flow Problem
         CutBuildPolicy::buildFlowNetwork(_hg, _context, _flowNetwork,
-                                         cut_hes, cur_alpha, _block0, _block1,
+                                         cut_hes, alpha, _block0, _block1,
                                          _visited);
         HyperedgeWeight cut_flow_network_before = _flowNetwork.build(_block0, _block1);
         DBG << V(_flowNetwork.numNodes()) << V(_flowNetwork.numEdges());
 
-        DBG << V(metrics::imbalance(_hg, _context))
-            << V(_context.partition.objective)
-            << V(metrics::objective(_hg, _context.partition.objective));
+        printMetric();
 
         // Find minimum (S,T)-bipartition
         HyperedgeWeight cut_flow_network_after = _maximumFlow->minimumSTCut(_block0, _block1);
@@ -219,9 +218,7 @@ using Network = typename FlowNetworkPolicy::Network;
             << V(old_metric)
             << V(current_metric);
 
-        DBG << V(metrics::imbalance(_hg, _context))
-            << V(_context.partition.objective)
-            << V(metrics::objective(_hg, _context.partition.objective));
+        printMetric();
 
         bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
         bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
@@ -236,7 +233,7 @@ using Network = typename FlowNetworkPolicy::Network;
             improvement = true;
             current_improvement = true;
 
-            cur_alpha *= (cur_alpha == _context.local_search.flow.alpha ? 2.0 : 4.0);
+            alpha *= (alpha == _context.local_search.flow.alpha ? 2.0 : 4.0);
         }
 
         _maximumFlow->rollback(current_improvement);
@@ -260,7 +257,7 @@ using Network = typename FlowNetworkPolicy::Network;
             !improvement && cut_flow_network_before == cut_flow_network_after) {
             break;
         }
-    } while (cur_alpha > 1.0);
+    } while (alpha > 1.0);
 
     // Restore original partition, if a rollback after
     // flow execution is required
@@ -271,10 +268,7 @@ using Network = typename FlowNetworkPolicy::Network;
         best_metrics.imbalance = old_imbalance;
     }
 
-    DBG << V(metrics::imbalance(_hg, _context))
-        << V(_context.partition.objective)
-        << V(metrics::objective(_hg, _context.partition.objective));
-    DBG << "-------------------------------------------------------------";
+    printMetric(true, true);
 
     // Delete quotient graph
     if (deleteQuotientGraphAfterFlow) {
@@ -286,7 +280,7 @@ using Network = typename FlowNetworkPolicy::Network;
   }
 
   void storeOriginalPartitionIDs() {
-    _moved_hns.clear();
+    _movedHNs.clear();
     _originalPartId.resetUsedEntries();
     for (const HypernodeID& hn : _hg.nodes()) {
         _originalPartId.set(hn, _hg.partID(hn));
@@ -298,7 +292,7 @@ using Network = typename FlowNetworkPolicy::Network;
         PartitionID from = _hg.partID(hn);
         PartitionID to = _originalPartId.get(hn);
         if (from != to) {
-            _moved_hns.add(hn);
+            _movedHNs.add(hn);
             _hg.changeNodePart(hn, from, to);
         }
     }
@@ -306,6 +300,18 @@ using Network = typename FlowNetworkPolicy::Network;
 
   bool isRefinementOnLastLevel() {
       return _hg.currentNumNodes() == _hg.initialNumNodes();
+  }
+
+  void printMetric(bool newline = false, bool endline = false) {
+    if (newline) {
+        DBG << "";
+    }
+    DBG << V(metrics::imbalance(_hg, _context))
+        << V(_context.partition.objective)
+        << V(metrics::objective(_hg, _context.partition.objective));
+    if (endline) {
+        DBG << "-------------------------------------------------------------";
+    }
   }
 
   void initializeImpl(const HyperedgeWeight) override final {
@@ -323,7 +329,7 @@ using Network = typename FlowNetworkPolicy::Network;
   QuotientGraphBlockScheduler* _quotientGraph;
   FastResetFlagArray<> _visited;
   FastResetArray<PartitionID> _originalPartId;
-  SparseSet<HypernodeID> _moved_hns;
+  SparseSet<HypernodeID> _movedHNs;
   PartitionID _block0;
   PartitionID _block1;
   bool _rollback;

@@ -297,6 +297,12 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_flow,
                               context.local_search.flow.network),
                             meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
                               context.local_search.flow.execution_policy));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
+                            KWayFlowFactoryDispatcher,
+                            meta::PolicyRegistry<FlowNetworkType>::getInstance().getPolicy(
+                              context.local_search.flow.network),
+                            meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
+                              context.local_search.flow.execution_policy));
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar
