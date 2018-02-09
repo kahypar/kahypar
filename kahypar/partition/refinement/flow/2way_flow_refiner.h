@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/meta/abstract_factory.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -110,6 +111,8 @@ using Network = typename FlowNetworkPolicy::Network;
   }
 
  private:
+  friend class TwoWayFlowRefinerTest;
+
   static constexpr bool debug = false;
 
   bool refineImpl(std::vector<HypernodeID>&,
@@ -262,7 +265,7 @@ using Network = typename FlowNetworkPolicy::Network;
     // Restore original partition, if a rollback after
     // flow execution is required
     if (_rollback) {
-        restoreOriginalpartitionIDs();
+        restoreOriginalPartitionIDs();
         best_metrics.km1 = old_km1;
         best_metrics.cut = old_cut;
         best_metrics.imbalance = old_imbalance;
@@ -287,7 +290,7 @@ using Network = typename FlowNetworkPolicy::Network;
     }
   }
 
-  void restoreOriginalpartitionIDs() {
+  void restoreOriginalPartitionIDs() {
     for (const HypernodeID& hn : _hg.nodes()) {
         PartitionID from = _hg.partID(hn);
         PartitionID to = _originalPartId.get(hn);

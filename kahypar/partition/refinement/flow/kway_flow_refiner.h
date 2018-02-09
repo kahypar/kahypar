@@ -97,6 +97,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
   }
 
  private:
+  friend class KWayFlowRefinerTest;
   static constexpr bool debug = false;
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -177,7 +178,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
     // Restore original partition, if a rollback after
     // flow execution is required
     if (_rollback) {
-        restoreOriginalpartitionIDs();
+        restoreOriginalPartitionIDs();
         best_metrics.km1 = old_km1;
         best_metrics.cut = old_cut;
         best_metrics.imbalance = old_imbalance;
@@ -200,7 +201,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
     }
   }
 
-  void restoreOriginalpartitionIDs() {
+  void restoreOriginalPartitionIDs() {
     for (const HypernodeID& hn : _hg.nodes()) {
         PartitionID from = _hg.partID(hn);
         PartitionID to = _originalPartId.get(hn);
