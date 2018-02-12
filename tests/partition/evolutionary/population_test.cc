@@ -27,9 +27,9 @@ namespace kahypar {
   };
 
   TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
-    //io::readInDirectKwayContext(context);
-    // population.generateIndividual(hypergraph, context);
-    //population.individualAt(0).printDebug();
+    io::readInDirectKwayContext(context);
+    population.generateIndividual(hypergraph, context);
+    population.individualAt(0).printDebug();
   }
   TEST_F(APopulation, MakesTournamentSelection) {
     Context context;

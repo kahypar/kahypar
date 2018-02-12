@@ -134,13 +134,15 @@ enum class EvoReplaceStrategy : uint8_t {
 enum class EvoCombineStrategy : uint8_t {
   basic,
   edge_frequency,
-  with_edge_frequency_information
+  with_edge_frequency_information,
+  UNDEFINED
 };
 enum class EvoMutateStrategy : uint8_t {
   new_initial_partitioning_vcycle,
   vcycle,
   single_stable_net,
-  population_stable_net
+  population_stable_net,
+  UNDEFINED
 };
 
 enum class EvoCrossCombineStrategy : uint8_t {
@@ -148,7 +150,8 @@ enum class EvoCrossCombineStrategy : uint8_t {
   epsilon,
   objective,
   mode,
-  louvain
+  louvain,
+  UNDEFINED
 };
 
 enum class EvoDecision :uint8_t {
@@ -192,6 +195,7 @@ std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
     case EvoCombineStrategy::with_edge_frequency_information:
       return os << "with_edge_frequency_information";
     case EvoCombineStrategy::edge_frequency: return os << "edge_frequency";
+    case EvoCombineStrategy::UNDEFINED: return os << "-";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(combine);
@@ -204,6 +208,7 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
     case EvoMutateStrategy::vcycle: return os << "vcycle";
     case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
     case EvoMutateStrategy::population_stable_net:  return os << "population_stable_net";
+    case EvoMutateStrategy::UNDEFINED:  return os << "-";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mutation);
@@ -216,6 +221,7 @@ std::ostream& operator<< (std::ostream& os, const EvoCrossCombineStrategy& cross
     case EvoCrossCombineStrategy::objective:  return os << "objective";
     case EvoCrossCombineStrategy::mode:  return os << "mode";
     case EvoCrossCombineStrategy::louvain:  return os << "louvain";
+    case EvoCrossCombineStrategy::UNDEFINED:  return os << "-";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(cross_combine);

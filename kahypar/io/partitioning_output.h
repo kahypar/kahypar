@@ -208,6 +208,12 @@ inline void printEvolutionaryInformation(const Context& context) {
     case EvoDecision::cross_combine:
       LOG << "Action Subtype:" << context.evolutionary.cross_combine_strategy;
       break;
+    case EvoDecision::cross_combine_louvain:
+      LOG << "Action Subtype:" << " Louvain Cross Combine";
+      break;
+    case EvoDecision::diversify:
+      LOG << "Action Subtype:" << " Diversification";
+      break;
   }
   LOG << "Requirements:";
   LOG << "  initial partitioning            :" << std::boolalpha

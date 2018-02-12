@@ -143,12 +143,14 @@ class EvoPartitioner {
     switch (context.evolutionary.combine_strategy) {
       case EvoCombineStrategy::basic: {
         // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-        size_t insert_position = _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
+        //size_t insert_position = 
+        _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
         //verbose(context, insert_position);
         break;
         }
       case EvoCombineStrategy::with_edge_frequency_information: {
-        size_t insert_position =_population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
+        //size_t insert_position =
+        _population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
                                                                              context,
                                                                              _population),
                            context);
@@ -156,8 +158,13 @@ class EvoPartitioner {
         break;
         }
       case EvoCombineStrategy::edge_frequency: {
-        size_t insert_position =_population.insert(combine::edgeFrequency(hg, context, _population), context);
+        //size_t insert_position =
+        _population.insert(combine::edgeFrequency(hg, context, _population), context);
         //verbose(context, insert_position);
+        break;
+        }
+      case EvoCombineStrategy::UNDEFINED: {
+        LOG << "Partitioner called without combine strategy";
         break;
         }
     }
@@ -167,7 +174,8 @@ class EvoPartitioner {
 
   inline void performCrossCombine(Hypergraph& hg, const Context& context) {
     context.evolutionary.cross_combine_strategy = pick::appropriateCrossCombineStrategy(context);
-    size_t insert_position = _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
+    //size_t insert_position = 
+    _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
                                              context), context);
     //verbose(context, insert_position);
   }
@@ -211,6 +219,10 @@ class EvoPartitioner {
         //verbose(context, mutation_position);
         break;
         }
+      case EvoMutateStrategy::UNDEFINED: {
+        LOG << "Partitioner called without mutation strategy";
+        break;
+        }
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
@@ -231,7 +243,7 @@ class EvoPartitioner {
         n /= 10;
       } while (n);
     
-    for(int i = 0; i < _population.size(); ++i) {
+    for(size_t i = 0; i < _population.size(); ++i) {
       if(i == position) {
         std::cout  <<">" <<  _population.individualAt(i).fitness() << "<";
       } else 
@@ -242,7 +254,7 @@ class EvoPartitioner {
       }
       
     }LOG << "";
-    for(int i = 0; i < _population.size(); ++i) {
+    for(size_t i = 0; i < _population.size(); ++i) {
       std::cout << " ";
       std::cout << std::setw(number_of_digits) << _population.difference(_population.individualAt(best), i, true);
       std::cout << " ";

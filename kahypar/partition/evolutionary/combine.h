@@ -149,6 +149,10 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
         return combine::partitions(hg, Parents(in, lovain_individual),
                                    combine_context);
       }
+    case EvoCrossCombineStrategy::UNDEFINED: {
+      LOG << "Cross Combine Strategy Invalid"
+      std::exit(1);
+    }
   }
 
 

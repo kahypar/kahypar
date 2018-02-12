@@ -8,10 +8,10 @@ namespace pick {
     if(context.evolutionary.random_combine_strategy) {
       float random_pick = Randomize::instance().getRandomFloat(0,1);
       if(context.evolutionary.edge_frequency_chance >= random_pick) {
-        return static_cast<EvoCombineStrategy>(1);
+        return EvoCombineStrategy::edge_frequency;
       }
       else {
-        return static_cast<EvoCombineStrategy>(0);
+        return EvoCombineStrategy::basic;
       }
     }
     else {

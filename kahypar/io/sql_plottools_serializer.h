@@ -200,7 +200,25 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
   context.measureTime();
   std::ostringstream oss;
-  
+  EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
+  EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
+  EvoCrossCombineStrategy cross_combine_strat = EvoCrossCombineStrategy::UNDEFINED;
+  switch(context.evolutionary.action.decision()) {
+    case EvoDecision::combine: {
+      combine_strat = context.evolutionary.combine_strategy;
+      break;
+    }
+    case EvoDecision::mutation: {
+      mutate_strat = context.evolutionary.mutate_strategy;
+      break;
+    }
+    case EvoDecision::cross_combine:{
+      cross_combine_strat =  context.evolutionary.cross_combine_strategy;
+      break;
+    }
+    default: 
+      LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
+  }
     //best = metrics::km1(hg);
   oss << "RESULT " 
       << "connectivity=" << metrics::km1(hg) 
@@ -209,9 +227,9 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             //<<" best=" << context.evolutionary.best_partition
             <<" iteration=" << context.evolutionary.iteration
             <<" replace-strategy=" << context.evolutionary.replace_strategy 
-            <<" combine-strategy=" << context.evolutionary.combine_strategy
-            <<" mutate-strategy=" << context.evolutionary.mutate_strategy
-            <<" cross-combine-strategy=" << context.evolutionary.cross_combine_strategy
+            <<" combine-strategy=" << combine_strat
+            <<" mutate-strategy=" << mutate_strat
+            <<" cross-combine-strategy=" << cross_combine_strat
             <<" population-size=" << context.evolutionary.population_size 
             <<" mutation-chance=" << context.evolutionary.mutation_chance 
             <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
