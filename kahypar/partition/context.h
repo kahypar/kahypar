@@ -336,7 +336,6 @@ struct EvolutionaryParameters {
   bool dynamic_population_size = true;
   float dynamic_population_amount_of_time = 0.15;
   bool random_combine_strategy = false;
-  bool random_mutate_strategy = false;
   bool random_cross_combine_strategy = false;
   bool log_everything = false;
   mutable int iteration;

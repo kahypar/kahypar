@@ -19,10 +19,7 @@ namespace pick {
     }
   }
   inline static EvoMutateStrategy appropriateMutateStrategy(const Context& context) {
-    if(context.evolutionary.random_mutate_strategy) {
-      int random_pick = Randomize::instance().getRandomInt(0,3);
-      return static_cast<EvoMutateStrategy>(random_pick);
-    }
+
     if(context.evolutionary.random_vcycles) {
       if(Randomize::instance().flipCoin()) {
         return EvoMutateStrategy::vcycle;

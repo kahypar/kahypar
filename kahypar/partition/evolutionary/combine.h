@@ -150,7 +150,7 @@ Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& con
                                    combine_context);
       }
     case EvoCrossCombineStrategy::UNDEFINED: {
-      LOG << "Cross Combine Strategy Invalid"
+      LOG << "Cross Combine Strategy Invalid";
       std::exit(1);
     }
   }

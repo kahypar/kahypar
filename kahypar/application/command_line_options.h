@@ -503,14 +503,7 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       [&](const bool& random_combine) {
       context.evolutionary.random_combine_strategy = random_combine;
     }),
-    "Whether random combines should be picked\n"
-    "default: off)")
-    ("random-mutate",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](const bool& random_mutate) {
-      context.evolutionary.random_mutate_strategy = random_mutate;
-    }),
-    "Wheter random mutates should be picked\n"
+    "Whether random mutates should be picked\n"
     "default: off)")
     ("random-cross-combine",
     po::value<bool>()->value_name("<bool>")->notifier(
