@@ -186,6 +186,7 @@ struct LocalSearchParameters {
   };
 
   struct Flow {
+    bool enable_in_fm = false;
     FlowAlgorithm algorithm = FlowAlgorithm::ibfs;
     FlowNetworkType network = FlowNetworkType::hybrid;
     FlowExecutionMode execution_policy = FlowExecutionMode::exponential;
@@ -222,9 +223,8 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
   }
   if (params.algorithm == RefinementAlgorithm::twoway_flow ||
-             params.algorithm == RefinementAlgorithm::kway_flow ||
-             params.fm.flow_algorithm == FlowRefinerType::twoway_flow ||
-             params.fm.flow_algorithm  == FlowRefinerType::kway_flow) {
+      params.algorithm == RefinementAlgorithm::kway_flow ||
+      params.flow.enable_in_fm) {
       str << "  Flow Refinement Parameters:" << std::endl;
       str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
       str << "    flow network:                     " << params.flow.network << std::endl;
@@ -502,9 +502,7 @@ static inline void sanityCheck(Context& context) {
 
   if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
     context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
-    context.local_search.fm.flow_algorithm = FlowRefinerType::twoway_flow;
-    context.local_search.flow.network = FlowNetworkType::hybrid;
-    context.local_search.flow.execution_policy = FlowExecutionMode::exponential;
+    context.local_search.flow.enable_in_fm = true;
   } else if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
     context.local_search.fm.flow_algorithm = FlowRefinerType::kway_flow;

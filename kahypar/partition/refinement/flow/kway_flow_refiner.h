@@ -154,7 +154,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
 
             if (active_blocks[block_0] || active_blocks[block_1]) {
                  _twoWayFlowRefiner.updateConfiguration(block_0, block_1,
-                                                        &scheduler, false, true);
+                                                        &scheduler, true);
                 bool improved = _twoWayFlowRefiner.refine(refinement_nodes,
                                                           max_allowed_part_weights,
                                                           changes,

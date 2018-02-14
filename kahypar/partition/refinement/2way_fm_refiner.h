@@ -47,11 +47,9 @@
 
 namespace kahypar {
 template <class StoppingPolicy = Mandatory,
-          class FlowRefinerPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
                               private FMRefinerBase<HypernodeID>{
-using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
  private:
   static constexpr bool debug = false;
 
@@ -67,8 +65,14 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     _gain_cache(_hg.initialNumNodes()),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy(),
-    _flowRefiner(hypergraph, context),
-    _flowRefinerImprovement(false) {
+    _flowRefiner(_context.local_search.flow.enable_in_fm ?
+                 RefinerFactory::getInstance().createObject(
+                 RefinementAlgorithm::twoway_flow, hypergraph, context) :
+                 RefinerFactory::getInstance().createObject(
+                 RefinementAlgorithm::do_nothing, hypergraph, context)),
+    _flowRefinerImprovement(false),
+    _partID(_hg.initialNumNodes(), -1),
+    _movedHNs(_hg.initialNumNodes()) {
     ASSERT(context.partition.k == 2);
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
   }
@@ -147,8 +151,10 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
     }
 
-    _flowRefiner.initialize(max_gain);
-    _flowRefiner.updateConfiguration(0, 1, nullptr, true, false);
+    _flowRefiner->initialize(max_gain);
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _partID[hn] = _hg.partID(hn);
+    }
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -176,11 +182,17 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
       _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
     }
 
-    _flowRefinerImprovement = _flowRefiner.refine(refinement_nodes, max_allowed_part_weights,
-                                            changes, best_metrics);
+    for (const HypernodeID hn : refinement_nodes) {
+      _partID[hn] = _hg.partID(hn);
+    }
+    Metrics old_metrics = best_metrics;
+    _flowRefinerImprovement = _flowRefiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                  changes, best_metrics);
     if (_flowRefinerImprovement) {
+      restoreOriginalPartitionAfterFlow();
+      best_metrics = old_metrics;
       refinement_nodes.clear();
-      for (const HypernodeID& hn : _flowRefiner.movedHypernodes()) {
+      for (const HypernodeID& hn : _movedHNs) {
         refinement_nodes.push_back(hn);
       }
     }
@@ -239,6 +251,7 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
           << V(_hg.nodeWeight(max_gain_node));
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
+      _partID[max_gain_node] = to_part;
 
       updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
@@ -305,6 +318,18 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
                                                  initial_imbalance, _context.partition.epsilon);
+  }
+
+  void restoreOriginalPartitionAfterFlow() {
+    _movedHNs.clear();
+    for (const HypernodeID& hn : _hg.nodes()) {
+        PartitionID from = _hg.partID(hn);
+        PartitionID to = _partID[hn];
+        if (from != to) {
+            _movedHNs.add(hn);
+            _hg.changeNodePart(hn, from, to);
+        }
+    }
   }
 
   void updatePQpartState(const PartitionID from_part, const PartitionID to_part,
@@ -632,6 +657,7 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     while (last_index != min_cut_index) {
       HypernodeID hn = _performed_moves[last_index];
       _hg.changeNodePart(hn, _hg.partID(hn), (_hg.partID(hn) ^ 1));
+      _partID[hn] = _hg.partID(hn);
       --last_index;
     }
   }
@@ -677,7 +703,9 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
   TwoWayFMGainCache<Gain> _gain_cache;
   ds::FastResetArray<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
-  FlowRefiner _flowRefiner;
+  std::unique_ptr<IRefiner> _flowRefiner;
   bool _flowRefinerImprovement;
+  std::vector<PartitionID> _partID;
+  ds::SparseSet<HypernodeID> _movedHNs;
 };
 }                                   // namespace kahypar

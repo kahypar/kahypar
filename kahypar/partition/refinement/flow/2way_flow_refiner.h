@@ -66,21 +66,14 @@ using Network = typename FlowNetworkPolicy::Network;
     _flowExecutionPolicy(),
     _quotientGraph(nullptr),
     _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
-    _originalPartId(_hg.initialNumNodes(), -1),
-    _movedHNs(_hg.initialNumNodes()),
     _block0(0),
     _block1(1),
-    _rollback(false),
     _ignoreFlowExecutionPolicy(false) {}
 
   TwoWayFlowRefiner(const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner(TwoWayFlowRefiner&&) = delete;
   TwoWayFlowRefiner& operator= (const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner& operator= (TwoWayFlowRefiner&&) = delete;
-
-  std::pair<const NodeID *, const NodeID *> movedHypernodes() {
-      return std::make_pair(_movedHNs.begin(), _movedHNs.end());
-  }
 
   /*
    * The 2way flow refiner can be used in combination with other
@@ -101,12 +94,10 @@ using Network = typename FlowNetworkPolicy::Network;
   void updateConfiguration(const PartitionID block0,
                            const PartitionID block1,
                            QuotientGraphBlockScheduler* quotientGraph,
-                           bool rollback,
                            bool ignoreFlowExecutionPolicy) {
     _block0 = block0;
     _block1 = block1;
     _quotientGraph = quotientGraph;
-    _rollback = rollback;
     _ignoreFlowExecutionPolicy = ignoreFlowExecutionPolicy;
   }
 
@@ -129,15 +120,6 @@ using Network = typename FlowNetworkPolicy::Network;
         deleteQuotientGraphAfterFlow = true;
         _quotientGraph = new QuotientGraphBlockScheduler(_hg, _context);
         _quotientGraph->buildQuotientGraph();
-    }
-
-    // Stores original partition, if a rollback after
-    // flow execution is required
-    HyperedgeWeight old_km1 = best_metrics.km1;
-    HyperedgeWeight old_cut = best_metrics.cut;
-    double old_imbalance = best_metrics.imbalance;
-    if (_rollback) {
-        storeOriginalPartitionIDs();
     }
 
     DBG << V(metrics::imbalance(_hg, _context))
@@ -262,15 +244,6 @@ using Network = typename FlowNetworkPolicy::Network;
         }
     } while (alpha > 1.0);
 
-    // Restore original partition, if a rollback after
-    // flow execution is required
-    if (_rollback) {
-        restoreOriginalPartitionIDs();
-        best_metrics.km1 = old_km1;
-        best_metrics.cut = old_cut;
-        best_metrics.imbalance = old_imbalance;
-    }
-
     printMetric(true, true);
 
     // Delete quotient graph
@@ -282,24 +255,6 @@ using Network = typename FlowNetworkPolicy::Network;
     return improvement;
   }
 
-  void storeOriginalPartitionIDs() {
-    _movedHNs.clear();
-    _originalPartId.resetUsedEntries();
-    for (const HypernodeID& hn : _hg.nodes()) {
-        _originalPartId.set(hn, _hg.partID(hn));
-    }
-  }
-
-  void restoreOriginalPartitionIDs() {
-    for (const HypernodeID& hn : _hg.nodes()) {
-        PartitionID from = _hg.partID(hn);
-        PartitionID to = _originalPartId.get(hn);
-        if (from != to) {
-            _movedHNs.add(hn);
-            _hg.changeNodePart(hn, from, to);
-        }
-    }
-  }
 
   bool isRefinementOnLastLevel() {
       return _hg.currentNumNodes() == _hg.initialNumNodes();
@@ -331,11 +286,8 @@ using Network = typename FlowNetworkPolicy::Network;
   FlowExecutionPolicy _flowExecutionPolicy;
   QuotientGraphBlockScheduler* _quotientGraph;
   FastResetFlagArray<> _visited;
-  FastResetArray<PartitionID> _originalPartId;
-  SparseSet<HypernodeID> _movedHNs;
   PartitionID _block0;
   PartitionID _block1;
-  bool _rollback;
   bool _ignoreFlowExecutionPolicy;
 };
 }  // namespace kahypar

@@ -289,9 +289,7 @@ REGISTER_POLICY(FlowRefinerType, FlowRefinerType::kway_flow,
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
                             TwoWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                              context.local_search.fm.stopping_rule),
-                            meta::PolicyRegistry<FlowRefinerType>::getInstance().getPolicy(
-                              context.local_search.fm.flow_algorithm));
+                              context.local_search.fm.stopping_rule));
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
                             KWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
