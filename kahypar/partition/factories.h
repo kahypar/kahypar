@@ -38,6 +38,7 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
+#include "kahypar/partition/refinement/policies/fm_flow_refiner_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
@@ -73,7 +74,8 @@ using LazyCoarseningDispatcher = meta::StaticMultiDispatchFactory<LazyVertexPair
 
 using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
                                                                    IRefiner,
-                                                                   meta::Typelist<StoppingPolicyClasses> >;
+                                                                   meta::Typelist<StoppingPolicyClasses,
+                                                                                  TwowWayFlowRefinerPolicyClasses> >;
 
 using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
                                                                  IRefiner,

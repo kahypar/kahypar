@@ -147,6 +147,13 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
+enum class FlowRefinerType : uint8_t {
+  do_nothing,
+  twoway_flow,
+  kway_flow,
+  UNDEFINED
+};
+
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection: return os << "recursive";
@@ -334,6 +341,17 @@ std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
   return os << static_cast<uint8_t>(mode);
 }
 
+std::ostream& operator<< (std::ostream& os, const FlowRefinerType& refiner) {
+  switch (refiner) {
+    case FlowRefinerType::do_nothing: return os << "do_nothing";
+    case FlowRefinerType::twoway_flow: return os << "twoway_flow";
+    case FlowRefinerType::kway_flow: return os << "kway_flow";
+    case FlowRefinerType::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(refiner);
+}
+
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   if (crit == "best") {
     return AcceptancePolicy::best;
@@ -402,15 +420,15 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm_maxgain;
   } else if (type == "sclap") {
     return RefinementAlgorithm::label_propagation;
-  } else if(type == "twoway_flow") {
+  } else if (type == "twoway_flow") {
     return RefinementAlgorithm::twoway_flow;
   } else if (type == "twoway_fm_flow") {
     return RefinementAlgorithm::twoway_fm_flow;
-  } else if(type == "kway_flow") {
+  } else if (type == "kway_flow") {
     return RefinementAlgorithm::kway_flow;
-  } else if(type == "kway_fm_flow_km1") {
+  } else if (type == "kway_fm_flow_km1") {
     return RefinementAlgorithm::kway_fm_flow_km1;
-  } 
+  }
   std::cout << "Illegal option:" << type << std::endl;
   exit(0);
   return RefinementAlgorithm::kway_fm;
@@ -523,10 +541,23 @@ static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) 
     return FlowExecutionMode::multilevel;
   } else if (mode == "exponential") {
     return FlowExecutionMode::exponential;
-  } 
+  }
   std::cout << "No valid flow execution mode." << std::endl;
   exit(0);
   return FlowExecutionMode::exponential;
+}
+
+static FlowRefinerType flowRefinerTypeFromString(const std::string& refiner) {
+  if (refiner == "do_nothing") {
+    return FlowRefinerType::do_nothing;
+  } else if (refiner == "twoway_flow") {
+    return FlowRefinerType::twoway_flow;
+  } else if (refiner == "kway_flow") {
+    return FlowRefinerType::kway_flow;
+  }
+  std::cout << "No valid flow refiner type." << std::endl;
+  exit(0);
+  return FlowRefinerType::do_nothing;
 }
 
 

@@ -92,8 +92,9 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
    * refinement and let the FM refiner perform the moves with
    * the correct update of the gain cache.
    */
-  void enableRollback() {
-      _rollback = true;
+  void updateConfiguration(const PartitionID, const PartitionID,
+                           QuotientGraphBlockScheduler*, bool rollback, bool) {
+    _rollback = rollback;
   }
 
  private:
@@ -152,8 +153,8 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
             }
 
             if (active_blocks[block_0] || active_blocks[block_1]) {
-                 _twoWayFlowRefiner.updateTwoWayFlowRefinementConfiguration(block_0, block_1,
-                                                                            &scheduler, false, true);
+                 _twoWayFlowRefiner.updateConfiguration(block_0, block_1,
+                                                        &scheduler, false, true);
                 bool improved = _twoWayFlowRefiner.refine(refinement_nodes,
                                                           max_allowed_part_weights,
                                                           changes,

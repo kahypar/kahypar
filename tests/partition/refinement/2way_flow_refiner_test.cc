@@ -164,6 +164,7 @@ class TwoWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
     context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
 
     context.local_search.flow.use_most_balanced_minimum_cut = true;
+    context.local_search.flow.alpha = 4;
   }
 
   void setupPartition() {

@@ -178,6 +178,7 @@ struct LocalSearchParameters {
     uint32_t max_number_of_fruitless_moves = std::numeric_limits<uint32_t>::max();
     double adaptive_stopping_alpha = std::numeric_limits<double>::max();
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::UNDEFINED;
+    FlowRefinerType flow_algorithm = FlowRefinerType::do_nothing;
   };
 
   struct Sclap {
@@ -216,12 +217,14 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     } else {
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
+    str << "  flow algorithm:                     " << params.fm.flow_algorithm << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
-  } else if (params.algorithm == RefinementAlgorithm::twoway_flow ||
+  }
+  if (params.algorithm == RefinementAlgorithm::twoway_flow ||
              params.algorithm == RefinementAlgorithm::kway_flow ||
-             params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-             params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+             params.fm.flow_algorithm == FlowRefinerType::twoway_flow ||
+             params.fm.flow_algorithm  == FlowRefinerType::kway_flow) {
       str << "  Flow Refinement Parameters:" << std::endl;
       str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
       str << "    flow network:                     " << params.flow.network << std::endl;
@@ -495,6 +498,19 @@ static inline void sanityCheck(Context& context) {
     default:
       // should never happen, because initial partitioning is either done via RB or directly
       break;
+  }
+
+  if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
+    context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    context.local_search.fm.flow_algorithm = FlowRefinerType::twoway_flow;
+    context.local_search.flow.network = FlowNetworkType::hybrid;
+    context.local_search.flow.execution_policy = FlowExecutionMode::exponential;
+  } else if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+    context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+    context.local_search.fm.flow_algorithm = FlowRefinerType::kway_flow;
+    context.local_search.flow.network = FlowNetworkType::hybrid;
+    context.local_search.flow.execution_policy = FlowExecutionMode::exponential;
+    context.partition.objective = Objective::km1;
   }
 }
 }  // namespace kahypar

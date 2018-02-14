@@ -98,11 +98,11 @@ using Network = typename FlowNetworkPolicy::Network;
    * refinement and let the FM refiner perform the moves with
    * the correct update of the gain cache.
    */
-  void updateTwoWayFlowRefinementConfiguration(const PartitionID block0,
-                                               const PartitionID block1,
-                                               QuotientGraphBlockScheduler* quotientGraph = nullptr,
-                                               bool rollback = false,
-                                               bool ignoreFlowExecutionPolicy = false) {
+  void updateConfiguration(const PartitionID block0,
+                           const PartitionID block1,
+                           QuotientGraphBlockScheduler* quotientGraph,
+                           bool rollback,
+                           bool ignoreFlowExecutionPolicy) {
     _block0 = block0;
     _block1 = block1;
     _quotientGraph = quotientGraph;

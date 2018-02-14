@@ -27,6 +27,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 
 namespace kahypar {
 class DoNothingRefiner final : public IRefiner {
@@ -38,6 +39,13 @@ class DoNothingRefiner final : public IRefiner {
   DoNothingRefiner& operator= (const DoNothingRefiner&) = delete;
   DoNothingRefiner& operator= (DoNothingRefiner&&) = delete;
   ~DoNothingRefiner() override = default;
+
+  void updateConfiguration(const PartitionID, const PartitionID,
+                           QuotientGraphBlockScheduler*, bool, bool) { }
+
+  std::pair<const NodeID *, const NodeID *> movedHypernodes() {
+      return std::make_pair(nullptr, nullptr);
+  }
 
  private:
   bool refineImpl(std::vector<HypernodeID>&,
