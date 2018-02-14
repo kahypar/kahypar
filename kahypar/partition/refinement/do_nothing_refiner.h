@@ -47,6 +47,10 @@ class DoNothingRefiner final : public IRefiner {
       return std::make_pair(nullptr, nullptr);
   }
 
+  PartitionID getDestinationPartID(const HypernodeID) const {
+      return 0;
+  }
+
  private:
   bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,

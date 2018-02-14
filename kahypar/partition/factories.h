@@ -83,7 +83,8 @@ using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
 
 using KWayKMinusOneFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayKMinusOneRefiner,
                                                                         IRefiner,
-                                                                        meta::Typelist<StoppingPolicyClasses> >;
+                                                                        meta::Typelist<StoppingPolicyClasses,
+                                                                                       KWayFlowRefinerPolicyClasses> >;
 
 using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory< TwoWayFlowRefiner,
                                                                       IRefiner,

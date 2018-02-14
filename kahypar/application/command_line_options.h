@@ -404,9 +404,9 @@ po::options_description createRefinementOptionsDescription(Context& context,
       context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
     }),
     "Flow Execution Modes:\n"
-    " - constant    : Execute flows in each level i with i = beta * j (j \in {1,2,...})\n"
-    " - exponential : Execute flows in each level i with i = 2^j (j \in {1,2,...})\n"
-    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \in {1,2,...})\n"
+    " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
+    " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
+    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
     "(default: exponential)")
     ("r-flow-alpha",
     po::value<double>(&context.local_search.flow.alpha)->value_name("<double>"),
