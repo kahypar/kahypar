@@ -147,13 +147,6 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
-enum class FlowRefinerType : uint8_t {
-  do_nothing,
-  twoway_flow,
-  kway_flow,
-  UNDEFINED
-};
-
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection: return os << "recursive";
@@ -339,17 +332,6 @@ std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mode);
-}
-
-std::ostream& operator<< (std::ostream& os, const FlowRefinerType& refiner) {
-  switch (refiner) {
-    case FlowRefinerType::do_nothing: return os << "do_nothing";
-    case FlowRefinerType::twoway_flow: return os << "twoway_flow";
-    case FlowRefinerType::kway_flow: return os << "kway_flow";
-    case FlowRefinerType::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(refiner);
 }
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
@@ -546,19 +528,4 @@ static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) 
   exit(0);
   return FlowExecutionMode::exponential;
 }
-
-static FlowRefinerType flowRefinerTypeFromString(const std::string& refiner) {
-  if (refiner == "do_nothing") {
-    return FlowRefinerType::do_nothing;
-  } else if (refiner == "twoway_flow") {
-    return FlowRefinerType::twoway_flow;
-  } else if (refiner == "kway_flow") {
-    return FlowRefinerType::kway_flow;
-  }
-  std::cout << "No valid flow refiner type." << std::endl;
-  exit(0);
-  return FlowRefinerType::do_nothing;
-}
-
-
 }  // namespace kahypar

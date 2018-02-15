@@ -178,7 +178,6 @@ struct LocalSearchParameters {
     uint32_t max_number_of_fruitless_moves = std::numeric_limits<uint32_t>::max();
     double adaptive_stopping_alpha = std::numeric_limits<double>::max();
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::UNDEFINED;
-    FlowRefinerType flow_algorithm = FlowRefinerType::do_nothing;
   };
 
   struct Sclap {
@@ -187,15 +186,15 @@ struct LocalSearchParameters {
 
   struct Flow {
     bool enable_in_fm = false;
-    FlowAlgorithm algorithm = FlowAlgorithm::ibfs;
-    FlowNetworkType network = FlowNetworkType::hybrid;
-    FlowExecutionMode execution_policy = FlowExecutionMode::exponential;
-    double alpha = 16.0;
-    size_t beta = 1024;
-    bool use_most_balanced_minimum_cut = true;
-    bool use_adaptive_alpha_stopping_rule = true;
-    bool ignore_small_hyperedge_cut = true;
-    bool use_improvement_history = true;
+    FlowAlgorithm algorithm = FlowAlgorithm::UNDEFINED;
+    FlowNetworkType network = FlowNetworkType::UNDEFINED;
+    FlowExecutionMode execution_policy = FlowExecutionMode::UNDEFINED;
+    double alpha = std::numeric_limits<double>::max();
+    size_t beta = std::numeric_limits<size_t>::max();
+    bool use_most_balanced_minimum_cut = false;
+    bool use_adaptive_alpha_stopping_rule = false;
+    bool ignore_small_hyperedge_cut = false;
+    bool use_improvement_history = false;
   };
 
   FM fm { };
@@ -218,7 +217,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     } else {
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
-    str << "  flow algorithm:                     " << params.fm.flow_algorithm << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
     str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
   }
@@ -226,7 +224,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       params.algorithm == RefinementAlgorithm::kway_flow ||
       params.flow.enable_in_fm) {
       str << "  Flow Refinement Parameters:" << std::endl;
-      str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
       str << "    flow network:                     " << params.flow.network << std::endl;
       str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
       str << "    most balanced minimum cut:        "
