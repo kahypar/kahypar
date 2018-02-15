@@ -38,7 +38,6 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
-#include "kahypar/partition/refinement/policies/fm_flow_refiner_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
@@ -78,8 +77,7 @@ using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
 
 using KWayKMinusOneFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayKMinusOneRefiner,
                                                                         IRefiner,
-                                                                        meta::Typelist<StoppingPolicyClasses,
-                                                                                       KWayFlowRefinerPolicyClasses> >;
+                                                                        meta::Typelist<StoppingPolicyClasses> >;
 
 using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory< TwoWayFlowRefiner,
                                                                       IRefiner,

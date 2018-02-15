@@ -276,13 +276,6 @@ REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
 
-REGISTER_POLICY(FlowRefinerType, FlowRefinerType::do_nothing,
-                DoNothingRefinerPolicy);
-REGISTER_POLICY(FlowRefinerType, FlowRefinerType::twoway_flow,
-                TwoWayFlowRefinerPolicy);
-REGISTER_POLICY(FlowRefinerType, FlowRefinerType::kway_flow,
-                KWayFlowRefinerPolicy);
-
 // //////////////////////////////////////////////////////////////////////////////
 //                           Local Search Algorithms
 // //////////////////////////////////////////////////////////////////////////////
@@ -297,9 +290,7 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm,
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
                             KWayKMinusOneFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
-                              context.local_search.fm.stopping_rule),
-                            meta::PolicyRegistry<FlowRefinerType>::getInstance().getPolicy(
-                              context.local_search.fm.flow_algorithm));
+                              context.local_search.fm.stopping_rule));
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_flow,
                             TwoWayFlowFactoryDispatcher,
                             meta::PolicyRegistry<FlowNetworkType>::getInstance().getPolicy(

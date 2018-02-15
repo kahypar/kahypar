@@ -58,48 +58,16 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
     _context(context),
     _twoWayFlowRefiner(_hg, _context),
     _flowExecutionPolicy(),
-    _originalPartId(_hg.initialNumNodes(), -1),
-    _destinationPartId(_hg.initialNumNodes(), -1),
-    _movedHNs(_hg.initialNumNodes()),
-    _numImprovements(context.partition.k, std::vector<size_t>(context.partition.k, 0)),
-    _rollback(false) {}
+    _numImprovements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) {}
 
   KWayFlowRefiner(const KWayFlowRefiner&) = delete;
   KWayFlowRefiner(KWayFlowRefiner&&) = delete;
   KWayFlowRefiner& operator= (const KWayFlowRefiner&) = delete;
   KWayFlowRefiner& operator= (KWayFlowRefiner&&) = delete;
 
-  std::pair<const NodeID *, const NodeID *> movedHypernodes() {
-      return std::make_pair(_movedHNs.begin(), _movedHNs.end());
-  }
-
-  size_t numMovedNodes() {
-      return _movedHNs.size();
-  }
-
-  PartitionID getDestinationPartID(const HypernodeID hn) const {
-      return _destinationPartId.get(hn);
-  }
-
-  /*
-   * The kway flow refiner can be used in combination with the
-   * FM refiner. 
-   *
-   * FM Refiner:
-   * FM refiners performs delta gain updates. Moving nodes inside the
-   * flow refiner without notify the FM refiner invalidate the gain
-   * cache. Therefore we need to rollback all changes after flow
-   * refinement and let the FM refiner perform the moves with
-   * the correct update of the gain cache.
-   */
-  void updateConfiguration(const PartitionID, const PartitionID,
-                           QuotientGraphBlockScheduler*, bool rollback, bool) {
-    _rollback = rollback;
-  }
-
  private:
   friend class KWayFlowRefinerTest;
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
@@ -112,15 +80,6 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
     DBG << "############### Active Block Scheduling ###############";
     DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
     printMetric();
-
-    // Stores original partition, if a rollback after
-    // flow execution is required
-    HyperedgeWeight old_km1 = best_metrics.km1;
-    HyperedgeWeight old_cut = best_metrics.cut;
-    double old_imbalance = best_metrics.imbalance;
-    if (_rollback) {
-        storeOriginalPartitionIDs();
-    }
 
     // Initialize Quotient Graph
     // 1.) Contains edges between each adjacent block of the partition
@@ -176,42 +135,10 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
         std::swap(active_blocks, tmp_active_blocks);
     }
 
-    // Restore original partition, if a rollback after
-    // flow execution is required
-    if (_rollback) {
-        restoreOriginalPartitionIDs();
-        best_metrics.km1 = old_km1;
-        best_metrics.cut = old_cut;
-        best_metrics.imbalance = old_imbalance;
-    }
-
     printMetric(true, true);
 
 
     return improvement;
-  }
-
-
-  void storeOriginalPartitionIDs() {
-    _movedHNs.clear();
-    _originalPartId.resetUsedEntries();
-    _destinationPartId.resetUsedEntries();
-    for (const HypernodeID& hn : _hg.nodes()) {
-        _originalPartId.set(hn, _hg.partID(hn));
-        _destinationPartId.set(hn, _hg.partID(hn));
-    }
-  }
-
-  void restoreOriginalPartitionIDs() {
-    for (const HypernodeID& hn : _hg.nodes()) {
-        PartitionID from = _hg.partID(hn);
-        PartitionID to = _originalPartId.get(hn);
-        if (from != to) {
-            _movedHNs.add(hn);
-            _destinationPartId.set(hn, from);
-            _hg.changeNodePart(hn, from, to);
-        }
-    }
   }
 
   void printMetric(bool newline = false, bool endline = false) {
@@ -238,10 +165,6 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
   const Context& _context;
   TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoWayFlowRefiner;
   FlowExecutionPolicy _flowExecutionPolicy;
-  FastResetArray<PartitionID> _originalPartId;
-  FastResetArray<PartitionID> _destinationPartId;
-  SparseSet<HypernodeID> _movedHNs;
   std::vector<std::vector<size_t>> _numImprovements;
-  bool _rollback;
 };
 }  // namespace kahypar

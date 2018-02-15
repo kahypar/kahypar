@@ -505,10 +505,7 @@ static inline void sanityCheck(Context& context) {
     context.local_search.flow.enable_in_fm = true;
   } else if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
-    context.local_search.fm.flow_algorithm = FlowRefinerType::kway_flow;
-    context.local_search.flow.network = FlowNetworkType::hybrid;
-    context.local_search.flow.execution_policy = FlowExecutionMode::exponential;
-    context.partition.objective = Objective::km1;
+    context.local_search.flow.enable_in_fm = true;
   }
 }
 }  // namespace kahypar

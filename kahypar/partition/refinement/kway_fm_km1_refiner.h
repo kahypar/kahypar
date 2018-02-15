@@ -47,11 +47,9 @@
 
 namespace kahypar {
 template <class StoppingPolicy = Mandatory,
-          class FlowRefinerPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayKMinusOneRefiner final : public IRefiner,
                                    private FMRefinerBase<RollbackInfo>{
-using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
  private:
   static constexpr bool debug = false;
   static constexpr HypernodeID hn_to_debug = 5589;
@@ -82,8 +80,15 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     _unremovable_he_parts(_hg.initialNumEdges() * context.partition.k),
     _gain_cache(_hg.initialNumNodes(), _context.partition.k),
     _stopping_policy(),
-    _flowRefiner(hypergraph, context),
-    _flowRefinerImprovement(false) { }
+    _flowRefiner(_context.local_search.flow.enable_in_fm ?
+                 RefinerFactory::getInstance().createObject(
+                 RefinementAlgorithm::kway_flow, hypergraph, context) :
+                 RefinerFactory::getInstance().createObject(
+                 RefinementAlgorithm::do_nothing, hypergraph, context)),
+    _flowRefinerImprovement(false),
+    _partID(_hg.initialNumNodes(), -1),
+    _destinationPartId(_hg.initialNumNodes(), -1),
+    _movedHNs(_hg.initialNumNodes()) { }
 
   ~KWayKMinusOneRefiner() override = default;
 
@@ -107,8 +112,10 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     _gain_cache.clear();
     initializeGainCache();
 
-    _flowRefiner.initialize(max_gain);
-    _flowRefiner.updateConfiguration(0, 1, nullptr, true, false);
+    _flowRefiner->initialize(max_gain);
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _partID[hn] = _hg.partID(hn);
+    }
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -125,7 +132,11 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     reset();
     _unremovable_he_parts.reset();
 
-    _flowRefinerImprovement = _flowRefiner.refine(refinement_nodes,
+    for (const HypernodeID& hn : refinement_nodes) {
+      _partID[hn] = _hg.partID(hn);
+    }
+    Metrics old_metrics = best_metrics;
+    _flowRefinerImprovement = _flowRefiner->refine(refinement_nodes,
                                                   max_allowed_part_weights,
                                                   changes,
                                                   best_metrics);
@@ -133,11 +144,14 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
+      _partID[hn] = _hg.partID(hn);
     }
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     if (_flowRefinerImprovement) {
+      restoreOriginalPartitionIDs();
+      best_metrics = old_metrics;
       moveHypernodesFromFlow(best_metrics);
       ASSERT_THAT_GAIN_CACHE_IS_VALID();
       return true;
@@ -200,6 +214,7 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
       if (moveIsFeasible(max_gain_node, from_part, to_part)) {
         // LOG << "performed MOVE:" << V(max_gain_node) << V(from_part) << V(to_part);
         moveHypernode(max_gain_node, from_part, to_part);
+        _partID[max_gain_node] = to_part;
 
         if (_hg.partWeight(to_part) >= _context.partition.max_part_weights[0]) {
           _pq.disablePart(to_part);
@@ -270,7 +285,7 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
                                           best_metrics.km1, current_km1)
         == true ? "policy" : "empty queue");
 
-    rollback(_performed_moves.size() - 1, min_cut_index);
+    rollback(_performed_moves.size() - 1, min_cut_index, _partID);
     _gain_cache.rollbackDelta();
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
@@ -282,21 +297,34 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
                                                  _context.partition.epsilon);
   }
 
+  void restoreOriginalPartitionIDs() {
+    _movedHNs.clear();
+    for (const HypernodeID& hn : _hg.nodes()) {
+        PartitionID from = _hg.partID(hn);
+        PartitionID to = _partID[hn];
+        if (from != to) {
+            _movedHNs.add(hn);
+            _destinationPartId[hn] = from;
+            _hg.changeNodePart(hn, from, to);
+        }
+    }
+  }
+
   void moveHypernodesFromFlow(Metrics& best_metrics) {
     double current_imbalance = best_metrics.imbalance;
     HyperedgeWeight current_km1 = best_metrics.km1;
     PartitionID heaviest_part = heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
-    for (const HypernodeID& hn : _flowRefiner.movedHypernodes()) {
+    for (const HypernodeID& hn : _movedHNs) {
       if (!_hg.active(hn)) {
         _hg.activate(hn);
       }
     }
 
-    for (const HypernodeID& hn : _flowRefiner.movedHypernodes()) {
+    for (const HypernodeID& hn : _movedHNs) {
       PartitionID from_part = _hg.partID(hn);
-      PartitionID to_part = _flowRefiner.getDestinationPartID(hn);
+      PartitionID to_part = _destinationPartId[hn];
       if (!_gain_cache.entryExists(hn, to_part)) {
         _gain_cache.initializeEntry(hn, to_part, gainInducedByHypergraph(hn, to_part));
       }
@@ -308,6 +336,7 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
           << V(from_part) << V(to_part);
 
       _hg.changeNodePart(hn, from_part, to_part);
+      _partID[hn] = to_part;
       _hg.mark(hn);
 
       reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
@@ -1111,7 +1140,10 @@ using FlowRefiner = typename FlowRefinerPolicy::FlowRefiner;
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 
-  FlowRefiner _flowRefiner;
+  std::unique_ptr<IRefiner> _flowRefiner;
   bool _flowRefinerImprovement;
+  std::vector<PartitionID> _partID;
+  std::vector<PartitionID> _destinationPartId;
+  ds::SparseSet<HypernodeID> _movedHNs;
 };
 }  // namespace kahypar

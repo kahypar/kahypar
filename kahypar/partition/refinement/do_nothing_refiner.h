@@ -40,17 +40,6 @@ class DoNothingRefiner final : public IRefiner {
   DoNothingRefiner& operator= (DoNothingRefiner&&) = delete;
   ~DoNothingRefiner() override = default;
 
-  void updateConfiguration(const PartitionID, const PartitionID,
-                           QuotientGraphBlockScheduler*, bool, bool) { }
-
-  std::pair<const NodeID *, const NodeID *> movedHypernodes() {
-      return std::make_pair(nullptr, nullptr);
-  }
-
-  PartitionID getDestinationPartID(const HypernodeID) const {
-      return 0;
-  }
-
  private:
   bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,

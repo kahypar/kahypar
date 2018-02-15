@@ -28,7 +28,6 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/multilevel.h"
-#include "kahypar/partition/refinement/policies/fm_flow_refiner_policy.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
@@ -44,8 +43,7 @@ using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    UseCommunityStructure,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
                                                    RatingType>;
-using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch,
-                                DoNothingRefinerPolicy>;
+using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class AnUnPartitionedHypergraph : public Test {
  public:
