@@ -20,14 +20,26 @@
 
 #include "gmock/gmock.h"
 
+#include "kahypar/meta/registrar.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/partition/refinement/do_nothing_refiner.h"
 
 using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
+#define REGISTER_REFINER(id, refiner)                                  \
+  static meta::Registrar<RefinerFactory> register_ ## refiner(         \
+    id,                                                                \
+    [] (Hypergraph & hypergraph, const Context &context)->IRefiner * { \
+      return new refiner(hypergraph, context);                         \
+    })
+
+REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
+
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class ATwoWayFMRefiner : public Test {

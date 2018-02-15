@@ -32,17 +32,17 @@ namespace kahypar {
 class FlowExecutionPolicy : public meta::PolicyBase {
  public:
   FlowExecutionPolicy() :
-    _flowExecutionLevels() { }
+    _flow_execution_levels() { }
 
   virtual void initialize(const Hypergraph& hg, const Context& context) = 0;
 
   bool executeFlow(const Hypergraph& hg) {
-    if (_flowExecutionLevels.size() == 0) {
+    if (_flow_execution_levels.size() == 0) {
       return false;
     }
-    size_t cur_idx = _flowExecutionLevels.size()-1;
-    if (hg.currentNumNodes() >= _flowExecutionLevels[cur_idx]) {
-      _flowExecutionLevels.pop_back();
+    size_t cur_idx = _flow_execution_levels.size()-1;
+    if (hg.currentNumNodes() >= _flow_execution_levels[cur_idx]) {
+      _flow_execution_levels.pop_back();
       return true;
     } else {
       return false;
@@ -50,7 +50,7 @@ class FlowExecutionPolicy : public meta::PolicyBase {
   }
 
  protected:
-  std::vector<size_t> _flowExecutionLevels;
+  std::vector<size_t> _flow_execution_levels;
 };
 
 class ConstantFlowExecution : public FlowExecutionPolicy {
@@ -68,13 +68,13 @@ class ConstantFlowExecution : public FlowExecutionPolicy {
     }
     tmpFlowExecutionLevels.push_back(hg.initialNumNodes());
     std::reverse(tmpFlowExecutionLevels.begin(), tmpFlowExecutionLevels.end());
-    _flowExecutionLevels.insert(_flowExecutionLevels.end(),
+    _flow_execution_levels.insert(_flow_execution_levels.end(),
                                 tmpFlowExecutionLevels.begin(),
                                 tmpFlowExecutionLevels.end());
   }
 
  private:
-  using FlowExecutionPolicy::_flowExecutionLevels;
+  using FlowExecutionPolicy::_flow_execution_levels;
 };
 
 class MultilevelFlowExecution : public FlowExecutionPolicy {
@@ -87,13 +87,13 @@ class MultilevelFlowExecution : public FlowExecutionPolicy {
     for (size_t i = 0; hg.initialNumNodes() / std::pow(2, i) >= hg.currentNumNodes(); ++i) {
       tmpFlowExecutionLevels.push_back(hg.initialNumNodes() / std::pow(2, i));
     }
-    _flowExecutionLevels.insert(_flowExecutionLevels.end(),
+    _flow_execution_levels.insert(_flow_execution_levels.end(),
                                 tmpFlowExecutionLevels.begin(),
                                 tmpFlowExecutionLevels.end());
   }
 
  private:
-  using FlowExecutionPolicy::_flowExecutionLevels;
+  using FlowExecutionPolicy::_flow_execution_levels;
 };
 
 class ExponentialFlowExecution : public FlowExecutionPolicy {
@@ -108,13 +108,13 @@ class ExponentialFlowExecution : public FlowExecutionPolicy {
     }
     tmpFlowExecutionLevels.push_back(hg.initialNumNodes());
     std::reverse(tmpFlowExecutionLevels.begin(), tmpFlowExecutionLevels.end());
-    _flowExecutionLevels.insert(_flowExecutionLevels.end(),
+    _flow_execution_levels.insert(_flow_execution_levels.end(),
                                 tmpFlowExecutionLevels.begin(),
                                 tmpFlowExecutionLevels.end());
   }
 
  private:
-  using FlowExecutionPolicy::_flowExecutionLevels;
+  using FlowExecutionPolicy::_flow_execution_levels;
 };
 
 

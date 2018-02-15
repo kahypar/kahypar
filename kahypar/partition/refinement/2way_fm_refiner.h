@@ -65,14 +65,14 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache(_hg.initialNumNodes()),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy(),
-    _flowRefiner(_context.local_search.flow.enable_in_fm ?
-                 RefinerFactory::getInstance().createObject(
-                 RefinementAlgorithm::twoway_flow, hypergraph, context) :
-                 RefinerFactory::getInstance().createObject(
-                 RefinementAlgorithm::do_nothing, hypergraph, context)),
-    _flowRefinerImprovement(false),
-    _partID(_hg.initialNumNodes(), -1),
-    _movedHNs(_hg.initialNumNodes()) {
+    _flow_refiner(_context.local_search.flow.enable_in_fm ?
+                  RefinerFactory::getInstance().createObject(
+                  RefinementAlgorithm::twoway_flow, hypergraph, context) :
+                  RefinerFactory::getInstance().createObject(
+                  RefinementAlgorithm::do_nothing, hypergraph, context)),
+    _flow_refiner_improvement(false),
+    _part_id(_hg.initialNumNodes(), -1),
+    _moved_hn(_hg.initialNumNodes()) {
     ASSERT(context.partition.k == 2);
     _non_border_hns_to_remove.reserve(_hg.initialNumNodes());
   }
@@ -87,7 +87,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void activate(const HypernodeID hn,
                 const HypernodeWeightArray& max_allowed_part_weights) {
-    if (_hg.isBorderNode(hn) || _flowRefinerImprovement) {
+    if (_hg.isBorderNode(hn) || _flow_refiner_improvement) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
@@ -151,9 +151,9 @@ class TwoWayFMRefiner final : public IRefiner,
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
     }
 
-    _flowRefiner->initialize(max_gain);
+    _flow_refiner->initialize(max_gain);
     for (const HypernodeID& hn : _hg.nodes()) {
-      _partID[hn] = _hg.partID(hn);
+      _part_id[hn] = _hg.partID(hn);
     }
   }
 
@@ -183,16 +183,16 @@ class TwoWayFMRefiner final : public IRefiner,
     }
 
     for (const HypernodeID hn : refinement_nodes) {
-      _partID[hn] = _hg.partID(hn);
+      _part_id[hn] = _hg.partID(hn);
     }
     Metrics old_metrics = best_metrics;
-    _flowRefinerImprovement = _flowRefiner->refine(refinement_nodes, max_allowed_part_weights,
-                                                  changes, best_metrics);
-    if (_flowRefinerImprovement) {
+    _flow_refiner_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                      changes, best_metrics);
+    if (_flow_refiner_improvement) {
       restoreOriginalPartitionAfterFlow();
       best_metrics = old_metrics;
       refinement_nodes.clear();
-      for (const HypernodeID& hn : _movedHNs) {
+      for (const HypernodeID& hn : _moved_hn) {
         refinement_nodes.push_back(hn);
       }
     }
@@ -224,7 +224,7 @@ class TwoWayFMRefiner final : public IRefiner,
     while (!_pq.empty() &&
            (!_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
                                               _context, beta, best_metrics.cut, current_cut) ||
-           _flowRefinerImprovement)) {
+           _flow_refiner_improvement)) {
       ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1));
 
       Gain max_gain = kInvalidGain;
@@ -251,7 +251,7 @@ class TwoWayFMRefiner final : public IRefiner,
           << V(_hg.nodeWeight(max_gain_node));
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
-      _partID[max_gain_node] = to_part;
+      _part_id[max_gain_node] = to_part;
 
       updatePQpartState(from_part, to_part, max_allowed_part_weights);
 
@@ -321,12 +321,12 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void restoreOriginalPartitionAfterFlow() {
-    _movedHNs.clear();
+    _moved_hn.clear();
     for (const HypernodeID& hn : _hg.nodes()) {
         PartitionID from = _hg.partID(hn);
-        PartitionID to = _partID[hn];
+        PartitionID to = _part_id[hn];
         if (from != to) {
-            _movedHNs.add(hn);
+            _moved_hn.add(hn);
             _hg.changeNodePart(hn, from, to);
         }
     }
@@ -343,7 +343,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void removeInternalizedHns() {
-    if (!_flowRefinerImprovement) {
+    if (!_flow_refiner_improvement) {
       for (const HypernodeID& hn : _non_border_hns_to_remove) {
         // The just moved HN might be contained in the vector since changeNodePart
         // does not explicitly check for that HN. However it may still
@@ -394,7 +394,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     _gain_cache.setValue(moved_hn, -temp);
     _gain_cache.setDelta(moved_hn, rb_delta + 2 * temp);
-    if (!_flowRefinerImprovement) {
+    if (!_flow_refiner_improvement) {
       for (const HypernodeID& hn : _hns_to_activate) {
         ASSERT(!_hg.active(hn), V(hn));
         activate(hn, max_allowed_part_weights);
@@ -414,7 +414,7 @@ class TwoWayFMRefiner final : public IRefiner,
     removeInternalizedHns();
 
     ASSERT([&]() {
-        if (_flowRefinerImprovement) return true;
+        if (_flow_refiner_improvement) return true;
         for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID& pin : _hg.pins(he)) {
             const PartitionID other_part = 1 - _hg.partID(pin);
@@ -634,7 +634,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(_gain_cache.isCached(pin), V(pin));
     ASSERT(gain_delta != 0, V(gain_delta));
 
-    if (_flowRefinerImprovement && !_pq.contains(pin, target_part)) {
+    if (_flow_refiner_improvement && !_pq.contains(pin, target_part)) {
       _gain_cache.updateCacheAndDelta(pin, gain_delta);
       return;
     }
@@ -657,7 +657,7 @@ class TwoWayFMRefiner final : public IRefiner,
     while (last_index != min_cut_index) {
       HypernodeID hn = _performed_moves[last_index];
       _hg.changeNodePart(hn, _hg.partID(hn), (_hg.partID(hn) ^ 1));
-      _partID[hn] = _hg.partID(hn);
+      _part_id[hn] = _hg.partID(hn);
       --last_index;
     }
   }
@@ -703,9 +703,9 @@ class TwoWayFMRefiner final : public IRefiner,
   TwoWayFMGainCache<Gain> _gain_cache;
   ds::FastResetArray<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
-  std::unique_ptr<IRefiner> _flowRefiner;
-  bool _flowRefinerImprovement;
-  std::vector<PartitionID> _partID;
-  ds::SparseSet<HypernodeID> _movedHNs;
+  std::unique_ptr<IRefiner> _flow_refiner;
+  bool _flow_refiner_improvement;
+  std::vector<PartitionID> _part_id;
+  ds::SparseSet<HypernodeID> _moved_hn;
 };
 }                                   // namespace kahypar

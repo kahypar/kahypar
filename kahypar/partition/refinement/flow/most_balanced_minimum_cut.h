@@ -49,14 +49,14 @@ class MostBalancedMinimumCut {
                          Network& flowNetwork) :
     _hg(hypergraph),
     _context(context),
-    _flowNetwork(flowNetwork),
+    _flow_network(flowNetwork),
     _visited(_hg.initialNumNodes() + 2 * _hg.initialNumEdges()),
-    _graphToFlowNetwork(flowNetwork.initialSize(), INVALID_NODE),
-    _flowNetworkToGraph(flowNetwork.initialSize(), INVALID_NODE),
-    _sccNodeWeight(flowNetwork.initialSize(), 0),
+    _graph_to_flow_network(flowNetwork.initialSize(), INVALID_NODE),
+    _flow_network_to_graph(flowNetwork.initialSize(), INVALID_NODE),
+    _scc_node_weight(flowNetwork.initialSize(), 0),
     _Q(),
     _S(),
-    _dfsLow(flowNetwork.initialSize(), 0) { }
+    _dfs_low(flowNetwork.initialSize(), 0) { }
 
   MostBalancedMinimumCut(const MostBalancedMinimumCut&) = delete;
   MostBalancedMinimumCut(MostBalancedMinimumCut &&) = delete;
@@ -84,10 +84,10 @@ class MostBalancedMinimumCut {
     // Build mapping from contracted graph to flow network
     std::vector<std::vector<NodeID> > sccToFlowNetwork(dac.numNodes(), std::vector<NodeID>());
     for (const NodeID& u : residualGraph.nodes()) {
-      NodeID flow_u = _graphToFlowNetwork.get(u);
-      if (_flowNetwork.isHypernode(flow_u)) {
+      NodeID flow_u = _graph_to_flow_network.get(u);
+      if (_flow_network.isHypernode(flow_u)) {
         sccToFlowNetwork[contraction_mapping[u]].push_back(flow_u);
-        _sccNodeWeight.update(contraction_mapping[u], _hg.nodeWeight(flow_u));
+        _scc_node_weight.update(contraction_mapping[u], _hg.nodeWeight(flow_u));
       }
     }
 
@@ -123,8 +123,8 @@ class MostBalancedMinimumCut {
       for (size_t idx = 0; idx < topological_order.size(); ++idx) {
         NodeID u = topological_order[idx];
         tmp_partition_id[u] = block_1;
-        partWeight[block_0] -= _sccNodeWeight.get(u);
-        partWeight[block_1] += _sccNodeWeight.get(u);
+        partWeight[block_0] -= _scc_node_weight.get(u);
+        partWeight[block_1] += _scc_node_weight.get(u);
         double cur_imbalance = imbalance<true>(partWeight);
         if (_context.partition.k > 2) {
           cur_imbalance = imbalance<false>(partWeight);
@@ -214,10 +214,10 @@ class MostBalancedMinimumCut {
 
   void reset() {
     _visited.reset();
-    _graphToFlowNetwork.resetUsedEntries();
-    _flowNetworkToGraph.resetUsedEntries();
-    _sccNodeWeight.resetUsedEntries();
-    _dfsLow.resetUsedEntries();
+    _graph_to_flow_network.resetUsedEntries();
+    _flow_network_to_graph.resetUsedEntries();
+    _scc_node_weight.resetUsedEntries();
+    _dfs_low.resetUsedEntries();
   }
 
 
@@ -231,7 +231,7 @@ class MostBalancedMinimumCut {
    */
   template <bool sourceSet>
   void markAllReachableNodesAsVisited(const PartitionID block_0, const PartitionID block_1) {
-    auto startSetIterator = sourceSet ? _flowNetwork.sources() : _flowNetwork.sinks();
+    auto startSetIterator = sourceSet ? _flow_network.sources() : _flow_network.sinks();
     for (const NodeID& node : startSetIterator) {
       _Q.push(node);
       _visited.set(node, true);
@@ -241,32 +241,32 @@ class MostBalancedMinimumCut {
       NodeID u = _Q.front();
       _Q.pop();
 
-      if (_flowNetwork.interpreteHypernode(u)) {
+      if (_flow_network.interpreteHypernode(u)) {
         if (!sourceSet) {
           PartitionID from = _hg.partID(u);
           if (from == block_0) _hg.changeNodePart(u, block_0, block_1);
         }
-      } else if (_flowNetwork.interpreteHyperedge(u, sourceSet)) {
-        HyperedgeID he = _flowNetwork.mapToHyperedgeID(u);
+      } else if (_flow_network.interpreteHyperedge(u, sourceSet)) {
+        HyperedgeID he = _flow_network.mapToHyperedgeID(u);
         for (const HypernodeID& pin : _hg.pins(he)) {
-          if (_flowNetwork.containsHypernode(pin)) {
+          if (_flow_network.containsHypernode(pin)) {
             if (!sourceSet) {
               PartitionID from = _hg.partID(pin);
               if (from == block_0) _hg.changeNodePart(pin, block_0, block_1);
             }
-            if (_flowNetwork.isRemovedHypernode(pin)) {
+            if (_flow_network.isRemovedHypernode(pin)) {
               _visited.set(pin, true);
             }
           }
         }
       }
 
-      for (FlowEdge& e : _flowNetwork.incidentEdges(u)) {
-        FlowEdge& revEdge = _flowNetwork.reverseEdge(e);
+      for (FlowEdge& e : _flow_network.incidentEdges(u)) {
+        FlowEdge& revEdge = _flow_network.reverseEdge(e);
         NodeID v = e.target;
         if (!_visited[v]) {
-          if ((sourceSet && _flowNetwork.residualCapacity(e)) ||
-              (!sourceSet && _flowNetwork.residualCapacity(revEdge))) {
+          if ((sourceSet && _flow_network.residualCapacity(e)) ||
+              (!sourceSet && _flow_network.residualCapacity(revEdge))) {
             _Q.push(v);
             _visited.set(v, true);
           }
@@ -277,30 +277,30 @@ class MostBalancedMinimumCut {
 
   Graph buildResidualGraph() {
     size_t cur_graph_node = 0;
-    for (const NodeID& node : _flowNetwork.nodes()) {
+    for (const NodeID& node : _flow_network.nodes()) {
       if (!_visited[node]) {
-        _graphToFlowNetwork.set(cur_graph_node, node);
-        _flowNetworkToGraph.set(node, cur_graph_node++);
+        _graph_to_flow_network.set(cur_graph_node, node);
+        _flow_network_to_graph.set(node, cur_graph_node++);
       }
     }
 
-    for (const HypernodeID& hn : _flowNetwork.removedHypernodes()) {
+    for (const HypernodeID& hn : _flow_network.removedHypernodes()) {
       if (!_visited[hn]) {
-        _graphToFlowNetwork.set(cur_graph_node, hn);
-        _flowNetworkToGraph.set(hn, cur_graph_node++);
+        _graph_to_flow_network.set(cur_graph_node, hn);
+        _flow_network_to_graph.set(hn, cur_graph_node++);
       }
     }
 
     std::vector<std::vector<Edge> > adj_list(cur_graph_node, std::vector<Edge>());
 
-    for (const NodeID& node : _flowNetwork.nodes()) {
+    for (const NodeID& node : _flow_network.nodes()) {
       if (!_visited[node]) {
-        NodeID source = _flowNetworkToGraph.get(node);
-        for (FlowEdge& flow_edge : _flowNetwork.incidentEdges(node)) {
+        NodeID source = _flow_network_to_graph.get(node);
+        for (FlowEdge& flow_edge : _flow_network.incidentEdges(node)) {
           NodeID target = flow_edge.target;
-          if (_flowNetwork.residualCapacity(flow_edge) && !_visited[target]) {
+          if (_flow_network.residualCapacity(flow_edge) && !_visited[target]) {
             Edge e;
-            e.target_node = _flowNetworkToGraph.get(target);
+            e.target_node = _flow_network_to_graph.get(target);
             e.weight = 1.0;
             adj_list[source].push_back(e);
           }
@@ -308,12 +308,12 @@ class MostBalancedMinimumCut {
       }
     }
 
-    for (const HypernodeID& hn : _flowNetwork.removedHypernodes()) {
+    for (const HypernodeID& hn : _flow_network.removedHypernodes()) {
       if (!_visited[hn]) {
-        NodeID hn_node = _flowNetworkToGraph.get(hn);
+        NodeID hn_node = _flow_network_to_graph.get(hn);
         for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
-          NodeID in_he = _flowNetworkToGraph.get(_flowNetwork.mapToIncommingHyperedgeID(he));
-          NodeID out_he = _flowNetworkToGraph.get(_flowNetwork.mapToOutgoingHyperedgeID(he));
+          NodeID in_he = _flow_network_to_graph.get(_flow_network.mapToIncommingHyperedgeID(he));
+          NodeID out_he = _flow_network_to_graph.get(_flow_network.mapToOutgoingHyperedgeID(he));
           if (in_he != INVALID_NODE) {
             Edge e;
             e.target_node = in_he;
@@ -356,20 +356,20 @@ class MostBalancedMinimumCut {
   }
 
   void tarjanSCC(const NodeID u, Graph& g, NodeID& dfsNum, ClusterID& cid) {
-    _dfsLow.set(u, dfsNum++);
+    _dfs_low.set(u, dfsNum++);
     _visited.set(u, true);
     _S.push_back(u);
     bool isComponentParent = true;
 
-    NodeID u_low = _dfsLow.get(u);
+    NodeID u_low = _dfs_low.get(u);
     for (const Edge& e : g.incidentEdges(u)) {
       NodeID v = e.target_node;
       if (!_visited[v]) {
         tarjanSCC(v, g, dfsNum, cid);
       }
-      NodeID v_low = _dfsLow.get(v);
+      NodeID v_low = _dfs_low.get(v);
       if (u_low > v_low) {
-        _dfsLow.set(u, v_low);
+        _dfs_low.set(u, v_low);
         u_low = v_low;
         isComponentParent = false;
       }
@@ -380,7 +380,7 @@ class MostBalancedMinimumCut {
         NodeID v = _S.back();
         _S.pop_back();
         g.setClusterID(v, cid);
-        _dfsLow.set(v, INVALID_NODE);
+        _dfs_low.set(v, INVALID_NODE);
         if (u == v) break;
       }
       cid++;
@@ -445,15 +445,15 @@ class MostBalancedMinimumCut {
 
   Hypergraph& _hg;
   const Context& _context;
-  Network& _flowNetwork;
+  Network& _flow_network;
 
   FastResetFlagArray<> _visited;
-  FastResetArray<NodeID> _graphToFlowNetwork;
-  FastResetArray<NodeID> _flowNetworkToGraph;
-  FastResetArray<HypernodeWeight> _sccNodeWeight;
+  FastResetArray<NodeID> _graph_to_flow_network;
+  FastResetArray<NodeID> _flow_network_to_graph;
+  FastResetArray<HypernodeWeight> _scc_node_weight;
 
   std::queue<NodeID> _Q;  // BFS queue
   std::vector<NodeID> _S;  // DFS stack
-  FastResetArray<NodeID> _dfsLow;
+  FastResetArray<NodeID> _dfs_low;
 };
 }  // namespace kahypar

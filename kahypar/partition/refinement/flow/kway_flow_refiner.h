@@ -56,9 +56,9 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
   KWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
-    _twoWayFlowRefiner(_hg, _context),
-    _flowExecutionPolicy(),
-    _numImprovements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) {}
+    _twoway_flow_refiner(_hg, _context),
+    _flow_execution_policy(),
+    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) {}
 
   KWayFlowRefiner(const KWayFlowRefiner&) = delete;
   KWayFlowRefiner(KWayFlowRefiner&&) = delete;
@@ -73,7 +73,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
-    if (!_flowExecutionPolicy.executeFlow(_hg)) {
+    if (!_flow_execution_policy.executeFlow(_hg)) {
         return false;
     }
 
@@ -107,14 +107,14 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
             //            we ignore the refinement for these block in the
             //            second iteration of active block scheduling
             if (_context.local_search.flow.use_improvement_history &&
-                current_round > 1 && _numImprovements[block_0][block_1] == 0 ) {
+                current_round > 1 && _num_improvements[block_0][block_1] == 0 ) {
                 continue;
             }
 
             if (active_blocks[block_0] || active_blocks[block_1]) {
-                 _twoWayFlowRefiner.updateConfiguration(block_0, block_1,
+                 _twoway_flow_refiner.updateConfiguration(block_0, block_1,
                                                         &scheduler, true);
-                bool improved = _twoWayFlowRefiner.refine(refinement_nodes,
+                bool improved = _twoway_flow_refiner.refine(refinement_nodes,
                                                           max_allowed_part_weights,
                                                           changes,
                                                           best_metrics);
@@ -127,7 +127,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
                     active_block_exist = true;
                     tmp_active_blocks[block_0] = true;
                     tmp_active_blocks[block_1] = true;
-                    _numImprovements[block_0][block_1]++;
+                    _num_improvements[block_0][block_1]++;
                 }
             }
         }
@@ -155,16 +155,16 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
 
   void initializeImpl(const HyperedgeWeight max_gain) override final {
     _is_initialized = true;
-    _flowExecutionPolicy.initialize(_hg, _context);
-    _twoWayFlowRefiner.initialize(max_gain);
+    _flow_execution_policy.initialize(_hg, _context);
+    _twoway_flow_refiner.initialize(max_gain);
   }
 
   using IRefiner::_is_initialized;
 
   Hypergraph& _hg;
   const Context& _context;
-  TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoWayFlowRefiner;
-  FlowExecutionPolicy _flowExecutionPolicy;
-  std::vector<std::vector<size_t>> _numImprovements;
+  TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoway_flow_refiner;
+  FlowExecutionPolicy _flow_execution_policy;
+  std::vector<std::vector<size_t>> _num_improvements;
 };
 }  // namespace kahypar

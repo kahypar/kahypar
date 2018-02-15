@@ -60,15 +60,15 @@ using Network = typename FlowNetworkPolicy::Network;
   TwoWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
-    _flowNetwork(_hg, _context),
-    _maximumFlow(FlowAlgorithmFactory<Network>::getInstance().createObject(
-                 _context.local_search.flow.algorithm, hypergraph, _context, _flowNetwork)),
-    _flowExecutionPolicy(),
-    _quotientGraph(nullptr),
+    _flow_network(_hg, _context),
+    _maximum_flow(FlowAlgorithmFactory<Network>::getInstance().createObject(
+                 _context.local_search.flow.algorithm, hypergraph, _context, _flow_network)),
+    _flow_execution_policy(),
+    _quotient_graph(nullptr),
     _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
-    _ignoreFlowExecutionPolicy(false) {}
+    _ignore_flow_execution_policy(false) {}
 
   TwoWayFlowRefiner(const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner(TwoWayFlowRefiner&&) = delete;
@@ -97,8 +97,8 @@ using Network = typename FlowNetworkPolicy::Network;
                            bool ignoreFlowExecutionPolicy) {
     _block0 = block0;
     _block1 = block1;
-    _quotientGraph = quotientGraph;
-    _ignoreFlowExecutionPolicy = ignoreFlowExecutionPolicy;
+    _quotient_graph = quotientGraph;
+    _ignore_flow_execution_policy = ignoreFlowExecutionPolicy;
   }
 
  private:
@@ -110,16 +110,16 @@ using Network = typename FlowNetworkPolicy::Network;
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
-    if (!_flowExecutionPolicy.executeFlow(_hg) && !_ignoreFlowExecutionPolicy) {
+    if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
         return false;
     }
 
     // Construct quotient graph, if it is not set before
     bool deleteQuotientGraphAfterFlow = false;
-    if (!_quotientGraph) {
+    if (!_quotient_graph) {
         deleteQuotientGraphAfterFlow = true;
-        _quotientGraph = new QuotientGraphBlockScheduler(_hg, _context);
-        _quotientGraph->buildQuotientGraph();
+        _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
+        _quotient_graph->buildQuotientGraph();
     }
 
     DBG << V(metrics::imbalance(_hg, _context))
@@ -133,7 +133,7 @@ using Network = typename FlowNetworkPolicy::Network;
     // Adaptive Flow Iterations
     do {
         alpha /= 2.0;
-        _flowNetwork.reset(_block0, _block1);
+        _flow_network.reset(_block0, _block1);
 
         DBG << "";
         DBG << V(alpha);
@@ -141,7 +141,7 @@ using Network = typename FlowNetworkPolicy::Network;
         // Initialize set of cut hyperedges for blocks '_block0' and '_block1'
         std::vector<HyperedgeID> cut_hes;
         HyperedgeWeight cut_weight = 0;
-        for (const HyperedgeID& he : _quotientGraph->blockPairCutHyperedges(_block0, _block1)) {
+        for (const HyperedgeID& he : _quotient_graph->blockPairCutHyperedges(_block0, _block1)) {
             cut_weight += _hg.edgeWeight(he);
             cut_hes.push_back(he);
         }
@@ -162,16 +162,16 @@ using Network = typename FlowNetworkPolicy::Network;
         std::random_shuffle(cut_hes.begin(), cut_hes.end());
 
         // Build Flow Problem
-        CutBuildPolicy::buildFlowNetwork(_hg, _context, _flowNetwork,
+        CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,
                                          cut_hes, alpha, _block0, _block1,
                                          _visited);
-        HyperedgeWeight cut_flow_network_before = _flowNetwork.build(_block0, _block1);
-        DBG << V(_flowNetwork.numNodes()) << V(_flowNetwork.numEdges());
+        HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
+        DBG << V(_flow_network.numNodes()) << V(_flow_network.numEdges());
 
         printMetric();
 
         // Find minimum (S,T)-bipartition
-        HyperedgeWeight cut_flow_network_after = _maximumFlow->minimumSTCut(_block0, _block1);
+        HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
 
         // Maximum Flow algorithm returns infinity, if all
         // hypernodes contained in the flow problem are either
@@ -221,16 +221,16 @@ using Network = typename FlowNetworkPolicy::Network;
             alpha *= (alpha == _context.local_search.flow.alpha ? 2.0 : 4.0);
         }
 
-        _maximumFlow->rollback(current_improvement);
+        _maximum_flow->rollback(current_improvement);
 
         // Perform moves in quotient graph in order to update
         // cut hyperedges between adjacent blocks.
         if (current_improvement) {
-            for (const HypernodeID& hn : _flowNetwork.hypernodes()) {
+            for (const HypernodeID& hn : _flow_network.hypernodes()) {
                 PartitionID from = _hg.partID(hn);
-                PartitionID to = _maximumFlow->getOriginalPartition(hn);
+                PartitionID to = _maximum_flow->getOriginalPartition(hn);
                 if ( from != to ) {
-                    _quotientGraph->changeNodePart(hn, from, to);
+                    _quotient_graph->changeNodePart(hn, from, to);
                 }
             }
         }
@@ -248,8 +248,8 @@ using Network = typename FlowNetworkPolicy::Network;
 
     // Delete quotient graph
     if (deleteQuotientGraphAfterFlow) {
-        delete _quotientGraph;
-        _quotientGraph = nullptr;
+        delete _quotient_graph;
+        _quotient_graph = nullptr;
     }
 
     return improvement;
@@ -274,20 +274,20 @@ using Network = typename FlowNetworkPolicy::Network;
 
   void initializeImpl(const HyperedgeWeight) override final {
     _is_initialized = true;
-    _flowExecutionPolicy.initialize(_hg, _context);
+    _flow_execution_policy.initialize(_hg, _context);
   }
 
   using IRefiner::_is_initialized;
 
   Hypergraph& _hg;
   const Context& _context;
-  Network _flowNetwork;
-  std::unique_ptr<MaximumFlow<Network>> _maximumFlow;
-  FlowExecutionPolicy _flowExecutionPolicy;
-  QuotientGraphBlockScheduler* _quotientGraph;
+  Network _flow_network;
+  std::unique_ptr<MaximumFlow<Network>> _maximum_flow;
+  FlowExecutionPolicy _flow_execution_policy;
+  QuotientGraphBlockScheduler* _quotient_graph;
   FastResetFlagArray<> _visited;
   PartitionID _block0;
   PartitionID _block1;
-  bool _ignoreFlowExecutionPolicy;
+  bool _ignore_flow_execution_policy;
 };
 }  // namespace kahypar

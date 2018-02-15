@@ -44,8 +44,8 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
   QuotientGraphBlockScheduler(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
-    _qoutientGraph(),
-    _blockPairCutHyperedges(context.partition.k,
+    _quotient_graph(),
+    _block_pair_cut_he(context.partition.k,
                            std::vector<std::vector<HyperedgeID>>(context.partition.k,
                                                                  std::vector<HyperedgeID>())),
     _visited(_hg.initialNumEdges()) { }
@@ -63,23 +63,23 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
                   for (const PartitionID& block1 : _hg.connectivitySet(he)) {
                       if (block0 < block1) {
                          edge_list.insert(std::make_pair(block0, block1));
-                         _blockPairCutHyperedges[block0][block1].push_back(he);
+                         _block_pair_cut_he[block0][block1].push_back(he);
                       }
                   }
               }
           }
       }
       for (const edge& e : edge_list) {
-        _qoutientGraph.push_back(e);
+        _quotient_graph.push_back(e);
       }
   }
 
   void randomShuffleQoutientEdges() {
-      std::random_shuffle(_qoutientGraph.begin(), _qoutientGraph.end());
+      std::random_shuffle(_quotient_graph.begin(), _quotient_graph.end());
   }
 
   std::pair<ConstIncidenceIterator, ConstIncidenceIterator> qoutientGraphEdges() const {
-      return std::make_pair(_qoutientGraph.cbegin(), _qoutientGraph.cend());
+      return std::make_pair(_quotient_graph.cbegin(), _quotient_graph.cend());
   }
 
   std::pair<ConstCutHyperedgeIterator, ConstCutHyperedgeIterator>
@@ -89,7 +89,7 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
 
       ASSERT([&]() {
         std::set<HyperedgeID> cutHyperedges;
-        for (const HyperedgeID& he : _blockPairCutHyperedges[block0][block1]) {
+        for (const HyperedgeID& he : _block_pair_cut_he[block0][block1]) {
             if (cutHyperedges.find(he) != cutHyperedges.end()) {
                 LOG << "Hyperedge " << he << " is contained more than once!";
                 return false;
@@ -119,8 +119,8 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
         return true;
       } (), "Cut hyperedge set between " << V(block0) << " and " << V(block1) << " is wrong!");
 
-      return std::make_pair(_blockPairCutHyperedges[block0][block1].cbegin(),
-                            _blockPairCutHyperedges[block0][block1].cend());
+      return std::make_pair(_block_pair_cut_he[block0][block1].cbegin(),
+                            _block_pair_cut_he[block0][block1].cend());
   }
 
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) {
@@ -130,9 +130,9 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
               if (_hg.pinCountInPart(he, to) == 1) {
                   for (const PartitionID& part : _hg.connectivitySet(he)) {
                       if (to < part) {
-                        _blockPairCutHyperedges[to][part].push_back(he);
+                        _block_pair_cut_he[to][part].push_back(he);
                       } else if ( to > part ) {
-                        _blockPairCutHyperedges[part][to].push_back(he);
+                        _block_pair_cut_he[part][to].push_back(he);
                       }
                   }
               }
@@ -145,15 +145,15 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
 
   void updateBlockPairCutHyperedges(const PartitionID block0, const PartitionID block1) {
       _visited.reset();
-      size_t N = _blockPairCutHyperedges[block0][block1].size();
+      size_t N = _block_pair_cut_he[block0][block1].size();
       for (size_t i = 0; i < N; ++i) {
-          const HyperedgeID he = _blockPairCutHyperedges[block0][block1][i];
+          const HyperedgeID he = _block_pair_cut_he[block0][block1][i];
           if (_hg.pinCountInPart(he, block0) == 0 ||
               _hg.pinCountInPart(he, block1) == 0 ||
               _visited[he]) {
-                 std::swap(_blockPairCutHyperedges[block0][block1][i],
-                           _blockPairCutHyperedges[block0][block1][N-1]);
-                 _blockPairCutHyperedges[block0][block1].pop_back();
+                 std::swap(_block_pair_cut_he[block0][block1][i],
+                           _block_pair_cut_he[block0][block1][N-1]);
+                 _block_pair_cut_he[block0][block1].pop_back();
                  --i;
                  --N;
           }
@@ -163,10 +163,10 @@ using ConstCutHyperedgeIterator = std::vector<HyperedgeID>::const_iterator;
 
   Hypergraph& _hg;
   const Context& _context;
-  std::vector<edge> _qoutientGraph;
+  std::vector<edge> _quotient_graph;
 
   // Contains the cut hyperedges for each pair of blocks.
-  std::vector<std::vector<std::vector<HyperedgeID>>> _blockPairCutHyperedges;
+  std::vector<std::vector<std::vector<HyperedgeID>>> _block_pair_cut_he;
   ds::FastResetFlagArray<> _visited;
 };
 }  // namespace kahypar

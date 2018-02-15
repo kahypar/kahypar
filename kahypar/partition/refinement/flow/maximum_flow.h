@@ -48,12 +48,12 @@ class MaximumFlow {
   MaximumFlow(Hypergraph& hypergraph, const Context& context, Network& flow_network) :
     _hg(hypergraph),
     _context(context),
-    _flowNetwork(flow_network),
+    _flow_network(flow_network),
     _parent(flow_network.initialSize(), nullptr),
     _visited(flow_network.initialSize()),
     _Q(),
     _mbmc(hypergraph, _context, flow_network),
-    _originalPartID(_hg.initialNumNodes(), 0) { }
+    _original_part_id(_hg.initialNumNodes(), 0) { }
 
   virtual ~MaximumFlow() { }
 
@@ -67,13 +67,13 @@ class MaximumFlow {
   virtual Flow maximumFlow() = 0;
 
   HyperedgeWeight minimumSTCut(const PartitionID block_0, const PartitionID block_1) {
-    if (_flowNetwork.isTrivialFlow()) {
+    if (_flow_network.isTrivialFlow()) {
       return INFTY;
     }
 
     PartitionID defaultPart = _context.local_search.flow.use_most_balanced_minimum_cut ? block_0 : block_1;
-    for (const HypernodeID& hn : _flowNetwork.hypernodes()) {
-      _originalPartID[hn] = _hg.partID(hn);
+    for (const HypernodeID& hn : _flow_network.hypernodes()) {
+      _original_part_id[hn] = _hg.partID(hn);
       moveHypernode(hn, defaultPart);
     }
 
@@ -89,15 +89,15 @@ class MaximumFlow {
   }
 
   void rollback(bool storePartID = false) {
-    for (const HypernodeID& hn : _flowNetwork.hypernodes()) {
+    for (const HypernodeID& hn : _flow_network.hypernodes()) {
       PartitionID from = _hg.partID(hn);
-      moveHypernode(hn, _originalPartID[hn]);
-      if (storePartID) _originalPartID[hn] = from;
+      moveHypernode(hn, _original_part_id[hn]);
+      if (storePartID) _original_part_id[hn] = from;
     }
   }
 
   PartitionID getOriginalPartition(const HypernodeID hn) const {
-    return _originalPartID[hn];
+    return _original_part_id[hn];
   }
 
   template <bool assignHypernodes = false>
@@ -110,7 +110,7 @@ class MaximumFlow {
     }
 
     // Initialize queue with all source nodes
-    for (const NodeID& s : _flowNetwork.sources()) {
+    for (const NodeID& s : _flow_network.sources()) {
       _visited.set(s, true);
       _parent.set(s, nullptr);
       _Q.push(s);
@@ -121,26 +121,26 @@ class MaximumFlow {
       _Q.pop();
 
       if (assignHypernodes) {
-        if (_flowNetwork.interpreteHypernode(u)) {
+        if (_flow_network.interpreteHypernode(u)) {
           moveHypernode(u, block);
-        } else if (_flowNetwork.interpreteHyperedge(u)) {
-          HyperedgeID he = _flowNetwork.mapToHyperedgeID(u);
+        } else if (_flow_network.interpreteHyperedge(u)) {
+          HyperedgeID he = _flow_network.mapToHyperedgeID(u);
           for (const HypernodeID& pin : _hg.pins(he)) {
-            if (_flowNetwork.containsHypernode(pin)) {
+            if (_flow_network.containsHypernode(pin)) {
               moveHypernode(pin, block);
             }
           }
         }
       }
 
-      if (_flowNetwork.isSink(u)) {
+      if (_flow_network.isSink(u)) {
         augmentingPathExists = true;
         continue;
       }
 
-      for (FlowEdge& e : _flowNetwork.incidentEdges(u)) {
+      for (FlowEdge& e : _flow_network.incidentEdges(u)) {
         NodeID v = e.target;
-        if (!_visited[v] && _flowNetwork.residualCapacity(e)) {
+        if (!_visited[v] && _flow_network.residualCapacity(e)) {
           _parent.set(v, &e);
           _visited.set(v, true);
           _Q.push(v);
@@ -157,18 +157,18 @@ class MaximumFlow {
   FRIEND_TEST(AMaximumFlow, AugmentAlongPath);
 
   Flow augment(NodeID cur, Flow minFlow = INFTY) {
-    if (_flowNetwork.isSource(cur) || minFlow == 0) {
+    if (_flow_network.isSource(cur) || minFlow == 0) {
       return minFlow;
     } else {
       FlowEdge* e = _parent.get(cur);
-      Flow f = augment(e->source, std::min(minFlow, _flowNetwork.residualCapacity(*e)));
+      Flow f = augment(e->source, std::min(minFlow, _flow_network.residualCapacity(*e)));
 
       ASSERT([&]() {
-          Flow residualForwardBefore = _flowNetwork.residualCapacity(*e);
-          Flow residualBackwardBefore = _flowNetwork.residualCapacity(_flowNetwork.reverseEdge(*e));
-          _flowNetwork.increaseFlow(*e, f);
-          Flow residualForwardAfter = _flowNetwork.residualCapacity(*e);
-          Flow residualBackwardAfter = _flowNetwork.residualCapacity(_flowNetwork.reverseEdge(*e));
+          Flow residualForwardBefore = _flow_network.residualCapacity(*e);
+          Flow residualBackwardBefore = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
+          _flow_network.increaseFlow(*e, f);
+          Flow residualForwardAfter = _flow_network.residualCapacity(*e);
+          Flow residualBackwardAfter = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
           if (residualForwardBefore != INFTY && residualForwardBefore != residualForwardAfter + f) {
             LOG << "Residual capacity should be " << (residualForwardBefore - f) << "!";
             return false;
@@ -177,9 +177,9 @@ class MaximumFlow {
             LOG << "Residual capacity should be " << (residualBackwardBefore + f) << "!";
             return false;
           }
-          _flowNetwork.increaseFlow(_flowNetwork.reverseEdge(*e), f);
-          residualForwardAfter = _flowNetwork.residualCapacity(*e);
-          residualBackwardAfter = _flowNetwork.residualCapacity(_flowNetwork.reverseEdge(*e));
+          _flow_network.increaseFlow(_flow_network.reverseEdge(*e), f);
+          residualForwardAfter = _flow_network.residualCapacity(*e);
+          residualBackwardAfter = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
           if (residualForwardBefore != residualForwardAfter ||
               residualBackwardBefore != residualBackwardAfter) {
             LOG << "Restoring original capacities failed!";
@@ -188,7 +188,7 @@ class MaximumFlow {
           return true;
         } (), "Flow is not increased correctly!");
 
-      _flowNetwork.increaseFlow(*e, f);
+      _flow_network.increaseFlow(*e, f);
       return f;
     }
   }
@@ -203,7 +203,7 @@ class MaximumFlow {
 
   Hypergraph& _hg;
   const Context& _context;
-  Network& _flowNetwork;
+  Network& _flow_network;
 
   // Datastructure for BFS
   FastResetArray<FlowEdge*> _parent;
@@ -212,7 +212,7 @@ class MaximumFlow {
 
   MostBalancedMinimumCut<Network> _mbmc;
 
-  std::vector<PartitionID> _originalPartID;
+  std::vector<PartitionID> _original_part_id;
 };
 
 template <class Network = Mandatory>
@@ -234,7 +234,7 @@ class EdmondKarp : public MaximumFlow<Network>{
   Flow maximumFlow() {
     Flow maxFlow = 0;
     while (Base::bfs()) {
-      for (const NodeID& t : _flowNetwork.sinks()) {
+      for (const NodeID& t : _flow_network.sinks()) {
         if (_parent.get(t) != nullptr) {
           maxFlow += Base::augment(t);
         }
@@ -252,7 +252,7 @@ class EdmondKarp : public MaximumFlow<Network>{
 
   using Base::_hg;
   using Base::_context;
-  using Base::_flowNetwork;
+  using Base::_flow_network;
   using Base::_parent;
 };
 
@@ -272,7 +272,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     _distance(flow_network.initialSize(), 0),
     _count(flow_network.initialSize(), 0),
     _active(flow_network.initialSize()),
-    _edgeIterator(flow_network.initialSize()),
+    _edge_iterator(flow_network.initialSize()),
     _q(),
     _work(0) { }
 
@@ -286,7 +286,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
 
 
   Flow maximumFlow() {
-    _num_nodes = _flowNetwork.numNodes() + 2;
+    _num_nodes = _flow_network.numNodes() + 2;
     init();
     global_relabeling();
 
@@ -296,9 +296,9 @@ class GoldbergTarjan : public MaximumFlow<Network>{
       _active.set(cur, false);
       _q.pop();
 
-      if (_flowNetwork.isSource(cur) && _distance.get(cur) == _num_nodes + 1) {
+      if (_flow_network.isSource(cur) && _distance.get(cur) == _num_nodes + 1) {
         _excess.set(cur, 0);
-      } else if (_flowNetwork.isSink(cur) && _distance.get(cur) == 1) {
+      } else if (_flow_network.isSink(cur) && _distance.get(cur) == 1) {
         maxFlow += _excess.get(cur);
         _excess.set(cur, 0);
       } else {
@@ -313,7 +313,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     }
 
     ASSERT([&]() {
-        for (const NodeID& node : _flowNetwork.nodes()) {
+        for (const NodeID& node : _flow_network.nodes()) {
           if (_excess.get(node) > 0) {
             return false;
           }
@@ -342,23 +342,23 @@ class GoldbergTarjan : public MaximumFlow<Network>{
       _q.pop();
     }
 
-    for (const NodeID& node : _flowNetwork.nodes()) {
-      _edgeIterator[node] = _flowNetwork.incidentEdges(node);
+    for (const NodeID& node : _flow_network.nodes()) {
+      _edge_iterator[node] = _flow_network.incidentEdges(node);
     }
 
     _count.set(0, _num_nodes - 1);
-    const Flow initialInfinity = _flowNetwork.totalWeightHyperedges();
-    for (const NodeID& s : _flowNetwork.sources()) {
+    const Flow initialInfinity = _flow_network.totalWeightHyperedges();
+    for (const NodeID& s : _flow_network.sources()) {
       _excess.set(s, initialInfinity);
-      if (_flowNetwork.isHypernode(s)) {
+      if (_flow_network.isHypernode(s)) {
         _excess.set(s, 0);
         updateDistance(s, _num_nodes + 1);
-        for (FlowEdge& e : _flowNetwork.incidentEdges(s)) {
+        for (FlowEdge& e : _flow_network.incidentEdges(s)) {
           NodeID target = e.target;
-          if (_flowNetwork.residualCapacity(e)) {
-            Flow initialPush = std::min(initialInfinity, _flowNetwork.residualCapacity(e));
+          if (_flow_network.residualCapacity(e)) {
+            Flow initialPush = std::min(initialInfinity, _flow_network.residualCapacity(e));
             _excess.update(target, initialPush);
-            _flowNetwork.increaseFlow(e, initialPush);
+            _flow_network.increaseFlow(e, initialPush);
             enqueue(target);
           }
         }
@@ -372,7 +372,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     NodeID v = e.target;
     ASSERT(_excess.get(u) > 0, "There is no flow, which can be pushed over edge (" << u << "," << v << ")!");
 
-    Flow delta = std::min(_excess.get(u), _flowNetwork.residualCapacity(e));
+    Flow delta = std::min(_excess.get(u), _flow_network.residualCapacity(e));
 
     if (_distance.get(u) != _distance.get(v) + 1 || delta == 0) {
       return;
@@ -380,16 +380,16 @@ class GoldbergTarjan : public MaximumFlow<Network>{
 
     _excess.update(u, -delta);
     _excess.update(v, delta);
-    _flowNetwork.increaseFlow(e, delta);
+    _flow_network.increaseFlow(e, delta);
 
     enqueue(v);
-    ASSERT(_flowNetwork.residualCapacity(_flowNetwork.reverseEdge(e)),
+    ASSERT(_flow_network.residualCapacity(_flow_network.reverseEdge(e)),
            "Node " << v << " should be active and residual capacity of edge (" << u << "," << v << ")"
                    << " should be greater than zero!");
   }
 
   void gap_heurisitc(const NodeID distance) {
-    for (const NodeID& node : _flowNetwork.nodes()) {
+    for (const NodeID& node : _flow_network.nodes()) {
       NodeID node_dist = _distance.get(node);
       if (node_dist < distance || node_dist >= _num_nodes) continue;
       updateDistance(node, _num_nodes);
@@ -401,7 +401,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     ASSERT(_Q.empty(), "BFS queue is not empty!");
     _visited.reset();
 
-    for (const NodeID& t : _flowNetwork.sinks()) {
+    for (const NodeID& t : _flow_network.sinks()) {
       updateDistance(t, 1);
       _visited.set(t, true);
       _Q.push(t);
@@ -410,12 +410,12 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     while (!_Q.empty()) {
       NodeID node = _Q.front();
       _Q.pop();
-      _edgeIterator[node] = _flowNetwork.incidentEdges(node);
+      _edge_iterator[node] = _flow_network.incidentEdges(node);
 
-      for (FlowEdge& e : _flowNetwork.incidentEdges(node)) {
+      for (FlowEdge& e : _flow_network.incidentEdges(node)) {
         NodeID target = e.target;
-        if (!_visited[target] && _flowNetwork.residualCapacity(_flowNetwork.reverseEdge(e)) &&
-            !_flowNetwork.isSource(target)) {
+        if (!_visited[target] && _flow_network.residualCapacity(_flow_network.reverseEdge(e)) &&
+            !_flow_network.isSource(target)) {
           updateDistance(target, _distance.get(node) + 1);
           _visited.set(target, true);
           _Q.push(target);
@@ -438,14 +438,14 @@ class GoldbergTarjan : public MaximumFlow<Network>{
   }
 
   void relabel(const NodeID u) {
-    if (_flowNetwork.isSink(u)) {
+    if (_flow_network.isSink(u)) {
       updateDistance(u, 1);
     } else {
-      NodeID label = _flowNetwork.isSource(u) ? _num_nodes : INVALID_NODE;
-      for (FlowEdge& e : _flowNetwork.incidentEdges(u)) {
+      NodeID label = _flow_network.isSource(u) ? _num_nodes : INVALID_NODE;
+      for (FlowEdge& e : _flow_network.incidentEdges(u)) {
         NodeID v = e.target;
         ASSERT(!_visited[v], "Node " << v << " should not be visited!");
-        if (_flowNetwork.residualCapacity(e)) {
+        if (_flow_network.residualCapacity(e)) {
           label = std::min(label, _distance.get(v));
         }
       }
@@ -463,26 +463,26 @@ class GoldbergTarjan : public MaximumFlow<Network>{
 
   void discharge(const NodeID u) {
     while (_excess.get(u) > 0) {
-      for ( ; _edgeIterator[u].first != _edgeIterator[u].second; ++(_edgeIterator[u].first)) {
-        FlowEdge& e = *(_edgeIterator[u].first);
+      for ( ; _edge_iterator[u].first != _edge_iterator[u].second; ++(_edge_iterator[u].first)) {
+        FlowEdge& e = *(_edge_iterator[u].first);
         ASSERT(!_visited[e.target], "Node " << e.target << " should not be visited!");
-        if (_flowNetwork.residualCapacity(e)) {
+        if (_flow_network.residualCapacity(e)) {
           push(e);
         }
         if (_excess.get(u) == 0) break;
       }
 
-      if (_edgeIterator[u].first == _edgeIterator[u].second) {
+      if (_edge_iterator[u].first == _edge_iterator[u].second) {
         NodeID cur_dist = _distance.get(u);
         if (cur_dist < _num_nodes && _count.get(cur_dist) == 1) {
           gap_heurisitc(cur_dist);
         } else {
           relabel(u);
         }
-        _edgeIterator[u] = _flowNetwork.incidentEdges(u);
+        _edge_iterator[u] = _flow_network.incidentEdges(u);
       }
 
-      if (_flowNetwork.isSource(u) && _distance.get(u) == _num_nodes + 1) {
+      if (_flow_network.isSource(u) && _distance.get(u) == _num_nodes + 1) {
         _excess.set(u, 0);
       }
     }
@@ -490,7 +490,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
 
   using Base::_hg;
   using Base::_context;
-  using Base::_flowNetwork;
+  using Base::_flow_network;
   using Base::_visited;
   using Base::_Q;
 
@@ -499,7 +499,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
   FastResetArray<NodeID> _distance;
   FastResetArray<int> _count;
   FastResetFlagArray<> _active;
-  std::vector<std::pair<IncidenceIterator, IncidenceIterator> > _edgeIterator;
+  std::vector<std::pair<IncidenceIterator, IncidenceIterator> > _edge_iterator;
   std::queue<NodeID> _q;
   size_t _work;
 };
@@ -513,9 +513,9 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
  public:
   BoykovKolmogorov(Hypergraph& hypergraph, const Context& context, Network& flow_network) :
     Base(hypergraph, context, flow_network),
-    _flowGraph(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(),
+    _flow_graph(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(),
                hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()),
-    _flowNetworkMapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
+    _flow_network_mapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
 
   ~BoykovKolmogorov() = default;
 
@@ -528,13 +528,13 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
   Flow maximumFlow() {
     mapToExternalFlowNetwork();
 
-    Flow maxFlow = _flowGraph.maxflow();
+    Flow maxFlow = _flow_graph.maxflow();
 
-    FlowGraph::arc* a = _flowGraph.get_first_arc();
-    while (a != _flowGraph.arc_last) {
-      Flow flow = a->flowEdge->capacity - _flowGraph.get_rcap(a);
+    FlowGraph::arc* a = _flow_graph.get_first_arc();
+    while (a != _flow_graph.arc_last) {
+      Flow flow = a->flowEdge->capacity - _flow_graph.get_rcap(a);
       if (flow != 0) a->flowEdge->increaseFlow(flow);
-      a = _flowGraph.get_next_arc(a);
+      a = _flow_graph.get_next_arc(a);
     }
 
     ASSERT(!Base::bfs(), "Found augmenting path after flow computation finished!");
@@ -543,30 +543,30 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
 
  private:
   void mapToExternalFlowNetwork() {
-    _flowGraph.reset();
+    _flow_graph.reset();
     _visited.reset();
-    const Flow infty = _flowNetwork.totalWeightHyperedges();
+    const Flow infty = _flow_network.totalWeightHyperedges();
 
-    for (const NodeID& node : _flowNetwork.nodes()) {
-      NodeID id = _flowGraph.add_node();
-      _flowNetworkMapping[node] = id;
-      if (_flowNetwork.isSource(node)) {
-        _flowGraph.add_tweights(id, infty, 0);
+    for (const NodeID& node : _flow_network.nodes()) {
+      NodeID id = _flow_graph.add_node();
+      _flow_network_mapping[node] = id;
+      if (_flow_network.isSource(node)) {
+        _flow_graph.add_tweights(id, infty, 0);
       }
-      if (_flowNetwork.isSink(node)) {
-        _flowGraph.add_tweights(id, 0, infty);
+      if (_flow_network.isSink(node)) {
+        _flow_graph.add_tweights(id, 0, infty);
       }
     }
 
-    for (const NodeID node : _flowNetwork.nodes()) {
-      NodeID u = _flowNetworkMapping[node];
-      for (FlowEdge& edge : _flowNetwork.incidentEdges(node)) {
-        NodeID v = _flowNetworkMapping[edge.target];
+    for (const NodeID node : _flow_network.nodes()) {
+      NodeID u = _flow_network_mapping[node];
+      for (FlowEdge& edge : _flow_network.incidentEdges(node)) {
+        NodeID v = _flow_network_mapping[edge.target];
         Capacity c = edge.capacity;
-        FlowEdge& rev_edge = _flowNetwork.reverseEdge(edge);
+        FlowEdge& rev_edge = _flow_network.reverseEdge(edge);
         Capacity rev_c = rev_edge.capacity;
         if (!_visited[edge.target]) {
-          FlowGraph::arc* a = _flowGraph.add_edge(u, v, c, rev_c);
+          FlowGraph::arc* a = _flow_graph.add_edge(u, v, c, rev_c);
           a->flowEdge = &edge;
           a->sister->flowEdge = &rev_edge;
         }
@@ -577,12 +577,12 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
 
   using Base::_hg;
   using Base::_context;
-  using Base::_flowNetwork;
+  using Base::_flow_network;
   using Base::_parent;
   using Base::_visited;
 
-  FlowGraph _flowGraph;
-  std::vector<NodeID> _flowNetworkMapping;
+  FlowGraph _flow_graph;
+  std::vector<NodeID> _flow_network_mapping;
 };
 
 
@@ -594,8 +594,8 @@ class IBFS : public MaximumFlow<Network>{
  public:
   IBFS(Hypergraph& hypergraph, const Context& context, Network& flow_network) :
     Base(hypergraph, context, flow_network),
-    _flowGraph(FlowGraph::IB_INIT_COMPACT),
-    _flowNetworkMapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
+    _flow_graph(FlowGraph::IB_INIT_COMPACT),
+    _flow_network_mapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
 
   ~IBFS() = default;
 
@@ -608,11 +608,11 @@ class IBFS : public MaximumFlow<Network>{
   Flow maximumFlow() {
     mapToExternalFlowNetwork();
 
-    _flowGraph.computeMaxFlow();
-    Flow maxFlow = _flowGraph.getFlow();
+    _flow_graph.computeMaxFlow();
+    Flow maxFlow = _flow_graph.getFlow();
 
-    FlowGraph::Arc* a = _flowGraph.arcs;
-    while (a != _flowGraph.arcEnd) {
+    FlowGraph::Arc* a = _flow_graph.arcs;
+    while (a != _flow_graph.arcEnd) {
       Flow flow = a->flowEdge->capacity - a->rCap;
       if (flow != 0) a->flowEdge->increaseFlow(flow);
       a++;
@@ -624,44 +624,44 @@ class IBFS : public MaximumFlow<Network>{
 
  private:
   void mapToExternalFlowNetwork() {
-    _flowGraph.initSize(_flowNetwork.numNodes(), _flowNetwork.numEdges() - _flowNetwork.numUndirectedEdges());
+    _flow_graph.initSize(_flow_network.numNodes(), _flow_network.numEdges() - _flow_network.numUndirectedEdges());
     _visited.reset();
-    const Flow infty = _flowNetwork.totalWeightHyperedges();
+    const Flow infty = _flow_network.totalWeightHyperedges();
     NodeID cur_id = 0;
 
-    for (const NodeID& node : _flowNetwork.nodes()) {
-      _flowGraph.addNode(cur_id,
-                         _flowNetwork.isSource(node) ? infty : 0,
-                         _flowNetwork.isSink(node) ? infty : 0);
-      _flowNetworkMapping[node] = cur_id;
+    for (const NodeID& node : _flow_network.nodes()) {
+      _flow_graph.addNode(cur_id,
+                         _flow_network.isSource(node) ? infty : 0,
+                         _flow_network.isSink(node) ? infty : 0);
+      _flow_network_mapping[node] = cur_id;
       cur_id++;
     }
 
-    for (const NodeID node : _flowNetwork.nodes()) {
-      NodeID u = _flowNetworkMapping[node];
-      for (FlowEdge& edge : _flowNetwork.incidentEdges(node)) {
-        NodeID v = _flowNetworkMapping[edge.target];
+    for (const NodeID node : _flow_network.nodes()) {
+      NodeID u = _flow_network_mapping[node];
+      for (FlowEdge& edge : _flow_network.incidentEdges(node)) {
+        NodeID v = _flow_network_mapping[edge.target];
         Capacity c = edge.capacity;
-        FlowEdge& rev_edge = _flowNetwork.reverseEdge(edge);
+        FlowEdge& rev_edge = _flow_network.reverseEdge(edge);
         Capacity rev_c = rev_edge.capacity;
         if (!_visited[edge.target]) {
-          _flowGraph.addEdge(u, v, c, rev_c, &edge, &rev_edge);
+          _flow_graph.addEdge(u, v, c, rev_c, &edge, &rev_edge);
         }
       }
       _visited.set(node, true);
     }
 
-    _flowGraph.initGraph();
+    _flow_graph.initGraph();
   }
 
   using Base::_hg;
   using Base::_context;
-  using Base::_flowNetwork;
+  using Base::_flow_network;
   using Base::_parent;
   using Base::_visited;
 
-  FlowGraph _flowGraph;
-  std::vector<NodeID> _flowNetworkMapping;
+  FlowGraph _flow_graph;
+  std::vector<NodeID> _flow_network_mapping;
 };
 
 
