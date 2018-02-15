@@ -145,6 +145,12 @@ class TwoWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
 
     context.local_search.flow.use_most_balanced_minimum_cut = true;
     context.local_search.flow.alpha = 4;
+    context.local_search.flow.algorithm = FlowAlgorithm::ibfs;
+    context.local_search.flow.network = FlowNetworkType::hybrid;
+    context.local_search.flow.execution_policy = FlowExecutionMode::exponential;
+    context.local_search.flow.use_adaptive_alpha_stopping_rule = true;
+    context.local_search.flow.ignore_small_hyperedge_cut = true;
+    context.local_search.flow.use_improvement_history = true;
   }
 
   void setupPartition() {

@@ -542,6 +542,11 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
   }
 
  private:
+  template <typename T>
+  FRIEND_TEST(AMaximumFlow, ChecksIfAugmentingPathExist);
+  template <typename T>
+  FRIEND_TEST(AMaximumFlow, AugmentAlongPath);
+
   void mapToExternalFlowNetwork() {
     _flow_graph.reset();
     _visited.reset();
@@ -623,6 +628,11 @@ class IBFS : public MaximumFlow<Network>{
   }
 
  private:
+  template <typename T>
+  FRIEND_TEST(AMaximumFlow, ChecksIfAugmentingPathExist);
+  template <typename T>
+  FRIEND_TEST(AMaximumFlow, AugmentAlongPath);
+
   void mapToExternalFlowNetwork() {
     _flow_graph.initSize(_flow_network.numNodes(), _flow_network.numEdges() - _flow_network.numUndirectedEdges());
     _visited.reset();
