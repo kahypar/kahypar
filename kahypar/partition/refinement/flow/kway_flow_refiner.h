@@ -67,7 +67,7 @@ using FlowNetwork = typename FlowNetworkPolicy::Network;
 
  private:
   friend class KWayFlowRefinerTest;
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,

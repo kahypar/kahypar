@@ -37,7 +37,7 @@
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/external_flow/bk/graph.h"
 #include "kahypar/partition/refinement/flow/external_flow/ibfs/ibfs.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 #include "kahypar/partition/refinement/flow/most_balanced_minimum_cut.h"
 #include "kahypar/utils/randomize.h"
 

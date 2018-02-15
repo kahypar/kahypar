@@ -33,9 +33,6 @@
 
 namespace kahypar {
 
-using RefinerFactory = meta::Factory<RefinementAlgorithm,
-                                     IRefiner* (*)(Hypergraph&, const Context&)>;
-
 class IRefiner {
  public:
   IRefiner(const IRefiner&) = delete;
@@ -71,4 +68,8 @@ class IRefiner {
 
   virtual void initializeImpl(const HyperedgeWeight) = 0;
 };
+
+using RefinerFactory = meta::Factory<RefinementAlgorithm,
+                                     IRefiner* (*)(Hypergraph&, const Context&)>;
+
 }  // namespace kahypar

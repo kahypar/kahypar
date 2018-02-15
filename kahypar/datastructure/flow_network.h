@@ -37,6 +37,7 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
+
 using ds::begin;
 using ds::end;
 using ds::FastResetFlagArray;
@@ -48,6 +49,8 @@ using Capacity = int32_t;
 
 #define INFTY std::numeric_limits<Flow>::max() / 2
 #define INVALID_NODE std::numeric_limits<NodeID>::max() / 2
+
+namespace ds {
 
 struct FlowEdge {
   NodeID source, target;
@@ -778,4 +781,5 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
   using Base::_visited;
   using Base::_heVisited;
 };
+}  // namespace ds
 }  // namespace kahypar

@@ -49,13 +49,13 @@ If you require another license, please contact the above.
 #include <limits.h>
 #include <string.h>
 
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverflow"
 #pragma GCC diagnostic ignored "-Weffc++"
 
-using namespace kahypar;
+using namespace kahypar::ds;
 
 namespace ibfs {
 

@@ -35,7 +35,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 
 namespace kahypar {
 using ds::Graph;

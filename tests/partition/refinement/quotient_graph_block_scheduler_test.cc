@@ -100,6 +100,7 @@ TEST_F(AQuotientGraphBlockScheduler, HasCorrectCutHyperedgesAfterMove) {
 
   size_t idx = 0;
   for (const auto& e : scheduler->blockPairCutHyperedges(0, 1)) {
+    unused(e);
     idx++;
   }
   ASSERT_EQ(idx, 0);
@@ -111,6 +112,7 @@ TEST_F(AQuotientGraphBlockScheduler, HasCorrectCutHyperedgesAfterMove) {
   }
   idx = 0;
   for (const auto& e : scheduler->blockPairCutHyperedges(1, 2)) {
+    unused(e);
     idx++;
   }
   ASSERT_EQ(idx, 0);

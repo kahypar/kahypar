@@ -26,7 +26,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 
 using::testing::Test;
 using::testing::Eq;
@@ -37,6 +37,12 @@ namespace kahypar {
 #define EDGE(X, C) std::make_pair(X, C)
 
 typedef std::pair<NodeID, Capacity> edge;
+
+using ds::LawlerNetwork;
+using ds::WongNetwork;
+using ds::HeuerNetwork;
+using ds::HybridNetwork;
+using ds::FlowEdge;
 
 template <class Network = Mandatory>
 class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::set<edge> > >{

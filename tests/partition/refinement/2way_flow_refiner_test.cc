@@ -116,31 +116,11 @@ class TwoWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
     best_metrics.cut = metrics::hyperedgeCut(*hypergraph);
     best_metrics.km1 = metrics::km1(*hypergraph);
     best_metrics.imbalance = metrics::imbalance(*hypergraph, context);
-    Metrics old_metrics = best_metrics;
 
-    twoWayFlowRefiner->storeOriginalPartitionIDs();
     twoWayFlowRefiner->refine(*refinement_nodes, *max_allowed_part_weights,
                               *changes, best_metrics);
 
     // 2way flow refiner should update metrics correctly
-    ASSERT_EQ(best_metrics.getMetric(context.partition.objective),
-              metrics::objective(*hypergraph, context.partition.objective));
-    ASSERT_EQ(best_metrics.imbalance, metrics::imbalance(*hypergraph, context));
-
-    // 2way flow refiner should rollback the partition correctly
-    twoWayFlowRefiner->restoreOriginalPartitionIDs();
-    ASSERT_EQ(old_metrics.getMetric(context.partition.objective),
-              metrics::objective(*hypergraph, context.partition.objective));
-    ASSERT_EQ(old_metrics.imbalance, metrics::imbalance(*hypergraph, context));
-
-    // If move the hypernodes also moved by the flow refiner during
-    // refinement, the partition should be the same as before the
-    // rollback
-    for (const HypernodeID& hn : twoWayFlowRefiner->movedHypernodes()) {
-      PartitionID from = hypergraph->partID(hn);
-      PartitionID to = 1 - from;
-      hypergraph->changeNodePart(hn, from, to);
-    }
     ASSERT_EQ(best_metrics.getMetric(context.partition.objective),
               metrics::objective(*hypergraph, context.partition.objective));
     ASSERT_EQ(best_metrics.imbalance, metrics::imbalance(*hypergraph, context));

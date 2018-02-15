@@ -66,13 +66,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "kahypar/partition/refinement/flow/external_flow/bk/block.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
-
 #include <assert.h>
+
+#include "kahypar/partition/refinement/flow/external_flow/bk/block.h"
+#include "kahypar/datastructure/flow_network.h"
+
 // NOTE: in UNIX you need to use -DNDEBUG preprocessor option to supress assert's!!!
 
-using namespace kahypar;
+using namespace kahypar::ds;
 
 namespace maxflow {
 

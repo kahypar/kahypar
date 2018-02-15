@@ -23,7 +23,7 @@
 
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 
 namespace kahypar {
 struct FlowNetworkPolicy : meta::PolicyBase {
@@ -32,19 +32,19 @@ struct FlowNetworkPolicy : meta::PolicyBase {
 };
 
 struct LawlerNetworkPolicy : public FlowNetworkPolicy {
-  typedef LawlerNetwork Network;
+  typedef ds::LawlerNetwork Network;
 };
 
 struct HeuerNetworkPolicy : public FlowNetworkPolicy {
-  typedef HeuerNetwork Network;
+  typedef ds::HeuerNetwork Network;
 };
 
 struct WongNetworkPolicy : public FlowNetworkPolicy {
-  typedef WongNetwork Network;
+  typedef ds::WongNetwork Network;
 };
 
 struct HybridNetworkPolicy : public FlowNetworkPolicy {
-  typedef HybridNetwork Network;
+  typedef ds::HybridNetwork Network;
 };
 
 using FlowNetworkPolicyClasses = meta::Typelist<LawlerNetworkPolicy,

@@ -28,7 +28,7 @@
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/meta/typelist.h"
-#include "kahypar/partition/refinement/flow/flow_network.h"
+#include "kahypar/datastructure/flow_network.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 
 namespace kahypar {
