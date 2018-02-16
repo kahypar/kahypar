@@ -57,7 +57,7 @@ If you require another license, please contact the above.
 
 using namespace kahypar::ds;
 
-namespace ibfs {
+namespace maxflow {
 
 
 #define IB_BOTTLENECK_ORIG 0
@@ -2395,7 +2395,7 @@ template<bool sTree> void IBFSGraph::pushRelabelDischarge(Node *x)
 
 
 
-} //namespace ibfs
+} // namespace maxflow
 
 #pragma GCC diagnostic pop
 

@@ -35,8 +35,8 @@
 #include "kahypar/meta/typelist.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/refinement/flow/external_flow/bk/graph.h"
-#include "kahypar/partition/refinement/flow/external_flow/ibfs/ibfs.h"
+#include "external_maximum_flow/bk/graph.h"
+#include "external_maximum_flow/ibfs/ibfs.h"
 #include "kahypar/datastructure/flow_network.h"
 #include "kahypar/partition/refinement/flow/most_balanced_minimum_cut.h"
 #include "kahypar/utils/randomize.h"
@@ -594,7 +594,7 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
 template <class Network = Mandatory>
 class IBFS : public MaximumFlow<Network>{
   using Base = MaximumFlow<Network>;
-  using FlowGraph = ibfs::IBFSGraph;
+  using FlowGraph = maxflow::IBFSGraph;
 
  public:
   IBFS(Hypergraph& hypergraph, const Context& context, Network& flow_network) :

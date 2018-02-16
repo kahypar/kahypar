@@ -68,7 +68,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "kahypar/partition/refinement/flow/external_flow/bk/block.h"
+#include "external_maximum_flow/bk/block.h"
 #include "kahypar/datastructure/flow_network.h"
 
 // NOTE: in UNIX you need to use -DNDEBUG preprocessor option to supress assert's!!!
@@ -1311,6 +1311,6 @@ template <typename captype, typename tcaptype, typename flowtype>
 
 #pragma GCC diagnostic pop
 
-} // end namespace 
+} // end namespace maxflow
 
 #endif
