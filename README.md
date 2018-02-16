@@ -43,7 +43,7 @@ corresponding cut produced by the algorithm on a per-instance basis. For each al
 these ratios are sorted in increasing order. The plots use a cube root scale for both axes
 to reduce right skewness and show 1 − (best/algorithm) on the y-axis to highlight the
 instances were each partitioner performs badly. A point close to one indicates that the
-<img src="https://cloud.githubusercontent.com/assets/484403/26682208/eb1ee650-46df-11e7-97f9-42d884dd792c.png" alt="alt text" width="50%" height="50%" align="right">
+<img src="https://user-images.githubusercontent.com/484403/36319808-6a679886-1344-11e8-86da-d69e53902a6b.png" alt="alt text" width="60%" height="60%" align="right">
 partition produced by the corresponding algorithm was considerably worse than the partition
 produced by the best algorithm. A value of zero therefore indicates that the corresponding
 algorithm produced the best solution. Points above one correspond to infeasible solutions
@@ -55,10 +55,10 @@ algorithm if its corresponding ratio values are below those of the other algorit
 the website accompanying each publication.
 
 #### Additional Resources
-|KaHyPar-MF (latest version of KaHyPar| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
+|KaHyPar-MF (latest version of KaHyPar)| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
 |:--|:--:|:--:|:--:|
 |KaHyPar-CA|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
-|KaHyPar-K (referred to as KaHyPar in the picture above)|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
+|KaHyPar-K|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
 
 Requirements:
