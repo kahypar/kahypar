@@ -55,9 +55,9 @@ algorithm if its corresponding ratio values are below those of the other algorit
 the website accompanying each publication.
 
 #### Additional Resources
-
-|KaHyPar-CA (latest version of KaHyPar)|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-MF (latest version of KaHyPar| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
 |:--|:--:|:--:|:--:|
+|KaHyPar-CA|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
 |KaHyPar-K (referred to as KaHyPar in the picture above)|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
 
@@ -186,4 +186,5 @@ feel free to contact me or create an issue on the
 [ALENEX'16bench]: http://dx.doi.org/10.5281/zenodo.30176
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
+[SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
