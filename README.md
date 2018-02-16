@@ -96,7 +96,7 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
 Currently we provide four different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and the technical report about KaHyPar-MF.
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and in the [technical report](https://arxiv.org/abs/1802.03587) about KaHyPar-MF.
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
