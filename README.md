@@ -95,9 +95,8 @@ The binary is located at: `build/kahypar/application/`.
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
-Currently we provide three different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17],
-and [SEA'17][SEA'17].
+Currently we provide four different presets that correspond to the configurations used in the publications at
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and the technical report about KaHyPar-MF.
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
@@ -110,6 +109,10 @@ To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity -
 To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
+    
+To start KaHyPar-MF (using *flow-based refinment*) optimizing the (connectivity - 1) objective using direct k-way mode run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea18.ini
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
@@ -163,6 +166,14 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      booktitle = {16th International Symposium on Experimental Algorithms, (SEA 2017)},
      pages     = {21:1--21:19},
      year      = {2017},
+    }
+    
+    // KaHyPar-MF
+    @misc{1802.03587,
+     author = {{Heuer, T. and Sanders, P. and Schlag, S.}},
+     title = {{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
+     year = {2018},
+     Eprint = {1802.03587},
     }
 
 A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
