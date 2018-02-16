@@ -39,63 +39,70 @@
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
 
-#define REGISTER_COARSENER(id, coarsener)                               \
-  static meta::Registrar<CoarsenerFactory> register_ ## coarsener(      \
-    id,                                                                 \
-    [](Hypergraph& hypergraph, const Context& context,                  \
-       const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {  \
-    return new coarsener(hypergraph, context, weight_of_heaviest_node); \
-  })
+#define REGISTER_COARSENER(id, coarsener)                                 \
+  static meta::Registrar<CoarsenerFactory> register_ ## coarsener(        \
+    id,                                                                   \
+    [] (Hypergraph & hypergraph, const Context &context,                  \
+        const HypernodeWeight weight_of_heaviest_node)->ICoarsener * {    \
+      return new coarsener(hypergraph, context, weight_of_heaviest_node); \
+    })
 
-#define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                 \
-  static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(        \
-    id,                                                                    \
-    [](Hypergraph& hypergraph, const Context& context,                     \
-       const HypernodeWeight weight_of_heaviest_node) {                    \
-    return dispatcher::create(                                             \
-      std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \
-      __VA_ARGS__                                                          \
-      );                                                                   \
-  })
+#define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                   \
+  static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(          \
+    id,                                                                      \
+    [] (Hypergraph & hypergraph, const Context &context,                     \
+        const HypernodeWeight weight_of_heaviest_node) {                     \
+      return dispatcher::create(                                             \
+        std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \
+        __VA_ARGS__                                                          \
+        );                                                                   \
+    })
 
 
-#define REGISTER_INITIAL_PARTITIONER(id, ip)                               \
-  static meta::Registrar<InitialPartitioningFactory> register_ ## ip(      \
-    id,                                                                    \
-    [](Hypergraph& hypergraph, Context& context) -> IInitialPartitioner* { \
-    return new ip(hypergraph, context);                                    \
+#define REGISTER_INITIAL_PARTITIONER(id, ip)                                 \
+  static meta::Registrar<InitialPartitioningFactory> register_ ## ip(        \
+    id,                                                                      \
+    [] (Hypergraph & hypergraph, Context & context)->IInitialPartitioner * { \
+      return new ip(hypergraph, context);                                    \
+    })
+
+#define REGISTER_FLOW_ALGORITHM_FOR_NETWORK(id, flow, network)                                           \
+  static meta::Registrar<FlowAlgorithmFactory<network> > register_ ## flow ## network(                   \
+    id,                                                                                                  \
+    [](Hypergraph& hypergraph, const Context& context, network& flow_network) -> MaximumFlow<network>* { \
+    return new flow<network>(hypergraph, context, flow_network);                                         \
   })
 
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
   static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
     id,                                                           \
-    [](Hypergraph& hypergraph, const Context& context) {          \
-    return dispatcher::create(                                    \
-      std::forward_as_tuple(hypergraph, context),                 \
-      __VA_ARGS__                                                 \
-      );                                                          \
-  })
+    [] (Hypergraph & hypergraph, const Context &context) {        \
+      return dispatcher::create(                                  \
+        std::forward_as_tuple(hypergraph, context),               \
+        __VA_ARGS__                                               \
+        );                                                        \
+    })
 
-#define REGISTER_REFINER(id, refiner)                                 \
-  static meta::Registrar<RefinerFactory> register_ ## refiner(        \
-    id,                                                               \
-    [](Hypergraph& hypergraph, const Context& context) -> IRefiner* { \
-    return new refiner(hypergraph, context);                          \
-  })
+#define REGISTER_REFINER(id, refiner)                                  \
+  static meta::Registrar<RefinerFactory> register_ ## refiner(         \
+    id,                                                                \
+    [] (Hypergraph & hypergraph, const Context &context)->IRefiner * { \
+      return new refiner(hypergraph, context);                         \
+    })
 
 #define REGISTER_POLICY(policy, id, policy_class)                                  \
   static meta::Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \
     id, new policy_class())
 
 namespace kahypar {
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 using RandomWinsRaterHeavyEdgeRater = VertexPairRater<>;
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 //                       Coarsening / Rating Policies
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 REGISTER_POLICY(CommunityPolicy, CommunityPolicy::use_communities,
                 UseCommunityStructure);
 REGISTER_POLICY(CommunityPolicy, CommunityPolicy::ignore_communities,
@@ -119,9 +126,9 @@ REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
 REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
                 BestPreferringUnmatched);
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 //                          Coarsening Algorithms
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 REGISTER_COARSENER(CoarseningAlgorithm::do_nothing, DoNothingCoarsener);
 
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_lazy,
@@ -158,9 +165,9 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                                 context.coarsening.rating.acceptance_policy));
 
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 //                          Initial Partitioning Algorithms
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 using BFSInitialPartitionerBFS = BFSInitialPartitioner<BFSStartNodeSelectionPolicy<> >;
 using LPInitialPartitionerBFS_FM =
         LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy<>,
@@ -225,17 +232,53 @@ REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_round_maxnet,
                              GHGInitialPartitionerBFS_MAXN_RND);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::pool, PoolInitialPartitioner);
 
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 //                       Local Search Algorithm Policies
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
                 NumberOfFruitlessMovesStopsSearch);
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
 
-////////////////////////////////////////////////////////////////////////////////
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::constant,
+                ConstantFlowExecution);
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
+                MultilevelFlowExecution);
+REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
+                ExponentialFlowExecution);
+
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
+                LawlerNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
+                HeuerNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
+                WongNetworkPolicy);
+REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
+                HybridNetworkPolicy);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HybridNetwork);
+
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, LawlerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
+REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
+
+// //////////////////////////////////////////////////////////////////////////////
 //                           Local Search Algorithms
-////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////
 REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
                             TwoWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
@@ -248,6 +291,18 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
                             KWayKMinusOneFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               context.local_search.fm.stopping_rule));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_flow,
+                            TwoWayFlowFactoryDispatcher,
+                            meta::PolicyRegistry<FlowNetworkType>::getInstance().getPolicy(
+                              context.local_search.flow.network),
+                            meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
+                              context.local_search.flow.execution_policy));
+REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
+                            KWayFlowFactoryDispatcher,
+                            meta::PolicyRegistry<FlowNetworkType>::getInstance().getPolicy(
+                              context.local_search.flow.network),
+                            meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
+                              context.local_search.flow.execution_policy));
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar

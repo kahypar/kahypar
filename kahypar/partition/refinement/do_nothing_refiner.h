@@ -27,6 +27,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 
 namespace kahypar {
 class DoNothingRefiner final : public IRefiner {

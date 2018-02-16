@@ -238,11 +238,15 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
       context.initial_partitioning.local_search.algorithm =
         kahypar::refinementAlgorithmFromString(ip_rtype);
     }),
-    "IP Local Search Algorithm:\n"
-    " - twoway_fm   : 2-way FM algorithm\n"
-    " - kway_fm     : k-way FM algorithm\n"
-    " - kway_fm_km1 : k-way FM algorithm optimizing km1 metric\n"
-    " - sclap       : Size-constrained Label Propagation")
+    "Local Search Algorithm:\n"
+    " - twoway_fm      : 2-way FM algorithm\n"
+    " - kway_fm        : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
+    " - sclap          : Size-constrained Label Propagation\n"
+    " - twoway_flow    : 2-way Flow algorithm\n"
+    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
+    " - kway_flow      : k-way Flow algorithm\n"
+    " - kway_fm_flow   : k-way FM + Flow algorithm")
     ("i-r-fm-stop",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_stopfm) {
@@ -336,10 +340,14 @@ po::options_description createRefinementOptionsDescription(Context& context,
       context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
     }),
     "Local Search Algorithm:\n"
-    " - twoway_fm   : 2-way FM algorithm\n"
-    " - kway_fm     : k-way FM algorithm (cut) \n"
-    " - kway_fm_km1 : k-way FM algorithm (km1)\n"
-    " - sclap       : Size-constrained Label Propagation")
+    " - twoway_fm      : 2-way FM algorithm\n"
+    " - kway_fm        : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
+    " - sclap          : Size-constrained Label Propagation\n"
+    " - twoway_flow    : 2-way Flow algorithm\n"
+    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
+    " - kway_flow      : k-way Flow algorithm\n"
+    " - kway_fm_flow   : k-way FM + Flow algorithm")
     ("r-runs",
     po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
       [&](const int) {
@@ -367,7 +375,63 @@ po::options_description createRefinementOptionsDescription(Context& context,
     ("r-fm-stop-alpha",
     po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
     "Parameter alpha for adaptive stopping rule \n"
-    "(infinity: -1)");
+    "(infinity: -1)")
+    ("r-flow-algorithm",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ftype) {
+      context.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
+    }),
+    "Flow Algorithms:\n"
+    " - edmond_karp       : Edmond-Karp Max-Flow algorithm\n"
+    " - goldberg_tarjan   : GoldbergTarjan Max-Flow algorithm\n"
+    " - boykov_kolmogorov : Boykov-Kolmogorov Max-Flow algorithm\n"
+    " - ibfs              : IBFS Max-Flow algorithm\n"
+    "(default: ibfs)")
+    ("r-flow-network",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& type) {
+      context.local_search.flow.network = kahypar::flowNetworkFromString(type);
+    }),
+    "Flow Networks:\n"
+    " - lawler : Lawler Network\n"
+    " - heuer  : Heuer Network (Removes all hypernodes with d(v) <= 3)\n"
+    " - wong   : Wong Network (Model each HE with |e| = 2 as graph edge)\n"
+    " - hybrid : Hybrid Network (Combination of Heuer + Wong Network)\n"
+    "(default: hybrid)")
+    ("r-flow-execution-policy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ftype) {
+      context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+    }),
+    "Flow Execution Modes:\n"
+    " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
+    " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
+    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
+    "(default: exponential)")
+    ("r-flow-alpha",
+    po::value<double>(&context.local_search.flow.alpha)->value_name("<double>"),
+    "Determine maximum size of a flow problem during adaptive flow iterations (epsilon' = alpha * epsilon) \n"
+    "(default: 16.0)")
+    ("r-flow-beta",
+    po::value<size_t>(&context.local_search.flow.beta)->value_name("<size_t>"),
+    "Beta of CONSTANT flow execution policy \n"
+    "(default: 128)")
+    ("r-flow-use-most-balanced-minimum-cut",
+    po::value<bool>(&context.local_search.flow.use_most_balanced_minimum_cut)->value_name("<bool>"),
+    "Heuristic to balance a min-cut bipartition after a maximum flow computation \n"
+    "(default: true)")
+    ("r-flow-use-adaptive-alpha-stopping-rule",
+    po::value<bool>(&context.local_search.flow.use_adaptive_alpha_stopping_rule)->value_name("<bool>"),
+    "Stop adaptive flow iterations, when cut equal to old cut \n"
+    "(default: true)")
+    ("r-flow-ignore-small-hyperedge-cut",
+    po::value<bool>(&context.local_search.flow.ignore_small_hyperedge_cut)->value_name("<bool>"),
+    "If cut is small between two blocks, don't use flow refinement \n"
+    "(default: true)")
+    ("r-flow-use-improvement-history",
+    po::value<bool>(&context.local_search.flow.use_improvement_history)->value_name("<bool>"),
+    "Decides if flow-based refinement is used between two adjacent blocks based on improvement history of the corresponding blocks \n"
+    "(default: true)");
   return options;
 }
 
