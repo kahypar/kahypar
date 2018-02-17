@@ -110,7 +110,7 @@ To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connect
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
     
-To start KaHyPar-MF (using *flow-based refinment*) optimizing the (connectivity - 1) objective using direct k-way mode run:
+To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea18.ini
 
