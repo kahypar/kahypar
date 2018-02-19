@@ -29,12 +29,15 @@
 #include "kahypar/partition/context.h"
 
 namespace kahypar {
+template <class Derived = Mandatory>
 class FlowExecutionPolicy : public meta::PolicyBase {
  public:
   FlowExecutionPolicy() :
     _flow_execution_levels() { }
 
-  virtual void initialize(const Hypergraph& hg, const Context& context) = 0;
+  void initialize(const Hypergraph& hg, const Context& context) {
+    static_cast<Derived*>(this)->initializeImpl(hg, context);
+  }
 
   bool executeFlow(const Hypergraph& hg) {
     if (_flow_execution_levels.size() == 0) {
@@ -53,12 +56,12 @@ class FlowExecutionPolicy : public meta::PolicyBase {
   std::vector<size_t> _flow_execution_levels;
 };
 
-class ConstantFlowExecution : public FlowExecutionPolicy {
+class ConstantFlowExecution : public FlowExecutionPolicy<ConstantFlowExecution>{
  public:
   ConstantFlowExecution() :
     FlowExecutionPolicy() { }
 
-  void initialize(const Hypergraph& hg, const Context& context) {
+  void initializeImpl(const Hypergraph& hg, const Context& context) {
     std::vector<size_t> tmpFlowExecutionLevels;
     for (size_t cur_execution_level = hg.currentNumNodes() + 1;
          cur_execution_level < hg.initialNumNodes();
@@ -77,12 +80,12 @@ class ConstantFlowExecution : public FlowExecutionPolicy {
   using FlowExecutionPolicy::_flow_execution_levels;
 };
 
-class MultilevelFlowExecution : public FlowExecutionPolicy {
+class MultilevelFlowExecution : public FlowExecutionPolicy<MultilevelFlowExecution>{
  public:
   MultilevelFlowExecution() :
     FlowExecutionPolicy() { }
 
-  void initialize(const Hypergraph& hg, const Context&) {
+  void initializeImpl(const Hypergraph& hg, const Context&) {
     std::vector<size_t> tmpFlowExecutionLevels;
     for (size_t i = 0; hg.initialNumNodes() / std::pow(2, i) >= hg.currentNumNodes(); ++i) {
       tmpFlowExecutionLevels.push_back(hg.initialNumNodes() / std::pow(2, i));
@@ -96,12 +99,12 @@ class MultilevelFlowExecution : public FlowExecutionPolicy {
   using FlowExecutionPolicy::_flow_execution_levels;
 };
 
-class ExponentialFlowExecution : public FlowExecutionPolicy {
+class ExponentialFlowExecution : public FlowExecutionPolicy<ExponentialFlowExecution>{
  public:
   ExponentialFlowExecution() :
     FlowExecutionPolicy() { }
 
-  void initialize(const Hypergraph& hg, const Context&) {
+  void initializeImpl(const Hypergraph& hg, const Context&) {
     std::vector<size_t> tmpFlowExecutionLevels;
     for (size_t i = 0; hg.currentNumNodes() + std::pow(2, i) < hg.initialNumNodes(); ++i) {
       tmpFlowExecutionLevels.push_back(hg.currentNumNodes() + std::pow(2, i));
