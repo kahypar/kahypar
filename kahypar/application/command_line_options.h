@@ -451,13 +451,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
     "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
     "(default: new-initial-partitioning-vcycle)")
-    ("perform-edge-frequency-interval",
-    po::value<int>()->value_name("<int>")->notifier(
-      [&](const int& edge_freq_interval) {
-      context.evolutionary.perform_edge_frequency_interval = edge_freq_interval;
-    }),
-    "The Frequency in which an edge frequency operation should be performed(regardless of selected mutation strategy)\n"
-    "(default: 5)(-1 disables)")
     ("diversify-interval",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& div_interval) {

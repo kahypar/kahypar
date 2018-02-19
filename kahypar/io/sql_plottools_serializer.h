@@ -233,7 +233,6 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" population-size=" << context.evolutionary.population_size 
             <<" mutation-chance=" << context.evolutionary.mutation_chance 
             <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
-            <<" edge-frequency-interval=" << context.evolutionary.perform_edge_frequency_interval
             <<" diversify-interval=" << context.evolutionary.diversify_interval
             <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
             <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time

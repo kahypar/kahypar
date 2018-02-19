@@ -316,7 +316,6 @@ struct EvolutionaryParameters {
   EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
   mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
   mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-  int perform_edge_frequency_interval = 5;  // -1 disables edge frequency
   float cross_combine_chance = 0.2;
   mutable EvoCrossCombineStrategy cross_combine_strategy = EvoCrossCombineStrategy::k;
   bool log_output = false;
@@ -360,7 +359,6 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Replace Strategy                    " << params.replace_strategy << std::endl;
   str << "  Combine Strategy                    " << params.combine_strategy << std::endl;
   str << "  Mutation Strategy                   " << params.mutate_strategy << std::endl;
-  str << "  Edge Frequency Interval             " << params.perform_edge_frequency_interval << std::endl;
   str << "  Diversification Interval            " << params.diversify_interval << std::endl;
   return str;
 }
