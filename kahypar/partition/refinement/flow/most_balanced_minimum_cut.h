@@ -30,12 +30,12 @@
 
 #include "kahypar/datastructure/fast_reset_array.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/flow_network.h"
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/datastructure/flow_network.h"
 
 namespace kahypar {
 using ds::Graph;
@@ -59,9 +59,9 @@ class MostBalancedMinimumCut {
     _dfs_low(flowNetwork.initialSize(), 0) { }
 
   MostBalancedMinimumCut(const MostBalancedMinimumCut&) = delete;
-  MostBalancedMinimumCut(MostBalancedMinimumCut &&) = delete;
+  MostBalancedMinimumCut(MostBalancedMinimumCut&&) = delete;
   MostBalancedMinimumCut& operator= (const MostBalancedMinimumCut&) = delete;
-  MostBalancedMinimumCut& operator= (MostBalancedMinimumCut &&) = delete;
+  MostBalancedMinimumCut& operator= (MostBalancedMinimumCut&&) = delete;
 
   void mostBalancedMinimumCut(const PartitionID block_0, const PartitionID block_1) {
     reset();
@@ -84,7 +84,7 @@ class MostBalancedMinimumCut {
     // Build mapping from contracted graph to flow network
     std::vector<std::vector<NodeID> > sccToFlowNetwork(dac.numNodes(), std::vector<NodeID>());
     for (const NodeID& u : residualGraph.nodes()) {
-      NodeID flow_u = _graph_to_flow_network.get(u);
+      const NodeID flow_u = _graph_to_flow_network.get(u);
       if (_flow_network.isHypernode(flow_u)) {
         sccToFlowNetwork[contraction_mapping[u]].push_back(flow_u);
         _scc_node_weight.update(contraction_mapping[u], _hg.nodeWeight(flow_u));
@@ -95,8 +95,10 @@ class MostBalancedMinimumCut {
     std::vector<size_t> in_degree(dac.numNodes(), 0);
     for (const NodeID& u : dac.nodes()) {
       for (const Edge& e : dac.incidentEdges(u)) {
-        NodeID v = e.target_node;
-        if (u != v) in_degree[v]++;
+        const NodeID v = e.target_node;
+        if (u != v) {
+          in_degree[v]++;
+        }
       }
     }
 
@@ -121,7 +123,7 @@ class MostBalancedMinimumCut {
         partWeight[part] = _hg.partWeight(part);
       }
       for (size_t idx = 0; idx < topological_order.size(); ++idx) {
-        NodeID u = topological_order[idx];
+        const NodeID u = topological_order[idx];
         tmp_partition_id[u] = block_1;
         partWeight[block_0] -= _scc_node_weight.get(u);
         partWeight[block_1] += _scc_node_weight.get(u);
@@ -146,58 +148,58 @@ class MostBalancedMinimumCut {
     DBG << "Best imbalance: " << best_imbalance;
 
     ASSERT([&]() {
-             HyperedgeWeight metric_before = metrics::objective(_hg, _context.partition.objective);
-             double imbalance_before = metrics::imbalance(_hg, _context);
-             std::vector<NodeID> topological_order(dac.numNodes(), 0);
-             std::vector<NodeID> part_before(dac.numNodes(), block_0);
-             topologicalSort(dac, in_degree, topological_order);
-             for (const NodeID& u : topological_order) {
-               for (const NodeID& v : sccToFlowNetwork[u]) {
-                 PartitionID from = _hg.partID(v);
-                 PartitionID to = best_partition_id[u];
-                 if (from != to) {
-                   _hg.changeNodePart(v, from, to);
-                   part_before[u] = from;
-                 }
-               }
-               // Check cut after assignment of an SCC
-               // Should be the same as the starting cut
-               HyperedgeWeight metric_after = metrics::objective(_hg, _context.partition.objective);
-               if (metric_after != metric_before) {
-                 LOG << "Assignment of SCC leads to inconsistent hyperedge cut!";
-                 LOG << V(metric_before) << V(metric_after);
-                 return false;
-               }
-             }
+        const HyperedgeWeight metric_before = metrics::objective(_hg, _context.partition.objective);
+        const double imbalance_before = metrics::imbalance(_hg, _context);
+        std::vector<NodeID> topological_order(dac.numNodes(), 0);
+        std::vector<NodeID> part_before(dac.numNodes(), block_0);
+        topologicalSort(dac, in_degree, topological_order);
+        for (const NodeID& u : topological_order) {
+          for (const NodeID& v : sccToFlowNetwork[u]) {
+            const PartitionID from = _hg.partID(v);
+            const PartitionID to = best_partition_id[u];
+            if (from != to) {
+              _hg.changeNodePart(v, from, to);
+              part_before[u] = from;
+            }
+          }
+          // Check cut after assignment of an SCC
+          // Should be the same as the starting cut
+          const HyperedgeWeight metric_after = metrics::objective(_hg, _context.partition.objective);
+          if (metric_after != metric_before) {
+            LOG << "Assignment of SCC leads to inconsistent hyperedge cut!";
+            LOG << V(metric_before) << V(metric_after);
+            return false;
+          }
+        }
 
-             // Rollback hypernode assignment
-             for (const NodeID& u : dac.nodes()) {
-               for (const NodeID& v : sccToFlowNetwork[u]) {
-                 PartitionID from = _hg.partID(v);
-                 PartitionID to = part_before[u];
-                 if (from != to) {
-                   _hg.changeNodePart(v, from, to);
-                 }
-               }
-             }
+        // Rollback hypernode assignment
+        for (const NodeID& u : dac.nodes()) {
+          for (const NodeID& v : sccToFlowNetwork[u]) {
+            const PartitionID from = _hg.partID(v);
+            const PartitionID to = part_before[u];
+            if (from != to) {
+              _hg.changeNodePart(v, from, to);
+            }
+          }
+        }
 
-             HyperedgeWeight metric = metrics::objective(_hg, _context.partition.objective);
-             if (metric != metric_before ||
-                 metrics::imbalance(_hg, _context) != imbalance_before) {
-               LOG << "Restoring original partition failed!";
-               LOG << V(metric_before) << V(metric);
-               LOG << V(imbalance_before) << V(metrics::imbalance(_hg, _context));
-               return false;
-             }
+        const HyperedgeWeight metric = metrics::objective(_hg, _context.partition.objective);
+        if (metric != metric_before ||
+            metrics::imbalance(_hg, _context) != imbalance_before) {
+          LOG << "Restoring original partition failed!";
+          LOG << V(metric_before) << V(metric);
+          LOG << V(imbalance_before) << V(metrics::imbalance(_hg, _context));
+          return false;
+        }
 
-             return true;
-           } (), "Most balanced minimum cut failed!");
+        return true;
+      } (), "Most balanced minimum cut failed!");
 
     // Assign most balanced minimum cut
     for (const NodeID& u : dac.nodes()) {
       for (const NodeID& v : sccToFlowNetwork[u]) {
-        PartitionID from = _hg.partID(v);
-        PartitionID to = best_partition_id[u];
+        const PartitionID from = _hg.partID(v);
+        const PartitionID to = best_partition_id[u];
         if (from != to) {
           _hg.changeNodePart(v, from, to);
         }
@@ -238,21 +240,25 @@ class MostBalancedMinimumCut {
     }
 
     while (!_Q.empty()) {
-      NodeID u = _Q.front();
+      const NodeID u = _Q.front();
       _Q.pop();
 
       if (_flow_network.interpreteHypernode(u)) {
         if (!sourceSet) {
-          PartitionID from = _hg.partID(u);
-          if (from == block_0) _hg.changeNodePart(u, block_0, block_1);
+          const PartitionID from = _hg.partID(u);
+          if (from == block_0) {
+            _hg.changeNodePart(u, block_0, block_1);
+          }
         }
       } else if (_flow_network.interpreteHyperedge(u, sourceSet)) {
-        HyperedgeID he = _flow_network.mapToHyperedgeID(u);
+        const HyperedgeID he = _flow_network.mapToHyperedgeID(u);
         for (const HypernodeID& pin : _hg.pins(he)) {
           if (_flow_network.containsHypernode(pin)) {
             if (!sourceSet) {
               PartitionID from = _hg.partID(pin);
-              if (from == block_0) _hg.changeNodePart(pin, block_0, block_1);
+              if (from == block_0) {
+                _hg.changeNodePart(pin, block_0, block_1);
+              }
             }
             if (_flow_network.isRemovedHypernode(pin)) {
               _visited.set(pin, true);
@@ -262,8 +268,8 @@ class MostBalancedMinimumCut {
       }
 
       for (FlowEdge& e : _flow_network.incidentEdges(u)) {
-        FlowEdge& revEdge = _flow_network.reverseEdge(e);
-        NodeID v = e.target;
+        const FlowEdge& revEdge = _flow_network.reverseEdge(e);
+        const NodeID v = e.target;
         if (!_visited[v]) {
           if ((sourceSet && _flow_network.residualCapacity(e)) ||
               (!sourceSet && _flow_network.residualCapacity(revEdge))) {
@@ -295,9 +301,9 @@ class MostBalancedMinimumCut {
 
     for (const NodeID& node : _flow_network.nodes()) {
       if (!_visited[node]) {
-        NodeID source = _flow_network_to_graph.get(node);
+        const NodeID source = _flow_network_to_graph.get(node);
         for (FlowEdge& flow_edge : _flow_network.incidentEdges(node)) {
-          NodeID target = flow_edge.target;
+          const NodeID target = flow_edge.target;
           if (_flow_network.residualCapacity(flow_edge) && !_visited[target]) {
             Edge e;
             e.target_node = _flow_network_to_graph.get(target);
@@ -310,10 +316,10 @@ class MostBalancedMinimumCut {
 
     for (const HypernodeID& hn : _flow_network.removedHypernodes()) {
       if (!_visited[hn]) {
-        NodeID hn_node = _flow_network_to_graph.get(hn);
+        const NodeID hn_node = _flow_network_to_graph.get(hn);
         for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
-          NodeID in_he = _flow_network_to_graph.get(_flow_network.mapToIncommingHyperedgeID(he));
-          NodeID out_he = _flow_network_to_graph.get(_flow_network.mapToOutgoingHyperedgeID(he));
+          const NodeID in_he = _flow_network_to_graph.get(_flow_network.mapToIncommingHyperedgeID(he));
+          const NodeID out_he = _flow_network_to_graph.get(_flow_network.mapToOutgoingHyperedgeID(he));
           if (in_he != INVALID_NODE) {
             Edge e;
             e.target_node = in_he;
@@ -363,11 +369,11 @@ class MostBalancedMinimumCut {
 
     NodeID u_low = _dfs_low.get(u);
     for (const Edge& e : g.incidentEdges(u)) {
-      NodeID v = e.target_node;
+      const NodeID v = e.target_node;
       if (!_visited[v]) {
         tarjanSCC(v, g, dfsNum, cid);
       }
-      NodeID v_low = _dfs_low.get(v);
+      const NodeID v_low = _dfs_low.get(v);
       if (u_low > v_low) {
         _dfs_low.set(u, v_low);
         u_low = v_low;
@@ -377,11 +383,13 @@ class MostBalancedMinimumCut {
 
     if (isComponentParent) {
       while (true) {
-        NodeID v = _S.back();
+        const NodeID v = _S.back();
         _S.pop_back();
         g.setClusterID(v, cid);
         _dfs_low.set(v, INVALID_NODE);
-        if (u == v) break;
+        if (u == v) {
+          break;
+        }
       }
       cid++;
     }
@@ -403,14 +411,16 @@ class MostBalancedMinimumCut {
 
     size_t idx = 0;
     while (!_Q.empty()) {
-      NodeID u = _Q.front();
+      const NodeID u = _Q.front();
       _Q.pop();
       topological_order[idx++] = u;
       for (const Edge& e : g.incidentEdges(u)) {
-        NodeID v = e.target_node;
+        const NodeID v = e.target_node;
         if (u != v) {
           in_degree[v]--;
-          if (in_degree[v] == 0) _Q.push(v);
+          if (in_degree[v] == 0) {
+            _Q.push(v);
+          }
         }
       }
     }
@@ -422,12 +432,12 @@ class MostBalancedMinimumCut {
   template <bool bipartition = true>
   double imbalance(const std::vector<HypernodeWeight>& partWeight) {
     if (bipartition) {
-      HypernodeWeight weight_part0 = partWeight[0];
-      HypernodeWeight weight_part1 = partWeight[1];
-      double imbalance_part0 = (weight_part0 /
-                                static_cast<double>(_context.partition.perfect_balance_part_weights[0]));
-      double imbalance_part1 = (weight_part1 /
-                                static_cast<double>(_context.partition.perfect_balance_part_weights[1]));
+      const HypernodeWeight weight_part0 = partWeight[0];
+      const HypernodeWeight weight_part1 = partWeight[1];
+      const double imbalance_part0 = (weight_part0 /
+                                      static_cast<double>(_context.partition.perfect_balance_part_weights[0]));
+      const double imbalance_part1 = (weight_part1 /
+                                      static_cast<double>(_context.partition.perfect_balance_part_weights[1]));
       return std::max(imbalance_part0, imbalance_part1) - 1.0;
     } else {
       double max_balance = (partWeight[0] /
