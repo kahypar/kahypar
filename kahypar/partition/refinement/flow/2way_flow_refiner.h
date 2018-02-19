@@ -48,9 +48,6 @@ using FlowAlgorithmFactory = meta::Factory<FlowAlgorithm,
 using ds::SparseSet;
 using ds::FastResetArray;
 
-#define invalidHE std::numeric_limits<HyperedgeID>::max()
-#define invalidHN std::numeric_limits<HypernodeID>::max()
-
 template<class FlowNetworkPolicy = Mandatory,
          class FlowExecutionPolicy = Mandatory>
 class TwoWayFlowRefiner final : public IRefiner {
