@@ -37,7 +37,6 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-
 using ds::begin;
 using ds::end;
 using ds::FastResetFlagArray;
@@ -51,9 +50,9 @@ using Capacity = int32_t;
 #define INVALID_NODE std::numeric_limits<NodeID>::max() / 2
 
 namespace ds {
-
 struct FlowEdge {
-  NodeID source, target;
+  NodeID source;
+  NodeID target;
   Flow flow;
   Capacity capacity;
   size_t reverseEdge;
@@ -101,8 +100,8 @@ class FlowNetwork {
   FlowNetwork(const FlowNetwork&) = delete;
   FlowNetwork& operator= (const FlowNetwork&) = delete;
 
-  FlowNetwork(FlowNetwork &&) = delete;
-  FlowNetwork& operator= (FlowNetwork &&) = delete;
+  FlowNetwork(FlowNetwork&&) = delete;
+  FlowNetwork& operator= (FlowNetwork&&) = delete;
 
   // ################### Flow Network Stat ###################
 
@@ -136,19 +135,19 @@ class FlowNetwork {
     buildFlowGraph();
 
     ASSERT([&]() {
-             for (const HypernodeID& hn : hypernodes()) {
-               if (containsNode(hn) && _removed_hypernodes.contains(hn)) {
-                 LOG << "Flow network contains HN " << hn << " but it is marked as removed!";
-                 return false;
-               } else if (!containsNode(hn) && !_removed_hypernodes.contains(hn)) {
-                 LOG << "Flow network not contains HN " << hn << " and it is not marked as removed!";
-                 return false;
-               }
-             }
-             return true;
-           } (), "Hypernodes not correctly added or removed from flow network!");
+          for (const HypernodeID& hn : hypernodes()) {
+            if (containsNode(hn) && _removed_hypernodes.contains(hn)) {
+              LOG << "Flow network contains HN " << hn << " but it is marked as removed!";
+              return false;
+            } else if (!containsNode(hn) && !_removed_hypernodes.contains(hn)) {
+              LOG << "Flow network not contains HN " << hn << " and it is not marked as removed!";
+              return false;
+            }
+          }
+          return true;
+        } (), "Hypernodes not correctly added or removed from flow network!");
 
-    HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
+    const HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
     return cut;
   }
 
@@ -187,7 +186,7 @@ class FlowNetwork {
   }
 
   bool isTrivialFlow() const {
-    size_t num_hyperedges_s_t = _sources.size() + _sinks.size();
+    const size_t num_hyperedges_s_t = _sources.size() + _sinks.size();
     return num_hyperedges_s_t == 2 * _num_hyperedges;
   }
 
@@ -339,11 +338,11 @@ class FlowNetwork {
     for (const HypernodeID& hn : hypernodes()) {
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
-          size_t pinsUBlock0 = _pins_block0.get(he);
-          size_t pinsUBlock1 = _pins_block1.get(he);
-          size_t pinsNotUBlock0 = _hg.pinCountInPart(he, block_0) - pinsUBlock0;
-          size_t pinsNotUBlock1 = _hg.pinCountInPart(he, block_1) - pinsUBlock1;
-          size_t connectivity = (pinsUBlock0 + pinsNotUBlock0 > 0) + (pinsUBlock1 + pinsNotUBlock1 > 0);
+          const size_t pinsUBlock0 = _pins_block0.get(he);
+          const size_t pinsUBlock1 = _pins_block1.get(he);
+          const size_t pinsNotUBlock0 = _hg.pinCountInPart(he, block_0) - pinsUBlock0;
+          const size_t pinsNotUBlock1 = _hg.pinCountInPart(he, block_1) - pinsUBlock1;
+          const size_t connectivity = (pinsUBlock0 + pinsNotUBlock0 > 0) + (pinsUBlock1 + pinsNotUBlock1 > 0);
 
           if (_context.partition.objective == Objective::cut &&
               !isRemovableFromCut(he, block_0, block_1)) {
@@ -390,9 +389,13 @@ class FlowNetwork {
   }
 
   bool isRemovableFromCut(const HyperedgeID he, const PartitionID block_0, const PartitionID block_1) {
-    if (_hg.connectivity(he) > 2) return false;
+    if (_hg.connectivity(he) > 2) {
+      return false;
+    }
     for (const PartitionID& part : _hg.connectivitySet(he)) {
-      if (part != block_0 && part != block_1) return false;
+      if (part != block_0 && part != block_1) {
+        return false;
+      }
     }
     return true;
   }
@@ -433,19 +436,19 @@ class FlowNetwork {
    * Edge e' -> e''
    */
   void addHyperedge(const HyperedgeID he, bool ignoreHESizeOne = false) {
-    NodeID u = mapToIncommingHyperedgeID(he);
-    NodeID v = mapToOutgoingHyperedgeID(he);
+    const NodeID u = mapToIncommingHyperedgeID(he);
+    const NodeID v = mapToOutgoingHyperedgeID(he);
     if (!ignoreHESizeOne && isHyperedgeOfSize(he, 1)) {
       // Check if he is really a hyperedge of size 1 in flow problem
       ASSERT([&]() {
-               size_t numFlowHN = 0;
-               for (const HypernodeID& pin : _hg.pins(he)) {
-                 if (containsHypernode(pin)) {
-                   numFlowHN++;
-                 }
-               }
-               return (numFlowHN == 1 ? true : false);
-             } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
+            size_t numFlowHN = 0;
+            for (const HypernodeID& pin : _hg.pins(he)) {
+              if (containsHypernode(pin)) {
+                numFlowHN++;
+              }
+            }
+            return (numFlowHN == 1 ? true : false);
+          } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
 
       if ((pinsNotInFlowProblem(he, _cur_block0) > 0 &&
            pinsNotInFlowProblem(he, _cur_block1) > 0) ||
@@ -483,7 +486,9 @@ class FlowNetwork {
 
     ASSERT(containsHypernode(u) || containsHypernode(v),
            "Hyperedge " << he << " is not in contained in the flow problem!");
-    if (containsHypernode(v)) std::swap(u, v);
+    if (containsHypernode(v)) {
+      std::swap(u, v);
+    }
     addNode(u);
 
     if (containsHypernode(v)) {
@@ -496,8 +501,8 @@ class FlowNetwork {
    * Edges e'' -> v and v -> e'
    */
   void addPin(const HyperedgeID he, const HypernodeID pin) {
-    NodeID u = mapToIncommingHyperedgeID(he);
-    NodeID v = mapToOutgoingHyperedgeID(he);
+    const NodeID u = mapToIncommingHyperedgeID(he);
+    const NodeID v = mapToOutgoingHyperedgeID(he);
     if (containsNode(u) && containsNode(v)) {
       addEdge(pin, u, INFTY);
       addEdge(v, pin, INFTY);
@@ -562,17 +567,17 @@ class LawlerNetwork final : public FlowNetwork<LawlerNetwork>{
   friend Base;
 
  public:
-  LawlerNetwork(Hypergraph & hypergraph, const Context &context) :
+  LawlerNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
          hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
 
   ~LawlerNetwork() = default;
 
-  LawlerNetwork(const LawlerNetwork &) = delete;
+  LawlerNetwork(const LawlerNetwork&) = delete;
   LawlerNetwork& operator= (const LawlerNetwork&) = delete;
 
-  LawlerNetwork(LawlerNetwork &&) = delete;
-  LawlerNetwork& operator= (LawlerNetwork &&) = delete;
+  LawlerNetwork(LawlerNetwork&&) = delete;
+  LawlerNetwork& operator= (LawlerNetwork&&) = delete;
 
  private:
   void buildFlowGraphImpl() {
@@ -599,17 +604,17 @@ class HeuerNetwork final : public FlowNetwork<HeuerNetwork>{
   friend Base;
 
  public:
-  HeuerNetwork(Hypergraph & hypergraph, const Context &context) :
+  HeuerNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
          hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
 
   ~HeuerNetwork() = default;
 
-  HeuerNetwork(const HeuerNetwork &) = delete;
+  HeuerNetwork(const HeuerNetwork&) = delete;
   HeuerNetwork& operator= (const HeuerNetwork&) = delete;
 
-  HeuerNetwork(HeuerNetwork &&) = delete;
-  HeuerNetwork& operator= (HeuerNetwork &&) = delete;
+  HeuerNetwork(HeuerNetwork&&) = delete;
+  HeuerNetwork& operator= (HeuerNetwork&&) = delete;
 
  private:
   void buildFlowGraphImpl() {
@@ -659,17 +664,17 @@ class WongNetwork final : public FlowNetwork<WongNetwork>{
   friend Base;
 
  public:
-  WongNetwork(Hypergraph & hypergraph, const Context &context) :
+  WongNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
          hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
 
   ~WongNetwork() = default;
 
-  WongNetwork(const WongNetwork &) = delete;
+  WongNetwork(const WongNetwork&) = delete;
   WongNetwork& operator= (const WongNetwork&) = delete;
 
-  WongNetwork(WongNetwork &&) = delete;
-  WongNetwork& operator= (WongNetwork &&) = delete;
+  WongNetwork(WongNetwork&&) = delete;
+  WongNetwork& operator= (WongNetwork&&) = delete;
 
  private:
   void buildFlowGraphImpl() {
@@ -684,8 +689,8 @@ class WongNetwork final : public FlowNetwork<WongNetwork>{
             // capacity w(he)
             addHyperedge(he);
           } else {
-          // Treat hyperedges of size 2 as graph edges
-          // => remove hyperedge nodes in flow network
+            // Treat hyperedges of size 2 as graph edges
+            // => remove hyperedge nodes in flow network
             addGraphEdge(he);
           }
 
@@ -709,17 +714,17 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
   friend Base;
 
  public:
-  HybridNetwork(Hypergraph & hypergraph, const Context &context) :
+  HybridNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
          hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
 
   ~HybridNetwork() = default;
 
-  HybridNetwork(const HybridNetwork &) = delete;
+  HybridNetwork(const HybridNetwork&) = delete;
   HybridNetwork& operator= (const HybridNetwork&) = delete;
 
-  HybridNetwork(HybridNetwork &&) = delete;
-  HybridNetwork& operator= (HybridNetwork &&) = delete;
+  HybridNetwork(HybridNetwork&&) = delete;
+  HybridNetwork& operator= (HybridNetwork&&) = delete;
 
  protected:
   void buildFlowGraphImpl() {
@@ -735,7 +740,7 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
             // Treat hyperedges of size 2 as graph edges
             // => remove hyperedge nodes in flow network
             addGraphEdge(he);
-          }  else {
+          } else {
             // Add a directed flow edge between the incomming
             // and outgoing hyperedge node of he with
             // capacity w(he)
@@ -749,7 +754,7 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
 
     for (const NodeID& node : nodes()) {
       if (interpreteHyperedge(node, false)) {
-        HyperedgeID he = mapToHyperedgeID(node);
+        const HyperedgeID he = mapToHyperedgeID(node);
         if (_hg.edgeSize(he) != 2 && !isHyperedgeOfSize(he, 1)) {
           // If degree of hypernode 'pin' is smaller than 3
           // add clique between all incident hyperedges of pin.
