@@ -115,9 +115,9 @@ using Network = typename FlowNetworkPolicy::Network;
     }
 
     // Construct quotient graph, if it is not set before
-    bool deleteQuotientGraphAfterFlow = false;
+    bool delete_quotientgraph_after_flow = false;
     if (!_quotient_graph) {
-        deleteQuotientGraphAfterFlow = true;
+        delete_quotientgraph_after_flow = true;
         _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
         _quotient_graph->buildQuotientGraph();
     }
@@ -165,13 +165,13 @@ using Network = typename FlowNetworkPolicy::Network;
         CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,
                                          cut_hes, alpha, _block0, _block1,
                                          _visited);
-        HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
+        const HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
         DBG << V(_flow_network.numNodes()) << V(_flow_network.numEdges());
 
         printMetric();
 
         // Find minimum (S,T)-bipartition
-        HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
+        const HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
 
         // Maximum Flow algorithm returns infinity, if all
         // hypernodes contained in the flow problem are either
@@ -181,7 +181,7 @@ using Network = typename FlowNetworkPolicy::Network;
             break;
         }
 
-        HyperedgeWeight delta = cut_flow_network_before - cut_flow_network_after;
+        const HyperedgeWeight delta = cut_flow_network_before - cut_flow_network_after;
         ASSERT(cut_flow_network_before >= cut_flow_network_after,
                 "Flow calculation should not increase cut!"
                 << V(cut_flow_network_before) << V(cut_flow_network_after));
@@ -193,9 +193,9 @@ using Network = typename FlowNetworkPolicy::Network;
                << V(delta)
                << V(metrics::objective(_hg, _context.partition.objective)));
 
-        double current_imbalance = metrics::imbalance(_hg, _context);
-        HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.objective);
-        HyperedgeWeight current_metric = old_metric - delta;
+        const double current_imbalance = metrics::imbalance(_hg, _context);
+        const HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.objective);
+        const HyperedgeWeight current_metric = old_metric - delta;
 
         DBG << V(cut_flow_network_before)
             << V(cut_flow_network_after)
@@ -205,10 +205,10 @@ using Network = typename FlowNetworkPolicy::Network;
 
         printMetric();
 
-        bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
-        bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
-        bool improved_imbalance = current_imbalance < best_metrics.imbalance;
-        bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
+        const bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
+        const bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
+        const bool improved_imbalance = current_imbalance < best_metrics.imbalance;
+        const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
 
         bool current_improvement = false;
         if ( (improved_metric && (is_feasible_partition || improved_imbalance)) ||
@@ -227,8 +227,8 @@ using Network = typename FlowNetworkPolicy::Network;
         // cut hyperedges between adjacent blocks.
         if (current_improvement) {
             for (const HypernodeID& hn : _flow_network.hypernodes()) {
-                PartitionID from = _hg.partID(hn);
-                PartitionID to = _maximum_flow->getOriginalPartition(hn);
+                const PartitionID from = _hg.partID(hn);
+                const PartitionID to = _maximum_flow->getOriginalPartition(hn);
                 if ( from != to ) {
                     _quotient_graph->changeNodePart(hn, from, to);
                 }
@@ -247,7 +247,7 @@ using Network = typename FlowNetworkPolicy::Network;
     printMetric(true, true);
 
     // Delete quotient graph
-    if (deleteQuotientGraphAfterFlow) {
+    if (delete_quotientgraph_after_flow) {
         delete _quotient_graph;
         _quotient_graph = nullptr;
     }
