@@ -98,7 +98,7 @@ typedef ::testing::Types<MaxFlowEdmondKarp<LawlerNetwork>,
                          MaxFlowIBFS<LawlerNetwork>,
                          MaxFlowIBFS<HeuerNetwork>,
                          MaxFlowIBFS<WongNetwork>,
-                         MaxFlowIBFS<HybridNetwork>  > MaximumFlowTestTemplates;
+                         MaxFlowIBFS<HybridNetwork> > MaximumFlowTestTemplates;
 
 TYPED_TEST_CASE(AMaximumFlow,
                 MaximumFlowTestTemplates);

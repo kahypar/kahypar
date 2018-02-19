@@ -2025,10 +2025,10 @@ class GenericHypergraph {
   FastResetFlagArray<> _hes_not_containing_u;
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                     typename Hypergraph::PartitionID part,
-                                                                                                                     const Objective& objective);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    typename Hypergraph::PartitionID part,
+                                                                                                                    const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2039,8 +2039,8 @@ class GenericHypergraph {
                                                  const Hypergraph& actual);
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
 };
 
 template <typename Hypergraph>

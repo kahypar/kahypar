@@ -24,8 +24,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "tools/mtx_to_hgr_conversion.h"
 
-using::testing::Test;
-using::testing::ContainerEq;
+using ::testing::Test;
+using ::testing::ContainerEq;
 
 using namespace kahypar;
 

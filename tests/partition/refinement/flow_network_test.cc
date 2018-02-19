@@ -24,12 +24,12 @@
 
 #include "gmock/gmock.h"
 
+#include "kahypar/datastructure/flow_network.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/datastructure/flow_network.h"
 
-using::testing::Test;
-using::testing::Eq;
+using ::testing::Test;
+using ::testing::Eq;
 
 namespace kahypar {
 #define INCOMING(X) flowNetwork.mapToIncommingHyperedgeID(X)
@@ -45,7 +45,7 @@ using ds::HybridNetwork;
 using ds::FlowEdge;
 
 template <class Network = Mandatory>
-class FlowNetworkTest : public::testing::TestWithParam<std::pair<NodeID, std::set<edge> > >{
+class FlowNetworkTest : public ::testing::TestWithParam<std::pair<NodeID, std::set<edge> > >{
  public:
   FlowNetworkTest() :
     context(),

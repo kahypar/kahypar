@@ -22,36 +22,35 @@
 #pragma once
 
 #include <array>
+#include <queue>
 #include <string>
 #include <utility>
-#include <queue>
 #include <vector>
 
-#include "kahypar/definitions.h"
-#include "kahypar/meta/abstract_factory.h"
-#include "kahypar/partition/metrics.h"
-#include "kahypar/partition/context.h"
-#include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/datastructure/fast_reset_array.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
+#include "kahypar/definitions.h"
+#include "kahypar/meta/abstract_factory.h"
+#include "kahypar/partition/context.h"
+#include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/maximum_flow.h"
-#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/flow/policies/flow_region_build_policy.h"
+#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 
 namespace kahypar {
-
-template<class Network = Mandatory>
+template <class Network = Mandatory>
 using FlowAlgorithmFactory = meta::Factory<FlowAlgorithm,
                                            MaximumFlow<Network>* (*)(Hypergraph&, const Context&, Network&)>;
 
 using ds::SparseSet;
 using ds::FastResetArray;
 
-template<class FlowNetworkPolicy = Mandatory,
-         class FlowExecutionPolicy = Mandatory>
+template <class FlowNetworkPolicy = Mandatory,
+          class FlowExecutionPolicy = Mandatory>
 class TwoWayFlowRefiner final : public IRefiner {
-using Network = typename FlowNetworkPolicy::Network;
+  using Network = typename FlowNetworkPolicy::Network;
 
  public:
   TwoWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -59,13 +58,13 @@ using Network = typename FlowNetworkPolicy::Network;
     _context(context),
     _flow_network(_hg, _context),
     _maximum_flow(FlowAlgorithmFactory<Network>::getInstance().createObject(
-                 _context.local_search.flow.algorithm, hypergraph, _context, _flow_network)),
+                    _context.local_search.flow.algorithm, hypergraph, _context, _flow_network)),
     _flow_execution_policy(),
     _quotient_graph(nullptr),
     _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
-    _ignore_flow_execution_policy(false) {}
+    _ignore_flow_execution_policy(false) { }
 
   TwoWayFlowRefiner(const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner(TwoWayFlowRefiner&&) = delete;
@@ -74,7 +73,7 @@ using Network = typename FlowNetworkPolicy::Network;
 
   /*
    * The 2way flow refiner can be used in combination with other
-   * refiners. 
+   * refiners.
    *
    * k-Way Flow Refiner:
    * Performs active block scheduling on the quotient graph. Therefore
@@ -108,15 +107,15 @@ using Network = typename FlowNetworkPolicy::Network;
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
     if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
-        return false;
+      return false;
     }
 
     // Construct quotient graph, if it is not set before
     bool delete_quotientgraph_after_flow = false;
     if (!_quotient_graph) {
-        delete_quotientgraph_after_flow = true;
-        _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
-        _quotient_graph->buildQuotientGraph();
+      delete_quotientgraph_after_flow = true;
+      _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
+      _quotient_graph->buildQuotientGraph();
     }
 
     DBG << V(metrics::imbalance(_hg, _context))
@@ -129,124 +128,124 @@ using Network = typename FlowNetworkPolicy::Network;
 
     // Adaptive Flow Iterations
     do {
-        alpha /= 2.0;
-        _flow_network.reset(_block0, _block1);
+      alpha /= 2.0;
+      _flow_network.reset(_block0, _block1);
 
-        DBG << "";
-        DBG << V(alpha);
+      DBG << "";
+      DBG << V(alpha);
 
-        // Initialize set of cut hyperedges for blocks '_block0' and '_block1'
-        std::vector<HyperedgeID> cut_hes;
-        HyperedgeWeight cut_weight = 0;
-        for (const HyperedgeID& he : _quotient_graph->blockPairCutHyperedges(_block0, _block1)) {
-            cut_weight += _hg.edgeWeight(he);
-            cut_hes.push_back(he);
+      // Initialize set of cut hyperedges for blocks '_block0' and '_block1'
+      std::vector<HyperedgeID> cut_hes;
+      HyperedgeWeight cut_weight = 0;
+      for (const HyperedgeID& he : _quotient_graph->blockPairCutHyperedges(_block0, _block1)) {
+        cut_weight += _hg.edgeWeight(he);
+        cut_hes.push_back(he);
+      }
+
+      // Heurist 1: Don't execute 2way flow refinement for adjacent blocks
+      //            in the quotient graph with a small cut
+      if (_context.local_search.flow.ignore_small_hyperedge_cut &&
+          cut_weight <= 10 && !isRefinementOnLastLevel()) {
+        return false;
+      }
+
+      // If cut is 0 no improvement is possible
+      if (cut_hes.size() == 0) {
+        DBG << "Cut is zero";
+        break;
+      }
+
+      std::random_shuffle(cut_hes.begin(), cut_hes.end());
+
+      // Build Flow Problem
+      CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,
+                                       cut_hes, alpha, _block0, _block1,
+                                       _visited);
+      const HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
+      DBG << V(_flow_network.numNodes()) << V(_flow_network.numEdges());
+
+      printMetric();
+
+      // Find minimum (S,T)-bipartition
+      const HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
+
+      // Maximum Flow algorithm returns infinity, if all
+      // hypernodes contained in the flow problem are either
+      // sources or sinks
+      if (cut_flow_network_after == INFTY) {
+        DBG << "Trivial Cut";
+        break;
+      }
+
+      const HyperedgeWeight delta = cut_flow_network_before - cut_flow_network_after;
+      ASSERT(cut_flow_network_before >= cut_flow_network_after,
+             "Flow calculation should not increase cut!"
+             << V(cut_flow_network_before) << V(cut_flow_network_after));
+      ASSERT(best_metrics.getMetric(_context.partition.objective) - delta
+             == metrics::objective(_hg, _context.partition.objective),
+             "Maximum Flow is not the minimum cut!"
+             << V(_context.partition.objective)
+             << V(best_metrics.getMetric(_context.partition.objective))
+             << V(delta)
+             << V(metrics::objective(_hg, _context.partition.objective)));
+
+      const double current_imbalance = metrics::imbalance(_hg, _context);
+      const HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.objective);
+      const HyperedgeWeight current_metric = old_metric - delta;
+
+      DBG << V(cut_flow_network_before)
+          << V(cut_flow_network_after)
+          << V(delta)
+          << V(old_metric)
+          << V(current_metric);
+
+      printMetric();
+
+      const bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
+      const bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
+      const bool improved_imbalance = current_imbalance < best_metrics.imbalance;
+      const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
+
+      bool current_improvement = false;
+      if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
+          (equal_metric && improved_imbalance)) {
+        best_metrics.updateMetric(current_metric, _context.partition.objective);
+        best_metrics.imbalance = current_imbalance;
+        improvement = true;
+        current_improvement = true;
+
+        alpha *= (alpha == _context.local_search.flow.alpha ? 2.0 : 4.0);
+      }
+
+      _maximum_flow->rollback(current_improvement);
+
+      // Perform moves in quotient graph in order to update
+      // cut hyperedges between adjacent blocks.
+      if (current_improvement) {
+        for (const HypernodeID& hn : _flow_network.hypernodes()) {
+          const PartitionID from = _hg.partID(hn);
+          const PartitionID to = _maximum_flow->getOriginalPartition(hn);
+          if (from != to) {
+            _quotient_graph->changeNodePart(hn, from, to);
+          }
         }
+      }
 
-        // Heurist 1: Don't execute 2way flow refinement for adjacent blocks
-        //            in the quotient graph with a small cut
-        if (_context.local_search.flow.ignore_small_hyperedge_cut &&
-            cut_weight <= 10 && !isRefinementOnLastLevel()) {
-            return false;
-        }
-
-        // If cut is 0 no improvement is possible
-        if (cut_hes.size() == 0) {
-            DBG << "Cut is zero";
-            break;
-        }
-
-        std::random_shuffle(cut_hes.begin(), cut_hes.end());
-
-        // Build Flow Problem
-        CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,
-                                         cut_hes, alpha, _block0, _block1,
-                                         _visited);
-        const HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
-        DBG << V(_flow_network.numNodes()) << V(_flow_network.numEdges());
-
-        printMetric();
-
-        // Find minimum (S,T)-bipartition
-        const HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
-
-        // Maximum Flow algorithm returns infinity, if all
-        // hypernodes contained in the flow problem are either
-        // sources or sinks
-        if (cut_flow_network_after == INFTY) {
-            DBG << "Trivial Cut";
-            break;
-        }
-
-        const HyperedgeWeight delta = cut_flow_network_before - cut_flow_network_after;
-        ASSERT(cut_flow_network_before >= cut_flow_network_after,
-                "Flow calculation should not increase cut!"
-                << V(cut_flow_network_before) << V(cut_flow_network_after));
-        ASSERT(best_metrics.getMetric(_context.partition.objective) - delta
-               == metrics::objective(_hg, _context.partition.objective),
-               "Maximum Flow is not the minimum cut!"
-               << V(_context.partition.objective)
-               << V(best_metrics.getMetric(_context.partition.objective))
-               << V(delta)
-               << V(metrics::objective(_hg, _context.partition.objective)));
-
-        const double current_imbalance = metrics::imbalance(_hg, _context);
-        const HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.objective);
-        const HyperedgeWeight current_metric = old_metric - delta;
-
-        DBG << V(cut_flow_network_before)
-            << V(cut_flow_network_after)
-            << V(delta)
-            << V(old_metric)
-            << V(current_metric);
-
-        printMetric();
-
-        const bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
-        const bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
-        const bool improved_imbalance = current_imbalance < best_metrics.imbalance;
-        const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
-
-        bool current_improvement = false;
-        if ( (improved_metric && (is_feasible_partition || improved_imbalance)) ||
-            (equal_metric && improved_imbalance) ) {
-            best_metrics.updateMetric(current_metric, _context.partition.objective);
-            best_metrics.imbalance = current_imbalance;
-            improvement = true;
-            current_improvement = true;
-
-            alpha *= (alpha == _context.local_search.flow.alpha ? 2.0 : 4.0);
-        }
-
-        _maximum_flow->rollback(current_improvement);
-
-        // Perform moves in quotient graph in order to update
-        // cut hyperedges between adjacent blocks.
-        if (current_improvement) {
-            for (const HypernodeID& hn : _flow_network.hypernodes()) {
-                const PartitionID from = _hg.partID(hn);
-                const PartitionID to = _maximum_flow->getOriginalPartition(hn);
-                if ( from != to ) {
-                    _quotient_graph->changeNodePart(hn, from, to);
-                }
-            }
-        }
-
-        // Heuristic 2: If no improvement was found, but the cut before and
-        //              after is equal, we assume that the partition is close
-        //              to the optimum and break the adaptive flow iterations.
-        if (_context.local_search.flow.use_adaptive_alpha_stopping_rule &&
-            !improvement && cut_flow_network_before == cut_flow_network_after) {
-            break;
-        }
+      // Heuristic 2: If no improvement was found, but the cut before and
+      //              after is equal, we assume that the partition is close
+      //              to the optimum and break the adaptive flow iterations.
+      if (_context.local_search.flow.use_adaptive_alpha_stopping_rule &&
+          !improvement && cut_flow_network_before == cut_flow_network_after) {
+        break;
+      }
     } while (alpha > 1.0);
 
     printMetric(true, true);
 
     // Delete quotient graph
     if (delete_quotientgraph_after_flow) {
-        delete _quotient_graph;
-        _quotient_graph = nullptr;
+      delete _quotient_graph;
+      _quotient_graph = nullptr;
     }
 
     return improvement;
@@ -254,18 +253,18 @@ using Network = typename FlowNetworkPolicy::Network;
 
 
   bool isRefinementOnLastLevel() {
-      return _hg.currentNumNodes() == _hg.initialNumNodes();
+    return _hg.currentNumNodes() == _hg.initialNumNodes();
   }
 
   void printMetric(bool newline = false, bool endline = false) {
     if (newline) {
-        DBG << "";
+      DBG << "";
     }
     DBG << V(metrics::imbalance(_hg, _context))
         << V(_context.partition.objective)
         << V(metrics::objective(_hg, _context.partition.objective));
     if (endline) {
-        DBG << "-------------------------------------------------------------";
+      DBG << "-------------------------------------------------------------";
     }
   }
 
@@ -279,7 +278,7 @@ using Network = typename FlowNetworkPolicy::Network;
   Hypergraph& _hg;
   const Context& _context;
   Network _flow_network;
-  std::unique_ptr<MaximumFlow<Network>> _maximum_flow;
+  std::unique_ptr<MaximumFlow<Network> > _maximum_flow;
   FlowExecutionPolicy _flow_execution_policy;
   QuotientGraphBlockScheduler* _quotient_graph;
   FastResetFlagArray<> _visited;

@@ -33,16 +33,16 @@
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
-#include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
+#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
+#include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
-#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
-#include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
-#include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
-#include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
@@ -79,15 +79,13 @@ using KWayKMinusOneFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayKMin
                                                                         IRefiner,
                                                                         meta::Typelist<StoppingPolicyClasses> >;
 
-using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory< TwoWayFlowRefiner,
-                                                                      IRefiner,
-                                                                      meta::Typelist<FlowNetworkPolicyClasses,
-                                                                                     FlowExecutionPolicyClasses> >;
+using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFlowRefiner,
+                                                                     IRefiner,
+                                                                     meta::Typelist<FlowNetworkPolicyClasses,
+                                                                                    FlowExecutionPolicyClasses> >;
 
 using KWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFlowRefiner,
                                                                    IRefiner,
                                                                    meta::Typelist<FlowNetworkPolicyClasses,
                                                                                   FlowExecutionPolicyClasses> >;
-
-
 }  // namespace kahypar

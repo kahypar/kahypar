@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 #pragma once
- 
+
 #include <array>
 #include <cctype>
 #include <cstdint>
@@ -223,21 +223,21 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   if (params.algorithm == RefinementAlgorithm::twoway_flow ||
       params.algorithm == RefinementAlgorithm::kway_flow ||
       params.flow.enable_in_fm) {
-      str << "  Flow Refinement Parameters:" << std::endl;
-      str << "    flow network:                     " << params.flow.network << std::endl;
-      str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
-      str << "    most balanced minimum cut:        "
-          << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
-      str << "    alpha:                            " << params.flow.alpha << std::endl;
-      if (params.flow.execution_policy == FlowExecutionMode::constant) {
-        str << "    beta:                             " << params.flow.beta << std::endl;
-      }
-      str << "    adaptive alpha stopping rule:     "
-          << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
-      str << "    ignore small HE cut:              "
-          << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
-      str << "    use improvement history:          "
-          << std::boolalpha << params.flow.use_improvement_history << std::endl;
+    str << "  Flow Refinement Parameters:" << std::endl;
+    str << "    flow network:                     " << params.flow.network << std::endl;
+    str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
+    str << "    most balanced minimum cut:        "
+        << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
+    str << "    alpha:                            " << params.flow.alpha << std::endl;
+    if (params.flow.execution_policy == FlowExecutionMode::constant) {
+      str << "    beta:                             " << params.flow.beta << std::endl;
+    }
+    str << "    adaptive alpha stopping rule:     "
+        << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
+    str << "    ignore small HE cut:              "
+        << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
+    str << "    use improvement history:          "
+        << std::boolalpha << params.flow.use_improvement_history << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
     str << "  no coarsening!  " << std::endl;
   }
@@ -405,7 +405,7 @@ static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
         algo = RefinementAlgorithm::twoway_flow;
       } else if (algo == RefinementAlgorithm::kway_fm_flow_km1) {
         algo = RefinementAlgorithm::twoway_fm_flow;
-      } 
+      }
       LOG << "Changing local search algorithm to"
           << algo;
     }
@@ -434,7 +434,7 @@ void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
         algo = RefinementAlgorithm::kway_fm_flow_km1;
       } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::cut) {
         algo = RefinementAlgorithm::kway_flow;
-      } 
+      }
       LOG << "Changing local search algorithm to"
           << algo;
     }

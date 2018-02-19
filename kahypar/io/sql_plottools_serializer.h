@@ -139,25 +139,25 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_flow ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
-      oss << " IP_flow_algorithm=" << context.initial_partitioning.local_search.flow.algorithm
-          << " IP_flow_network=" 
-          << context.initial_partitioning.local_search.flow.network
-          << " IP_flow_execution_policy=" 
-          << context.initial_partitioning.local_search.flow.execution_policy
-          << " IP_flow_use_most_balanced_minimum_cut=" 
-          << std::boolalpha << context.initial_partitioning.local_search.flow.use_most_balanced_minimum_cut
-          << " IP_flow_max_alpha=" 
-          << context.initial_partitioning.local_search.flow.alpha;
-      if(context.initial_partitioning.local_search.flow.execution_policy == FlowExecutionMode::constant) {
-          oss << " IP_flow_beta=" 
-              << context.initial_partitioning.local_search.flow.beta;        
-      }
-      oss << " IP_flow_use_adaptive_alpha_stopping_rule=" 
-          << std::boolalpha << context.initial_partitioning.local_search.flow.use_adaptive_alpha_stopping_rule
-          << " IP_flow_ignore_small_he_cut=" 
-          << std::boolalpha << context.initial_partitioning.local_search.flow.ignore_small_hyperedge_cut
-          << " IP_flow_use_improvement_history=" 
-          << std::boolalpha << context.initial_partitioning.local_search.flow.use_improvement_history;
+    oss << " IP_flow_algorithm=" << context.initial_partitioning.local_search.flow.algorithm
+        << " IP_flow_network="
+        << context.initial_partitioning.local_search.flow.network
+        << " IP_flow_execution_policy="
+        << context.initial_partitioning.local_search.flow.execution_policy
+        << " IP_flow_use_most_balanced_minimum_cut="
+        << std::boolalpha << context.initial_partitioning.local_search.flow.use_most_balanced_minimum_cut
+        << " IP_flow_max_alpha="
+        << context.initial_partitioning.local_search.flow.alpha;
+    if (context.initial_partitioning.local_search.flow.execution_policy == FlowExecutionMode::constant) {
+      oss << " IP_flow_beta="
+          << context.initial_partitioning.local_search.flow.beta;
+    }
+    oss << " IP_flow_use_adaptive_alpha_stopping_rule="
+        << std::boolalpha << context.initial_partitioning.local_search.flow.use_adaptive_alpha_stopping_rule
+        << " IP_flow_ignore_small_he_cut="
+        << std::boolalpha << context.initial_partitioning.local_search.flow.ignore_small_hyperedge_cut
+        << " IP_flow_use_improvement_history="
+        << std::boolalpha << context.initial_partitioning.local_search.flow.use_improvement_history;
   }
 
   oss << " local_search_algorithm=" << context.local_search.algorithm
@@ -179,25 +179,25 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       context.local_search.algorithm == RefinementAlgorithm::kway_flow ||
       context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
       context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
-      oss << " flow_algorithm=" << context.local_search.flow.algorithm
-          << " flow_network=" 
-          << context.local_search.flow.network
-          << " flow_execution_policy=" 
-          << context.local_search.flow.execution_policy
-          << " flow_use_most_balanced_minimum_cut=" 
-          << std::boolalpha << context.local_search.flow.use_most_balanced_minimum_cut
-          << " flow_max_alpha=" 
-          << context.local_search.flow.alpha;
-      if(context.local_search.flow.execution_policy == FlowExecutionMode::constant) {
-          oss << " flow_beta=" 
-              << context.local_search.flow.beta;        
-      }
-      oss << " flow_use_adaptive_alpha_stopping_rule=" 
-          << std::boolalpha << context.local_search.flow.use_adaptive_alpha_stopping_rule
-          << " flow_ignore_small_he_cut=" 
-          << std::boolalpha << context.local_search.flow.ignore_small_hyperedge_cut
-          << " flow_use_improvement_history=" 
-          << std::boolalpha << context.local_search.flow.use_improvement_history;
+    oss << " flow_algorithm=" << context.local_search.flow.algorithm
+        << " flow_network="
+        << context.local_search.flow.network
+        << " flow_execution_policy="
+        << context.local_search.flow.execution_policy
+        << " flow_use_most_balanced_minimum_cut="
+        << std::boolalpha << context.local_search.flow.use_most_balanced_minimum_cut
+        << " flow_max_alpha="
+        << context.local_search.flow.alpha;
+    if (context.local_search.flow.execution_policy == FlowExecutionMode::constant) {
+      oss << " flow_beta="
+          << context.local_search.flow.beta;
+    }
+    oss << " flow_use_adaptive_alpha_stopping_rule="
+        << std::boolalpha << context.local_search.flow.use_adaptive_alpha_stopping_rule
+        << " flow_ignore_small_he_cut="
+        << std::boolalpha << context.local_search.flow.ignore_small_hyperedge_cut
+        << " flow_use_improvement_history="
+        << std::boolalpha << context.local_search.flow.use_improvement_history;
   }
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " partSize" << i << "=" << hypergraph.partSize(i);

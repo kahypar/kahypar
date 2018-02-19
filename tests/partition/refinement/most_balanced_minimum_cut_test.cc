@@ -22,8 +22,8 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/maximum_flow.h"
 
@@ -31,7 +31,6 @@ using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-
 class MostBalancedMinimumCutTest : public Test {
  public:
   MostBalancedMinimumCutTest() :
@@ -40,7 +39,7 @@ class MostBalancedMinimumCutTest : public Test {
     maximumFlow(nullptr),
     context() {
     /**
-      * Hypergraph: 
+      * Hypergraph:
       * 1 - 3 - 5 - 7 - 9  - 11
       * |   |   |   |   |    |
       * 2 - 4 - 6 - 8 - 10 - 12
@@ -64,13 +63,13 @@ class MostBalancedMinimumCutTest : public Test {
                                               index_vector, edge_vector, k, &hyperedge_weights,
                                               &hypernode_weights);
     flowNetwork = std::make_unique<LawlerNetwork>(*hypergraph, context);
-    maximumFlow = std::make_unique<IBFS<LawlerNetwork>>(*hypergraph, context, *flowNetwork);
+    maximumFlow = std::make_unique<IBFS<LawlerNetwork> >(*hypergraph, context, *flowNetwork);
     setupContext();
   }
 
   void setupFlowNetwork() {
     /**
-     * Bipartition:  
+     * Bipartition:
      *    V_1 | V_2
      * 1 - 3 -|- 5 - 7 - 9  - 11
      * |   |  |  |   |   |    |
@@ -113,19 +112,19 @@ class MostBalancedMinimumCutTest : public Test {
  public:
   std::unique_ptr<Hypergraph> hypergraph;
   std::unique_ptr<LawlerNetwork> flowNetwork;
-  std::unique_ptr<IBFS<LawlerNetwork>> maximumFlow;
+  std::unique_ptr<IBFS<LawlerNetwork> > maximumFlow;
   Context context;
 };
 
 
-/**       
+/**
  * Without Most Balanced Minimum Cut:
  *    V_1 | V_2
  * 1 - 3 -|- 5 - 7 - 9  - 11
  * |   |  |  |   |   |    |
  * 2 - 4 -|- 6 - 8 - 10 - 12
  *        |
- * 
+ *
  * With Most Balanced Minimum Cut:
  *        V_1 | V_2
  * 1 - 3 - 5 -|- 7 - 9  - 11
@@ -139,6 +138,4 @@ TEST_F(MostBalancedMinimumCutTest, WithPerfectBalancedBipartition) {
   ASSERT_EQ(cut, 2);
   ASSERT_EQ(metrics::imbalance(*hypergraph, context), 0);
 }
-
-
 }  // namespace kahypar

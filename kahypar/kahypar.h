@@ -39,32 +39,32 @@
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
 
-#define REGISTER_COARSENER(id, coarsener)                                 \
-  static meta::Registrar<CoarsenerFactory> register_ ## coarsener(        \
-    id,                                                                   \
-    [] (Hypergraph & hypergraph, const Context &context,                  \
-        const HypernodeWeight weight_of_heaviest_node)->ICoarsener * {    \
-      return new coarsener(hypergraph, context, weight_of_heaviest_node); \
-    })
+#define REGISTER_COARSENER(id, coarsener)                               \
+  static meta::Registrar<CoarsenerFactory> register_ ## coarsener(      \
+    id,                                                                 \
+    [](Hypergraph& hypergraph, const Context& context,                  \
+       const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {  \
+    return new coarsener(hypergraph, context, weight_of_heaviest_node); \
+  })
 
-#define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                   \
-  static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(          \
-    id,                                                                      \
-    [] (Hypergraph & hypergraph, const Context &context,                     \
-        const HypernodeWeight weight_of_heaviest_node) {                     \
-      return dispatcher::create(                                             \
-        std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \
-        __VA_ARGS__                                                          \
-        );                                                                   \
-    })
+#define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                 \
+  static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(        \
+    id,                                                                    \
+    [](Hypergraph& hypergraph, const Context& context,                     \
+       const HypernodeWeight weight_of_heaviest_node) {                    \
+    return dispatcher::create(                                             \
+      std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \
+      __VA_ARGS__                                                          \
+      );                                                                   \
+  })
 
 
-#define REGISTER_INITIAL_PARTITIONER(id, ip)                                 \
-  static meta::Registrar<InitialPartitioningFactory> register_ ## ip(        \
-    id,                                                                      \
-    [] (Hypergraph & hypergraph, Context & context)->IInitialPartitioner * { \
-      return new ip(hypergraph, context);                                    \
-    })
+#define REGISTER_INITIAL_PARTITIONER(id, ip)                               \
+  static meta::Registrar<InitialPartitioningFactory> register_ ## ip(      \
+    id,                                                                    \
+    [](Hypergraph& hypergraph, Context& context) -> IInitialPartitioner* { \
+    return new ip(hypergraph, context);                                    \
+  })
 
 #define REGISTER_FLOW_ALGORITHM_FOR_NETWORK(id, flow, network)                                           \
   static meta::Registrar<FlowAlgorithmFactory<network> > register_ ## flow ## network(                   \
@@ -76,19 +76,19 @@
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
   static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
     id,                                                           \
-    [] (Hypergraph & hypergraph, const Context &context) {        \
-      return dispatcher::create(                                  \
-        std::forward_as_tuple(hypergraph, context),               \
-        __VA_ARGS__                                               \
-        );                                                        \
-    })
+    [](Hypergraph& hypergraph, const Context& context) {          \
+    return dispatcher::create(                                    \
+      std::forward_as_tuple(hypergraph, context),                 \
+      __VA_ARGS__                                                 \
+      );                                                          \
+  })
 
-#define REGISTER_REFINER(id, refiner)                                  \
-  static meta::Registrar<RefinerFactory> register_ ## refiner(         \
-    id,                                                                \
-    [] (Hypergraph & hypergraph, const Context &context)->IRefiner * { \
-      return new refiner(hypergraph, context);                         \
-    })
+#define REGISTER_REFINER(id, refiner)                                 \
+  static meta::Registrar<RefinerFactory> register_ ## refiner(        \
+    id,                                                               \
+    [](Hypergraph& hypergraph, const Context& context) -> IRefiner* { \
+    return new refiner(hypergraph, context);                          \
+  })
 
 #define REGISTER_POLICY(policy, id, policy_class)                                  \
   static meta::Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \

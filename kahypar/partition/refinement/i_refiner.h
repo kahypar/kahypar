@@ -25,14 +25,13 @@
 #include <utility>
 #include <vector>
 
-#include "kahypar/meta/abstract_factory.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/meta/abstract_factory.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 
 namespace kahypar {
-
 class IRefiner {
  public:
   IRefiner(const IRefiner&) = delete;
@@ -71,5 +70,4 @@ class IRefiner {
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
                                      IRefiner* (*)(Hypergraph&, const Context&)>;
-
 }  // namespace kahypar

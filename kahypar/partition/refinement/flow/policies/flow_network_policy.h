@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include "kahypar/datastructure/flow_network.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
-#include "kahypar/datastructure/flow_network.h"
 
 namespace kahypar {
 struct FlowNetworkPolicy : meta::PolicyBase {

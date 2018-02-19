@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif

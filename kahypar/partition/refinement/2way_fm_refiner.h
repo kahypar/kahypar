@@ -67,9 +67,9 @@ class TwoWayFMRefiner final : public IRefiner,
     _stopping_policy(),
     _flow_refiner(_context.local_search.flow.enable_in_fm ?
                   RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::twoway_flow, hypergraph, context) :
+                    RefinementAlgorithm::twoway_flow, hypergraph, context) :
                   RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::do_nothing, hypergraph, context)),
+                    RefinementAlgorithm::do_nothing, hypergraph, context)),
     _flow_refiner_improvement(false),
     _part_id(_hg.initialNumNodes(), -1),
     _moved_hn(_hg.initialNumNodes()) {
@@ -223,8 +223,8 @@ class TwoWayFMRefiner final : public IRefiner,
     const double beta = log(_hg.currentNumNodes());
     while (!_pq.empty() &&
            (!_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
-                                              _context, beta, best_metrics.cut, current_cut) ||
-           _flow_refiner_improvement)) {
+                                               _context, beta, best_metrics.cut, current_cut) ||
+            _flow_refiner_improvement)) {
       ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1));
 
       Gain max_gain = kInvalidGain;
@@ -323,12 +323,12 @@ class TwoWayFMRefiner final : public IRefiner,
   void restoreOriginalPartitionAfterFlow() {
     _moved_hn.clear();
     for (const HypernodeID& hn : _hg.nodes()) {
-        PartitionID from = _hg.partID(hn);
-        PartitionID to = _part_id[hn];
-        if (from != to) {
-            _moved_hn.add(hn);
-            _hg.changeNodePart(hn, from, to);
-        }
+      PartitionID from = _hg.partID(hn);
+      PartitionID to = _part_id[hn];
+      if (from != to) {
+        _moved_hn.add(hn);
+        _hg.changeNodePart(hn, from, to);
+      }
     }
   }
 

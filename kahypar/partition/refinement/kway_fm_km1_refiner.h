@@ -81,10 +81,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _gain_cache(_hg.initialNumNodes(), _context.partition.k),
     _stopping_policy(),
     _flow_refiner(_context.local_search.flow.enable_in_fm ?
-                 RefinerFactory::getInstance().createObject(
-                 RefinementAlgorithm::kway_flow, hypergraph, context) :
-                 RefinerFactory::getInstance().createObject(
-                 RefinementAlgorithm::do_nothing, hypergraph, context)),
+                  RefinerFactory::getInstance().createObject(
+                    RefinementAlgorithm::kway_flow, hypergraph, context) :
+                  RefinerFactory::getInstance().createObject(
+                    RefinementAlgorithm::do_nothing, hypergraph, context)),
     _flow_refiner_improvement(false),
     _part_id(_hg.initialNumNodes(), -1),
     _destination_part_id(_hg.initialNumNodes(), -1),
@@ -300,13 +300,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void restoreOriginalPartitionIDs() {
     _moved_hn.clear();
     for (const HypernodeID& hn : _hg.nodes()) {
-        PartitionID from = _hg.partID(hn);
-        PartitionID to = _part_id[hn];
-        if (from != to) {
-            _moved_hn.add(hn);
-            _destination_part_id[hn] = from;
-            _hg.changeNodePart(hn, from, to);
-        }
+      PartitionID from = _hg.partID(hn);
+      PartitionID to = _part_id[hn];
+      if (from != to) {
+        _moved_hn.add(hn);
+        _destination_part_id[hn] = from;
+        _hg.changeNodePart(hn, from, to);
+      }
     }
   }
 
@@ -340,17 +340,17 @@ class KWayKMinusOneRefiner final : public IRefiner,
       _hg.mark(hn);
 
       reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
-                              from_part, to_part);
+                                          from_part, to_part);
 
 
       current_imbalance = static_cast<double>(heaviest_part_weight) /
                           ceil(static_cast<double>(_context.partition.total_graph_weight) /
-                              _context.partition.k) - 1.0;
+                               _context.partition.k) - 1.0;
       current_km1 -= gain;
       ASSERT(current_km1 == metrics::km1(_hg),
-          V(current_km1) << V(metrics::km1(_hg)));
+             V(current_km1) << V(metrics::km1(_hg)));
       ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
-          V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
+             V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
 
       updateNeighboursGainCacheOnly(hn, from_part, to_part);
     }
@@ -542,17 +542,16 @@ class KWayKMinusOneRefiner final : public IRefiner,
           } else {
             if (_flow_refiner_improvement) {
               connectivityUpdateForCache(pin, from_part, to_part, he,
-                                move_decreased_connectivity,
-                                move_increased_connectivity);
+                                         move_decreased_connectivity,
+                                         move_increased_connectivity);
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
                                            pin_state);
-
             } else {
               connectivityUpdate(pin, from_part, to_part, he,
-                                  move_decreased_connectivity,
-                                  move_increased_connectivity);
+                                 move_decreased_connectivity,
+                                 move_increased_connectivity);
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                              pin_state);
+                                            pin_state);
             }
             continue;
           }
@@ -600,18 +599,18 @@ class KWayKMinusOneRefiner final : public IRefiner,
               _hns_to_activate.push_back(pin);
             }
           } else if (_hg.active(pin)) {
-            if(_flow_refiner_improvement) {
+            if (_flow_refiner_improvement) {
               connectivityUpdateForCache(pin, from_part, to_part, he,
-                                move_decreased_connectivity,
-                                move_increased_connectivity);
+                                         move_decreased_connectivity,
+                                         move_increased_connectivity);
               deltaGainUpdatesForCacheOnly(pin, from_part, to_part, he, he_weight,
                                            pin_state);
             } else {
               connectivityUpdate(pin, from_part, to_part, he,
-                                  move_decreased_connectivity,
-                                  move_increased_connectivity);
+                                 move_decreased_connectivity,
+                                 move_increased_connectivity);
               deltaGainUpdatesForPQandCache(pin, from_part, to_part, he, he_weight,
-                              pin_state);
+                                            pin_state);
             }
             continue;
           }
@@ -707,7 +706,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   }
 
   void updateNeighboursGainCacheOnly(const HypernodeID moved_hn, const PartitionID from_part,
-                        const PartitionID to_part) {
+                                     const PartitionID to_part) {
     _new_adjacent_part.resetUsedEntries();
 
     bool moved_hn_remains_conntected_to_from_part = false;

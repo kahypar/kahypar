@@ -45,7 +45,7 @@ enum class Timepoint : uint8_t {
 class Timer {
  private:
   class BisectionTiming {
-   public:
+ public:
     int no = 0;
     int lk = 0;
     int rk = 0;
@@ -59,7 +59,7 @@ class Timer {
   };
 
   class Timing {
-   public:
+ public:
     ContextType type;
     Mode mode;
     Timepoint timepoint;

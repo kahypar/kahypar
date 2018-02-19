@@ -495,7 +495,7 @@ static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
     return FlowAlgorithm::boykov_kolmogorov;
   } else if (type == "ibfs") {
     return FlowAlgorithm::ibfs;
-  }  
+  }
   std::cout << "Illegal option:" << type << std::endl;
   exit(0);
   return FlowAlgorithm::ibfs;

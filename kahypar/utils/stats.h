@@ -166,5 +166,4 @@ class Stats {
   std::ostringstream _oss;
 };
 #endif
-
 }  // namespace kahypar

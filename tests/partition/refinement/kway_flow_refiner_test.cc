@@ -22,20 +22,19 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
-#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
+#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 
 using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-
 #define REGISTER_POLICY(policy, id, policy_class)                                  \
   static meta::Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \
     id, new policy_class())
@@ -76,7 +75,7 @@ REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
 
-class KWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
+class KWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
  public:
   KWayFlowRefinerTest() :
     hypergraph(nullptr),
@@ -103,7 +102,7 @@ class KWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
     setupContext();
     setupPartition();
     kWayFlowRefiner = std::make_unique<KWayFlowRefiner<HybridNetworkPolicy,
-                                                       ExponentialFlowExecution>>(*hypergraph, context);
+                                                       ExponentialFlowExecution> >(*hypergraph, context);
     kWayFlowRefiner->initialize(0);
   }
 
@@ -118,7 +117,7 @@ class KWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
     best_metrics.imbalance = metrics::imbalance(*hypergraph, context);
 
     kWayFlowRefiner->refine(*refinement_nodes, *max_allowed_part_weights,
-                              *changes, best_metrics);
+                            *changes, best_metrics);
 
     // kway flow refiner should update metrics correctly
     ASSERT_EQ(best_metrics.getMetric(context.partition.objective),
@@ -163,7 +162,7 @@ class KWayFlowRefinerTest : public::testing::TestWithParam<FlowAlgorithm> {
 
  public:
   std::unique_ptr<Hypergraph> hypergraph;
-  std::unique_ptr<KWayFlowRefiner<HybridNetworkPolicy, ExponentialFlowExecution>> kWayFlowRefiner;
+  std::unique_ptr<KWayFlowRefiner<HybridNetworkPolicy, ExponentialFlowExecution> > kWayFlowRefiner;
   Context context;
 };
 
@@ -175,16 +174,14 @@ INSTANTIATE_TEST_CASE_P(FlowAlgorithmRefinerTest,
                                           FlowAlgorithm::ibfs));
 
 TEST_P(KWayFlowRefinerTest, Km1Objective) {
-    context.partition.objective = Objective::km1;
-    context.local_search.flow.algorithm = GetParam();
-    testRefiner();
+  context.partition.objective = Objective::km1;
+  context.local_search.flow.algorithm = GetParam();
+  testRefiner();
 }
 
 TEST_P(KWayFlowRefinerTest, CutObjective) {
-    context.partition.objective = Objective::cut;
-    context.local_search.flow.algorithm = GetParam();
-    testRefiner();
+  context.partition.objective = Objective::cut;
+  context.local_search.flow.algorithm = GetParam();
+  testRefiner();
 }
-
-
 }  // namespace kahypar
