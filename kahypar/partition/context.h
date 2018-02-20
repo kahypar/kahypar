@@ -312,12 +312,10 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 struct EvolutionaryParameters {
   int time_limit_seconds = 5 * 60 * 60;
   size_t population_size = 10;
-  float mutation_chance = 0.1;
+  float mutation_chance = 0.5;
   EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
   mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
   mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-  float cross_combine_chance = 0.2;
-  mutable EvoCrossCombineStrategy cross_combine_strategy = EvoCrossCombineStrategy::k;
   bool log_output = false;
   std::string filename = "";
   int diversify_interval = -1;  // -1 disables diversification
@@ -327,15 +325,11 @@ struct EvolutionaryParameters {
   size_t stable_net_amount = 3;
   double stable_net_factor = 0.75;
   StableNetOrder stable_net_order = StableNetOrder::random;
-  int cross_combine_lower_limit_kfactor = 4;
-  int cross_combine_upper_limit_kfactor = 4;
-  float cross_combine_epsilon_upper_limit = 0.25;
   const std::vector<PartitionID>* parent1 = nullptr;
   const std::vector<PartitionID>* parent2 = nullptr;
   bool dynamic_population_size = true;
   float dynamic_population_amount_of_time = 0.15;
   bool random_combine_strategy = false;
-  bool random_cross_combine_strategy = false;
   bool log_everything = false;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
@@ -355,7 +349,6 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
   str << "  Population Size:                    " << params.population_size << std::endl;
   str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
-  str << "  Cross Combine Chance                " << params.cross_combine_chance << std::endl;
   str << "  Replace Strategy                    " << params.replace_strategy << std::endl;
   str << "  Combine Strategy                    " << params.combine_strategy << std::endl;
   str << "  Mutation Strategy                   " << params.mutate_strategy << std::endl;

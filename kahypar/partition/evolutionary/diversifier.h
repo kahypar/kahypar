@@ -25,7 +25,7 @@ static void diversify(Context& context) {
   static constexpr bool debug = true;
   DBG << "diversify";
 
-//TODO STRATEGIES PROBABLY NOT A GOOD IDEA TO DIVERSIFY
+  //TODO STRATEGIES PROBABLY NOT A GOOD IDEA TO DIVERSIFY
   // TODO i need to switch from boolean to strategies like cross Combine
   // context.evolutionary.use_edge_combine = Randomize::instance().flipCoin();
   // context.evolutionary.stable_net = Randomize::instance().flipCoin();

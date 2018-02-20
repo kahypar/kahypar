@@ -476,14 +476,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.filename = filename;
     }),
     "The filename in which the logging should occur")
-
-    ("cross-combine-chance",
-    po::value<float>()->value_name("<float>")->notifier(
-      [&](const float& cc_chance) {
-      context.evolutionary.cross_combine_chance = cc_chance;
-    }),
-    "The Chance of a cross combine being selected as operation\n"
-    "default: 0.2)")
     ("dynamic-population-size",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& dynamic_pop) {
@@ -497,13 +489,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.random_combine_strategy = random_combine;
     }),
     "Whether random mutates should be picked\n"
-    "default: off)")
-    ("random-cross-combine",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](const bool& random_cross_combine) {
-      context.evolutionary.random_cross_combine_strategy = random_cross_combine;
-    }),
-    "Whether random cross combines should be picked\n"
     "default: off)")
     ("log-everything",
     po::value<bool>()->value_name("<bool>")->notifier(
@@ -532,18 +517,7 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.edge_frequency_chance = edge_chance;
     }),
     "The Chance of a mutation being selected as operation\n"
-    "default: 0.1)")
-    ("cross-combine-strategy",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& cross_combine_strat) {
-      context.evolutionary.cross_combine_strategy = kahypar::crossCombineStrategyFromString(cross_combine_strat);
-    }),
-    "Cross Combine Strategy to be used in cross combines\n"
-    "- k: combining with a different individual where k is varied and epsilon\n"
-    "- epsilon: combining with a different individual where epsilon is varied\n"
-    "- objective: combining with an individual optimized for a different metric (cut/connectivity)\n"
-    "- mode: combining with an individual partitioned with another mode (direct k way/recursive bisection)\n"
-    "- louvain: combining with the community detection\n");
+    "default: 0.1)");
   return evolutionary_options;
 }
 

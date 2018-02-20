@@ -145,21 +145,10 @@ enum class EvoMutateStrategy : uint8_t {
   UNDEFINED
 };
 
-enum class EvoCrossCombineStrategy : uint8_t {
-  k,
-  epsilon,
-  objective,
-  mode,
-  louvain,
-  UNDEFINED
-};
-
 enum class EvoDecision :uint8_t {
   normal,
   mutation,
   combine,
-  cross_combine,
-  cross_combine_louvain,
   diversify
 };
 
@@ -214,29 +203,14 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
   return os << static_cast<uint8_t>(mutation);
 }
 
-std::ostream& operator<< (std::ostream& os, const EvoCrossCombineStrategy& cross_combine) {
-  switch (cross_combine) {
-    case EvoCrossCombineStrategy::k:  return os << "k";
-    case EvoCrossCombineStrategy::epsilon:  return os << "epsilon";
-    case EvoCrossCombineStrategy::objective:  return os << "objective";
-    case EvoCrossCombineStrategy::mode:  return os << "mode";
-    case EvoCrossCombineStrategy::louvain:  return os << "louvain";
-    case EvoCrossCombineStrategy::UNDEFINED:  return os << "-";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(cross_combine);
-}
-
 
 std::ostream& operator<< (std::ostream& os, const EvoDecision& decision) {
   switch (decision) {
     case EvoDecision::normal:  return os << "normal";
     case EvoDecision::mutation:  return os << "mutation";
     case EvoDecision::combine:  return os << "combine";
-    case EvoDecision::cross_combine:  return os << "cross_combine";
     case EvoDecision::diversify: return os << "diversify";
-    case EvoDecision::cross_combine_louvain:  return os << "cross_combine_louvain";
-      // omit default case to trigger compiler warning for missing cases
+    // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);
 }
@@ -397,21 +371,7 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
   }
   return os << static_cast<uint8_t>(rule);
 }
-static EvoCrossCombineStrategy crossCombineStrategyFromString(const std::string& ccobj) {
-  if (ccobj == "k") {
-    return EvoCrossCombineStrategy::k;
-  } else if (ccobj == "epsilon") {
-    return EvoCrossCombineStrategy::epsilon;
-  } else if (ccobj == "objective") {
-    return EvoCrossCombineStrategy::objective;
-  } else if (ccobj == "mode") {
-    return EvoCrossCombineStrategy::mode;
-  } else if (ccobj == "louvain") {
-    return EvoCrossCombineStrategy::louvain;
-  }
-  std::cout << "No valid cross combine objective " << std::endl;
-  exit(0);
-}
+
 static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
   if (strat == "new-initial-partitioning-vcycle") {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;

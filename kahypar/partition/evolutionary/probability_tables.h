@@ -33,14 +33,6 @@ namespace pick {
       return context.evolutionary.mutate_strategy;
     }
   }
-  inline static EvoCrossCombineStrategy appropriateCrossCombineStrategy(const Context& context) {
-    if(context.evolutionary.random_cross_combine_strategy) {
-      int random_pick = Randomize::instance().getRandomInt(0,4);
-      return static_cast<EvoCrossCombineStrategy>(random_pick);
-    }
-    else {
-      return context.evolutionary.cross_combine_strategy;
-    }
-  }
+  
   }
 }

@@ -202,7 +202,6 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
   std::ostringstream oss;
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
   EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
-  EvoCrossCombineStrategy cross_combine_strat = EvoCrossCombineStrategy::UNDEFINED;
   switch(context.evolutionary.action.decision()) {
     case EvoDecision::combine: {
       combine_strat = context.evolutionary.combine_strategy;
@@ -210,10 +209,6 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
     }
     case EvoDecision::mutation: {
       mutate_strat = context.evolutionary.mutate_strategy;
-      break;
-    }
-    case EvoDecision::cross_combine:{
-      cross_combine_strat =  context.evolutionary.cross_combine_strategy;
       break;
     }
     default: 
@@ -229,10 +224,8 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" replace-strategy=" << context.evolutionary.replace_strategy 
             <<" combine-strategy=" << combine_strat
             <<" mutate-strategy=" << mutate_strat
-            <<" cross-combine-strategy=" << cross_combine_strat
             <<" population-size=" << context.evolutionary.population_size 
             <<" mutation-chance=" << context.evolutionary.mutation_chance 
-            <<" cross-combine-chance=" << context.evolutionary.cross_combine_chance 
             <<" diversify-interval=" << context.evolutionary.diversify_interval
             <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
             <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time

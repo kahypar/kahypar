@@ -84,103 +84,6 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
 }
 
 
-Individual crossCombine(Hypergraph& hg, const Individual& in, const Context& context) {
-  // For the creation of the Cross Combine Individual
-  Context temporary_context(context);
-  // For the combine afterwards
-  Context combine_context(context);
-  combine_context.evolutionary.parent1 = &in.partition();
-
-  // the initial action is a simple partition and should be treated that way
-  temporary_context.evolutionary.action = Action();
-
-  switch (context.evolutionary.cross_combine_strategy) {
-    case EvoCrossCombineStrategy::k: {
-        const PartitionID lowerbound = std::max(context.partition.k /
-                                                context.evolutionary.cross_combine_lower_limit_kfactor, 2);
-        const PartitionID new_k = Randomize::instance().getRandomInt(lowerbound,
-                                                                     (context.evolutionary.cross_combine_upper_limit_kfactor *
-                                                                      context.partition.k));
-        temporary_context.partition.k = new_k;
-        // No break statement since in mode k epsilon should be varied as well
-      }
-    case EvoCrossCombineStrategy::epsilon: {
-        const double new_epsilon = Randomize::instance().getRandomFloat(context.partition.epsilon,
-                                                                        context.evolutionary.cross_combine_epsilon_upper_limit);
-        temporary_context.partition.epsilon = new_epsilon;
-        break;
-      }
-    case EvoCrossCombineStrategy::objective:
-
-      if (context.partition.objective == Objective::km1) {
-        io::readInBisectionContext(temporary_context);
-        break;
-      } else if (context.partition.objective == Objective::cut) {
-        io::readInDirectKwayContext(temporary_context);
-        break;
-      }
-      LOG << "Cross Combine Objective unspecified ";
-      std::exit(1);
-    case EvoCrossCombineStrategy::mode:
-      if (context.partition.mode == Mode::recursive_bisection) {
-        io::readInDirectKwayContext(temporary_context);
-        break;
-      } else if (context.partition.mode == Mode::direct_kway) {
-        io::readInBisectionContext(temporary_context);
-        break;
-      }
-      LOG << "Cross Combine Mode unspecified ";
-      std::exit(1);
-    case EvoCrossCombineStrategy::louvain: {
-        if (context.evolutionary.communities.empty()) {
-          detectCommunities(hg, context);
-          context.evolutionary.communities = hg.communities();
-        }
-        temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-        temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-        ASSERT(!context.evolutionary.communities.empty());
-
-
-        const Individual lovain_individual = Individual(context.evolutionary.communities);
-
-        combine_context.evolutionary.action = Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine_louvain)>() };
-        combine_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-        combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-        return combine::partitions(hg, Parents(in, lovain_individual),
-                                   combine_context);
-      }
-    case EvoCrossCombineStrategy::UNDEFINED: {
-      LOG << "Cross Combine Strategy Invalid";
-      std::exit(1);
-    }
-  }
-
-
-  hg.reset();
-  hg.changeK(temporary_context.partition.k);
-  Partitioner().partition(hg, temporary_context);
-  const Individual cross_combine_individual = Individual(hg);
-  hg.reset();
-  hg.changeK(context.partition.k);
-  combine_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::cross_combine)>() };
-  combine_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-  combine_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-  Individual ret = combine::partitions(hg, Parents(in, cross_combine_individual), combine_context);
-  DBG << "------------------------------------------------------------";
-  DBG << "---------------------------DEBUG----------------------------";
-  DBG << "---------------------------CROSSCOMBINE---------------------";
-  DBG << "Cross Combine Strategy: " << context.evolutionary.cross_combine_strategy;
-  DBG << "Original Individuum ";
-  // in.print();
-  DBG << "Cross Combine Individuum ";
-  // cross_combine_individual.print();
-  DBG << "Result Individuum ";
-  // ret.print();
-  DBG << "---------------------------DEBUG----------------------------";
-  DBG << "------------------------------------------------------------";
-  return ret;
-}
 
 Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
   hg.reset();
@@ -235,16 +138,6 @@ Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
 
 
 // TODO(andre) is this even viable?
-Individual usingTournamentSelectionAndStableNetRemoval(Hypergraph&, const Population&, Context&) {
-  // context.evolutionary.stable_nets_final = stablenet::stableNetsFromIndividuals(context, population.listOfBest(context.evolutionary.stable_net_amount), hg.initialNumEdges());
-  // std::vector<PartitionID> result;
-  // std::vector<HyperedgeID> cutWeak;
-  // std::vector<HyperedgeID> cutStrong;
 
-  // HyperedgeWeight fitness;
-
-  Individual ind;
-  return ind;
-}
 }  // namespace combine
 }  // namespace kahypar

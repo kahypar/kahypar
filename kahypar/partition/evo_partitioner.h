@@ -101,10 +101,6 @@ class EvoPartitioner {
           performMutation(hg, context);
           DBG <<_population;
           break;
-        case EvoDecision::cross_combine:
-          performCrossCombine(hg, context);
-          DBG <<_population;
-          break;
         case EvoDecision::combine:
           performCombine(hg, context);
           DBG <<_population;
@@ -129,9 +125,6 @@ class EvoPartitioner {
     }*/
     if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
-    }
-    if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.cross_combine_chance) {
-      return EvoDecision::cross_combine;
     }
     return EvoDecision::combine;
   }
@@ -172,16 +165,7 @@ class EvoPartitioner {
   }
 
 
-  inline void performCrossCombine(Hypergraph& hg, const Context& context) {
-    context.evolutionary.cross_combine_strategy = pick::appropriateCrossCombineStrategy(context);
-    //size_t insert_position = 
-    _population.insert(combine::crossCombine(hg, _population.singleTournamentSelection(),
-                                             context), context);
-    //verbose(context, insert_position);
-  }
-
-  //TODO the best element may be mutated, but in that case the result must be better
-  
+ 
   //REMEMBER: When switching back to calling force inserts, add the position i.e:
   //_population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
   inline void performMutation(Hypergraph& hg, const Context& context) {
