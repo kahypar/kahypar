@@ -388,12 +388,6 @@ class Context {
   std::vector<ClusterID> getCommunities() const {
     return evolutionary.communities;
   }
-
-  void measureTime() const {
-    const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
-    evolutionary.elapsed_seconds_total = currentTime - evolutionary.start_time;
-  }
-
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {

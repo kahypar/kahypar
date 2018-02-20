@@ -49,12 +49,12 @@ class EvoPartitioner {
 
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
-    context.measureTime();
+    measureTime(context);
     //INITIAL POPULATION
     if(context.evolutionary.dynamic_population_size) {
       _population.generateIndividual(hg, context); 
       ++context.evolutionary.iteration;
-      context.measureTime();
+      measureTime(context);
       io::serializer::serializeEvolutionary(context, hg);
       int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                            * context.evolutionary.time_limit_seconds
@@ -73,7 +73,7 @@ class EvoPartitioner {
       context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
       _population.generateIndividual(hg, context);
-      context.measureTime();
+      measureTime(context);
       io::serializer::serializeEvolutionary(context, hg);
       //verbose(context, 0);
       DBG << _population;
@@ -109,7 +109,7 @@ class EvoPartitioner {
           std::exit(EXIT_FAILURE);
       }
 
-      context.measureTime();
+      measureTime(context);
     }
     hg.reset();
     hg.setPartition(_population.individualAt(_population.best()).partition());
@@ -226,9 +226,11 @@ class EvoPartitioner {
     }
     LOG << "";
   }
-  inline std::chrono::duration<double> measureTime() {
+
+  inline void measureTime(const Context& context) {
     const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
-    return currentTime - _globalstart;
+    std::chrono::duration<double> elapsed_seconds_total = currentTime - _globalstart;
+    context.evolutionary.elapsed_seconds_total = elapsed_seconds_total;
   }
 
   HighResClockTimepoint _globalstart;

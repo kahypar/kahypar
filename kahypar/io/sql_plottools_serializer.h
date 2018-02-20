@@ -198,7 +198,9 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 //  out_file.close();
 //}
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
-  context.measureTime();
+  const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_seconds_total = currentTime - context.evolutionary.start_time;
+  context.evolutionary.elapsed_seconds_total = elapsed_seconds_total;
   std::ostringstream oss;
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
   EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
@@ -218,6 +220,8 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
       LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
   }
     //best = metrics::km1(hg);
+  std::string graph_name = context.partition.graph_filename;
+  std::string truncated_graph_name = graph_name.substr(graph_name.find_last_of("/") + 1);
   oss << "RESULT " 
       << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
@@ -233,7 +237,7 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
             <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
             <<" seed=" << context.partition.seed  
-            <<" graph-name=" << context.partition.graph_filename 
+            <<" graph-name=" << truncated_graph_name
             <<" SOED=" << metrics::soed(hg)
             <<" cut=" << metrics::hyperedgeCut(hg)
             <<" absorption="<<metrics::absorption(hg)
