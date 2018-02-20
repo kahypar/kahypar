@@ -68,7 +68,11 @@ script:
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
       make clean all;
     elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
-      build-wrapper-linux-x86-64 --out-dir bw-output make clean all; sonar-scanner;
+      build-wrapper-linux-x86-64 --out-dir bw-output make clean all; 
+      lcov --directory . --capture --output-file coverage.info;
+      lcov --remove coverage.info '/usr/*' --output-file coverage.info;
+      lcov --list coverage.info;
+      sonar-scanner;
     elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
@@ -80,9 +84,6 @@ after_success:
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
       cd ${TRAVIS_BUILD_DIR};
-      lcov --directory . --capture --output-file coverage.info;
-      lcov --remove coverage.info '/usr/*' --output-file coverage.info;
-      lcov --list coverage.info;
       bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
     fi
 
