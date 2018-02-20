@@ -24,6 +24,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
+#include "kahypar/kahypar.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/metrics.h"
@@ -35,46 +36,6 @@ using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-#define REGISTER_POLICY(policy, id, policy_class)                                  \
-  static meta::Registrar<meta::PolicyRegistry<policy> > register_ ## policy_class( \
-    id, new policy_class())
-
-#define REGISTER_FLOW_ALGORITHM_FOR_NETWORK(id, flow, network)                                           \
-  static meta::Registrar<FlowAlgorithmFactory<network> > register_ ## flow ## network(                   \
-    id,                                                                                                  \
-    [](Hypergraph& hypergraph, const Context& context, network& flow_network) -> MaximumFlow<network>* { \
-    return new flow<network>(hypergraph, context, flow_network);                                         \
-  })
-
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
-                LawlerNetworkPolicy);
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
-                HeuerNetworkPolicy);
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
-                WongNetworkPolicy);
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
-                HybridNetworkPolicy);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
-
 class KWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
  public:
   KWayFlowRefinerTest() :
