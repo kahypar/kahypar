@@ -24,15 +24,6 @@ namespace partition {
 static void diversify(Context& context) {
   static constexpr bool debug = true;
   DBG << "diversify";
-
-  //TODO STRATEGIES PROBABLY NOT A GOOD IDEA TO DIVERSIFY
-  // TODO i need to switch from boolean to strategies like cross Combine
-  // context.evolutionary.use_edge_combine = Randomize::instance().flipCoin();
-  // context.evolutionary.stable_net = Randomize::instance().flipCoin();
-  //context.evolutionary.cross_combine_objective =
-   // static_cast<EvoCrossCombineStrategy>(Randomize::instance().getRandomInt(0, 4));
-
-  // context.preprocessing.enable_min_hash_sparsifier = Randomize::instance().flipCoin();
   context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
   context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
 

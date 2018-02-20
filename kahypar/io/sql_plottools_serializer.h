@@ -211,6 +211,9 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
       mutate_strat = context.evolutionary.mutate_strategy;
       break;
     }
+    case EvoDecision::normal: {
+      break;
+    }
     default: 
       LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
   }

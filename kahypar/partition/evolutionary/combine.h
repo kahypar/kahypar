@@ -27,7 +27,7 @@
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/population.h"
-#include "kahypar/partition/evolutionary/stablenet.h"
+
 
 namespace kahypar {
 namespace combine {

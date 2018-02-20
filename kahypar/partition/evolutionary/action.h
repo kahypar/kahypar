@@ -28,8 +28,6 @@ class Action {
   struct Requirements {
     bool initial_partitioning = false;
     bool evolutionary_parent_contraction = false;
-    bool vcycle_stable_net_collection = false;
-    bool invalidation_of_second_partition = false;
   };
 
  public:
@@ -44,16 +42,6 @@ class Action {
     _requires() {
     _requires.evolutionary_parent_contraction = true;
   }
-  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
-         meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>) :
-    _decision(EvoDecision::mutation),
-    _requires() {
-    _requires.vcycle_stable_net_collection = true;
-  }
-  Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
-         meta::Int2Type<static_cast<int>(EvoMutateStrategy::population_stable_net)>) :
-    _decision(EvoDecision::mutation),
-    _requires() { }
   Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>,
          meta::Int2Type<static_cast<int>(EvoMutateStrategy::new_initial_partitioning_vcycle)>) :
     _decision(EvoDecision::mutation),
@@ -76,9 +64,7 @@ class Action {
   void print() const {
     std::cout << _decision << std::endl
               << _requires.initial_partitioning << std::endl
-              << _requires.evolutionary_parent_contraction << std::endl
-              << _requires.vcycle_stable_net_collection << std::endl
-              << _requires.invalidation_of_second_partition << std::endl;
+              << _requires.evolutionary_parent_contraction << std::endl;
   }
 
   EvoDecision decision() const {

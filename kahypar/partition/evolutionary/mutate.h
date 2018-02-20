@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "kahypar/partition/evolutionary/edge_frequency.h"
-#include "kahypar/partition/evolutionary/stablenet.h"
 #include "kahypar/partition/partitioner.h"
 
 namespace kahypar {
@@ -68,68 +67,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   return Individual(hg);
 }
 
-Individual removeStableNets(Hypergraph& hg, const Individual& in, const Context& context) {
-  Context temporary_context(context);
-  hg.reset();
-  hg.setPartition(in.partition());
 
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
-             meta::Int2Type<static_cast<int>(EvoMutateStrategy::single_stable_net)>() };
-
-  temporary_context.coarsening.rating.rating_function = RatingFunction::heavy_edge;
-  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::normal;
-
-  DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
-  DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  Partitioner().partition(hg, temporary_context);
-  DBG << "after vcycle for stable net collection"
-      << V(metrics::km1(hg))
-      << V(metrics::imbalance(hg, context));
-
-  stablenet::removeStableNets(hg, temporary_context,
-                              temporary_context.evolutionary.stable_nets_final);
-
-  DBG << "after stable net removal:" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-
-  Partitioner().partition(hg, temporary_context);
-  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  io::serializer::serializeEvolutionary(temporary_context, hg);
-  io::printEvolutionaryInformation(temporary_context);
-  return Individual(hg);
-}
-
-
-Individual removePopulationStableNets(Hypergraph& hg, const Population& population, const Individual& in, const Context& context) {
-  // No action required as we do not access the partitioner for this
-  DBG << "action.decision() = population_stable_net";
-  DBG << V(context.evolutionary.stable_net_amount);
-  std::vector<HyperedgeID> stable_nets =
-    stablenet::stableNetsFromIndividuals(context,
-                                         population.listOfBest(context.evolutionary.stable_net_amount),
-                                         hg.initialNumEdges());
-
-  DBG << V(stable_nets.size());
-  hg.reset();
-  hg.setPartition(in.partition());
-  stablenet::removeStableNets(hg, context, stable_nets);
-
-  Context temporary_context(context);
-  temporary_context.evolutionary.action =
-    Action(meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
-           meta::Int2Type<static_cast<int>(EvoMutateStrategy::vcycle)>());
-  Partitioner().partition(hg, temporary_context);
-
-  // Output action for logging
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::mutation)>(),
-             meta::Int2Type<static_cast<int>(EvoMutateStrategy::population_stable_net)>() };
-  // Output action
-  DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  io::serializer::serializeEvolutionary(temporary_context, hg);
-  io::printEvolutionaryInformation(temporary_context);
-  return Individual(hg);
-}
 }  // namespace mutate
 }  // namespace partition
 }  // namespace kahypar

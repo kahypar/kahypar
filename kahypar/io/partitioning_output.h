@@ -214,10 +214,6 @@ inline void printEvolutionaryInformation(const Context& context) {
       << context.evolutionary.action.requires().initial_partitioning;
   LOG << "  evolutionary parent contraction :" << std::boolalpha
       << context.evolutionary.action.requires().evolutionary_parent_contraction;
-  LOG << "  vcycle stable nets              :" << std::boolalpha
-      << context.evolutionary.action.requires().vcycle_stable_net_collection;
-  LOG << "  invalidation of second partition:" << std::boolalpha
-      << context.evolutionary.action.requires().invalidation_of_second_partition;
 }
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Context& context,

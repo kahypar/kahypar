@@ -389,22 +389,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "Population Size for Evolutionary Partitioning\n"
     "(default 10)")
-    ("stable-net-amount",
-    po::value<size_t>()->value_name("<size_t>")->notifier(
-      [&](const size_t& amount) {
-      context.evolutionary.stable_net_amount = amount;
-    }),
-    "Amount of individuals for stable net removal\n"
-    "(default sqrt(popsize)")
-    ("stable-net-order",
-     po::value<std::string>()->value_name("<string>")->notifier(
-         [&](const std::string& order) {
-        context.evolutionary.stable_net_order = kahypar::stableNetOrderFromString(order);
-    }),
-    "Order in which stable nets are traversed\n"
-    "random: (default)\n"
-    "increasing:  net size\n"
-    "decreasing: net size\n")
     ("gamma",
     po::value<double>()->value_name("<double>")->notifier(
       [&](const double gamma) {
@@ -412,13 +396,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "The dampening factor for edge frequency\n"
     "(default 0.5)")
-    ("stable-net-factor",
-    po::value<double>()->value_name("<double>")->notifier(
-      [&](const double factor) {
-      context.evolutionary.stable_net_factor = factor;
-    }),
-    "The threshold for stable net removal\n"
-    "(default 0.75)")
     ("replace-strategy",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& replace_strat) {
@@ -448,8 +425,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     "Mutation Strategy for the mutation operation \n"
     "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
     "- vcycle: a regular vcycle on an existing partition\n"
-    "- single-stable-net: a vcycle with stable-net removal of cut edges in the coarsened graph and uncoarsend graph\n"
-    "- population-stable-net: -a new partition created by stable-net removal of the \"stable_net_amount\" best partitions\n"
     "(default: new-initial-partitioning-vcycle)")
     ("diversify-interval",
     po::value<int>()->value_name("<int>")->notifier(

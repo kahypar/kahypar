@@ -140,8 +140,6 @@ enum class EvoCombineStrategy : uint8_t {
 enum class EvoMutateStrategy : uint8_t {
   new_initial_partitioning_vcycle,
   vcycle,
-  single_stable_net,
-  population_stable_net,
   UNDEFINED
 };
 
@@ -152,11 +150,6 @@ enum class EvoDecision :uint8_t {
   diversify
 };
 
-enum class StableNetOrder : uint8_t {
-  random,
-  increasing_net_size,
-  decreasing_net_size
-};
 
 std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
   switch (replace) {
@@ -166,16 +159,6 @@ std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(replace);
-}
-
-std::ostream& operator<< (std::ostream& os, const StableNetOrder& order) {
-  switch (order) {
-    case StableNetOrder::random: return os << "random";
-    case StableNetOrder::increasing_net_size: return os << "increasing_net_size";
-    case StableNetOrder::decreasing_net_size: return os << "decreasing_net_size";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(order);
 }
 
 std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
@@ -195,8 +178,6 @@ std::ostream& operator<< (std::ostream& os, const EvoMutateStrategy& mutation) {
     case EvoMutateStrategy::new_initial_partitioning_vcycle:
       return os << "new_initial_partitioning_vcycle";
     case EvoMutateStrategy::vcycle: return os << "vcycle";
-    case EvoMutateStrategy::single_stable_net:  return os << "single_stable_net";
-    case EvoMutateStrategy::population_stable_net:  return os << "population_stable_net";
     case EvoMutateStrategy::UNDEFINED:  return os << "-";
       // omit default case to trigger compiler warning for missing cases
   }
@@ -377,11 +358,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
-  } else if (strat == "single-stable-net") {
-    return EvoMutateStrategy::single_stable_net;
-  } else if (strat == "population-stable-net") {
-    return EvoMutateStrategy::population_stable_net;
-  }
+  } 
   std::cout << "No valid mutate strategy. " << std::endl;
   exit(0);
 }
@@ -407,19 +384,6 @@ static EvoReplaceStrategy replaceStrategyFromString(const std::string& strat) {
   std::cout << "No valid replace strategy. " << std::endl;
   exit(0);
 }
-
-static StableNetOrder stableNetOrderFromString(const std::string& order) {
-  if (order == "random") {
-    return StableNetOrder::random;
-  } else if (order == "increasing") {
-    return StableNetOrder::increasing_net_size;
-  } else if (order == "decreasing") {
-    return StableNetOrder::decreasing_net_size;
-  }
-  std::cout << "No valid stable net order. " << std::endl;
-  exit(0);
-}
-
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   if (crit == "best") {

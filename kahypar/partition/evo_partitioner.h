@@ -67,7 +67,6 @@ class EvoPartitioner {
     }
     //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
     context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
-    context.evolutionary.stable_net_amount = sqrt(context.evolutionary.population_size);
     DBG << "EDGE-FREQUENCY-AMOUNT";
     DBG << context.evolutionary.edge_frequency_amount;
     while (_population.size() < context.evolutionary.population_size &&
@@ -190,19 +189,6 @@ class EvoPartitioner {
         //verbose(context, mutation_position);
         break;
         }
-      case EvoMutateStrategy::single_stable_net: {
-        _population.insert(mutate::removeStableNets(hg,
-                                                         _population.individualAt(mutation_position),
-                                                         context), context);
-        //verbose(context, mutation_position);
-        break;
-        }
-      case EvoMutateStrategy::population_stable_net: {
-      
-        _population.insert(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context), context);
-        //verbose(context, mutation_position);
-        break;
-        }
       case EvoMutateStrategy::UNDEFINED: {
         LOG << "Partitioner called without mutation strategy";
         break;
@@ -210,11 +196,6 @@ class EvoPartitioner {
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
-    bool initial_partitioning = false;
-    bool evolutionary_parent_contraction = false;
-    bool vcycle_stable_net_collection = false;
-    bool invalidation_of_second_partition = false;
-    bool community_detection = false;
   inline void diversify();
   inline void verbose(const Context& context, size_t position) {
     io::printPopulationBanner(context);

@@ -321,10 +321,7 @@ struct EvolutionaryParameters {
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
-  // TODO(andre): fix/refactor this
-  size_t stable_net_amount = 3;
-  double stable_net_factor = 0.75;
-  StableNetOrder stable_net_order = StableNetOrder::random;
+
   const std::vector<PartitionID>* parent1 = nullptr;
   const std::vector<PartitionID>* parent2 = nullptr;
   bool dynamic_population_size = true;
@@ -334,8 +331,6 @@ struct EvolutionaryParameters {
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
   HighResClockTimepoint start_time = std::chrono::high_resolution_clock::now();
-  mutable std::vector<HyperedgeID> stable_nets_vcycle;
-  mutable std::vector<HyperedgeID> stable_nets_final;
   mutable std::vector<size_t> edge_frequency;
   mutable Action action;
   mutable std::vector<ClusterID> communities;
