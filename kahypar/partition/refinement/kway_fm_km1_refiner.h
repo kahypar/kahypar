@@ -132,26 +132,23 @@ class KWayKMinusOneRefiner final : public IRefiner,
     reset();
     _unremovable_he_parts.reset();
 
+    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
+      activate<true>(hn);
       _part_id[hn] = _hg.partID(hn);
     }
+    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+
     Metrics old_metrics = best_metrics;
     _flow_refiner_improvement = _flow_refiner->refine(refinement_nodes,
                                                       max_allowed_part_weights,
                                                       changes,
                                                       best_metrics);
 
-    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
-    for (const HypernodeID& hn : refinement_nodes) {
-      activate<true>(hn);
-      _part_id[hn] = _hg.partID(hn);
-    }
-
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
-
     if (_flow_refiner_improvement) {
       restoreOriginalPartitionIDs();
       best_metrics = old_metrics;
+      ASSERT_THAT_GAIN_CACHE_IS_VALID();
       moveHypernodesFromFlow(best_metrics);
       ASSERT_THAT_GAIN_CACHE_IS_VALID();
       return true;
@@ -306,6 +303,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         _moved_hn.add(hn);
         _destination_part_id[hn] = from;
         _hg.changeNodePart(hn, from, to);
+        ASSERT(_hg.partID(hn) == to, "Restoring old partition failed!");
       }
     }
   }

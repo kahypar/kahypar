@@ -146,7 +146,7 @@ class TwoWayFlowRefiner final : public IRefiner {
       //            in the quotient graph with a small cut
       if (_context.local_search.flow.ignore_small_hyperedge_cut &&
           cut_weight <= 10 && !isRefinementOnLastLevel()) {
-        return false;
+        return improvement;
       }
 
       // If cut is 0 no improvement is possible
