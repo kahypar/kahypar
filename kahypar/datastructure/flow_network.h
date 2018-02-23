@@ -147,6 +147,26 @@ class FlowNetwork {
           return true;
         } (), "Hypernodes not correctly added or removed from flow network!");
 
+    ASSERT([&]() {
+          _visited.reset();
+          for (const HypernodeID& hn : hypernodes()) {
+            for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+              if (!_visited[he] && isSourceAndSink(he, _cur_block0, _cur_block1)) {
+                if (containsNode(mapToIncommingHyperedgeID(he)) ||
+                    containsNode(mapToOutgoingHyperedgeID(he))) {
+                  LOG << "HE " << he << " is not removable from cut and"
+                      << " should be not contained in flow problem";
+                  _visited.reset();
+                  return false;
+                }
+              }
+              _visited.set(he, true);
+            }
+          }
+          _visited.reset();
+          return true;
+        } (), "Flow problem contains non removable cut hyperedges!");
+
     const HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
     return cut;
   }
@@ -154,6 +174,7 @@ class FlowNetwork {
   void addHypernode(const HypernodeID hn) {
     ASSERT(!containsHypernode(hn), "HN " << hn << " already contained in flow problem!");
     _hypernodes.add(hn);
+    _removed_hypernodes.add(hn);
     for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
       if (_hg.edgeSize(he) == 2) {
         _contains_graph_hyperedges.set(hn, true);
@@ -263,6 +284,9 @@ class FlowNetwork {
       _nodes.add(node);
       _flow_graph[node].clear();
       _num_nodes++;
+      if (isHypernode(node) && isRemovedHypernode(node)) {
+        _removed_hypernodes.remove(node);
+      }
     }
   }
 
@@ -344,18 +368,18 @@ class FlowNetwork {
           const size_t pinsNotUBlock1 = _hg.pinCountInPart(he, block_1) - pinsUBlock1;
           const size_t connectivity = (pinsUBlock0 + pinsNotUBlock0 > 0) + (pinsUBlock1 + pinsNotUBlock1 > 0);
 
-          if (_context.partition.objective == Objective::cut &&
-              !isRemovableFromCut(he, block_0, block_1)) {
+          if (isSourceAndSink(he, block_0, block_1)) {
             // Case 1: Hyperedge he cannot be removed from cut
             //         of k-way partition.
             //         E.g., if he contains a block not equal to
-            //         block_0 and block_1
+            //         block_0 and block_1 or pins not in the
+            //         flow problem from both blocks
             //         => add incoming hyperedge node as source
             //            and outgoing hyperedge node as sink
-            ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
-            ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
-            addSource(mapToIncommingHyperedgeID(he));
-            addSink(mapToOutgoingHyperedgeID(he));
+            //         addSource(mapToIncommingHyperedgeID(he));
+            //         addSink(mapToOutgoingHyperedgeID(he));
+            _visited.set(he, true);
+            continue;
           } else {
             // Hyperedge he is a cut hyperedge of the hypergraph.
             // => if he contains pins from block_0 not contained
@@ -384,7 +408,6 @@ class FlowNetwork {
         }
       }
     }
-
     return cut;
   }
 
@@ -398,6 +421,19 @@ class FlowNetwork {
       }
     }
     return true;
+  }
+
+  bool isSourceAndSink(const HyperedgeID he, const PartitionID block_0, const PartitionID block_1) {
+    const size_t pinsUBlock0 = _pins_block0.get(he);
+    const size_t pinsUBlock1 = _pins_block1.get(he);
+    const size_t pinsNotUBlock0 = _hg.pinCountInPart(he, block_0) - pinsUBlock0;
+    const size_t pinsNotUBlock1 = _hg.pinCountInPart(he, block_1) - pinsUBlock1;
+    if ((pinsNotUBlock0 > 0 && pinsNotUBlock1 > 0) ||
+        (_context.partition.objective == Objective::cut &&
+         !isRemovableFromCut(he, block_0, block_1))) {
+      return true;
+    }
+    return false;
   }
 
   void addEdge(const NodeID u, const NodeID v, const Capacity capacity, bool undirected = false) {
@@ -438,6 +474,11 @@ class FlowNetwork {
   void addHyperedge(const HyperedgeID he, bool ignoreHESizeOne = false) {
     const NodeID u = mapToIncommingHyperedgeID(he);
     const NodeID v = mapToOutgoingHyperedgeID(he);
+
+    if (isSourceAndSink(he, _cur_block0, _cur_block1)) {
+      return;
+    }
+
     if (!ignoreHESizeOne && isHyperedgeOfSize(he, 1)) {
       // Check if he is really a hyperedge of size 1 in flow problem
       ASSERT([&]() {
@@ -450,17 +491,10 @@ class FlowNetwork {
             return (numFlowHN == 1 ? true : false);
           } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
 
-      if ((pinsNotInFlowProblem(he, _cur_block0) > 0 &&
-           pinsNotInFlowProblem(he, _cur_block1) > 0) ||
-          (_context.partition.objective == Objective::cut &&
-           !isRemovableFromCut(he, _cur_block0, _cur_block1))) {
-        addEdge(u, v, _hg.edgeWeight(he));
-      } else {
-        if (pinsNotInFlowProblem(he, _cur_block0) > 0) {
-          addNode(u);
-        } else if (pinsNotInFlowProblem(he, _cur_block1) > 0) {
-          addNode(v);
-        }
+      if (pinsNotInFlowProblem(he, _cur_block0) > 0) {
+        addNode(u);
+      } else if (pinsNotInFlowProblem(he, _cur_block1) > 0) {
+        addNode(v);
       }
     } else {
       addEdge(u, v, _hg.edgeWeight(he));
@@ -526,13 +560,15 @@ class FlowNetwork {
   void addClique(const HyperedgeID he, const HypernodeID hn) {
     ASSERT(_hg.nodeDegree(hn) <= 3,
            "Hypernode " << hn << " should not be removed from flow problem!");
-    _removed_hypernodes.add(hn);
     _he_visited.set(he, true);
+    if (isSourceAndSink(he, _cur_block0, _cur_block1)) {
+      return;
+    }
     for (const HyperedgeID& target : _hg.incidentEdges(hn)) {
-      if (!_he_visited[target]) {
+      if (!_he_visited[target] && !isSourceAndSink(target, _cur_block0, _cur_block1)) {
         addEdge(mapToOutgoingHyperedgeID(he), mapToIncommingHyperedgeID(target), INFTY);
-        _he_visited.set(target, true);
       }
+      _he_visited.set(target, true);
     }
   }
 
