@@ -207,6 +207,8 @@ elseif(MSVC)
   # https://msdn.microsoft.com/en-us/library/ms173499.aspx
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
+  # disable all warnings to see whether we can now build in below 1h on appveyor
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
   ### disable verbose warnings:
   # warning C4589: Constructor of abstract class '...' ignores initializer for
   # virtual base class '...' (false positive warnings)
