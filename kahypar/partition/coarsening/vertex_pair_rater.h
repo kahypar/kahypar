@@ -98,6 +98,7 @@ class VertexPairRater {
         for (const HypernodeID& v : _hg.pins(he)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               (part_u == _hg.partID(v))) {
+            DBG << V(he) << V(v) << V(score);
             _tmp_ratings[v] += score;
           }
         }
