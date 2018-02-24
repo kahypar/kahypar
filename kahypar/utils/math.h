@@ -88,10 +88,12 @@ inline std::pair<double, double> firstAndThirdQuartile(const std::vector<T>& vec
   }
 }
 
+#if defined(KAHYPAR_HAS_CRC32)
 template <typename T>
 static inline T crc32(const T& x) {
   return _mm_crc32_u32((size_t)28475421, x);
 }
+#endif
 
 template <typename T>
 static inline T identity(const T& x) {
