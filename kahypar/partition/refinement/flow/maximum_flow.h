@@ -71,11 +71,11 @@ class MaximumFlow {
       return INFTY;
     }
 
-    const PartitionID defaultPart =
+    const PartitionID default_part =
       _context.local_search.flow.use_most_balanced_minimum_cut ? block_0 : block_1;
     for (const HypernodeID& hn : _flow_network.hypernodes()) {
       _original_part_id[hn] = _hg.partID(hn);
-      moveHypernode(hn, defaultPart);
+      moveHypernode(hn, default_part);
     }
 
     const HyperedgeWeight cut = maximumFlow();
@@ -89,11 +89,11 @@ class MaximumFlow {
     return cut;
   }
 
-  void rollback(const bool storePartID = false) {
+  void rollback(const bool store_part_id = false) {
     for (const HypernodeID& hn : _flow_network.hypernodes()) {
       const PartitionID from = _hg.partID(hn);
       moveHypernode(hn, _original_part_id[hn]);
-      if (storePartID) {
+      if (store_part_id) {
         _original_part_id[hn] = from;
       }
     }
@@ -103,9 +103,9 @@ class MaximumFlow {
     return _original_part_id[hn];
   }
 
-  template <bool assignHypernodes = false>
+  template <bool assign_hypernodes = false>
   bool bfs(const PartitionID block = 0) {
-    bool augmentingPathExists = false;
+    bool augmenting_path_exists = false;
     _parent.resetUsedEntries();
     _visited.reset();
     while (!_Q.empty()) {
@@ -123,7 +123,7 @@ class MaximumFlow {
       NodeID u = _Q.front();
       _Q.pop();
 
-      if (assignHypernodes) {
+      if (assign_hypernodes) {
         if (_flow_network.interpreteHypernode(u)) {
           moveHypernode(u, block);
         } else if (_flow_network.interpreteHyperedge(u)) {
@@ -137,7 +137,7 @@ class MaximumFlow {
       }
 
       if (_flow_network.isSink(u)) {
-        augmentingPathExists = true;
+        augmenting_path_exists = true;
         continue;
       }
 
@@ -150,7 +150,7 @@ class MaximumFlow {
         }
       }
     }
-    return augmentingPathExists;
+    return augmenting_path_exists;
   }
 
  protected:
@@ -159,32 +159,32 @@ class MaximumFlow {
   template <typename T>
   FRIEND_TEST(AMaximumFlow, AugmentAlongPath);
 
-  Flow augment(const NodeID cur, const Flow minFlow = INFTY) {
-    if (_flow_network.isSource(cur) || minFlow == 0) {
-      return minFlow;
+  Flow augment(const NodeID cur, const Flow min_flow = INFTY) {
+    if (_flow_network.isSource(cur) || min_flow == 0) {
+      return min_flow;
     } else {
       FlowEdge* e = _parent.get(cur);
-      const Flow f = augment(e->source, std::min(minFlow, _flow_network.residualCapacity(*e)));
+      const Flow f = augment(e->source, std::min(min_flow, _flow_network.residualCapacity(*e)));
 
       ASSERT([&]() {
-          const Flow residualForwardBefore = _flow_network.residualCapacity(*e);
-          const Flow residualBackwardBefore = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
+          const Flow residual_forward_before = _flow_network.residualCapacity(*e);
+          const Flow residual_backward_before = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
           _flow_network.increaseFlow(*e, f);
-          Flow residualForwardAfter = _flow_network.residualCapacity(*e);
-          Flow residualBackwardAfter = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
-          if (residualForwardBefore != INFTY && residualForwardBefore != residualForwardAfter + f) {
-            LOG << "Residual capacity should be " << (residualForwardBefore - f) << "!";
+          Flow residual_forward_after = _flow_network.residualCapacity(*e);
+          Flow residual_backward_after = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
+          if (residual_forward_before != INFTY && residual_forward_before != residual_forward_after + f) {
+            LOG << "Residual capacity should be " << (residual_forward_before - f) << "!";
             return false;
           }
-          if (residualBackwardBefore != INFTY && residualBackwardBefore != residualBackwardAfter - f) {
-            LOG << "Residual capacity should be " << (residualBackwardBefore + f) << "!";
+          if (residual_backward_before != INFTY && residual_backward_before != residual_backward_after - f) {
+            LOG << "Residual capacity should be " << (residual_backward_before + f) << "!";
             return false;
           }
           _flow_network.increaseFlow(_flow_network.reverseEdge(*e), f);
-          residualForwardAfter = _flow_network.residualCapacity(*e);
-          residualBackwardAfter = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
-          if (residualForwardBefore != residualForwardAfter ||
-              residualBackwardBefore != residualBackwardAfter) {
+          residual_forward_after = _flow_network.residualCapacity(*e);
+          residual_backward_after = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
+          if (residual_forward_before != residual_forward_after ||
+              residual_backward_before != residual_backward_after) {
             LOG << "Restoring original capacities failed!";
             return false;
           }
@@ -235,16 +235,16 @@ class EdmondKarp : public MaximumFlow<Network>{
   EdmondKarp& operator= (EdmondKarp&&) = delete;
 
   Flow maximumFlow() {
-    Flow maxFlow = 0;
+    Flow max_flow = 0;
     while (Base::bfs()) {
       for (const NodeID& t : _flow_network.sinks()) {
         if (_parent.get(t) != nullptr) {
-          maxFlow += Base::augment(t);
+          max_flow += Base::augment(t);
         }
       }
     }
     ASSERT(!Base::bfs(), "Found augmenting path after flow computation finished!");
-    return maxFlow;
+    return max_flow;
   }
 
  private:
@@ -293,7 +293,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     init();
     global_relabeling();
 
-    Flow maxFlow = 0;
+    Flow max_flow = 0;
     while (!_q.empty()) {
       const NodeID cur = _q.front();
       _active.set(cur, false);
@@ -302,7 +302,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
       if (_flow_network.isSource(cur) && _distance.get(cur) == _num_nodes + 1) {
         _excess.set(cur, 0);
       } else if (_flow_network.isSink(cur) && _distance.get(cur) == 1) {
-        maxFlow += _excess.get(cur);
+        max_flow += _excess.get(cur);
         _excess.set(cur, 0);
       } else {
         discharge(cur);
@@ -326,7 +326,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
 
     ASSERT(!Base::bfs(), "Found augmenting path after flow computation finished!");
 
-    return maxFlow;
+    return max_flow;
   }
 
  protected:
@@ -350,18 +350,18 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     }
 
     _count.set(0, _num_nodes - 1);
-    const Flow initialInfinity = _flow_network.totalWeightHyperedges();
+    const Flow initial_infinity = _flow_network.totalWeightHyperedges();
     for (const NodeID& s : _flow_network.sources()) {
-      _excess.set(s, initialInfinity);
+      _excess.set(s, initial_infinity);
       if (_flow_network.isHypernode(s)) {
         _excess.set(s, 0);
         updateDistance(s, _num_nodes + 1);
         for (FlowEdge& e : _flow_network.incidentEdges(s)) {
           const NodeID target = e.target;
           if (_flow_network.residualCapacity(e)) {
-            const Flow initialPush = std::min(initialInfinity, _flow_network.residualCapacity(e));
-            _excess.update(target, initialPush);
-            _flow_network.increaseFlow(e, initialPush);
+            const Flow initial_push = std::min(initial_infinity, _flow_network.residualCapacity(e));
+            _excess.update(target, initial_push);
+            _flow_network.increaseFlow(e, initial_push);
             enqueue(target);
           }
         }
@@ -533,7 +533,7 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
   Flow maximumFlow() {
     mapToExternalFlowNetwork();
 
-    const Flow maxFlow = _flow_graph.maxflow();
+    const Flow max_flow = _flow_graph.maxflow();
 
     FlowGraph::arc* a = _flow_graph.get_first_arc();
     while (a != _flow_graph.arc_last) {
@@ -545,7 +545,7 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
     }
 
     ASSERT(!Base::bfs(), "Found augmenting path after flow computation finished!");
-    return maxFlow;
+    return max_flow;
   }
 
  private:
@@ -621,7 +621,7 @@ class IBFS : public MaximumFlow<Network>{
     mapToExternalFlowNetwork();
 
     _flow_graph.computeMaxFlow();
-    const Flow maxFlow = _flow_graph.getFlow();
+    const Flow max_flow = _flow_graph.getFlow();
 
     FlowGraph::Arc* a = _flow_graph.arcs;
     while (a != _flow_graph.arcEnd) {
@@ -633,7 +633,7 @@ class IBFS : public MaximumFlow<Network>{
     }
 
     ASSERT(!Base::bfs(), "Found augmenting path after flow computation finished!");
-    return maxFlow;
+    return max_flow;
   }
 
  private:

@@ -62,18 +62,18 @@ class ConstantFlowExecution : public FlowExecutionPolicy<ConstantFlowExecution>{
     FlowExecutionPolicy() { }
 
   void initializeImpl(const Hypergraph& hg, const Context& context) {
-    std::vector<size_t> tmpFlowExecutionLevels;
+    std::vector<size_t> tmp_flow_execution_levels;
     for (size_t cur_execution_level = hg.currentNumNodes() + 1;
          cur_execution_level < hg.initialNumNodes();
          cur_execution_level = cur_execution_level +
                                context.local_search.flow.beta) {
-      tmpFlowExecutionLevels.push_back(cur_execution_level);
+      tmp_flow_execution_levels.push_back(cur_execution_level);
     }
-    tmpFlowExecutionLevels.push_back(hg.initialNumNodes());
-    std::reverse(tmpFlowExecutionLevels.begin(), tmpFlowExecutionLevels.end());
+    tmp_flow_execution_levels.push_back(hg.initialNumNodes());
+    std::reverse(tmp_flow_execution_levels.begin(), tmp_flow_execution_levels.end());
     _flow_execution_levels.insert(_flow_execution_levels.end(),
-                                  tmpFlowExecutionLevels.begin(),
-                                  tmpFlowExecutionLevels.end());
+                                  tmp_flow_execution_levels.begin(),
+                                  tmp_flow_execution_levels.end());
   }
 
  private:
@@ -86,13 +86,13 @@ class MultilevelFlowExecution : public FlowExecutionPolicy<MultilevelFlowExecuti
     FlowExecutionPolicy() { }
 
   void initializeImpl(const Hypergraph& hg, const Context&) {
-    std::vector<size_t> tmpFlowExecutionLevels;
+    std::vector<size_t> tmp_flow_execution_levels;
     for (size_t i = 0; hg.initialNumNodes() / std::pow(2, i) >= hg.currentNumNodes(); ++i) {
-      tmpFlowExecutionLevels.push_back(hg.initialNumNodes() / std::pow(2, i));
+      tmp_flow_execution_levels.push_back(hg.initialNumNodes() / std::pow(2, i));
     }
     _flow_execution_levels.insert(_flow_execution_levels.end(),
-                                  tmpFlowExecutionLevels.begin(),
-                                  tmpFlowExecutionLevels.end());
+                                  tmp_flow_execution_levels.begin(),
+                                  tmp_flow_execution_levels.end());
   }
 
  private:
@@ -105,15 +105,15 @@ class ExponentialFlowExecution : public FlowExecutionPolicy<ExponentialFlowExecu
     FlowExecutionPolicy() { }
 
   void initializeImpl(const Hypergraph& hg, const Context&) {
-    std::vector<size_t> tmpFlowExecutionLevels;
+    std::vector<size_t> tmp_flow_execution_levels;
     for (size_t i = 0; hg.currentNumNodes() + std::pow(2, i) < hg.initialNumNodes(); ++i) {
-      tmpFlowExecutionLevels.push_back(hg.currentNumNodes() + std::pow(2, i));
+      tmp_flow_execution_levels.push_back(hg.currentNumNodes() + std::pow(2, i));
     }
-    tmpFlowExecutionLevels.push_back(hg.initialNumNodes());
-    std::reverse(tmpFlowExecutionLevels.begin(), tmpFlowExecutionLevels.end());
+    tmp_flow_execution_levels.push_back(hg.initialNumNodes());
+    std::reverse(tmp_flow_execution_levels.begin(), tmp_flow_execution_levels.end());
     _flow_execution_levels.insert(_flow_execution_levels.end(),
-                                  tmpFlowExecutionLevels.begin(),
-                                  tmpFlowExecutionLevels.end());
+                                  tmp_flow_execution_levels.begin(),
+                                  tmp_flow_execution_levels.end());
   }
 
  private:

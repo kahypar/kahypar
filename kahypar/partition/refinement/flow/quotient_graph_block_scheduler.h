@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <set>
 #include <string>
@@ -86,18 +87,18 @@ class QuotientGraphBlockScheduler {
     updateBlockPairCutHyperedges(block0, block1);
 
     ASSERT([&]() {
-        std::set<HyperedgeID> cutHyperedges;
+        std::set<HyperedgeID> cut_hyperedges;
         for (const HyperedgeID& he : _block_pair_cut_he[block0][block1]) {
-          if (cutHyperedges.find(he) != cutHyperedges.end()) {
+          if (cut_hyperedges.find(he) != cut_hyperedges.end()) {
             LOG << "Hyperedge " << he << " is contained more than once!";
             return false;
           }
-          cutHyperedges.insert(he);
+          cut_hyperedges.insert(he);
         }
         for (const HyperedgeID& he : _hg.edges()) {
           if (_hg.pinCountInPart(he, block0) > 0 &&
               _hg.pinCountInPart(he, block1) > 0) {
-            if (cutHyperedges.find(he) == cutHyperedges.end()) {
+            if (cut_hyperedges.find(he) == cut_hyperedges.end()) {
               LOG << V(_hg.pinCountInPart(he, block0));
               LOG << V(_hg.pinCountInPart(he, block1));
               LOG << V(he) << "should be inside the incidence set of"
@@ -105,7 +106,7 @@ class QuotientGraphBlockScheduler {
               return false;
             }
           } else {
-            if (cutHyperedges.find(he) != cutHyperedges.end()) {
+            if (cut_hyperedges.find(he) != cut_hyperedges.end()) {
               LOG << V(_hg.pinCountInPart(he, block0));
               LOG << V(_hg.pinCountInPart(he, block1));
               LOG << V(he) << "shouldn't be inside the incidence set of"

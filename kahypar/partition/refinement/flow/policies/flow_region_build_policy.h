@@ -36,7 +36,7 @@ class FlowRegionBuildPolicy : public meta::PolicyBase {
  public:
   template <class Network = Mandatory>
   static inline void bfs(const Hypergraph& hg,
-                         Network& flowNetwork,
+                         Network& flow_network,
                          std::vector<HypernodeID>& start_nodes,
                          const PartitionID part,
                          const HypernodeWeight max_part_weight,
@@ -58,7 +58,7 @@ class FlowRegionBuildPolicy : public meta::PolicyBase {
       const HypernodeID hn = Q.front();
       Q.pop();
 
-      flowNetwork.addHypernode(hn);
+      flow_network.addHypernode(hn);
 
       for (const HyperedgeID& he : hg.incidentEdges(hn)) {
         if (!visited[num_hypernodes + he]) {
@@ -83,7 +83,7 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
   template <class Network = Mandatory>
   inline static void buildFlowNetwork(const Hypergraph& hg,
                                       const Context& context,
-                                      Network& flowNetwork,
+                                      Network& flow_network,
                                       std::vector<HyperedgeID>& cut_hes,
                                       const double alpha,
                                       const PartitionID block_0,
@@ -107,22 +107,24 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
     }
     visited.reset();
 
-    const HypernodeWeight max_part_weight_0 = std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
-                                                        * context.partition.perfect_balance_part_weights[1]
-                                                        - hg.partWeight(block_1)), 0.0);
-    const HypernodeWeight max_part_weight_1 = std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
-                                                        * context.partition.perfect_balance_part_weights[0]
-                                                        - hg.partWeight(block_0)), 0.0);
+    const HypernodeWeight max_part_weight_0 =
+      std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
+                * context.partition.perfect_balance_part_weights[1]
+                - hg.partWeight(block_1)), 0.0);
+    const HypernodeWeight max_part_weight_1 =
+      std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
+                * context.partition.perfect_balance_part_weights[0]
+                - hg.partWeight(block_0)), 0.0);
 
-    FlowRegionBuildPolicy::bfs<Network>(hg, flowNetwork, start_nodes_block_0,
+    FlowRegionBuildPolicy::bfs<Network>(hg, flow_network, start_nodes_block_0,
                                         block_0, max_part_weight_0, visited);
-    FlowRegionBuildPolicy::bfs<Network>(hg, flowNetwork, start_nodes_block_1,
+    FlowRegionBuildPolicy::bfs<Network>(hg, flow_network, start_nodes_block_1,
                                         block_1, max_part_weight_1, visited);
 
     ASSERT([&]() {
         HypernodeWeight weight_block_0 = 0;
         HypernodeWeight weight_block_1 = 0;
-        for (const HypernodeID& hn : flowNetwork.hypernodes()) {
+        for (const HypernodeID& hn : flow_network.hypernodes()) {
           if (hg.partID(hn) == block_0) {
             weight_block_0 += hg.nodeWeight(hn);
           } else if (hg.partID(hn) == block_1) {

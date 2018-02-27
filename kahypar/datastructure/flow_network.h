@@ -57,9 +57,9 @@ struct FlowEdge {
   Capacity capacity;
   size_t reverseEdge;
 
-  void increaseFlow(const Flow deltaFlow) {
-    ASSERT(flow + deltaFlow <= capacity, "Cannot increase flow above capacity!");
-    flow += deltaFlow;
+  void increaseFlow(const Flow delta_flow) {
+    ASSERT(flow + delta_flow <= capacity, "Cannot increase flow above capacity!");
+    flow += delta_flow;
   }
 };
 
@@ -276,10 +276,10 @@ class FlowNetwork {
     return e.capacity - e.flow;
   }
 
-  void increaseFlow(FlowEdge& e, const Flow deltaFlow) {
-    e.increaseFlow(deltaFlow);
+  void increaseFlow(FlowEdge& e, const Flow delta_flow) {
+    e.increaseFlow(delta_flow);
     FlowEdge& revEdge = reverseEdge(e);
-    revEdge.increaseFlow(-deltaFlow);
+    revEdge.increaseFlow(-delta_flow);
   }
 
   FlowEdge & reverseEdge(const FlowEdge& e) {
@@ -338,11 +338,11 @@ class FlowNetwork {
     for (const HypernodeID& hn : hypernodes()) {
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
-          const size_t pinsUBlock0 = _pins_block0.get(he);
-          const size_t pinsUBlock1 = _pins_block1.get(he);
-          const size_t pinsNotUBlock0 = _hg.pinCountInPart(he, block_0) - pinsUBlock0;
-          const size_t pinsNotUBlock1 = _hg.pinCountInPart(he, block_1) - pinsUBlock1;
-          const size_t connectivity = (pinsUBlock0 + pinsNotUBlock0 > 0) + (pinsUBlock1 + pinsNotUBlock1 > 0);
+          const size_t pins_u_block0 = _pins_block0.get(he);
+          const size_t pins_u_block1 = _pins_block1.get(he);
+          const size_t pins_not_u_block0 = _hg.pinCountInPart(he, block_0) - pins_u_block0;
+          const size_t pins_not_u_block1 = _hg.pinCountInPart(he, block_1) - pins_u_block1;
+          const size_t connectivity = (pins_u_block0 + pins_not_u_block0 > 0) + (pins_u_block1 + pins_not_u_block1 > 0);
 
           if (_context.partition.objective == Objective::cut &&
               !isRemovableFromCut(he, block_0, block_1)) {
@@ -364,11 +364,11 @@ class FlowNetwork {
             // => if he contains pins from block_1 not contained
             //   in the flow problem, we add the outgoing hyperedge
             //   node as sink
-            if (pinsNotUBlock0 > 0) {
+            if (pins_not_u_block0 > 0) {
               ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
               addSource(mapToIncommingHyperedgeID(he));
             }
-            if (pinsNotUBlock1 > 0) {
+            if (pins_not_u_block1 > 0) {
               ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
               addSink(mapToOutgoingHyperedgeID(he));
             }
@@ -441,13 +441,13 @@ class FlowNetwork {
     if (!ignoreHESizeOne && isHyperedgeOfSize(he, 1)) {
       // Check if he is really a hyperedge of size 1 in flow problem
       ASSERT([&]() {
-            size_t numFlowHN = 0;
+            size_t num_flow_hns = 0;
             for (const HypernodeID& pin : _hg.pins(he)) {
               if (containsHypernode(pin)) {
-                numFlowHN++;
+                num_flow_hns++;
               }
             }
-            return (numFlowHN == 1 ? true : false);
+            return (num_flow_hns == 1 ? true : false);
           } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
 
       if ((pinsNotInFlowProblem(he, _cur_block0) > 0 &&
