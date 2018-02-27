@@ -1,6 +1,5 @@
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_gmock_test(two_way_fm_refiner_test two_way_fm_refiner_test.cc)
-add_gmock_test(max_gain_node_k_way_fm_refiner_test max_gain_node_k_way_fm_refiner_test.cc)
 add_gmock_test(k_way_fm_refiner_test k_way_fm_refiner_test.cc)
 add_gmock_test(maximum_flow_test maximum_flow_test.cc)
 add_gmock_test(most_balanced_minimum_cut_test most_balanced_minimum_cut_test.cc)
