@@ -21,7 +21,6 @@
 #pragma once
 
 #include "kahypar/meta/abstract_factory.h"
-#include "kahypar/meta/static_double_dispatch_factory.h"
 #include "kahypar/meta/static_multi_dispatch_factory.h"
 #include "kahypar/meta/typelist.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"

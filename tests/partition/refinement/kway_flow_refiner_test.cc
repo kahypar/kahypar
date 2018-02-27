@@ -24,13 +24,12 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/kahypar.h"
-#include "kahypar/meta/policy_registry.h"
-#include "kahypar/meta/registrar.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
+#include "kahypar/partition/registries/register_flow_networks.h"
+#include "kahypar/partition/registries/register_refinement_algorithms.h"
 
 using ::testing::Test;
 using ::testing::Eq;
