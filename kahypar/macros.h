@@ -194,3 +194,11 @@ void unused(T&&) {
 #if (defined(_M_AMD64) || defined(__x86_64__))
 #define KAHYPAR_HAS_BITSCAN64
 #endif
+
+#if defined(__GNUC__) && __GNUC__ >= 7
+#define KAHYPAR_ATTRIBUTE_FALLTHROUGH __attribute__ ((fallthrough))
+#elif defined(__clang__)
+#define KAHYPAR_ATTRIBUTE_FALLTHROUGH [[clang::fallthrough]]
+#else
+#define KAHYPAR_ATTRIBUTE_FALLTHROUGH
+#endif
