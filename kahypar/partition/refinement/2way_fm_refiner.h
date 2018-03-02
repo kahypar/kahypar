@@ -171,6 +171,7 @@ class TwoWayFMRefiner final : public IRefiner,
       _gain_cache.setValue(move.hn, -temp);
     }
     _gain_cache.resetDelta();
+    ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -218,7 +219,6 @@ class TwoWayFMRefiner final : public IRefiner,
       performMovesAndUpdateCacheImpl(_moves, _hg);
       best_metrics.cut = metrics::hyperedgeCut(_hg);
       best_metrics.imbalance = metrics::imbalance(_hg, _context);
-      ASSERT_THAT_GAIN_CACHE_IS_VALID();
       return true;
     }
 
