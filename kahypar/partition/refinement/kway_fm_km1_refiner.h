@@ -118,6 +118,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves, Hypergraph& hypergraph) {
+    std::exit(-1);
+  }
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,

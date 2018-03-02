@@ -65,6 +65,9 @@ class KWayFlowRefiner final : public IRefiner {
   friend class KWayFlowRefinerTest;
   static constexpr bool debug = false;
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&, Hypergraph&) { }
+
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,

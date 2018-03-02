@@ -50,6 +50,12 @@ class DoNothingRefiner final : public IRefiner {
     _is_initialized = true;
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves, Hypergraph& hypergraph) {
+    for (const auto& move : moves) {
+      hypergraph.changeNodePart(move.hn, move.from, move.to);
+    }
+  }
+
   using IRefiner::_is_initialized;
 };
 }  // namespace kahypar

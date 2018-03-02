@@ -157,6 +157,22 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                      Hypergraph& hypergraph) {
+    for (const auto& move : moves) {
+      hypergraph.changeNodePart(move.hn, move.from, move.to);
+      _part_id[move.hn] = move.to;
+      const Gain temp = _gain_cache.value(move.hn);
+      ASSERT(-temp == computeGain(move.hn), V(move.hn));
+      _gain_cache.setNotCached(move.hn);
+      for (const HyperedgeID& he : hypergraph.incidentEdges(move.hn)) {
+        deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
+      }
+      _gain_cache.setValue(move.hn, -temp);
+    }
+    _gain_cache.resetDelta();
+  }
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
@@ -199,8 +215,7 @@ class TwoWayFMRefiner final : public IRefiner,
                                                                 changes, best_metrics);
     if (flow_refiner_improvement) {
       restoreOriginalPartitionAfterFlow();
-      emulateFlowMoves();
-      _gain_cache.resetDelta();
+      performMovesAndUpdateCacheImpl(_moves, _hg);
       best_metrics.cut = metrics::hyperedgeCut(_hg);
       best_metrics.imbalance = metrics::imbalance(_hg, _context);
       ASSERT_THAT_GAIN_CACHE_IS_VALID();
@@ -328,21 +343,6 @@ class TwoWayFMRefiner final : public IRefiner,
                                                  best_metrics.imbalance,
                                                  initial_imbalance, _context.partition.epsilon);
   }
-
-  void emulateFlowMoves() {
-    for (const auto& move : _moves) {
-      _hg.changeNodePart(move.hn, move.from, move.to);
-      _part_id[move.hn] = move.to;
-      const Gain temp = _gain_cache.value(move.hn);
-      ASSERT(-temp == computeGain(move.hn), V(move.hn));
-      _gain_cache.setNotCached(move.hn);
-      for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
-        deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
-      }
-      _gain_cache.setValue(move.hn, -temp);
-    }
-  }
-
 
   void restoreOriginalPartitionAfterFlow() {
     _moves.clear();

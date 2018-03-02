@@ -29,6 +29,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/abstract_factory.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 
 namespace kahypar {
@@ -55,6 +56,10 @@ class IRefiner {
 
   virtual ~IRefiner() = default;
 
+  void performMovesAndUpdateCache(const std::vector<Move>& moves, Hypergraph& hypergraph) {
+    performMovesAndUpdateCacheImpl(moves, hypergraph);
+  }
+
  protected:
   IRefiner() = default;
   bool _is_initialized = false;
@@ -66,6 +71,9 @@ class IRefiner {
                           Metrics& best_metrics) = 0;
 
   virtual void initializeImpl(const HyperedgeWeight) = 0;
+
+  virtual void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                              Hypergraph& hypergraph) = 0;
 };
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
