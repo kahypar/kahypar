@@ -74,8 +74,15 @@ class LPRefiner final : public IRefiner {
   LPRefiner(LPRefiner&&) = delete;
   LPRefiner& operator= (LPRefiner&&) = delete;
 
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves, Hypergraph& hypergraph) {
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
+                                      std::vector<HypernodeID>&,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph&) {
     std::exit(-1);
+  }
+
+  std::vector<Move> rollbackAndReturnMovesImpl() {
+    return std::vector<Move>();
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,

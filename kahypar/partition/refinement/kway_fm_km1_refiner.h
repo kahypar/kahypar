@@ -116,7 +116,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
   }
 
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves, Hypergraph& hypergraph) {
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                      std::vector<HypernodeID>&,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph& hypergraph) {
     _unremovable_he_parts.reset();
     reset();
     for (const auto& move : moves) {
@@ -132,6 +135,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     _gain_cache.resetDelta();
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
+  }
+
+  std::vector<Move> rollbackAndReturnMovesImpl() {
+    return std::vector<Move>();
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -161,7 +168,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                                 best_metrics);
     if (flow_refiner_improvement) {
       restoreOriginalPartitionIDs();
-      performMovesAndUpdateCacheImpl(_moves, _hg);
+      performMovesAndUpdateCacheImpl(_moves, refinement_nodes, changes, _hg);
       best_metrics.km1 = metrics::km1(_hg);
       best_metrics.imbalance = metrics::imbalance(_hg, _context);
       ASSERT_THAT_GAIN_CACHE_IS_VALID();

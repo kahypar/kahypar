@@ -56,8 +56,16 @@ class IRefiner {
 
   virtual ~IRefiner() = default;
 
-  void performMovesAndUpdateCache(const std::vector<Move>& moves, Hypergraph& hypergraph) {
-    performMovesAndUpdateCacheImpl(moves, hypergraph);
+  void performMovesAndUpdateCache(const std::vector<Move>& moves,
+                                  std::vector<HypernodeID>& refinement_nodes,
+                                  const UncontractionGainChanges& uncontraction_changes,
+                                  Hypergraph& hypergraph) {
+    performMovesAndUpdateCacheImpl(moves, refinement_nodes,
+                                   uncontraction_changes, hypergraph);
+  }
+
+  std::vector<Move> rollbackAndReturnMoves() {
+    return rollbackAndReturnMovesImpl();
   }
 
  protected:
@@ -73,7 +81,11 @@ class IRefiner {
   virtual void initializeImpl(const HyperedgeWeight) = 0;
 
   virtual void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                              std::vector<HypernodeID>& refinement_nodes,
+                                              const UncontractionGainChanges& uncontraction_changes,
                                               Hypergraph& hypergraph) = 0;
+
+  virtual std::vector<Move> rollbackAndReturnMovesImpl() = 0;
 };
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,

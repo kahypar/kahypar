@@ -29,6 +29,13 @@ struct Move {
   const PartitionID from;
   const PartitionID to;
 
+  Move(const HypernodeID hn,
+       const PartitionID from,
+       const PartitionID to) :
+       hn(hn),
+       from(from),
+       to(to) { }
+
   Move(const Move&) = delete;
   Move& operator= (const Move&) = delete;
 
