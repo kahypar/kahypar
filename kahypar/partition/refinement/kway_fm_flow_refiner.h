@@ -32,7 +32,7 @@
 
 namespace kahypar {
 class KWayFMFlowRefiner final : public IRefiner,
-                                  private FMRefinerBase<HypernodeID>{
+                                private FMRefinerBase<HypernodeID>{
  private:
   static constexpr bool debug = false;
 
@@ -43,9 +43,9 @@ class KWayFMFlowRefiner final : public IRefiner,
   KWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
-                RefinementAlgorithm::kway_fm_km1, hypergraph, context)),
+                  RefinementAlgorithm::kway_fm_km1, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::kway_flow, hypergraph, context))  { }
+                    RefinementAlgorithm::kway_flow, hypergraph, context)) { }
 
   ~KWayFMFlowRefiner() override = default;
 
@@ -80,16 +80,16 @@ class KWayFMFlowRefiner final : public IRefiner,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
-    bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                                  changes, best_metrics);
+    const bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                        changes, best_metrics);
 
     if (flow_improvement) {
       std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
     }
 
-    bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                              changes, best_metrics);
+    const bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                    changes, best_metrics);
 
     return flow_improvement || fm_improvement;
   }

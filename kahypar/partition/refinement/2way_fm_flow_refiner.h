@@ -43,9 +43,9 @@ class TwoWayFMFlowRefiner final : public IRefiner,
   TwoWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
-                RefinementAlgorithm::twoway_fm, hypergraph, context)),
+                  RefinementAlgorithm::twoway_fm, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::twoway_flow, hypergraph, context))  {
+                    RefinementAlgorithm::twoway_flow, hypergraph, context)) {
     ASSERT(context.partition.k == 2);
   }
 
@@ -82,8 +82,8 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
-    bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                                  changes, best_metrics);
+    const bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                        changes, best_metrics);
 
     // If flow refiner finds an improvement the gain cache update of
     // the uncontracted nodes will be performed in performMovesAndUpdateCache.
@@ -99,8 +99,8 @@ class TwoWayFMFlowRefiner final : public IRefiner,
       modified_changes.contraction_partner[0] = 0;
     }
 
-    bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                              modified_changes, best_metrics);
+    const bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                                    modified_changes, best_metrics);
 
     return flow_improvement || fm_improvement;
   }
