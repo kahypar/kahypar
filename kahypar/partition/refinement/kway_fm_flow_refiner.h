@@ -84,7 +84,7 @@ class KWayFMFlowRefiner final : public IRefiner,
                                                         changes, best_metrics);
 
     if (flow_improvement) {
-      std::vector<Move> moves = _flow_refiner->rollbackPartition();
+      const std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
     }
 

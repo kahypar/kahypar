@@ -93,7 +93,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
     modified_changes.representative.push_back(changes.representative[0]);
     modified_changes.contraction_partner.push_back(changes.contraction_partner[0]);
     if (flow_improvement) {
-      std::vector<Move> moves = _flow_refiner->rollbackPartition();
+      const std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
       modified_changes.representative[0] = 0;
       modified_changes.contraction_partner[0] = 0;
