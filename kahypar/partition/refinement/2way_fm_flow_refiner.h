@@ -84,14 +84,24 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                   Metrics& best_metrics) override final {
     bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
                                                   changes, best_metrics);
-    bool fm_improvement = false;
+
+    // If flow refiner finds an improvement the gain cache update of
+    // the uncontracted nodes will be performed in performMovesAndUpdateCache.
+    // Therefore, we have to prevent that the FM Refiner will update the
+    // values twice. Consequently, we set the delta updates to 0.
+    UncontractionGainChanges modified_changes;
+    modified_changes.representative.push_back(changes.representative[0]);
+    modified_changes.contraction_partner.push_back(changes.contraction_partner[0]);
     if (flow_improvement) {
       std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
-    } else {
-      fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                           changes, best_metrics);
+      modified_changes.representative[0] = 0;
+      modified_changes.contraction_partner[0] = 0;
     }
+
+    bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                              modified_changes, best_metrics);
+
     return flow_improvement || fm_improvement;
   }
 

@@ -83,14 +83,13 @@ class KWayFMFlowRefiner final : public IRefiner,
     bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
                                                   changes, best_metrics);
 
-    bool fm_improvement = false;
     if (flow_improvement) {
       std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
-    } else {
-      fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
-                                           changes, best_metrics);
     }
+
+    bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
+                                              changes, best_metrics);
 
     return flow_improvement || fm_improvement;
   }
