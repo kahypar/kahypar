@@ -31,7 +31,7 @@
 #include "kahypar/partition/refinement/move.h"
 
 namespace kahypar {
-class TwoWayFMFlowRefiner final : public IRefiner,
+class KWayFMFlowRefiner final : public IRefiner,
                                   private FMRefinerBase<HypernodeID>{
  private:
   static constexpr bool debug = false;
@@ -40,22 +40,20 @@ class TwoWayFMFlowRefiner final : public IRefiner,
   using Base = FMRefinerBase<HypernodeID>;
 
  public:
-  TwoWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
+  KWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
-                RefinementAlgorithm::twoway_fm, hypergraph, context)),
+                RefinementAlgorithm::kway_fm_km1, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::twoway_flow, hypergraph, context))  {
-    ASSERT(context.partition.k == 2);
-  }
+                  RefinementAlgorithm::kway_flow, hypergraph, context))  { }
 
-  ~TwoWayFMFlowRefiner() override = default;
+  ~KWayFMFlowRefiner() override = default;
 
-  TwoWayFMFlowRefiner(const TwoWayFMFlowRefiner&) = delete;
-  TwoWayFMFlowRefiner& operator= (const TwoWayFMFlowRefiner&) = delete;
+  KWayFMFlowRefiner(const KWayFMFlowRefiner&) = delete;
+  KWayFMFlowRefiner& operator= (const KWayFMFlowRefiner&) = delete;
 
-  TwoWayFMFlowRefiner(TwoWayFMFlowRefiner&&) = delete;
-  TwoWayFMFlowRefiner& operator= (TwoWayFMFlowRefiner&&) = delete;
+  KWayFMFlowRefiner(KWayFMFlowRefiner&&) = delete;
+  KWayFMFlowRefiner& operator= (KWayFMFlowRefiner&&) = delete;
 
 
   bool isInitialized() const {
@@ -84,6 +82,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                   Metrics& best_metrics) override final {
     bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
                                                   changes, best_metrics);
+
     bool fm_improvement = false;
     if (flow_improvement) {
       std::vector<Move> moves = _flow_refiner->rollbackAndReturnMoves();
@@ -92,6 +91,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
       fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,
                                            changes, best_metrics);
     }
+
     return flow_improvement || fm_improvement;
   }
 

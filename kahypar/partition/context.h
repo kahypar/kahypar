@@ -496,13 +496,5 @@ static inline void sanityCheck(Context& context) {
       // should never happen, because initial partitioning is either done via RB or directly
       break;
   }
-
-  /*if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
-    context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
-    context.local_search.flow.enable_in_fm = true;
-  } else*/ if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
-    context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
-    context.local_search.flow.enable_in_fm = true;
-  }
 }
 }  // namespace kahypar

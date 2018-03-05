@@ -79,14 +79,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _new_adjacent_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
     _unremovable_he_parts(_hg.initialNumEdges() * context.partition.k),
     _gain_cache(_hg.initialNumNodes(), _context.partition.k),
-    _stopping_policy(),
-    _flow_refiner(_context.local_search.flow.enable_in_fm ?
-                  RefinerFactory::getInstance().createObject(
-                    RefinementAlgorithm::kway_flow, hypergraph, context) :
-                  RefinerFactory::getInstance().createObject(
-                    RefinementAlgorithm::do_nothing, hypergraph, context)),
-    _part_id(_hg.initialNumNodes(), -1),
-    _moves() { }
+    _stopping_policy() { }
 
   ~KWayKMinusOneRefiner() override = default;
 
@@ -109,28 +102,25 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     _gain_cache.clear();
     initializeGainCache();
-
-    _flow_refiner->initialize(max_gain);
-    for (const HypernodeID& hn : _hg.nodes()) {
-      _part_id[hn] = _hg.partID(hn);
-    }
   }
 
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
-                                      std::vector<HypernodeID>&,
+                                      std::vector<HypernodeID>& refinement_nodes,
                                       const UncontractionGainChanges&,
                                       Hypergraph& hypergraph) {
     _unremovable_he_parts.reset();
     reset();
+    for (const HypernodeID& hn : refinement_nodes) {
+      _gain_cache.clear(hn);
+      initializeGainCacheFor(hn);
+    }
     for (const auto& move : moves) {
-      DBG << V(move.hn) << V(move.from) << V(move.to);
       if (!_gain_cache.entryExists(move.hn, move.to)) {
         _gain_cache.initializeEntry(move.hn, move.to, gainInducedByHypergraph(move.hn, move.to));
       }
       hypergraph.changeNodePart(move.hn, move.from, move.to);
       hypergraph.activate(move.hn);
       hypergraph.mark(move.hn);
-      _part_id[move.hn] = move.to;
       updateNeighboursGainCacheOnly(move.hn, move.from, move.to);
     }
     _gain_cache.resetDelta();
@@ -158,22 +148,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
-      _part_id[hn] = _hg.partID(hn);
     }
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
-
-    const bool flow_refiner_improvement = _flow_refiner->refine(refinement_nodes,
-                                                                max_allowed_part_weights,
-                                                                changes,
-                                                                best_metrics);
-    if (flow_refiner_improvement) {
-      restoreOriginalPartitionIDs();
-      performMovesAndUpdateCacheImpl(_moves, refinement_nodes, changes, _hg);
-      best_metrics.km1 = metrics::km1(_hg);
-      best_metrics.imbalance = metrics::imbalance(_hg, _context);
-      ASSERT_THAT_GAIN_CACHE_IS_VALID();
-      return true;
-    }
 
     const double initial_imbalance = best_metrics.imbalance;
     double current_imbalance = best_metrics.imbalance;
@@ -232,7 +208,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
       if (moveIsFeasible(max_gain_node, from_part, to_part)) {
         // LOG << "performed MOVE:" << V(max_gain_node) << V(from_part) << V(to_part);
         moveHypernode(max_gain_node, from_part, to_part);
-        _part_id[max_gain_node] = to_part;
 
         if (_hg.partWeight(to_part) >= _context.partition.max_part_weights[0]) {
           _pq.disablePart(to_part);
@@ -303,7 +278,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                           best_metrics.km1, current_km1)
         == true ? "policy" : "empty queue");
 
-    rollback(_performed_moves.size() - 1, min_cut_index, _part_id);
+    rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
@@ -313,19 +288,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     return FMImprovementPolicy::improvementFound(best_metrics.km1, initial_km1,
                                                  best_metrics.imbalance, initial_imbalance,
                                                  _context.partition.epsilon);
-  }
-
-  void restoreOriginalPartitionIDs() {
-    _moves.clear();
-    for (const HypernodeID& hn : _hg.nodes()) {
-      const PartitionID from = _hg.partID(hn);
-      const PartitionID to = _part_id[hn];
-      if (from != to) {
-        _moves.emplace_back(Move{ hn, to, from });
-        _hg.changeNodePart(hn, from, to);
-        ASSERT(_hg.partID(hn) == to, "Restoring old partition failed!");
-      }
-    }
   }
 
   void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
@@ -1042,8 +1004,5 @@ class KWayKMinusOneRefiner final : public IRefiner,
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
 
-  std::unique_ptr<IRefiner> _flow_refiner;
-  std::vector<PartitionID> _part_id;
-  std::vector<Move> _moves;
 };
 }  // namespace kahypar

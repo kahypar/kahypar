@@ -54,7 +54,8 @@ class KWayFlowRefiner final : public IRefiner {
     _context(context),
     _twoway_flow_refiner(_hg, _context),
     _flow_execution_policy(),
-    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
+    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)),
+    _original_part_id(_hg.initialNumNodes(), -1)  { }
 
   KWayFlowRefiner(const KWayFlowRefiner&) = delete;
   KWayFlowRefiner(KWayFlowRefiner&&) = delete;
@@ -71,7 +72,16 @@ class KWayFlowRefiner final : public IRefiner {
                                       Hypergraph&) { }
 
   std::vector<Move> rollbackAndReturnMovesImpl() {
-    return std::vector<Move>();
+    std::vector<Move> tmp_moves;
+    for (const HypernodeID& hn : _hg.nodes()) {
+      PartitionID from = _original_part_id[hn];
+      PartitionID to = _hg.partID(hn);
+      if (from != to) {
+        tmp_moves.emplace_back(hn, from, to);
+        _hg.changeNodePart(hn, to, from);
+      }
+    }
+    return tmp_moves;
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -80,6 +90,12 @@ class KWayFlowRefiner final : public IRefiner {
                   Metrics& best_metrics) override final {
     if (!_flow_execution_policy.executeFlow(_hg)) {
       return false;
+    }
+
+    // Store original partition for rollback, because we have to update
+    // gain cache of kway fm refiner
+    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+      storeOriginalPartitionIDs();
     }
 
     DBG << "############### Active Block Scheduling ###############";
@@ -142,8 +158,13 @@ class KWayFlowRefiner final : public IRefiner {
 
     printMetric(true, true);
 
-
     return improvement;
+  }
+
+  void storeOriginalPartitionIDs() {
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _original_part_id[hn] = _hg.partID(hn);
+    }
   }
 
   void printMetric(bool newline = false, bool endline = false) {
@@ -171,5 +192,6 @@ class KWayFlowRefiner final : public IRefiner {
   TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoway_flow_refiner;
   FlowExecutionPolicy _flow_execution_policy;
   std::vector<std::vector<size_t> > _num_improvements;
+  std::vector<PartitionID> _original_part_id;
 };
 }  // namespace kahypar

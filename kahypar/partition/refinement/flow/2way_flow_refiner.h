@@ -80,13 +80,6 @@ class TwoWayFlowRefiner final : public IRefiner {
    * Performs active block scheduling on the quotient graph. Therefore
    * the quotient graph is already initialized and we have to pass
    * the two blocks which are selected for a pairwise refinement.
-   *
-   * FM Refiner:
-   * FM refiners performs delta gain updates. Moving nodes inside the
-   * flow refiner without notifying the FM refiner invalidate the gain
-   * cache. Therefore we need to rollback all changes after flow
-   * refinement and let the FM refiner perform the moves with
-   * the correct update of the gain cache.
    */
   void updateConfiguration(const PartitionID block0,
                            const PartitionID block1,

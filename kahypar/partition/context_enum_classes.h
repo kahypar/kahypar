@@ -406,6 +406,8 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_flow;
   } else if (type == "kway_fm_flow_km1") {
     return RefinementAlgorithm::kway_fm_flow_km1;
+  } else if (type == "do_nothing") {
+    return RefinementAlgorithm::do_nothing;
   }
   std::cout << "Illegal option:" << type << std::endl;
   exit(0);
