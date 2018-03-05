@@ -97,6 +97,7 @@ class KWayFMRefiner final : public IRefiner,
                                       std::vector<HypernodeID>&,
                                       const UncontractionGainChanges&,
                                       Hypergraph&) {
+    LOG << "Currently not implemented!";
     std::exit(-1);
   }
 
