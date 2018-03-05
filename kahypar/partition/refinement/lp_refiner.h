@@ -81,7 +81,7 @@ class LPRefiner final : public IRefiner {
     std::exit(-1);
   }
 
-  std::vector<Move> rollbackAndReturnMovesImpl() {
+  std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
   }
 

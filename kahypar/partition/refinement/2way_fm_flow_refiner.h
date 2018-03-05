@@ -68,7 +68,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                                       const UncontractionGainChanges&,
                                       Hypergraph&) { }
 
-  std::vector<Move> rollbackAndReturnMovesImpl() {
+  std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
   }
 
@@ -86,7 +86,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                                                   changes, best_metrics);
     bool fm_improvement = false;
     if (flow_improvement) {
-      std::vector<Move> moves = _flow_refiner->rollbackAndReturnMoves();
+      std::vector<Move> moves = _flow_refiner->rollbackPartition();
       _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
     } else {
       fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,

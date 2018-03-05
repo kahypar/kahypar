@@ -59,7 +59,7 @@ class DoNothingRefiner final : public IRefiner {
     }
   }
 
-  std::vector<Move> rollbackAndReturnMovesImpl() {
+  std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
   }
 

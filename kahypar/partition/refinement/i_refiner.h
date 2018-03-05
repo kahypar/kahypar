@@ -64,8 +64,8 @@ class IRefiner {
                                    uncontraction_changes, hypergraph);
   }
 
-  std::vector<Move> rollbackAndReturnMoves() {
-    return rollbackAndReturnMovesImpl();
+  std::vector<Move> rollbackPartition() {
+    return rollbackImpl();
   }
 
  protected:
@@ -85,7 +85,7 @@ class IRefiner {
                                               const UncontractionGainChanges& uncontraction_changes,
                                               Hypergraph& hypergraph) = 0;
 
-  virtual std::vector<Move> rollbackAndReturnMovesImpl() = 0;
+  virtual std::vector<Move> rollbackImpl() = 0;
 };
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,

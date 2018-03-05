@@ -127,7 +127,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
 
-  std::vector<Move> rollbackAndReturnMovesImpl() {
+  std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
   }
 

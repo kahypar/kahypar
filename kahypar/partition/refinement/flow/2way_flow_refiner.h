@@ -101,7 +101,7 @@ class TwoWayFlowRefiner final : public IRefiner {
                                       const UncontractionGainChanges&,
                                       Hypergraph&) { }
 
-  std::vector<Move> rollbackAndReturnMovesImpl() {
+  std::vector<Move> rollbackImpl() {
     std::vector<Move> tmp_moves;
     for (const HypernodeID& hn : _hg.nodes()) {
       PartitionID from = _original_part_id[hn];
