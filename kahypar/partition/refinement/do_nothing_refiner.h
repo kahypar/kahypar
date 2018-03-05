@@ -50,14 +50,10 @@ class DoNothingRefiner final : public IRefiner {
     _is_initialized = true;
   }
 
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
                                       std::vector<HypernodeID>&,
                                       const UncontractionGainChanges&,
-                                      Hypergraph& hypergraph) {
-    for (const auto& move : moves) {
-      hypergraph.changeNodePart(move.hn, move.from, move.to);
-    }
-  }
+                                      Hypergraph&) { }
 
   std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
