@@ -137,7 +137,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   }
   if (context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_flow ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_flow ||
-      context.initial_partitioning.local_search.flow.enable_in_fm) {
+      context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     oss << " IP_flow_algorithm=" << context.initial_partitioning.local_search.flow.algorithm
         << " IP_flow_network="
         << context.initial_partitioning.local_search.flow.network
@@ -176,7 +177,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   }
   if (context.local_search.algorithm == RefinementAlgorithm::twoway_flow ||
       context.local_search.algorithm == RefinementAlgorithm::kway_flow ||
-      context.local_search.flow.enable_in_fm) {
+      context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     oss << " flow_algorithm=" << context.local_search.flow.algorithm
         << " flow_network="
         << context.local_search.flow.network

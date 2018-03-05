@@ -64,7 +64,8 @@ class TwoWayFlowRefiner final : public IRefiner {
     _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
-    _ignore_flow_execution_policy(false) { }
+    _ignore_flow_execution_policy(false),
+    _original_part_id(_hg.initialNumNodes(), -1) { }
 
   TwoWayFlowRefiner(const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner(TwoWayFlowRefiner&&) = delete;
@@ -79,13 +80,6 @@ class TwoWayFlowRefiner final : public IRefiner {
    * Performs active block scheduling on the quotient graph. Therefore
    * the quotient graph is already initialized and we have to pass
    * the two blocks which are selected for a pairwise refinement.
-   *
-   * FM Refiner:
-   * FM refiners performs delta gain updates. Moving nodes inside the
-   * flow refiner without notifying the FM refiner invalidate the gain
-   * cache. Therefore we need to rollback all changes after flow
-   * refinement and let the FM refiner perform the moves with
-   * the correct update of the gain cache.
    */
   void updateConfiguration(const PartitionID block0,
                            const PartitionID block1,
@@ -102,12 +96,36 @@ class TwoWayFlowRefiner final : public IRefiner {
 
   static constexpr bool debug = false;
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
+                                      std::vector<HypernodeID>&,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph&) { }
+
+  std::vector<Move> rollbackImpl() {
+    std::vector<Move> tmp_moves;
+    for (const HypernodeID& hn : _hg.nodes()) {
+      PartitionID from = _original_part_id[hn];
+      PartitionID to = _hg.partID(hn);
+      if (from != to) {
+        tmp_moves.emplace_back(hn, from, to);
+        _hg.changeNodePart(hn, to, from);
+      }
+    }
+    return tmp_moves;
+  }
+
   bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
     if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
       return false;
+    }
+
+    // Store original partition for rollback, because we have to update
+    // gain cache of twoway fm refiner
+    if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
+      storeOriginalPartitionIDs();
     }
 
     // Construct quotient graph, if it is not set before
@@ -251,6 +269,11 @@ class TwoWayFlowRefiner final : public IRefiner {
     return improvement;
   }
 
+  void storeOriginalPartitionIDs() {
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _original_part_id[hn] = _hg.partID(hn);
+    }
+  }
 
   bool isRefinementOnLastLevel() {
     return _hg.currentNumNodes() == _hg.initialNumNodes();
@@ -285,5 +308,7 @@ class TwoWayFlowRefiner final : public IRefiner {
   PartitionID _block0;
   PartitionID _block1;
   bool _ignore_flow_execution_policy;
+  std::vector<PartitionID> _original_part_id;
+
 };
 }  // namespace kahypar

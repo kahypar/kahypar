@@ -23,6 +23,7 @@
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
+#include "kahypar/partition/refinement/2way_fm_flow_refiner.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
 #include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
 #include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
@@ -31,6 +32,7 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
+#include "kahypar/partition/refinement/kway_fm_flow_refiner.h"
 #include "kahypar/partition/refinement/lp_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
@@ -77,6 +79,8 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
                               context.local_search.flow.network),
                             meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
                               context.local_search.flow.execution_policy));
+REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);
+REGISTER_REFINER(RefinementAlgorithm::kway_fm_flow_km1, KWayFMFlowRefiner);
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar

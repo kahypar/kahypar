@@ -185,7 +185,6 @@ struct LocalSearchParameters {
   };
 
   struct Flow {
-    bool enable_in_fm = false;
     FlowAlgorithm algorithm = FlowAlgorithm::UNDEFINED;
     FlowNetworkType network = FlowNetworkType::UNDEFINED;
     FlowExecutionMode execution_policy = FlowExecutionMode::UNDEFINED;
@@ -210,7 +209,9 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   str << "  iterations per level:               " << params.iterations_per_level << std::endl;
   if (params.algorithm == RefinementAlgorithm::twoway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm ||
-      params.algorithm == RefinementAlgorithm::kway_fm_km1) {
+      params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
+      params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     str << "  stopping rule:                      " << params.fm.stopping_rule << std::endl;
     if (params.fm.stopping_rule == RefinementStoppingRule::simple) {
       str << "  max. # fruitless moves:             " << params.fm.max_number_of_fruitless_moves << std::endl;
@@ -222,8 +223,10 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   }
   if (params.algorithm == RefinementAlgorithm::twoway_flow ||
       params.algorithm == RefinementAlgorithm::kway_flow ||
-      params.flow.enable_in_fm) {
+      params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
     str << "  Flow Refinement Parameters:" << std::endl;
+    str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
     str << "    flow network:                     " << params.flow.network << std::endl;
     str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
     str << "    most balanced minimum cut:        "
@@ -495,14 +498,6 @@ static inline void sanityCheck(Context& context) {
     default:
       // should never happen, because initial partitioning is either done via RB or directly
       break;
-  }
-
-  if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
-    context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
-    context.local_search.flow.enable_in_fm = true;
-  } else if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
-    context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
-    context.local_search.flow.enable_in_fm = true;
   }
 }
 }  // namespace kahypar

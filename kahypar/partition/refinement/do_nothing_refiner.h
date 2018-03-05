@@ -50,6 +50,15 @@ class DoNothingRefiner final : public IRefiner {
     _is_initialized = true;
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
+                                      std::vector<HypernodeID>&,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph&) { }
+
+  std::vector<Move> rollbackImpl() {
+    return std::vector<Move>();
+  }
+
   using IRefiner::_is_initialized;
 };
 }  // namespace kahypar
