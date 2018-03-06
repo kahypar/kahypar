@@ -55,21 +55,7 @@ class KWayFMFlowRefiner final : public IRefiner,
   KWayFMFlowRefiner(KWayFMFlowRefiner&&) = delete;
   KWayFMFlowRefiner& operator= (KWayFMFlowRefiner&&) = delete;
 
-
-  bool isInitialized() const {
-    return _is_initialized;
-  }
-
  private:
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
-                                      std::vector<HypernodeID>&,
-                                      const UncontractionGainChanges&,
-                                      Hypergraph&) { }
-
-  std::vector<Move> rollbackImpl() {
-    return std::vector<Move>();
-  }
-
   void initializeImpl(const HyperedgeWeight max_gain) override final {
     _fm_refiner->initialize(max_gain);
     _flow_refiner->initialize(max_gain);

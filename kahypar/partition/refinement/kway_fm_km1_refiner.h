@@ -107,7 +107,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
                                       std::vector<HypernodeID>& refinement_nodes,
                                       const UncontractionGainChanges&,
-                                      Hypergraph& hypergraph) {
+                                      Hypergraph& hypergraph)  override final {
     _unremovable_he_parts.reset();
     reset();
     for (const HypernodeID& hn : refinement_nodes) {
@@ -125,10 +125,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     _gain_cache.resetDelta();
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
-  }
-
-  std::vector<Move> rollbackImpl() {
-    return std::vector<Move>();
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -1003,6 +999,5 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
   GainCache _gain_cache;
   StoppingPolicy _stopping_policy;
-
 };
 }  // namespace kahypar

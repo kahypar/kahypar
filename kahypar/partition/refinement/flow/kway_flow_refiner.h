@@ -36,6 +36,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/flow_refiner_base.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
@@ -45,17 +46,19 @@ using ds::FastResetArray;
 
 template <class FlowNetworkPolicy = Mandatory,
           class FlowExecutionPolicy = Mandatory>
-class KWayFlowRefiner final : public IRefiner {
+class KWayFlowRefiner final : public IRefiner,
+                              private FlowRefinerBase<FlowExecutionPolicy>{
+ private:
   using FlowNetwork = typename FlowNetworkPolicy::Network;
+  using Base = FlowRefinerBase<FlowExecutionPolicy>;
+
+  static constexpr bool debug = false;
 
  public:
   KWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
-    _hg(hypergraph),
-    _context(context),
+    Base(hypergraph, context),
     _twoway_flow_refiner(_hg, _context),
-    _flow_execution_policy(),
-    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)),
-    _original_part_id(_hg.initialNumNodes(), -1)  { }
+    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
 
   KWayFlowRefiner(const KWayFlowRefiner&) = delete;
   KWayFlowRefiner(KWayFlowRefiner&&) = delete;
@@ -64,24 +67,9 @@ class KWayFlowRefiner final : public IRefiner {
 
  private:
   friend class KWayFlowRefinerTest;
-  static constexpr bool debug = false;
 
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
-                                      std::vector<HypernodeID>&,
-                                      const UncontractionGainChanges&,
-                                      Hypergraph&) { }
-
-  std::vector<Move> rollbackImpl() {
-    std::vector<Move> tmp_moves;
-    for (const HypernodeID& hn : _hg.nodes()) {
-      PartitionID from = _original_part_id[hn];
-      PartitionID to = _hg.partID(hn);
-      if (from != to) {
-        tmp_moves.emplace_back(hn, from, to);
-        _hg.changeNodePart(hn, to, from);
-      }
-    }
-    return tmp_moves;
+  std::vector<Move> rollbackImpl() override final {
+    return Base::rollback();
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -95,7 +83,7 @@ class KWayFlowRefiner final : public IRefiner {
     // Store original partition for rollback, because we have to update
     // gain cache of kway fm refiner
     if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
-      storeOriginalPartitionIDs();
+      Base::storeOriginalPartitionIDs();
     }
 
     DBG << "############### Active Block Scheduling ###############";
@@ -161,12 +149,6 @@ class KWayFlowRefiner final : public IRefiner {
     return improvement;
   }
 
-  void storeOriginalPartitionIDs() {
-    for (const HypernodeID& hn : _hg.nodes()) {
-      _original_part_id[hn] = _hg.partID(hn);
-    }
-  }
-
   void printMetric(bool newline = false, bool endline = false) {
     if (newline) {
       DBG << "";
@@ -187,11 +169,12 @@ class KWayFlowRefiner final : public IRefiner {
 
   using IRefiner::_is_initialized;
 
-  Hypergraph& _hg;
-  const Context& _context;
+  using Base::_hg;
+  using Base::_context;
+  using Base::_original_part_id;
+  using Base::_flow_execution_policy;
+
   TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoway_flow_refiner;
-  FlowExecutionPolicy _flow_execution_policy;
   std::vector<std::vector<size_t> > _num_improvements;
-  std::vector<PartitionID> _original_part_id;
 };
 }  // namespace kahypar

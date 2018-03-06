@@ -45,20 +45,5 @@ class DoNothingRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics&) override final { return false; }
-
-  void initializeImpl(const HyperedgeWeight) override final {
-    _is_initialized = true;
-  }
-
-  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
-                                      std::vector<HypernodeID>&,
-                                      const UncontractionGainChanges&,
-                                      Hypergraph&) { }
-
-  std::vector<Move> rollbackImpl() {
-    return std::vector<Move>();
-  }
-
-  using IRefiner::_is_initialized;
 };
 }  // namespace kahypar
