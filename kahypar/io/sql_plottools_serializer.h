@@ -198,9 +198,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 //  out_file.close();
 //}
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
-  const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed_seconds_total = currentTime - context.evolutionary.start_time;
-  context.evolutionary.elapsed_seconds_total = elapsed_seconds_total;
+
   std::ostringstream oss;
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
   EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
@@ -225,7 +223,7 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
   oss << "RESULT " 
       << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
-            <<" time-total=" << context.evolutionary.elapsed_seconds_total.count()
+            <<" time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
             //<<" best=" << context.evolutionary.best_partition
             <<" iteration=" << context.evolutionary.iteration
             <<" replace-strategy=" << context.evolutionary.replace_strategy 

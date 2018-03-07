@@ -311,7 +311,6 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 }
 struct EvolutionaryParameters {
   int time_limit_seconds = 5 * 60 * 60;
-  HighResClockTimepoint start_time = std::chrono::high_resolution_clock::now();
   size_t population_size = 10;
   float mutation_chance = 0.5;
   float edge_frequency_chance = 0.5;

@@ -62,20 +62,19 @@ int main(int argc, char* argv[]) {
   Partitioner partitioner;
 
 
-  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  while(context.evolutionary.elapsed_seconds_total.count() < context.evolutionary.time_limit_seconds) {
+ 
+  while(Timer::instance().evolutionaryResult().total_evolutionary < context.evolutionary.time_limit_seconds) {
 
-
+      const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
      partitioner.partition(hypergraph, context);
      const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-     std::chrono::duration<double> elapsed_seconds = end - start;
-     context.evolutionary.elapsed_seconds_total = elapsed_seconds;
-     ++context.evolutionary.iteration;
+     Timer::instance().add(context, Timepoint::evolutionary,
+                        std::chrono::duration<double>(end - start).count());
      kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
      hypergraph.reset();
   }
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end - start;
+
 
 #ifdef GATHER_STATS
   LOG << "*******************************";

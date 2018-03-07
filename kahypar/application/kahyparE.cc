@@ -63,7 +63,6 @@ int main(int argc, char* argv[]) {
   context.partition_evolutionary = true;
   EvoPartitioner partitioner(context);
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-  context.evolutionary.start_time = start;
   partitioner.evo_partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;

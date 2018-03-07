@@ -34,11 +34,12 @@ namespace partition {
                 context.partition.objective = Objective::cut;
                 context.partition.mode = Mode::direct_kway;
                 context.local_search.algorithm = RefinementAlgorithm::kway_fm;
+                context.partition_evolutionary = true;
                 context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
                 context.evolutionary.mutate_strategy = EvoMutateStrategy::vcycle;
                 context.evolutionary.mutation_chance = 0.2;
                 context.evolutionary.diversify_interval = -1; 
-               
+                Timer::instance().clear();
                }
     Context context;
     
@@ -84,6 +85,8 @@ namespace partition {
   TEST_F(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation) {
     context.partition.quiet_mode = true;
     context.evolutionary.time_limit_seconds = 60;
+    context.evolutionary.dynamic_population_size = true;
+    context.evolutionary.dynamic_population_amount_of_time = 0.15;
     context.partition.graph_filename = "../../../../tests/partition/evolutionary/ISPD98_ibm09.hgr";
       Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
@@ -92,13 +95,28 @@ namespace partition {
 
     EvoPartitioner evo_part(context);
     evo_part.generateInitialPopulation(hypergraph,context);
-   
-      Partitioner partitioner;
-      HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-      partitioner.partition(hypergraph, context);
-      HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double> elapsed_seconds = end - start;
-      std::cout << elapsed_seconds.count();
+    ASSERT_EQ(evo_part._population.size(),  std::round(context.evolutionary.dynamic_population_amount_of_time
+                                           * context.evolutionary.time_limit_seconds
+                                           / Timer::instance().evolutionaryResult().evolutionary.at(0))) ;
+      //std::cout << elapsed_seconds.count();
+  }
+  TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
+    context.partition.quiet_mode = true;
+    context.evolutionary.time_limit_seconds = 60;
+    context.evolutionary.dynamic_population_size = true;
+    context.evolutionary.dynamic_population_amount_of_time = 0.15;
+    context.partition.graph_filename = "../../../../tests/partition/evolutionary/ISPD98_ibm09.hgr";
+      Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+
+    EvoPartitioner evo_part(context);
+    evo.partition(hypergraph,context);
+    std::vector<double> times = Timer::instance().evolutionaryResult();
+    ASSERT_GT(times.at(times.size() - 1), context.evolutionary.time_limit_seconds);
+    ASSERT_LT(times.at(times.size() - 2), context.evolutionary.time_limit_seconds);
+      //std::cout << elapsed_seconds.count();
   }
    
 }

@@ -40,23 +40,20 @@ class EvoPartitioner {
 
  public:
   explicit EvoPartitioner(const Context& context) :
-    _globalstart(),
     _timelimit(),
     _population()
     {
-    _globalstart = std::chrono::high_resolution_clock::now();
     _timelimit = context.evolutionary.time_limit_seconds;
   }
 
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
-    measureTime(context);
-    Timer.add();
+    
 
 
     generateInitialPopulation(hg, context);
 
-    while (context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+    while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;
       
       
@@ -83,7 +80,7 @@ class EvoPartitioner {
           std::exit(EXIT_FAILURE);
       }
 
-      measureTime(context);
+      
     }
     hg.reset();
     hg.setPartition(_population.individualAt(_population.best()).partition());
@@ -96,13 +93,19 @@ class EvoPartitioner {
   inline void generateInitialPopulation(Hypergraph& hg, Context& context) {
       //INITIAL POPULATION
     if(context.evolutionary.dynamic_population_size) {
+    
+    
+      HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
       _population.generateIndividual(hg, context); 
+      HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+      Timer::instance().add(context, Timepoint::evolutionary,
+                        std::chrono::duration<double>(end - start).count());
+
       ++context.evolutionary.iteration;
-      measureTime(context);
       io::serializer::serializeEvolutionary(context, hg);
       int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                            * context.evolutionary.time_limit_seconds
-                                           / context.evolutionary.elapsed_seconds_total.count());
+                                           / Timer::instance().evolutionaryResult().total_evolutionary);
       int minimal_size = std::max(dynamic_population_size, 3);
       
       context.evolutionary.population_size = std::min(minimal_size, 50);
@@ -114,10 +117,13 @@ class EvoPartitioner {
     DBG << "EDGE-FREQUENCY-AMOUNT";
     DBG << context.evolutionary.edge_frequency_amount;
     while (_population.size() < context.evolutionary.population_size &&
-      context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+      Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;
+      HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
       _population.generateIndividual(hg, context);
-      measureTime(context);
+      HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+      Timer::instance().add(context, Timepoint::evolutionary,
+                        std::chrono::duration<double>(end - start).count());
       io::serializer::serializeEvolutionary(context, hg);
       //verbose(context, 0);
       DBG << _population;
@@ -236,13 +242,8 @@ class EvoPartitioner {
     LOG << "";
   }
 
-  inline void measureTime(const Context& context) {
-    const HighResClockTimepoint currentTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_seconds_total = currentTime - _globalstart;
-    context.evolutionary.elapsed_seconds_total = elapsed_seconds_total;
-  }
 
-  HighResClockTimepoint _globalstart;
+
   int _timelimit;
   Population _population;
 

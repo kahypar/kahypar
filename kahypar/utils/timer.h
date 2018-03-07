@@ -95,6 +95,7 @@ class Timer {
     double total_postprocessing = 0.0;
     double post_sparsifier_restore = 0.0;
     double total_evolutionary = 0.0;
+    std::vector<double> evolutionary = { };
     std::vector<double> v_cycle_coarsening = { };
     std::vector<double> v_cycle_local_search = { };
     std::vector<BisectionTiming> bisection_coarsening = { };
@@ -125,7 +126,19 @@ class Timer {
     }
     return _result;
   }
-
+  const Result & evolutionaryResult() {
+    _result.total_evolutionary = 0;
+    std::vector<double> time_vector;
+    for (const Timing& timing : _timings) {
+      if(timing.timepoint == Timepoint::evolutionary) {
+        time_vector.emplace_back(timing.time);
+        _result.total_evolutionary += timing.time;
+      }
+      
+    }
+    _result.evolutionary = time_vector;
+    return _result;
+  }
  private:
   Timer() :
     _current_timing(),
