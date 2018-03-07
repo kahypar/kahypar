@@ -93,6 +93,14 @@ class KWayFMRefiner final : public IRefiner,
     initializeGainCache();
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
+                                      std::vector<HypernodeID>&,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph&) override final {
+    LOG << "Currently not implemented!";
+    std::exit(-1);
+  }
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,

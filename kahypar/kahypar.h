@@ -20,6 +20,7 @@
 
 #pragma once
 
+<<<<<<< HEAD
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/coarsening/do_nothing_coarsener.h"
@@ -264,3 +265,10 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_fm_km1,
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar
+=======
+#include "kahypar/partition/registries/register_coarsening_algorithms.h"
+#include "kahypar/partition/registries/register_flow_networks.h"
+#include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
+#include "kahypar/partition/registries/register_policies.h"
+#include "kahypar/partition/registries/register_refinement_algorithms.h"
+>>>>>>> ca8cf4d95206540477637b58ffe0eaf5b7f08538

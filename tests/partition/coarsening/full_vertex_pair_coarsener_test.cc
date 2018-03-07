@@ -26,6 +26,9 @@
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
+using ::testing::AllOf;
+using ::testing::AnyOf;
+
 namespace kahypar {
 using CoarsenerType = FullVertexPairCoarsener<HeavyEdgeScore,
                                               MultiplicativePenalty,
@@ -106,8 +109,14 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
 
   coarsener.coarsen(1);
 
-  ASSERT_THAT(hypergraph.nodeIsEnabled(0), Eq(true));
-  ASSERT_THAT(hypergraph.nodeIsEnabled(1), Eq(false));
+  ASSERT_THAT(true,
+              AnyOf(
+                  AllOf(
+                      hypergraph.nodeIsEnabled(0) == true,
+                      hypergraph.nodeIsEnabled(1) == false),
+                  AllOf(
+                      hypergraph.nodeIsEnabled(0) == false,
+                      hypergraph.nodeIsEnabled(1) == true)));
   ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
 }
 
@@ -129,6 +138,9 @@ TEST(OurCoarsener, DoesNotObscureNaturalClustersInHypergraphs) {
   // http://downloads.hindawi.com/journals/vlsi/2000/019436.pdf
   // page 290. These two nodes should not be contracted.
   ASSERT_TRUE(hypergraph.nodeIsEnabled(5));
-  ASSERT_TRUE(hypergraph.nodeIsEnabled(6) || hypergraph.nodeIsEnabled(7));
+  ASSERT_THAT(true,
+              AnyOf(hypergraph.nodeIsEnabled(6),
+                    hypergraph.nodeIsEnabled(7),
+                    hypergraph.nodeIsEnabled(8)));
 }
 }  // namespace kahypar

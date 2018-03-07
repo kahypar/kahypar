@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -148,127 +148,131 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
                                                                     const int num_columns) {
   po::options_description options("Initial Partitioning Options", num_columns);
   options.add_options()
-      ("i-mode",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_mode) {
-             context.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
-           }),
-       "IP mode: \n"
-       " - (recursive) bisection  \n"
-       " - (direct) k-way")
-      ("i-technique",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_technique) {
-             context.initial_partitioning.technique =
-                 kahypar::inititalPartitioningTechniqueFromString(ip_technique);
-           }),
-       "IP Technique:\n"
-       " - flat\n"
-       " - (multi)level")
-      ("i-algo",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_algo) {
-             context.initial_partitioning.algo =
-                 kahypar::initialPartitioningAlgorithmFromString(ip_algo);
-           }),
-       "Algorithm used to create initial partition: pool ")
-      ("i-c-type",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_ctype) {
-             context.initial_partitioning.coarsening.algorithm =
-                 kahypar::coarseningAlgorithmFromString(ip_ctype);
-           }),
-       "IP Coarsening Algorithm:\n"
-       " - ml_style\n"
-       " - heavy_full\n"
-       " - heavy_lazy")
-      ("i-c-s",
-       po::value<double>(&context.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
-       "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
-       "(i-c-s * w(H)) / (i-c-t * k)")
-      ("i-c-t",
-       po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
-       "IP coarsening stops when there are no more than i-c-t * k hypernodes left")
-      ("i-c-rating-score",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& rating_score) {
-             context.initial_partitioning.coarsening.rating.rating_function =
-                 kahypar::ratingFunctionFromString(rating_score);
-           }),
-       "Rating function used to calculate scores for vertex pairs:\n"
-       "heavy_edge "
-       "edge_frequency")
-      ("i-c-rating-use-communities",
-       po::value<bool>()->value_name("<bool>")->notifier(
-           [&](bool use_communities) {
-             if (use_communities) {
-               context.initial_partitioning.coarsening.rating.community_policy =
-                   CommunityPolicy::use_communities;
-             } else {
-               context.initial_partitioning.coarsening.rating.community_policy =
-                   CommunityPolicy::ignore_communities;
-             }
-           }),
-       "Use community information during rating. If c-rating-use-communities=true ,\n"
-       "only neighbors belonging to the same community will be considered as contraction partner.")
-      ("i-c-rating-heavy_node_penalty",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& penalty) {
-             context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy =
-                 kahypar::heavyNodePenaltyFromString(penalty);
-           }),
-       "Penalty function to discourage heavy vertices:\n"
-       "multiplicative "
-       "no_penalty")
-      ("i-c-rating-acceptance-criterion",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& crit) {
-             context.initial_partitioning.coarsening.rating.acceptance_policy =
-                 kahypar::acceptanceCriterionFromString(crit);
-           }),
-       "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-       "random"
-       "prefer_unmatched")
-      ("i-runs",
-       po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
-       "# initial partition trials")
-      ("i-r-type",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_rtype) {
-             context.initial_partitioning.local_search.algorithm =
-                 kahypar::refinementAlgorithmFromString(ip_rtype);
-           }),
-       "IP Local Search Algorithm:\n"
-       " - twoway_fm   : 2-way FM algorithm\n"
-       " - kway_fm     : k-way FM algorithm\n"
-       " - kway_fm_km1 : k-way FM algorithm optimizing km1 metric\n"
-       " - sclap       : Size-constrained Label Propagation")
-      ("i-r-fm-stop",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& ip_stopfm) {
-             context.initial_partitioning.local_search.fm.stopping_rule =
-                 kahypar::stoppingRuleFromString(ip_stopfm);
-           }),
-       "Stopping Rule for IP Local Search: \n"
-       " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-       " - simple:       ALENEX'16 threshold based on i-r-i")
-      ("i-r-fm-stop-i",
-       po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-       "Max. # fruitless moves before stopping local search")
-      ("i-r-fm-stop-alpha",
-       po::value<double>(&context.initial_partitioning.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
-       "Parameter alpha for adaptive stopping rule \n"
-       "(infinity: -1)")
-      ("i-r-runs",
-       po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
-           [&](const int) {
-             if (context.initial_partitioning.local_search.iterations_per_level == -1) {
-               context.initial_partitioning.local_search.iterations_per_level =
-                   std::numeric_limits<int>::max();
-             }
-           }),
-       "Max. # local search repetitions on each level \n"
-       "(no limit:-1)");
+    ("i-mode",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_mode) {
+      context.initial_partitioning.mode = kahypar::modeFromString(ip_mode);
+    }),
+    "IP mode: \n"
+    " - (recursive) bisection  \n"
+    " - (direct) k-way")
+    ("i-technique",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_technique) {
+      context.initial_partitioning.technique =
+        kahypar::inititalPartitioningTechniqueFromString(ip_technique);
+    }),
+    "IP Technique:\n"
+    " - flat\n"
+    " - (multi)level")
+    ("i-algo",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_algo) {
+      context.initial_partitioning.algo =
+        kahypar::initialPartitioningAlgorithmFromString(ip_algo);
+    }),
+    "Algorithm used to create initial partition: pool ")
+    ("i-c-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_ctype) {
+      context.initial_partitioning.coarsening.algorithm =
+        kahypar::coarseningAlgorithmFromString(ip_ctype);
+    }),
+    "IP Coarsening Algorithm:\n"
+    " - ml_style\n"
+    " - heavy_full\n"
+    " - heavy_lazy")
+    ("i-c-s",
+    po::value<double>(&context.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
+    "(i-c-s * w(H)) / (i-c-t * k)")
+    ("i-c-t",
+    po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    "IP coarsening stops when there are no more than i-c-t * k hypernodes left")
+    ("i-c-rating-score",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& rating_score) {
+      context.initial_partitioning.coarsening.rating.rating_function =
+        kahypar::ratingFunctionFromString(rating_score);
+    }),
+    "Rating function used to calculate scores for vertex pairs:\n"
+    "heavy_edge "
+    "edge_frequency")
+    ("i-c-rating-use-communities",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](bool use_communities) {
+      if (use_communities) {
+        context.initial_partitioning.coarsening.rating.community_policy =
+          CommunityPolicy::use_communities;
+      } else {
+        context.initial_partitioning.coarsening.rating.community_policy =
+          CommunityPolicy::ignore_communities;
+      }
+    }),
+    "Use community information during rating. If c-rating-use-communities=true ,\n"
+    "only neighbors belonging to the same community will be considered as contraction partner.")
+    ("i-c-rating-heavy_node_penalty",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& penalty) {
+      context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy =
+        kahypar::heavyNodePenaltyFromString(penalty);
+    }),
+    "Penalty function to discourage heavy vertices:\n"
+    "multiplicative "
+    "no_penalty")
+    ("i-c-rating-acceptance-criterion",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& crit) {
+      context.initial_partitioning.coarsening.rating.acceptance_policy =
+        kahypar::acceptanceCriterionFromString(crit);
+    }),
+    "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
+    "random"
+    "prefer_unmatched")
+    ("i-runs",
+    po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
+    "# initial partition trials")
+    ("i-r-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_rtype) {
+      context.initial_partitioning.local_search.algorithm =
+        kahypar::refinementAlgorithmFromString(ip_rtype);
+    }),
+    "Local Search Algorithm:\n"
+    " - twoway_fm      : 2-way FM algorithm\n"
+    " - kway_fm        : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
+    " - sclap          : Size-constrained Label Propagation\n"
+    " - twoway_flow    : 2-way Flow algorithm\n"
+    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
+    " - kway_flow      : k-way Flow algorithm\n"
+    " - kway_fm_flow   : k-way FM + Flow algorithm")
+    ("i-r-fm-stop",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_stopfm) {
+      context.initial_partitioning.local_search.fm.stopping_rule =
+        kahypar::stoppingRuleFromString(ip_stopfm);
+    }),
+    "Stopping Rule for IP Local Search: \n"
+    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
+    " - simple:       ALENEX'16 threshold based on i-r-i")
+    ("i-r-fm-stop-i",
+    po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
+    "Max. # fruitless moves before stopping local search")
+    ("i-r-fm-stop-alpha",
+    po::value<double>(&context.initial_partitioning.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
+    "Parameter alpha for adaptive stopping rule \n"
+    "(infinity: -1)")
+    ("i-r-runs",
+    po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
+      [&](const int) {
+      if (context.initial_partitioning.local_search.iterations_per_level == -1) {
+        context.initial_partitioning.local_search.iterations_per_level =
+          std::numeric_limits<int>::max();
+      }
+    }),
+    "Max. # local search repetitions on each level \n"
+    "(no limit:-1)");
   return options;
 }
 
@@ -330,44 +334,104 @@ po::options_description createRefinementOptionsDescription(Context& context,
                                                            const int num_columns) {
   po::options_description options("Refinement Options", num_columns);
   options.add_options()
-      ("r-type",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& rtype) {
-             context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
-           }),
-       "Local Search Algorithm:\n"
-       " - twoway_fm   : 2-way FM algorithm\n"
-       " - kway_fm     : k-way FM algorithm (cut) \n"
-       " - kway_fm_km1 : k-way FM algorithm (km1)\n"
-       " - sclap       : Size-constrained Label Propagation")
-      ("r-runs",
-       po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
-           [&](const int) {
-             if (context.local_search.iterations_per_level == -1) {
-               context.local_search.iterations_per_level = std::numeric_limits<int>::max();
-             }
-           }),
-       "Max. # local search repetitions on each level\n"
-       "(no limit:-1)")
-      ("r-sclap-runs",
-       po::value<int>(&context.local_search.sclap.max_number_iterations)->value_name("<int>"),
-       "Maximum # iterations for ScLaP-based refinement \n"
-       "(no limit: -1)")
-      ("r-fm-stop",
-       po::value<std::string>()->value_name("<string>")->notifier(
-           [&](const std::string& stopfm) {
-             context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
-           }),
-       "Stopping Rule for Local Search: \n"
-       " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-       " - simple:       ALENEX'16 threshold based on r-fm-stop-i")
-      ("r-fm-stop-i",
-       po::value<uint32_t>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-       "Max. # fruitless moves before stopping local search using simple stopping rule")
-      ("r-fm-stop-alpha",
-       po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
-       "Parameter alpha for adaptive stopping rule \n"
-       "(infinity: -1)");
+    ("r-type",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& rtype) {
+      context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
+    }),
+    "Local Search Algorithm:\n"
+    " - twoway_fm      : 2-way FM algorithm\n"
+    " - kway_fm        : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
+    " - sclap          : Size-constrained Label Propagation\n"
+    " - twoway_flow    : 2-way Flow algorithm\n"
+    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
+    " - kway_flow      : k-way Flow algorithm\n"
+    " - kway_fm_flow   : k-way FM + Flow algorithm")
+    ("r-runs",
+    po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
+      [&](const int) {
+      if (context.local_search.iterations_per_level == -1) {
+        context.local_search.iterations_per_level = std::numeric_limits<int>::max();
+      }
+    }),
+    "Max. # local search repetitions on each level\n"
+    "(no limit:-1)")
+    ("r-sclap-runs",
+    po::value<int>(&context.local_search.sclap.max_number_iterations)->value_name("<int>"),
+    "Maximum # iterations for ScLaP-based refinement \n"
+    "(no limit: -1)")
+    ("r-fm-stop",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& stopfm) {
+      context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
+    }),
+    "Stopping Rule for Local Search: \n"
+    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
+    " - simple:       ALENEX'16 threshold based on r-fm-stop-i")
+    ("r-fm-stop-i",
+    po::value<uint32_t>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
+    "Max. # fruitless moves before stopping local search using simple stopping rule")
+    ("r-fm-stop-alpha",
+    po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
+    "Parameter alpha for adaptive stopping rule \n"
+    "(infinity: -1)")
+    ("r-flow-algorithm",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ftype) {
+      context.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
+    }),
+    "Flow Algorithms:\n"
+    " - edmond_karp       : Edmond-Karp Max-Flow algorithm\n"
+    " - goldberg_tarjan   : GoldbergTarjan Max-Flow algorithm\n"
+    " - boykov_kolmogorov : Boykov-Kolmogorov Max-Flow algorithm\n"
+    " - ibfs              : IBFS Max-Flow algorithm\n"
+    "(default: ibfs)")
+    ("r-flow-network",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& type) {
+      context.local_search.flow.network = kahypar::flowNetworkFromString(type);
+    }),
+    "Flow Networks:\n"
+    " - lawler : Lawler Network\n"
+    " - heuer  : Heuer Network (Removes all hypernodes with d(v) <= 3)\n"
+    " - wong   : Wong Network (Model each HE with |e| = 2 as graph edge)\n"
+    " - hybrid : Hybrid Network (Combination of Heuer + Wong Network)\n"
+    "(default: hybrid)")
+    ("r-flow-execution-policy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ftype) {
+      context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+    }),
+    "Flow Execution Modes:\n"
+    " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
+    " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
+    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
+    "(default: exponential)")
+    ("r-flow-alpha",
+    po::value<double>(&context.local_search.flow.alpha)->value_name("<double>"),
+    "Determine maximum size of a flow problem during adaptive flow iterations (epsilon' = alpha * epsilon) \n"
+    "(default: 16.0)")
+    ("r-flow-beta",
+    po::value<size_t>(&context.local_search.flow.beta)->value_name("<size_t>"),
+    "Beta of CONSTANT flow execution policy \n"
+    "(default: 128)")
+    ("r-flow-use-most-balanced-minimum-cut",
+    po::value<bool>(&context.local_search.flow.use_most_balanced_minimum_cut)->value_name("<bool>"),
+    "Heuristic to balance a min-cut bipartition after a maximum flow computation \n"
+    "(default: true)")
+    ("r-flow-use-adaptive-alpha-stopping-rule",
+    po::value<bool>(&context.local_search.flow.use_adaptive_alpha_stopping_rule)->value_name("<bool>"),
+    "Stop adaptive flow iterations, when cut equal to old cut \n"
+    "(default: true)")
+    ("r-flow-ignore-small-hyperedge-cut",
+    po::value<bool>(&context.local_search.flow.ignore_small_hyperedge_cut)->value_name("<bool>"),
+    "If cut is small between two blocks, don't use flow refinement \n"
+    "(default: true)")
+    ("r-flow-use-improvement-history",
+    po::value<bool>(&context.local_search.flow.use_improvement_history)->value_name("<bool>"),
+    "Decides if flow-based refinement is used between two adjacent blocks based on improvement history of the corresponding blocks \n"
+    "(default: true)");
   return options;
 }
 

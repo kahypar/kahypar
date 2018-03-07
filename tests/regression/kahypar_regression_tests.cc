@@ -24,10 +24,10 @@
 
 #include "gmock/gmock.h"
 
+#include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/kahypar.h"
-#include "kahypar/application/command_line_options.h"
 #include "tests/end_to_end/kahypar_test_fixtures.h"
 
 namespace kahypar {

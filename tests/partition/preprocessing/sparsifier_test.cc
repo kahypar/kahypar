@@ -25,7 +25,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 
-using::testing::Eq;
+using ::testing::Eq;
 
 namespace kahypar {
 TEST(TheLSHSparsifier, HandlesWeightedNodesAndEdges) {

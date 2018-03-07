@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 
 namespace kahypar {
@@ -44,11 +45,5 @@ class DoNothingRefiner final : public IRefiner {
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics&) override final { return false; }
-
-  void initializeImpl(const HyperedgeWeight) override final {
-    _is_initialized = true;
-  }
-
-  using IRefiner::_is_initialized;
 };
 }  // namespace kahypar

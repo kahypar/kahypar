@@ -27,7 +27,9 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/meta/abstract_factory.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 
 namespace kahypar {
@@ -54,6 +56,18 @@ class IRefiner {
 
   virtual ~IRefiner() = default;
 
+  void performMovesAndUpdateCache(const std::vector<Move>& moves,
+                                  std::vector<HypernodeID>& refinement_nodes,
+                                  const UncontractionGainChanges& uncontraction_changes,
+                                  Hypergraph& hypergraph) {
+    performMovesAndUpdateCacheImpl(moves, refinement_nodes,
+                                   uncontraction_changes, hypergraph);
+  }
+
+  std::vector<Move> rollbackPartition() {
+    return rollbackImpl();
+  }
+
  protected:
   IRefiner() = default;
   bool _is_initialized = false;
@@ -64,6 +78,16 @@ class IRefiner {
                           const UncontractionGainChanges& uncontraction_changes,
                           Metrics& best_metrics) = 0;
 
-  virtual void initializeImpl(const HyperedgeWeight) = 0;
+  virtual void initializeImpl(const HyperedgeWeight) { _is_initialized = true; }
+
+  virtual void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
+                                              std::vector<HypernodeID>&,
+                                              const UncontractionGainChanges&,
+                                              Hypergraph&) { }
+
+  virtual std::vector<Move> rollbackImpl() { return std::vector<Move>(); }
 };
+
+using RefinerFactory = meta::Factory<RefinementAlgorithm,
+                                     IRefiner* (*)(Hypergraph&, const Context&)>;
 }  // namespace kahypar

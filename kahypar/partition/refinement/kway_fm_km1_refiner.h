@@ -104,6 +104,29 @@ class KWayKMinusOneRefiner final : public IRefiner,
     initializeGainCache();
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                      std::vector<HypernodeID>& refinement_nodes,
+                                      const UncontractionGainChanges&,
+                                      Hypergraph& hypergraph)  override final {
+    _unremovable_he_parts.reset();
+    reset();
+    for (const HypernodeID& hn : refinement_nodes) {
+      _gain_cache.clear(hn);
+      initializeGainCacheFor(hn);
+    }
+    for (const auto& move : moves) {
+      if (!_gain_cache.entryExists(move.hn, move.to)) {
+        _gain_cache.initializeEntry(move.hn, move.to, gainInducedByHypergraph(move.hn, move.to));
+      }
+      hypergraph.changeNodePart(move.hn, move.from, move.to);
+      hypergraph.activate(move.hn);
+      hypergraph.mark(move.hn);
+      updateNeighboursGainCacheOnly(move.hn, move.from, move.to);
+    }
+    _gain_cache.resetDelta();
+    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+  }
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
@@ -122,7 +145,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
     for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
     }
-
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const double initial_imbalance = best_metrics.imbalance;
@@ -416,6 +438,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // 2.) Removal of new non-border HNs
   // 3.) Connectivity update
   // 4.) Delta-Gain Update
+  template <bool only_update_cache = false>
   void fullUpdate(const HypernodeID moved_hn, const PartitionID from_part,
                   const PartitionID to_part, const HyperedgeID he) {
     ONLYDEBUG(moved_hn);
@@ -432,7 +455,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     for (const HypernodeID& pin : _hg.pins(he)) {
       // LOG << V(pin) << V(_hg.active(pin)) << V(_hg.isBorderNode(pin));
-      if (!_hg.marked(pin)) {
+      if (!only_update_cache && !_hg.marked(pin)) {
         ASSERT(pin != moved_hn, V(pin));
         if (!_hg.active(pin)) {
           if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
@@ -465,6 +488,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
 
   // UR -> R and R -> UR
+  template <bool only_update_cache = false>
   void updateForHEwithUnequalPartState(const HypernodeID moved_hn,
                                        const PartitionID from_part,
                                        const PartitionID to_part,
@@ -483,9 +507,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     if (move_decreased_connectivity || move_increased_connectivity) {
       for (const HypernodeID& pin : _hg.pins(he)) {
-        if (!_hg.marked(pin)) {
+        if (!only_update_cache && !_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
-          if (move_decreased_connectivity && !_hg.isBorderNode(pin) && _hg.active(pin)) {
+          if (move_decreased_connectivity && !_hg.isBorderNode(pin) &&
+              _hg.active(pin)) {
             removeHypernodeMovementsFromPQ(pin);
           } else if (move_increased_connectivity && !_hg.active(pin)) {
             if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
@@ -590,6 +615,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
             !_unremovable_he_parts[static_cast<size_t>(he) * _context.partition.k + to_part]);
   }
 
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updateNeighboursGainCacheOnly(const HypernodeID moved_hn,
+                                                                     const PartitionID from_part,
+                                                                     const PartitionID to_part) {
+    updateNeighbours<true>(moved_hn, from_part, to_part);
+  }
+
+  template <bool only_update_cache = false>
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part) {
     _new_adjacent_part.resetUsedEntries();
@@ -618,9 +650,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
       if (fromAndToPartAreUnremovable(he, from_part, to_part)) {
         updateForHEwithUnremovableFromAndToPart(moved_hn, from_part, to_part, he);
       } else if (fromAndToPartHaveUnequalStates(he, from_part, to_part)) {
-        updateForHEwithUnequalPartState(moved_hn, from_part, to_part, he);
+        updateForHEwithUnequalPartState<only_update_cache>(moved_hn, from_part, to_part, he);
       } else {
-        fullUpdate(moved_hn, from_part, to_part, he);
+        fullUpdate<only_update_cache>(moved_hn, from_part, to_part, he);
       }
       _unremovable_he_parts.set(static_cast<size_t>(he) * _context.partition.k + to_part, 1);
 
@@ -654,6 +686,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     _hns_to_activate.clear();
 
     ASSERT([&]() {
+        if (only_update_cache) { return true; }
         // This lambda checks verifies the internal state of KFM for all pins that could
         // have been touched during updateNeighbours.
         for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {

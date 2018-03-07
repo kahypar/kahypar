@@ -41,6 +41,7 @@
 #include "kahypar/partition/refinement/2way_fm_gain_cache.h"
 #include "kahypar/partition/refinement/fm_refiner_base.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/float_compare.h"
 #include "kahypar/utils/randomize.h"
@@ -144,6 +145,43 @@ class TwoWayFMRefiner final : public IRefiner,
     }
   }
 
+  void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
+                                      std::vector<HypernodeID>& refinement_nodes,
+                                      const UncontractionGainChanges& uncontraction_changes,
+                                      Hypergraph& hypergraph) {
+    updateGainCacheAfterUncontraction(refinement_nodes, uncontraction_changes);
+    for (const auto& move : moves) {
+      hypergraph.changeNodePart(move.hn, move.from, move.to);
+      const Gain temp = _gain_cache.value(move.hn);
+      ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
+      _gain_cache.setNotCached(move.hn);
+      for (const HyperedgeID& he : hypergraph.incidentEdges(move.hn)) {
+        deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
+      }
+      _gain_cache.setValue(move.hn, -temp);
+    }
+    _gain_cache.resetDelta();
+    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+  }
+  
+  std::vector<Move> rollbackImpl() {
+    return std::vector<Move>();
+  }
+
+  void updateGainCacheAfterUncontraction(std::vector<HypernodeID>& refinement_nodes,
+                                         const UncontractionGainChanges& changes) {
+    // Will always be the case in the first FM pass, since the just uncontracted HN
+    // was not seen before.
+    ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
+    ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
+    if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
+      // In further FM passes, changes will be set to 0 by the caller.
+      _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
+                           + changes.contraction_partner[0]);
+      _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
+    }
+  }
+
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
@@ -158,16 +196,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
 
-    // Will always be the case in the first FM pass, since the just uncontracted HN
-    // was not seen before.
-    ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
-    ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
-    if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
-      // In further FM passes, changes will be set to 0 by the caller.
-      _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
-                           + changes.contraction_partner[0]);
-      _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
-    }
+    updateGainCacheAfterUncontraction(refinement_nodes, changes);
 
     Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
@@ -194,8 +223,8 @@ class TwoWayFMRefiner final : public IRefiner,
 
     const double beta = log(_hg.currentNumNodes());
     while (!_pq.empty() &&
-           !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
-                                              _context, beta, best_metrics.cut, current_cut)) {
+           (!_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
+                                               _context, beta, best_metrics.cut, current_cut))) {
       ASSERT(_pq.isEnabled(0) || _pq.isEnabled(1));
 
       Gain max_gain = kInvalidGain;
@@ -256,6 +285,7 @@ class TwoWayFMRefiner final : public IRefiner,
         DBGC(current_cut < best_metrics.cut) << "2WayFM improved cut from" << best_metrics.cut
                                              << "to" << current_cut;
         best_metrics.cut = current_cut;
+        best_metrics.km1 = current_cut;
         best_metrics.imbalance = current_imbalance;
         _stopping_policy.resetStatistics();
         min_cut_index = _performed_moves.size() - 1;
@@ -583,11 +613,11 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     const PartitionID target_part = 1 - _hg.partID(pin);
+    ASSERT(_gain_cache.isCached(pin), V(pin));
+    ASSERT(gain_delta != 0, V(gain_delta));
     ASSERT(_hg.active(pin), V(pin) << V(target_part));
     ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
-    ASSERT(gain_delta != 0, V(gain_delta));
     ASSERT(!_hg.marked(pin));
-    ASSERT(_gain_cache.isCached(pin), V(pin));
 
     DBG << "TwoWayFM updating gain of HN" << pin
         << "from gain" << _pq.key(pin, target_part) << "to "

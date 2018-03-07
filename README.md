@@ -1,9 +1,9 @@
 <h1 align="center">KaHyPar - Karlsruhe Hypergraph Partitioning</h1>
 
 
-License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarQube|Fossa
+License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarCloud|Fossa
 :--:|:--:|:--:|:--:|:--:|:--:|:--:
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarqube.com/api/badges/gate?key=KaHyPar)](https://sonarqube.com/dashboard/index/KaHyPar)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)
 
 What is a Hypergraph? What is Hypergraph Partitioning?
 -----------
@@ -43,7 +43,7 @@ corresponding cut produced by the algorithm on a per-instance basis. For each al
 these ratios are sorted in increasing order. The plots use a cube root scale for both axes
 to reduce right skewness and show 1 − (best/algorithm) on the y-axis to highlight the
 instances were each partitioner performs badly. A point close to one indicates that the
-<img src="https://cloud.githubusercontent.com/assets/484403/26682208/eb1ee650-46df-11e7-97f9-42d884dd792c.png" alt="alt text" width="50%" height="50%" align="right">
+<img src="https://user-images.githubusercontent.com/484403/36319808-6a679886-1344-11e8-86da-d69e53902a6b.png" alt="alt text" width="60%" height="60%" align="right">
 partition produced by the corresponding algorithm was considerably worse than the partition
 produced by the best algorithm. A value of zero therefore indicates that the corresponding
 algorithm produced the best solution. Points above one correspond to infeasible solutions
@@ -55,10 +55,10 @@ algorithm if its corresponding ratio values are below those of the other algorit
 the website accompanying each publication.
 
 #### Additional Resources
-
-|KaHyPar-CA (latest version of KaHyPar)|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-MF (latest version of KaHyPar)| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
 |:--|:--:|:--:|:--:|
-|KaHyPar-K (referred to as KaHyPar in the picture above)|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
+|KaHyPar-CA|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-K|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
 
 Requirements:
@@ -95,21 +95,24 @@ The binary is located at: `build/kahypar/application/`.
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
-Currently we provide three different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17],
-and [SEA'17][SEA'17].
+Currently we provide four different presets that correspond to the configurations used in the publications at
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and in the [technical report](https://arxiv.org/abs/1802.03587) about KaHyPar-MF.
 
-To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
+To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rb_alenex16.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea18.ini
+
+To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
     
 To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity - 1) objective run:   
   
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_alenex17.ini
 
-To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
+To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rb_alenex16.ini
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
@@ -164,8 +167,32 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      pages     = {21:1--21:19},
      year      = {2017},
     }
+    
+    // KaHyPar-MF
+    @misc{1802.03587,
+     author = {{Heuer, T. and Sanders, P. and Schlag, S.}},
+     title = {{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
+     year = {2018},
+     Eprint = {1802.03587},
+    }
 
 A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
+
+KaHyPar-MF integrates implementations of the BK and incremental breadth first search (IBFS) maximum flow algorithm into the framework (see [/external_tools/maximum_flow/](/external_tools/maximum_flow/)). The BK algorithm has been described in
+
+  	"An Experimental Comparison of Min-Cut/Max-Flow Algorithms for Energy Minimization in Vision."
+	    Yuri Boykov and Vladimir Kolmogorov.
+	    In IEEE Transactions on Pattern Analysis and Machine Intelligence (PAMI), September 2004.
+     
+The IBFS algorithm **can be used for research purposes only** and is described in 
+
+   	"Faster and More Dynamic Maximum Flow by Incremental Breadth-First Search"
+	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Pushmeet Kohli, Robert E. Tarjan, and Renato F. Werneck
+	    In Proceedings of the 23rd European conference on Algorithms, ESA'15, 2015
+     
+     "Maximum flows by incremental breadth-first search"
+	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Robert E. Tarjan, and Renato F. Werneck.
+	    In Proceedings of the 19th European conference on Algorithms, ESA'11, 2011.
 
 Contributing:
 ------------
@@ -186,4 +213,5 @@ feel free to contact me or create an issue on the
 [ALENEX'16bench]: http://dx.doi.org/10.5281/zenodo.30176
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
+[SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition

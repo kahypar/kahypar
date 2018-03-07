@@ -275,6 +275,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
           << ")        =" << timing.time << "s";
     }
   }
+
   if (context.partition.global_search_iterations > 0) {
     LOG << "  + V-Cycle Coarsening             =" << timings.total_v_cycle_coarsening << "s";
     int i = 1;
