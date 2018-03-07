@@ -22,7 +22,7 @@
 namespace kahypar {
 namespace partition {
 static void diversify(Context& context) {
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
   DBG << "diversify";
   context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
   context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);

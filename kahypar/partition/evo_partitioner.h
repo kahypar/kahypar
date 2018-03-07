@@ -30,6 +30,7 @@
 #include "kahypar/partition/evolutionary/mutate.h"
 #include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/partition/evolutionary/probability_tables.h"
+#include "gtest/gtest_prod.h"
 
 namespace kahypar {
 namespace partition {
@@ -50,37 +51,10 @@ class EvoPartitioner {
   inline void evo_partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
     measureTime(context);
-    //INITIAL POPULATION
-    if(context.evolutionary.dynamic_population_size) {
-      _population.generateIndividual(hg, context); 
-      ++context.evolutionary.iteration;
-      measureTime(context);
-      io::serializer::serializeEvolutionary(context, hg);
-      int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
-                                           * context.evolutionary.time_limit_seconds
-                                           / context.evolutionary.elapsed_seconds_total.count());
-      int minimal_size = std::max(dynamic_population_size, 3);
-      
-      context.evolutionary.population_size = std::min(minimal_size, 50);
-      DBG << context.evolutionary.population_size;
-      DBG << _population;
-    }
-    //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
-    context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
-    DBG << "EDGE-FREQUENCY-AMOUNT";
-    DBG << context.evolutionary.edge_frequency_amount;
-    while (_population.size() < context.evolutionary.population_size &&
-      context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
-      ++context.evolutionary.iteration;
-      _population.generateIndividual(hg, context);
-      measureTime(context);
-      io::serializer::serializeEvolutionary(context, hg);
-      //verbose(context, 0);
-      DBG << _population;
-      
-    }
+    Timer.add();
 
-    //START EVOLUTIONARY
+
+    generateInitialPopulation(hg, context);
 
     while (context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
       ++context.evolutionary.iteration;
@@ -116,6 +90,42 @@ class EvoPartitioner {
   }
 
  private:
+ FRIEND_TEST(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation);
+  FRIEND_TEST(TheEvoPartitioner, RespectsLimitsOfTheInitialPopulation);
+  FRIEND_TEST(TheEvoPartitioner, IsCorrectlyDecidingTheActions);
+  inline void generateInitialPopulation(Hypergraph& hg, Context& context) {
+      //INITIAL POPULATION
+    if(context.evolutionary.dynamic_population_size) {
+      _population.generateIndividual(hg, context); 
+      ++context.evolutionary.iteration;
+      measureTime(context);
+      io::serializer::serializeEvolutionary(context, hg);
+      int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
+                                           * context.evolutionary.time_limit_seconds
+                                           / context.evolutionary.elapsed_seconds_total.count());
+      int minimal_size = std::max(dynamic_population_size, 3);
+      
+      context.evolutionary.population_size = std::min(minimal_size, 50);
+      DBG << context.evolutionary.population_size;
+      DBG << _population;
+    }
+    //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
+    context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
+    DBG << "EDGE-FREQUENCY-AMOUNT";
+    DBG << context.evolutionary.edge_frequency_amount;
+    while (_population.size() < context.evolutionary.population_size &&
+      context.evolutionary.elapsed_seconds_total.count() <= _timelimit) {
+      ++context.evolutionary.iteration;
+      _population.generateIndividual(hg, context);
+      measureTime(context);
+      io::serializer::serializeEvolutionary(context, hg);
+      //verbose(context, 0);
+      DBG << _population;
+      
+    }
+  }
+  
+  
   inline EvoDecision decideNextMove(const Context& context) {
     /*if (context.evolutionary.diversify_interval != -1 &&
         context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
@@ -140,7 +150,7 @@ class EvoPartitioner {
         //verbose(context, insert_position);
         break;
         }
-      case EvoCombineStrategy::with_edge_frequency_information: {
+      /*case EvoCombineStrategy::with_edge_frequency_information: {
         //size_t insert_position =
         _population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
                                                                              context,
@@ -148,7 +158,7 @@ class EvoPartitioner {
                            context);
         //verbose(context, insert_position);      
         break;
-        }
+        }*/
       case EvoCombineStrategy::edge_frequency: {
         //size_t insert_position =
         _population.insert(combine::edgeFrequency(hg, context, _population), context);
@@ -196,7 +206,6 @@ class EvoPartitioner {
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
-  inline void diversify();
   inline void verbose(const Context& context, size_t position) {
     io::printPopulationBanner(context);
     //LOG << _population.individualAt(_population.worst()).fitness();

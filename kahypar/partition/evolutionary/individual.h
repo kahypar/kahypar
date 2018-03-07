@@ -55,7 +55,7 @@ class Individual {
     _strong_cut_edges(),
     _fitness(std::numeric_limits<HyperedgeWeight>::max()) { }
 
-  explicit Individual(const Hypergraph& hypergraph) :
+  explicit Individual(const Hypergraph& hypergraph, const Context& context) :
     _partition(),
     _cut_edges(),
     _strong_cut_edges(),
@@ -63,7 +63,8 @@ class Individual {
     for (const HypernodeID& hn : hypergraph.nodes()) {
       _partition.push_back(hypergraph.partID(hn));
     }
-    _fitness = metrics::km1(hypergraph);
+
+    _fitness = metrics::correctMetric(hypergraph, context);
 
     for (const HyperedgeID& he : hypergraph.edges()) {
       if (hypergraph.connectivity(he) > 1) {

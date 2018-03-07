@@ -96,7 +96,7 @@ class Population {
     Partitioner partitioner;
     hg.reset();
     partitioner.partition(hg, context);
-    _individuals.emplace_back(Individual(hg));
+    _individuals.emplace_back(Individual(hg, context));
     if (_individuals.size() > context.evolutionary.population_size) {
       std::cout << "Error, tried to fill Population above limit" << std::endl;
       std::exit(1);
@@ -236,11 +236,7 @@ class Population {
 
 
   inline size_t replaceDiverse(Individual&& individual, const bool strong_set) {
-    // TODO fix, that these can be inserted
 
-    /*if(size() < _maxPopulationLimit) {
-      _internalPopulation.push_back(in);
-    }*/
     size_t max_similarity = std::numeric_limits<size_t>::max();
     size_t max_similarity_id = 0;
     if (individual.fitness() > individualAt(worst()).fitness()) {

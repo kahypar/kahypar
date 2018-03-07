@@ -20,14 +20,14 @@
 #pragma once
 
 #include <vector>
-
+#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/partitioner.h"
 
 namespace kahypar {
 namespace partition {
 namespace mutate {
-static constexpr bool debug = false;
+static constexpr bool debug = true;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
@@ -45,7 +45,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
-  return Individual(hg);
+  return Individual(hg, context);
 }
 
 Individual vCycle(Hypergraph& hg, const Individual& in,
@@ -64,7 +64,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
-  return Individual(hg);
+  return Individual(hg, context);
 }
 
 

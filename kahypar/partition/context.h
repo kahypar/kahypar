@@ -311,32 +311,28 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
 }
 struct EvolutionaryParameters {
   int time_limit_seconds = 5 * 60 * 60;
+  HighResClockTimepoint start_time = std::chrono::high_resolution_clock::now();
   size_t population_size = 10;
   float mutation_chance = 0.5;
+  float edge_frequency_chance = 0.5;
   EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
   mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
   mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-  bool log_output = false;
-  std::string filename = "";
   int diversify_interval = -1;  // -1 disables diversification
   double gamma = 0.5;
   size_t edge_frequency_amount = 3;
-
-  const std::vector<PartitionID>* parent1 = nullptr;
-  const std::vector<PartitionID>* parent2 = nullptr;
   bool dynamic_population_size = true;
   float dynamic_population_amount_of_time = 0.15;
   bool random_combine_strategy = false;
-  bool log_everything = false;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
-  HighResClockTimepoint start_time = std::chrono::high_resolution_clock::now();
-  mutable std::vector<size_t> edge_frequency;
   mutable Action action;
+  const std::vector<PartitionID>* parent1 = nullptr;
+  const std::vector<PartitionID>* parent2 = nullptr;
+  mutable std::vector<size_t> edge_frequency;
   mutable std::vector<ClusterID> communities;
   bool unlimited_coarsening_contraction = true;
   bool random_vcycles = false;
-  float edge_frequency_chance = 0.5;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
@@ -344,6 +340,7 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
   str << "  Population Size:                    " << params.population_size << std::endl;
   str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
+  str << "  Edge Frequency Chance               " << params.edge_frequency_chance << std::endl;
   str << "  Replace Strategy                    " << params.replace_strategy << std::endl;
   str << "  Combine Strategy                    " << params.combine_strategy << std::endl;
   str << "  Mutation Strategy                   " << params.mutate_strategy << std::endl;

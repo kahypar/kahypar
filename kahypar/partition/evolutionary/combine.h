@@ -64,8 +64,8 @@ Individual partitions(Hypergraph& hg,
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
   io::printEvolutionaryInformation(context);
-  Individual indi = Individual(hg);
-  return Individual(hg);
+  //Individual indi = Individual(hg);
+  return Individual(hg, context);
 }
 
 
@@ -108,10 +108,10 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
-  return Individual(hg);
+  return Individual(hg, context);
 }
 
-Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
+/*Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
                                                     const Context& context,
                                                     const Population& population) {
   Context temporary_context(context);
@@ -134,10 +134,8 @@ Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
 
   DBG << V(temporary_context.evolutionary.action.decision());
   return combine::partitions(hg, parents, temporary_context);
-}
+}*/
 
-
-// TODO(andre) is this even viable?
 
 }  // namespace combine
 }  // namespace kahypar

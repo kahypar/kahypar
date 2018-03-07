@@ -433,24 +433,12 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "The Frequency in which diversfication should be performed\n"
     "(default: -1)(-1 disables)")
-    ("log-output",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](const bool& log_output) {
-      context.evolutionary.log_output = log_output;
-    }),
-    "Option to toggle evolutionary logging into a file")
     ("random-vcycles",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& random_vcycle) {
       context.evolutionary.random_vcycles = random_vcycle;
     }),
     "Whether vcycle mutations should be randomized")
-    ("filename",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& filename) {
-      context.evolutionary.filename = filename;
-    }),
-    "The filename in which the logging should occur")
     ("dynamic-population-size",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& dynamic_pop) {
@@ -464,13 +452,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.random_combine_strategy = random_combine;
     }),
     "Whether random mutates should be picked\n"
-    "default: off)")
-    ("log-everything",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](const bool& log) {
-      context.evolutionary.log_everything = log;
-    }),
-    "Whether all step results shall be logged\n"
     "default: off)")
     ("unlimited-coarsening",
     po::value<bool>()->value_name("<bool>")->notifier(

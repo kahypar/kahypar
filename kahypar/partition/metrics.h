@@ -188,6 +188,20 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
   return he_sizes[rank];
 }
 
+static inline HyperedgeWeight correctMetric(const Hypergraph& hypergraph, const Context& context) {
+  switch(context.partition.objective) {
+    case Objective::km1: {
+      return km1(hypergraph);
+    }
+    case Objective::cut: {
+      return hyperedgeCut(hypergraph);
+    }
+    default: {
+      LOG << "The specified Objective is not listed in the Metrics";
+      std::exit(0);
+    }
+  }
+}
 
 static inline HyperedgeID hypernodeDegreePercentile(const Hypergraph& hypergraph, int percentile) {
   std::vector<HyperedgeID> hn_degrees;

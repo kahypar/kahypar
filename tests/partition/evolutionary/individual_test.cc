@@ -22,12 +22,14 @@ namespace kahypar {
   };
 
 
-  TEST_F(AnIndividual, IsCorrectlyExtractedFromTheHypergraph) {
+  TEST_F(AnIndividual, IsCorrectlyExtractedFromTheHypergraphForKM1) {
+    Context context;
+    context.partition.objective = Objective::km1;
     hypergraph.setNodePart(0,0);
     hypergraph.setNodePart(1,1);
     hypergraph.setNodePart(2,2);
     hypergraph.setNodePart(3,3);
-    individual = Individual(hypergraph);
+    individual = Individual(hypergraph, context);
     ASSERT_EQ(individual.partition()[0], 0);
     ASSERT_EQ(individual.partition()[1], 1);
     ASSERT_EQ(individual.partition()[2], 2);
@@ -40,20 +42,27 @@ namespace kahypar {
     ASSERT_EQ(individual.strongCutEdges()[1], 1);
     ASSERT_EQ(individual.strongCutEdges()[2], 1);
     ASSERT_EQ(individual.fitness(), 3);
-    // individual.printDebug();
-	/* std::cout << hypergraph.k();
-    for (const HypernodeID& hn : hypergraph.nodes()) {
-      std::cout << hn << " ";
-    }
-    // _fitness = metrics::km1(hypergraph);
-    std::cout << std::endl << " _________" << std::endl;
-    for (const HyperedgeID& he : hypergraph.edges()) {
-      for(const HyperedgeID& hng : hypergraph.pins(he)) {
-	std::cout << hng << " ";
-      }
-      std::cout << std::endl;
-      }*/
-
+  }
+  TEST_F(AnIndividual, IsCorrectlyExtractedFromTheHypergraphForCut) {
+    Context context;
+    context.partition.objective = Objective::cut;
+    hypergraph.setNodePart(0,0);
+    hypergraph.setNodePart(1,1);
+    hypergraph.setNodePart(2,2);
+    hypergraph.setNodePart(3,3);
+    individual = Individual(hypergraph, context);
+    ASSERT_EQ(individual.partition()[0], 0);
+    ASSERT_EQ(individual.partition()[1], 1);
+    ASSERT_EQ(individual.partition()[2], 2);
+    ASSERT_EQ(individual.partition()[3], 3);
+    ASSERT_EQ(individual.cutEdges()[0], 0);
+    ASSERT_EQ(individual.cutEdges()[1], 1);
+    ASSERT_EQ(individual.cutEdges().size(), 2);
+    ASSERT_EQ(individual.strongCutEdges().size(),3);
+    ASSERT_EQ(individual.strongCutEdges()[0], 0);
+    ASSERT_EQ(individual.strongCutEdges()[1], 1);
+    ASSERT_EQ(individual.strongCutEdges()[2], 1);
+    ASSERT_EQ(individual.fitness(), 2);
   }
 }
 

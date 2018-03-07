@@ -21,7 +21,7 @@ option(KAHYPAR_USE_MINIMAL_BOOST
   "Download boost automatically and compile required libraries." OFF)
 
 option(KAHYPAR_USE_GCOV
-  "Compile and run tests with gcov for coverage analysis." OFF)
+  "Compile and run tests with gcov for coverage analysis." ON)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)

@@ -39,17 +39,6 @@ static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
-  // because we remove parallel nets, we have to collect the initial
-  // cut nets _before_ coarsening
-  /*std::vector<HyperedgeID> stable_net_before_uncoarsen;
-  if (context.partition_evolutionary &&
-      context.evolutionary.action.requires().vcycle_stable_net_collection) {
-    for (HyperedgeID u : hypergraph.edges()) {
-      if (hypergraph.connectivity(u) > 1) {
-        stable_net_before_uncoarsen.push_back(u);
-      }
-    }
-  }*/
 
   io::printCoarseningBanner(context);
 
@@ -62,7 +51,7 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-
+  
   if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
     if (context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
       hypergraph.reset();
@@ -107,18 +96,18 @@ static inline void partition(Hypergraph& hypergraph,
 
     
 
-    const HyperedgeWeight parent_1_objective = metrics::km1(hypergraph);
-    hypergraph.setPartition(*context.evolutionary.parent2);
-    const HyperedgeWeight parent_2_objective = metrics::km1(hypergraph);
+    const HyperedgeWeight parent_1_objective = metrics::correctMetric(hypergraph, context);
 
+    hypergraph.setPartition(*context.evolutionary.parent2);
+    const HyperedgeWeight parent_2_objective = metrics::correctMetric(hypergraph, context);
+    
     if (parent_1_objective < parent_2_objective) {
       hypergraph.setPartition(*context.evolutionary.parent1);
     }
     
   }
 
-  // TODO(andre): verify that this is correct
-
+  
   if (context.partition_evolutionary) {
     hypergraph.initializeNumCutHyperedges();
   }
@@ -133,24 +122,12 @@ static inline void partition(Hypergraph& hypergraph,
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
 
-  /*if (context.partition_evolutionary &&
-      context.evolutionary.action.requires().vcycle_stable_net_collection) {
-    std::vector<HyperedgeID> stable_net_after_uncoarsen;
-    for (HyperedgeID u : hypergraph.edges()) {
-      if (hypergraph.connectivity(u) > 1) {
-        stable_net_after_uncoarsen.push_back(u);
-      }
-    }
-    std::set_intersection(stable_net_before_uncoarsen.begin(),
-                          stable_net_before_uncoarsen.end(),
-                          stable_net_after_uncoarsen.begin(),
-                          stable_net_after_uncoarsen.end(),
-                          back_inserter(context.evolutionary.stable_nets_final));
-  }*/
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
 
   io::printLocalSearchResults(context, hypergraph);
 }
+
+  
 }  // namespace multilevel
 }  // namespace kahypar
