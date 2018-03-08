@@ -27,7 +27,7 @@
 namespace kahypar {
 namespace partition {
 namespace mutate {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
