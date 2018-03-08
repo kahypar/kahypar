@@ -112,10 +112,11 @@ namespace partition {
 
 
     EvoPartitioner evo_part(context);
-    evo.partition(hypergraph,context);
-    std::vector<double> times = Timer::instance().evolutionaryResult();
-    ASSERT_GT(times.at(times.size() - 1), context.evolutionary.time_limit_seconds);
-    ASSERT_LT(times.at(times.size() - 2), context.evolutionary.time_limit_seconds);
+    evo_part.evo_partition(hypergraph,context);
+    std::vector<double> times = Timer::instance().evolutionaryResult().evolutionary;
+    double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
+    ASSERT_GT(total_time, context.evolutionary.time_limit_seconds);
+    ASSERT_LT(total_time - times.at(times.size() - 1), context.evolutionary.time_limit_seconds);
       //std::cout << elapsed_seconds.count();
   }
    

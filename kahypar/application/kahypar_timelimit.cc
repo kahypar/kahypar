@@ -32,10 +32,13 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/utils/timer.h"
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
 using kahypar::Context;
+using kahypar::Timer;
+using kahypar::Timepoint;
 
 int main(int argc, char* argv[]) {
   Context context;
@@ -62,10 +65,10 @@ int main(int argc, char* argv[]) {
   Partitioner partitioner;
 
 
- 
+ const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
   while(Timer::instance().evolutionaryResult().total_evolutionary < context.evolutionary.time_limit_seconds) {
 
-      const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
      partitioner.partition(hypergraph, context);
      const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
      Timer::instance().add(context, Timepoint::evolutionary,
@@ -73,7 +76,7 @@ int main(int argc, char* argv[]) {
      kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
      hypergraph.reset();
   }
-  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint complete_end = std::chrono::high_resolution_clock::now();
 
 
 #ifdef GATHER_STATS
@@ -84,14 +87,14 @@ int main(int argc, char* argv[]) {
 #endif
 
   if (!context.partition.quiet_mode) {
-    kahypar::io::printPartitioningResults(hypergraph, context, elapsed_seconds);
+    kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(complete_end - complete_start));
     LOG << "";
   }
   kahypar::io::writePartitionFile(hypergraph,
                                   context.partition.graph_partition_filename);
 
   if (context.partition.sp_process_output) {
-    kahypar::io::serializer::serialize(context, hypergraph, elapsed_seconds);
+    kahypar::io::serializer::serialize(context, hypergraph, std::chrono::duration<double>(complete_end - complete_start));
   }
 
   return 0;
