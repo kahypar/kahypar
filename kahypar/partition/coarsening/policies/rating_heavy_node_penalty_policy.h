@@ -39,7 +39,13 @@ class NoWeightPenalty final : public meta::PolicyBase {
     return 1;
   }
 };
+class EdgeFrequencyPenalty final : public meta::PolicyBase {
+ public:
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline HypernodeWeight penalty(const HypernodeWeight weight_u, const HypernodeWeight weight_v) {
+    return std::pow(weight_u * weight_v, 1.2);
+  }
+};
 
 using HeavyNodePenaltyPolicies = meta::Typelist<MultiplicativePenalty,
-                                                NoWeightPenalty>;
+                                                NoWeightPenalty, EdgeFrequencyPenalty>;
 }  // namespace kahypar

@@ -19,7 +19,7 @@
  ******************************************************************************/
 
 #pragma once
-
+#include <boost/program_options.hpp>
 #include <array>
 #include <chrono>
 #include <fstream>
@@ -30,10 +30,12 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
+#include "kahypar/partition/evolutionary/individual.h"
 
 namespace kahypar {
 namespace io {
 namespace serializer {
+
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds) {
   const auto& timings = Timer::instance().result();
@@ -235,6 +237,113 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
+//static std::ofstream out_file;
+//static HyperedgeWeight best = std::numeric_limits<int32_t>::max();
+//static inline void open(const Context& context) {
+//  out_file.open(context.evolutionary.filename, std::ios_base::app);
+//}
+//static inline void close() {
+//  out_file.close();
+//}
+static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
+
+  std::ostringstream oss;
+  EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
+  EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
+  switch(context.evolutionary.action.decision()) {
+    case EvoDecision::combine: {
+      combine_strat = context.evolutionary.combine_strategy;
+      break;
+    }
+    case EvoDecision::mutation: {
+      mutate_strat = context.evolutionary.mutate_strategy;
+      break;
+    }
+    case EvoDecision::normal: {
+      break;
+    }
+    default: 
+      LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
+  }
+    //best = metrics::km1(hg);
+  std::string graph_name = context.partition.graph_filename;
+  std::string truncated_graph_name = graph_name.substr(graph_name.find_last_of("/") + 1);
+  oss << "RESULT " 
+      << "connectivity=" << metrics::km1(hg) 
+            <<" action=" << context.evolutionary.action.decision() 
+            <<" time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
+            //<<" best=" << context.evolutionary.best_partition
+            <<" iteration=" << context.evolutionary.iteration
+            <<" replace-strategy=" << context.evolutionary.replace_strategy 
+            <<" combine-strategy=" << combine_strat
+            <<" mutate-strategy=" << mutate_strat
+            <<" population-size=" << context.evolutionary.population_size 
+            <<" mutation-chance=" << context.evolutionary.mutation_chance 
+            <<" diversify-interval=" << context.evolutionary.diversify_interval
+            <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
+            <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
+            <<" seed=" << context.partition.seed  
+            <<" graph-name=" << truncated_graph_name
+            <<" SOED=" << metrics::soed(hg)
+            <<" cut=" << metrics::hyperedgeCut(hg)
+            <<" absorption="<<metrics::absorption(hg)
+            <<" imbalance=" << metrics::imbalance(hg, context)
+            <<" k=" << context.partition.k
+            <<" best=" << metrics::km1(hg) 
+            << std::endl;
+  std::cout << oss.str() << std::endl;
+   
+   //std::cout << " fitness=" << ;
+
+   //oss << " time=" << time.count();
+   //fitness
+   //action
+   //imbalance
+   //time
+   //rest of context junk
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+ }
 }  // namespace serializer
 }  // namespace io
 }  // namespace kahypar

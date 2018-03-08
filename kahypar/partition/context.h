@@ -27,9 +27,11 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
+#include "kahypar/partition/evolutionary/action.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -118,6 +120,7 @@ struct RatingParameters {
   CommunityPolicy community_policy = CommunityPolicy::UNDEFINED;
   HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::UNDEFINED;
   AcceptancePolicy acceptance_policy = AcceptancePolicy::UNDEFINED;
+  RatingPartitionPolicy partition_policy = RatingPartitionPolicy::normal;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
@@ -126,6 +129,7 @@ inline std::ostream& operator<< (std::ostream& str, const RatingParameters& para
   str << "    Use Community Structure:          " << params.community_policy << std::endl;
   str << "    Heavy Node Penalty:               " << params.heavy_node_penalty_policy << std::endl;
   str << "    Acceptance Policy:                " << params.acceptance_policy << std::endl;
+  str << "    Partition Policy:                 " << params.partition_policy << std::endl;
   return str;
 }
 
@@ -202,6 +206,7 @@ struct LocalSearchParameters {
   RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
   int iterations_per_level = std::numeric_limits<int>::max();
 };
+
 
 inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters& params) {
   str << "Local Search Parameters:" << std::endl;
@@ -340,7 +345,43 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  L_max1:                             " << params.max_part_weights[1] << std::endl;
   return str;
 }
+struct EvolutionaryParameters {
+  int time_limit_seconds = 5 * 60 * 60;
+  size_t population_size = 10;
+  float mutation_chance = 0.5;
+  float edge_frequency_chance = 0.5;
+  EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
+  mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
+  mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
+  int diversify_interval = -1;  // -1 disables diversification
+  double gamma = 0.5;
+  size_t edge_frequency_amount = 3;
+  bool dynamic_population_size = true;
+  float dynamic_population_amount_of_time = 0.15;
+  bool random_combine_strategy = false;
+  mutable int iteration;
+  mutable std::chrono::duration<double> elapsed_seconds_total;
+  mutable Action action;
+  const std::vector<PartitionID>* parent1 = nullptr;
+  const std::vector<PartitionID>* parent2 = nullptr;
+  mutable std::vector<size_t> edge_frequency;
+  mutable std::vector<ClusterID> communities;
+  bool unlimited_coarsening_contraction = true;
+  bool random_vcycles = false;
+};
 
+inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
+  str << "Evolutionary Parameters:              " << std::endl;
+  str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
+  str << "  Population Size:                    " << params.population_size << std::endl;
+  str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
+  str << "  Edge Frequency Chance               " << params.edge_frequency_chance << std::endl;
+  str << "  Replace Strategy                    " << params.replace_strategy << std::endl;
+  str << "  Combine Strategy                    " << params.combine_strategy << std::endl;
+  str << "  Mutation Strategy                   " << params.mutate_strategy << std::endl;
+  str << "  Diversification Interval            " << params.diversify_interval << std::endl;
+  return str;
+}
 
 class Context {
  public:
@@ -351,8 +392,10 @@ class Context {
   CoarseningParameters coarsening { };
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
+  EvolutionaryParameters evolutionary { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
+  bool partition_evolutionary = false;
 
   Context() :
     stats(*this) { }
@@ -363,11 +406,19 @@ class Context {
     coarsening(other.coarsening),
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
+    evolutionary(other.evolutionary),
     type(other.type),
-    stats(*this, &other.stats.topLevel()) { }
+    stats(*this, &other.stats.topLevel()),
+    partition_evolutionary(other.partition_evolutionary) { }
 
+  Context& operator= (const Context&) = delete;
+  
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
+  }
+
+  std::vector<ClusterID> getCommunities() const {
+    return evolutionary.communities;
   }
 };
 
@@ -384,6 +435,9 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
       << context.coarsening
       << context.initial_partitioning
       << context.local_search
+      << "-------------------------------------------------------------------------------"
+      << std::endl
+      << context.evolutionary
       << "-------------------------------------------------------------------------------";
   return str;
 }

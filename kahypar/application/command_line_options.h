@@ -58,28 +58,28 @@ int getProcessID() {
   return _getpid();
 #else
   return getpid();
-  #endif
+#endif
 }
 }  // namespace platform
 
 po::options_description createGeneralOptionsDescription(Context& context, const int num_columns) {
   po::options_description options("General Options", num_columns);
   options.add_options()
-    ("seed",
-    po::value<int>(&context.partition.seed)->value_name("<int>"),
-    "Seed for random number generator \n"
-    "(default: -1)")
-    ("cmaxnet",
-    po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
-      [&](const HyperedgeID) {
-      if (context.partition.hyperedge_size_threshold == -1) {
-        context.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
-      }
-    }),
-    "Hyperedges larger than cmaxnet are ignored during partitioning process.")
-    ("vcycles",
-    po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
-    "# V-cycle iterations for direct k-way partitioning");
+      ("seed",
+       po::value<int>(&context.partition.seed)->value_name("<int>"),
+       "Seed for random number generator \n"
+       "(default: -1)")
+      ("cmaxnet",
+       po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
+           [&](const HyperedgeID) {
+             if (context.partition.hyperedge_size_threshold == -1) {
+               context.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
+             }
+           }),
+       "Hyperedges larger than cmaxnet are ignored during partitioning process.")
+      ("vcycles",
+       po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
+       "# V-cycle iterations for direct k-way partitioning");
   return options;
 }
 
@@ -87,60 +87,60 @@ po::options_description createCoarseningOptionsDescription(Context& context,
                                                            const int num_columns) {
   po::options_description options("Coarsening Options", num_columns);
   options.add_options()
-    ("c-type",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ctype) {
-      context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
-    }),
-    "Algorithm:\n"
-    " - ml_style\n"
-    " - heavy_full\n"
-    " - heavy_lazy")
-    ("c-s",
-    po::value<double>(&context.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
-    "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
-    "(s * w(H)) / (t * k)\n")
-    ("c-t",
-    po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
-    "Coarsening stops when there are no more than t * k hypernodes left")
-    ("c-rating-score",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& rating_score) {
-      context.coarsening.rating.rating_function =
-        kahypar::ratingFunctionFromString(rating_score);
-    }),
-    "Rating function used to calculate scores for vertex pairs:\n"
-    "heavy_edge "
-    "edge_frequency")
-    ("c-rating-use-communities",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](bool use_communities) {
-      if (use_communities) {
-        context.coarsening.rating.community_policy = CommunityPolicy::use_communities;
-      } else {
-        context.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
-      }
-    }),
-    "Use community information during rating. If c-rating-use-communities=true ,\n"
-    "only neighbors belonging to the same community will be considered as contraction partner.")
-    ("c-rating-heavy_node_penalty",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& penalty) {
-      context.coarsening.rating.heavy_node_penalty_policy =
-        kahypar::heavyNodePenaltyFromString(penalty);
-    }),
-    "Penalty function to discourage heavy vertices:\n"
-    "multiplicative "
-    "no_penalty")
-    ("c-rating-acceptance-criterion",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& crit) {
-      context.coarsening.rating.acceptance_policy =
-        kahypar::acceptanceCriterionFromString(crit);
-    }),
-    "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-    "random "
-    "prefer_unmatched");
+      ("c-type",
+       po::value<std::string>()->value_name("<string>")->notifier(
+           [&](const std::string& ctype) {
+             context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+           }),
+       "Algorithm:\n"
+       " - ml_style\n"
+       " - heavy_full\n"
+       " - heavy_lazy")
+      ("c-s",
+       po::value<double>(&context.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+       "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
+       "(s * w(H)) / (t * k)\n")
+      ("c-t",
+       po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+       "Coarsening stops when there are no more than t * k hypernodes left")
+      ("c-rating-score",
+       po::value<std::string>()->value_name("<string>")->notifier(
+           [&](const std::string& rating_score) {
+             context.coarsening.rating.rating_function =
+                 kahypar::ratingFunctionFromString(rating_score);
+           }),
+       "Rating function used to calculate scores for vertex pairs:\n"
+       "heavy_edge "
+       "edge_frequency")
+      ("c-rating-use-communities",
+       po::value<bool>()->value_name("<bool>")->notifier(
+           [&](bool use_communities) {
+             if (use_communities) {
+               context.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+             } else {
+               context.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
+             }
+           }),
+       "Use community information during rating. If c-rating-use-communities=true ,\n"
+       "only neighbors belonging to the same community will be considered as contraction partner.")
+      ("c-rating-heavy_node_penalty",
+       po::value<std::string>()->value_name("<string>")->notifier(
+           [&](const std::string& penalty) {
+             context.coarsening.rating.heavy_node_penalty_policy =
+                 kahypar::heavyNodePenaltyFromString(penalty);
+           }),
+       "Penalty function to discourage heavy vertices:\n"
+       "multiplicative "
+       "no_penalty")
+      ("c-rating-acceptance-criterion",
+       po::value<std::string>()->value_name("<string>")->notifier(
+           [&](const std::string& crit) {
+             context.coarsening.rating.acceptance_policy =
+                 kahypar::acceptanceCriterionFromString(crit);
+           }),
+       "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
+       "random "
+       "prefer_unmatched");
   return options;
 }
 
@@ -281,52 +281,52 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
                                                               const int num_columns) {
   po::options_description options("Preprocessing Options", num_columns);
   options.add_options()
-    ("p-use-sparsifier",
-    po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
-    "Use min-hash pin sparsifier before partitioning")
-    ("p-sparsifier-min-median-he-size",
-    po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
-    "Minimum median hyperedge size necessary for sparsifier application")
-    ("p-sparsifier-max-hyperedge-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
-    "Max hyperedge size allowed considered by sparsifier")
-    ("p-sparsifier-max-cluster-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
-    "Max cluster size which is built by sparsifier")
-    ("p-sparsifier-min-cluster-size",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
-    "Min cluster size which is built by sparsifier")
-    ("p-sparsifier-num-hash-func",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
-    "Number of hash functions")
-    ("p-sparsifier-combined-num-hash-func",
-    po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
-    "Number of combined hash functions")
-    ("p-detect-communities",
-    po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
-    "Using louvain community detection for coarsening")
-    ("p-detect-communities-in-ip",
-    po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
-    "Using louvain community detection for coarsening during initial partitioning")
-    ("p-max-louvain-pass-iterations",
-    po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
-    "Maximum number of iterations over all nodes of one louvain pass")
-    ("p-min-eps-improvement",
-    po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
-    "Minimum improvement of quality during a louvain pass which leads to further passes")
-    ("p-louvain-edge-weight",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ptype) {
-      context.preprocessing.community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
-    }),
-    "Weights:\n"
-    " - hybrid \n"
-    " - uniform\n"
-    " - non_uniform\n"
-    " - degree")
-    ("p-reuse-communities",
-    po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
-    "Reuse the community structure identified in the first bisection for all other bisections.");
+      ("p-use-sparsifier",
+       po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
+       "Use min-hash pin sparsifier before partitioning")
+      ("p-sparsifier-min-median-he-size",
+       po::value<HypernodeID>(&context.preprocessing.min_hash_sparsifier.min_median_he_size)->value_name("<int>"),
+       "Minimum median hyperedge size necessary for sparsifier application")
+      ("p-sparsifier-max-hyperedge-size",
+       po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_hyperedge_size)->value_name("<int>"),
+       "Max hyperedge size allowed considered by sparsifier")
+      ("p-sparsifier-max-cluster-size",
+       po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.max_cluster_size)->value_name("<int>"),
+       "Max cluster size which is built by sparsifier")
+      ("p-sparsifier-min-cluster-size",
+       po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.min_cluster_size)->value_name("<int>"),
+       "Min cluster size which is built by sparsifier")
+      ("p-sparsifier-num-hash-func",
+       po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.num_hash_functions)->value_name("<int>"),
+       "Number of hash functions")
+      ("p-sparsifier-combined-num-hash-func",
+       po::value<uint32_t>(&context.preprocessing.min_hash_sparsifier.combined_num_hash_functions)->value_name("<int>"),
+       "Number of combined hash functions")
+      ("p-detect-communities",
+       po::value<bool>(&context.preprocessing.enable_community_detection)->value_name("<bool>"),
+       "Using louvain community detection for coarsening")
+      ("p-detect-communities-in-ip",
+       po::value<bool>(&context.preprocessing.community_detection.enable_in_initial_partitioning)->value_name("<bool>"),
+       "Using louvain community detection for coarsening during initial partitioning")
+      ("p-max-louvain-pass-iterations",
+       po::value<uint32_t>(&context.preprocessing.community_detection.max_pass_iterations)->value_name("<uint32_t>"),
+       "Maximum number of iterations over all nodes of one louvain pass")
+      ("p-min-eps-improvement",
+       po::value<long double>(&context.preprocessing.community_detection.min_eps_improvement)->value_name("<long double>"),
+       "Minimum improvement of quality during a louvain pass which leads to further passes")
+      ("p-louvain-edge-weight",
+       po::value<std::string>()->value_name("<string>")->notifier(
+           [&](const std::string& ptype) {
+             context.preprocessing.community_detection.edge_weight = kahypar::edgeWeightFromString(ptype);
+           }),
+       "Weights:\n"
+       " - hybrid \n"
+       " - uniform\n"
+       " - non_uniform\n"
+       " - degree")
+      ("p-reuse-communities",
+       po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
+       "Reuse the community structure identified in the first bisection for all other bisections.");
   return options;
 }
 
@@ -435,72 +435,177 @@ po::options_description createRefinementOptionsDescription(Context& context,
   return options;
 }
 
+po::options_description createEvolutionaryOptionsDescription(Context& context,
+                                                             const int num_columns) {
+   po::options_description evolutionary_options("Evolutionary Options", num_columns);
+  evolutionary_options.add_options()
+    ("time-limit",
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& time_limit) {
+      context.evolutionary.time_limit_seconds = time_limit;
+    }),
+    "Time Limit for Algorithm in seconds\n"
+    "(default 5 hours = 18000 seconds)")
+    ("population-size",
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t& pop_size) {
+      context.evolutionary.population_size = pop_size;
+    }),
+    "Population Size for Evolutionary Partitioning\n"
+    "(default 10)")
+    ("gamma",
+    po::value<double>()->value_name("<double>")->notifier(
+      [&](const double gamma) {
+      context.evolutionary.gamma = gamma;
+    }),
+    "The dampening factor for edge frequency\n"
+    "(default 0.5)")
+    ("replace-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& replace_strat) {
+      context.evolutionary.replace_strategy = kahypar::replaceStrategyFromString(replace_strat);
+    }),
+    "Replacement Strategy for Population Management\n"
+    "- worst: new partitions replace the current worst partition in the population\n"
+    "- diverse: new partitions replace the most similar partition based on cut difference\n"
+    "- strong-diverse: new partitions replace the most similar partition based on connectivity difference\n"
+    "(for diverse/strong-diverse better partitions are not considered for replacement)\n"
+    "(default: strong-diverse)")
+    ("combine-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& combine_strat) {
+      context.evolutionary.combine_strategy = kahypar::combineStrategyFromString(combine_strat);
+    }),
+    "Combine Strategy to be used for a regular combine operation\n"
+    "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
+    "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
+    "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
+    "(default: basic)")
+    ("mutate-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& mutate_strat) {
+      context.evolutionary.mutate_strategy = kahypar::mutateStrategyFromString(mutate_strat);
+    }),
+    "Mutation Strategy for the mutation operation \n"
+    "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
+    "- vcycle: a regular vcycle on an existing partition\n"
+    "(default: new-initial-partitioning-vcycle)")
+    ("diversify-interval",
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& div_interval) {
+      context.evolutionary.diversify_interval = div_interval;
+    }),
+    "The Frequency in which diversfication should be performed\n"
+    "(default: -1)(-1 disables)")
+    ("random-vcycles",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_vcycle) {
+      context.evolutionary.random_vcycles = random_vcycle;
+    }),
+    "Whether vcycle mutations should be randomized")
+    ("dynamic-population-size",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& dynamic_pop) {
+      context.evolutionary.dynamic_population_size = dynamic_pop;
+    }),
+    "Whether the population size should be determined by runtime\n"
+    "default: on)")
+    ("random-combine",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_combine) {
+      context.evolutionary.random_combine_strategy = random_combine;
+    }),
+    "Whether random mutates should be picked\n"
+    "default: off)")
+    ("unlimited-coarsening",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& unlimited_c) {
+      context.evolutionary.unlimited_coarsening_contraction = unlimited_c;
+    }),
+    "Whether combine operations should not be limited in contraction\n"
+    "default: off)")
+    ("mutate-chance",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& mutate_chance) {
+      context.evolutionary.mutation_chance = mutate_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.1)")
+    ("edge-frequency-chance",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& edge_chance) {
+      context.evolutionary.edge_frequency_chance = edge_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.1)");
+  return evolutionary_options;
+}
 
 void processCommandLineInput(Context& context, int argc, char* argv[]) {
   const int num_columns = platform::getTerminalWidth();
 
   po::options_description generic_options("Generic Options", num_columns);
   generic_options.add_options()
-    ("help", "show help message")
-    ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
-    "Verbose main partitioning output")
-    ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
-    "Verbose initial partitioning output")
-    ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
-    "Quiet Mode: Completely suppress console output")
-    ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
-    "Summarize partitioning results in RESULT line compatible with sqlplottools "
-    "(https://github.com/bingmann/sqlplottools)");
+      ("help", "show help message")
+      ("verbose,v", po::value<bool>(&context.partition.verbose_output)->value_name("<bool>"),
+       "Verbose main partitioning output")
+      ("vip", po::value<bool>(&context.initial_partitioning.verbose_output)->value_name("<bool>"),
+       "Verbose initial partitioning output")
+      ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
+       "Quiet Mode: Completely suppress console output")
+      ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
+       "Summarize partitioning results in RESULT line compatible with sqlplottools "
+       "(https://github.com/bingmann/sqlplottools)");
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
-    ("hypergraph,h",
-    po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
-    "Hypergraph filename")
-    ("blocks,k",
-    po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
-      [&](const PartitionID) {
-      context.partition.rb_lower_k = 0;
-      context.partition.rb_upper_k = 0;
-    }),
-    "Number of blocks")
-    ("epsilon,e",
-    po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
-    "Imbalance parameter epsilon")
-    ("objective,o",
-    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
-      if (s == "cut") {
-        context.partition.objective = Objective::cut;
-      } else if (s == "km1") {
-        context.partition.objective = Objective::km1;
-      }
-    }),
-    "Objective: \n"
-    " - cut : cut-net metric \n"
-    " - km1 : (lambda-1) metric")
-    ("mode,m",
-    po::value<std::string>()->value_name("<string>")->required()->notifier(
-      [&](const std::string& mode) {
-      context.partition.mode = kahypar::modeFromString(mode);
-    }),
-    "Partitioning mode: \n"
-    " - (recursive) bisection \n"
-    " - (direct) k-way");
+      ("hypergraph,h",
+       po::value<std::string>(&context.partition.graph_filename)->value_name("<string>")->required(),
+       "Hypergraph filename")
+      ("blocks,k",
+       po::value<PartitionID>(&context.partition.k)->value_name("<int>")->required()->notifier(
+           [&](const PartitionID) {
+             context.partition.rb_lower_k = 0;
+             context.partition.rb_upper_k = 0;
+           }),
+       "Number of blocks")
+      ("epsilon,e",
+       po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
+       "Imbalance parameter epsilon")
+      ("objective,o",
+       po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
+           if (s == "cut") {
+             context.partition.objective = Objective::cut;
+           } else if (s == "km1") {
+             context.partition.objective = Objective::km1;
+           }
+         }),
+       "Objective: \n"
+       " - cut : cut-net metric \n"
+       " - km1 : (lambda-1) metric")
+      ("mode,m",
+       po::value<std::string>()->value_name("<string>")->required()->notifier(
+           [&](const std::string& mode) {
+             context.partition.mode = kahypar::modeFromString(mode);
+           }),
+       "Partitioning mode: \n"
+       " - (recursive) bisection \n"
+       " - (direct) k-way");
 
   std::string context_path;
   po::options_description preset_options("Preset Options", num_columns);
   preset_options.add_options()
-    ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
-    "Context Presets (see config directory):\n"
-    " - km1_direct_kway_sea17.ini\n"
-    " - direct_kway_km1_alenex17.ini\n"
-    " - rb_cut_alenex16.ini\n"
-    " - <path-to-custom-ini-file>");
+      ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
+       "Context Presets (see config directory):\n"
+       " - km1_direct_kway_sea17.ini\n"
+       " - direct_kway_km1_alenex17.ini\n"
+       " - rb_cut_alenex16.ini\n"
+       " - <path-to-custom-ini-file>");
 
   po::options_description general_options = createGeneralOptionsDescription(context, num_columns);
 
   po::options_description preprocessing_options =
-    createPreprocessingOptionsDescription(context, num_columns);
+      createPreprocessingOptionsDescription(context, num_columns);
 
   po::options_description coarsening_options = createCoarseningOptionsDescription(context,
                                                                                   num_columns);
@@ -511,17 +616,21 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
 
   po::options_description refinement_options =
-    createRefinementOptionsDescription(context, num_columns);
+      createRefinementOptionsDescription(context, num_columns);
+
+  po::options_description evolutionary_options =
+      createEvolutionaryOptionsDescription(context, num_columns);
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
-  .add(required_options)
-  .add(preset_options)
-  .add(general_options)
-  .add(preprocessing_options)
-  .add(coarsening_options)
-  .add(ip_options)
-  .add(refinement_options);
+      .add(required_options)
+      .add(preset_options)
+      .add(general_options)
+      .add(preprocessing_options)
+      .add(coarsening_options)
+      .add(ip_options)
+      .add(refinement_options)
+      .add(evolutionary_options);
 
   po::variables_map cmd_vm;
   po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
@@ -544,10 +653,10 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   po::options_description ini_line_options;
   ini_line_options.add(general_options)
-  .add(preprocessing_options)
-  .add(coarsening_options)
-  .add(ip_options)
-  .add(refinement_options);
+      .add(preprocessing_options)
+      .add(coarsening_options)
+      .add(ip_options)
+      .add(refinement_options);
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
@@ -557,14 +666,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   epsilon_str.erase(epsilon_str.find_last_not_of('0') + 1, std::string::npos);
 
   context.partition.graph_partition_filename =
-    context.partition.graph_filename
-    + ".part"
-    + std::to_string(context.partition.k)
-    + ".epsilon"
-    + epsilon_str
-    + ".seed"
-    + std::to_string(context.partition.seed)
-    + ".KaHyPar";
+      context.partition.graph_filename
+      + ".part"
+      + std::to_string(context.partition.k)
+      + ".epsilon"
+      + epsilon_str
+      + ".seed"
+      + std::to_string(context.partition.seed)
+      + ".KaHyPar";
 }
 
 
@@ -579,10 +688,10 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   po::variables_map cmd_vm;
   po::options_description ini_line_options;
   ini_line_options.add(createGeneralOptionsDescription(context, num_columns))
-  .add(createPreprocessingOptionsDescription(context, num_columns))
-  .add(createCoarseningOptionsDescription(context, num_columns))
-  .add(createInitialPartitioningOptionsDescription(context, num_columns))
-  .add(createRefinementOptionsDescription(context, num_columns));
+      .add(createPreprocessingOptionsDescription(context, num_columns))
+      .add(createCoarseningOptionsDescription(context, num_columns))
+      .add(createInitialPartitioningOptionsDescription(context, num_columns))
+      .add(createRefinementOptionsDescription(context, num_columns));
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);

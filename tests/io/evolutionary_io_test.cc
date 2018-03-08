@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2014 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,20 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include "gmock/gmock.h"
 
-#include "kahypar/partition/registries/register_coarsening_algorithms.h"
-#include "kahypar/partition/registries/register_flow_networks.h"
-#include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
-#include "kahypar/partition/registries/register_policies.h"
-#include "kahypar/partition/registries/register_refinement_algorithms.h"
+#include "kahypar/io/sql_plottools_serializer.h"
 
+using ::testing::Eq;
+using ::testing::ContainerEq;
+
+namespace kahypar {
+namespace io {
+TEST(TheEvolutionaryOutput, PrintsTheAction) {
+  Context context;
+  Hypergraph hg;
+  serializer::serializeEvolutionary(const Context& context, const Hypergraph& hg);
+  
+}
+}  // namespace io
+}  // namespace kahypar

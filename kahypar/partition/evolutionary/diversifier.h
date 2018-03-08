@@ -16,13 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
- ******************************************************************************/
-
+******************************************************************************/
 #pragma once
 
-#include "kahypar/partition/registries/register_coarsening_algorithms.h"
-#include "kahypar/partition/registries/register_flow_networks.h"
-#include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
-#include "kahypar/partition/registries/register_policies.h"
-#include "kahypar/partition/registries/register_refinement_algorithms.h"
+namespace kahypar {
+namespace partition {
+static void diversify(Context& context) {
+  static constexpr bool debug = false;
+  DBG << "diversify";
+  context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
+  context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
 
+  const bool use_lazy_coarsening = Randomize::instance().flipCoin();
+
+  if (use_lazy_coarsening) {
+    context.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
+  } else {
+    context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+
+  }
+  //context.preprocessing.enable_community_detection = Randomize::instance().flipCoin();
+}
+}  // namespace partition
+}  // namespace kahypar
