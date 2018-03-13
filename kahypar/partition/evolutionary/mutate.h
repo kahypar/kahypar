@@ -33,7 +33,7 @@ static constexpr bool debug = false;
 
 Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in,
                                             const Context& context) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   hg.reset();
   hg.setPartition(in.partition());
   Context temporary_context(context);
@@ -48,7 +48,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
 
   Partitioner().partition(hg, temporary_context);
 
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
 
@@ -61,7 +61,7 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
 
 Individual vCycle(Hypergraph& hg, const Individual& in,
                   const Context& context) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   hg.reset();
   hg.setPartition(in.partition());
   Context temporary_context(context);
@@ -76,7 +76,7 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
 
   Partitioner().partition(hg, temporary_context);
 
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
 
