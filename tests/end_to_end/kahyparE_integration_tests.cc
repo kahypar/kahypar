@@ -37,7 +37,7 @@ class KaHyParE : public Test {
       Context context;
  };
 TEST_F(KaHyParE, MeasuresTimeForEveryAction) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_alenex17.ini");
+  parseIniToContext(context, "../../../config/km1_direct_kway_gecco18.ini");
   context.partition.k = 2;
   context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
