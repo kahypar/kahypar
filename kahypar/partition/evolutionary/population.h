@@ -1,7 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Robin Andre <robinandre1995@web.de>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -189,9 +190,6 @@ class Population {
   }
 
   inline void print() const {
-    /*LOG << "\n********************************************************************************";
-    LOG << "*                                       Population..                           *";
-    LOG << "********************************************************************************";*/
     std::cout << std::endl << "Population Fitness: ";
     for (size_t i = 0; i < _individuals.size(); ++i) {
 

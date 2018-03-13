@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
   Context context;
   kahypar::processCommandLineInput(context, argc, argv);
   kahypar::sanityCheck(context);
-
   if (!context.partition.quiet_mode) {
     kahypar::io::printBanner();
   }

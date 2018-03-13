@@ -510,12 +510,19 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "Whether the population size should be determined by runtime\n"
     "default: on)")
+    ("dynamic-population-time",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& dynamic_pop_time) {
+      context.evolutionary.dynamic_population_amount_of_time = dynamic_pop_time;
+    }),
+    "The amount of total runtime allocated for initial population\n"
+    "default: 0.15)")
     ("random-combine",
     po::value<bool>()->value_name("<bool>")->notifier(
       [&](const bool& random_combine) {
       context.evolutionary.random_combine_strategy = random_combine;
     }),
-    "Whether random mutates should be picked\n"
+    "Whether random combines should be picked\n"
     "default: off)")
     ("unlimited-coarsening",
     po::value<bool>()->value_name("<bool>")->notifier(
@@ -523,21 +530,21 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.unlimited_coarsening_contraction = unlimited_c;
     }),
     "Whether combine operations should not be limited in contraction\n"
-    "default: off)")
+    "default: on)")
     ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {
       context.evolutionary.mutation_chance = mutate_chance;
     }),
     "The Chance of a mutation being selected as operation\n"
-    "default: 0.1)")
+    "default: 0.5)")
     ("edge-frequency-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& edge_chance) {
       context.evolutionary.edge_frequency_chance = edge_chance;
     }),
     "The Chance of a mutation being selected as operation\n"
-    "default: 0.1)");
+    "default: 0.5)");
   return evolutionary_options;
 }
 
@@ -656,7 +663,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
       .add(preprocessing_options)
       .add(coarsening_options)
       .add(ip_options)
-      .add(refinement_options);
+      .add(refinement_options)
+      .add(evolutionary_options);
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
@@ -691,7 +699,8 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
       .add(createPreprocessingOptionsDescription(context, num_columns))
       .add(createCoarseningOptionsDescription(context, num_columns))
       .add(createInitialPartitioningOptionsDescription(context, num_columns))
-      .add(createRefinementOptionsDescription(context, num_columns));
+      .add(createRefinementOptionsDescription(context, num_columns))
+      .add(createEvolutionaryOptionsDescription(context, num_columns));;
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);

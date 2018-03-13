@@ -22,7 +22,6 @@
 #include <chrono>
 #include <math.h>
 #include "kahypar/datastructure/hypergraph.h"
-#include "kahypar/io/evolutionary_io.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/combine.h"
@@ -112,7 +111,6 @@ class EvoPartitioner {
       DBG << context.evolutionary.population_size;
       DBG << _population;
     }
-    //TODO IMPLEMENT DYNAMIC EDGE FREQUENCY AMOUNT
     context.evolutionary.edge_frequency_amount = sqrt(context.evolutionary.population_size);
     DBG << "EDGE-FREQUENCY-AMOUNT";
     DBG << context.evolutionary.edge_frequency_amount;
@@ -125,7 +123,7 @@ class EvoPartitioner {
       Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
       io::serializer::serializeEvolutionary(context, hg);
-      //verbose(context, 0);
+      verbose(context, 0);
       DBG << _population;
       
     }
@@ -133,11 +131,11 @@ class EvoPartitioner {
   
   
   inline EvoDecision decideNextMove(const Context& context) {
-    /*if (context.evolutionary.diversify_interval != -1 &&
+    if (context.evolutionary.diversify_interval != -1 &&
         context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
       
       return EvoDecision::diversify;
-    }*/
+    }
     if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
     }
@@ -150,25 +148,13 @@ class EvoPartitioner {
     context.evolutionary.combine_strategy = pick::appropriateCombineStrategy(context);
     switch (context.evolutionary.combine_strategy) {
       case EvoCombineStrategy::basic: {
-        // ASSERT(result.fitness <= parents.first.fitness && result.fitness <= parents.second.fitness);
-        //size_t insert_position = 
-        _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
-        //verbose(context, insert_position);
+        size_t insert_position = _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
+        verbose(context, insert_position);
         break;
         }
-      /*case EvoCombineStrategy::with_edge_frequency_information: {
-        //size_t insert_position =
-        _population.insert(combine::usingTournamentSelectionAndEdgeFrequency(hg,
-                                                                             context,
-                                                                             _population),
-                           context);
-        //verbose(context, insert_position);      
-        break;
-        }*/
       case EvoCombineStrategy::edge_frequency: {
-        //size_t insert_position =
-        _population.insert(combine::edgeFrequency(hg, context, _population), context);
-        //verbose(context, insert_position);
+        size_t insert_position = _population.insert(combine::edgeFrequency(hg, context, _population), context);
+        verbose(context, insert_position);
         break;
         }
       case EvoCombineStrategy::UNDEFINED: {
@@ -182,7 +168,7 @@ class EvoPartitioner {
 
  
   //REMEMBER: When switching back to calling force inserts, add the position i.e:
-  //_population.forceInsertSaveBest(mutate::removePopulationStableNets(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
+  //_population.forceInsertSaveBest(mutate::vCycleWithNewInitialPartitioning(hg, _population,_population.individualAt(mutation_position), context),  mutation_position);
   inline void performMutation(Hypergraph& hg, const Context& context) {
     const size_t mutation_position = _population.randomIndividual();
     EvoMutateStrategy original_strategy = context.evolutionary.mutate_strategy;
@@ -196,13 +182,13 @@ class EvoPartitioner {
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutation_position),
                                                    context), context);
-        //verbose(context, mutation_position);
+        verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::vcycle: {
         _population.insert(
           mutate::vCycle(hg, _population.individualAt(mutation_position), context), context);
-        //verbose(context, mutation_position);
+        verbose(context, mutation_position);
         break;
         }
       case EvoMutateStrategy::UNDEFINED: {
@@ -213,6 +199,9 @@ class EvoPartitioner {
     context.evolutionary.mutate_strategy = original_strategy;
   }
   inline void verbose(const Context& context, size_t position) {
+    if(!debug) {
+      return;
+    }
     io::printPopulationBanner(context);
     //LOG << _population.individualAt(_population.worst()).fitness();
     unsigned number_of_digits = 0;
@@ -225,21 +214,21 @@ class EvoPartitioner {
     
     for(size_t i = 0; i < _population.size(); ++i) {
       if(i == position) {
-        std::cout  <<">" <<  _population.individualAt(i).fitness() << "<";
+        DBG  <<">" <<  _population.individualAt(i).fitness() << "<";
       } else 
       if(i == best) {
-        std::cout   <<"(" <<  _population.individualAt(i).fitness() << ")";
+        DBG   <<"(" <<  _population.individualAt(i).fitness() << ")";
       } else {
-        std::cout  <<" " <<  _population.individualAt(i).fitness() << " ";
+        DBG  <<" " <<  _population.individualAt(i).fitness() << " ";
       }
       
-    }LOG << "";
+    }DBG << "";
     for(size_t i = 0; i < _population.size(); ++i) {
-      std::cout << " ";
-      std::cout << std::setw(number_of_digits) << _population.difference(_population.individualAt(best), i, true);
-      std::cout << " ";
+      DBG << " ";
+      DBG << std::setw(number_of_digits) << _population.difference(_population.individualAt(best), i, true);
+      DBG << " ";
     }
-    LOG << "";
+    DBG << "";
   }
 
 

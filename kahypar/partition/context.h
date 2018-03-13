@@ -346,19 +346,19 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   return str;
 }
 struct EvolutionaryParameters {
-  int time_limit_seconds = 5 * 60 * 60;
-  size_t population_size = 10;
-  float mutation_chance = 0.5;
-  float edge_frequency_chance = 0.5;
-  EvoReplaceStrategy replace_strategy = EvoReplaceStrategy::strong_diverse;
-  mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::basic;
-  mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
-  int diversify_interval = -1;  // -1 disables diversification
-  double gamma = 0.5;
-  size_t edge_frequency_amount = 3;
-  bool dynamic_population_size = true;
-  float dynamic_population_amount_of_time = 0.15;
-  bool random_combine_strategy = false;
+  int time_limit_seconds;
+  size_t population_size;
+  float mutation_chance;
+  float edge_frequency_chance;
+  EvoReplaceStrategy replace_strategy;
+  mutable EvoCombineStrategy combine_strategy = EvoCombineStrategy::UNDEFINED;
+  mutable EvoMutateStrategy mutate_strategy = EvoMutateStrategy::UNDEFINED;
+  int diversify_interval;  // -1 disables diversification
+  double gamma;
+  size_t edge_frequency_amount;
+  bool dynamic_population_size;
+  float dynamic_population_amount_of_time;
+  bool random_combine_strategy;
   mutable int iteration;
   mutable std::chrono::duration<double> elapsed_seconds_total;
   mutable Action action;
@@ -366,8 +366,8 @@ struct EvolutionaryParameters {
   const std::vector<PartitionID>* parent2 = nullptr;
   mutable std::vector<size_t> edge_frequency;
   mutable std::vector<ClusterID> communities;
-  bool unlimited_coarsening_contraction = true;
-  bool random_vcycles = false;
+  bool unlimited_coarsening_contraction;
+  bool random_vcycles;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {

@@ -132,12 +132,10 @@ enum class EvoReplaceStrategy : uint8_t {
   strong_diverse
 };
 
-// NOTE: with_edge_frequency_information will not be picked by the random combine selector.
-// In partition/evolutionary/probability_tables.h
+
 enum class EvoCombineStrategy : uint8_t {
   basic,
   edge_frequency,
-  with_edge_frequency_information,
   UNDEFINED
 };
 enum class EvoMutateStrategy : uint8_t {
@@ -167,8 +165,6 @@ std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
 std::ostream& operator<< (std::ostream& os, const EvoCombineStrategy& combine) {
   switch (combine) {
     case EvoCombineStrategy::basic: return os << "basic";
-    case EvoCombineStrategy::with_edge_frequency_information:
-      return os << "with_edge_frequency_information";
     case EvoCombineStrategy::edge_frequency: return os << "edge_frequency";
     case EvoCombineStrategy::UNDEFINED: return os << "-";
       // omit default case to trigger compiler warning for missing cases
@@ -429,8 +425,6 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
 static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
   if (strat == "basic") {
     return EvoCombineStrategy::basic;
-  } else if (strat == "with-edge-frequency") {
-    return EvoCombineStrategy::with_edge_frequency_information;
   } else if (strat == "edge-frequency") {
     return EvoCombineStrategy::edge_frequency;
   }

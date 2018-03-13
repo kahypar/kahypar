@@ -19,7 +19,6 @@
  ******************************************************************************/
 
 #pragma once
-#include <boost/program_options.hpp>
 #include <array>
 #include <chrono>
 #include <fstream>
@@ -237,14 +236,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   std::cout << oss.str() << std::endl;
 }
-//static std::ofstream out_file;
-//static HyperedgeWeight best = std::numeric_limits<int32_t>::max();
-//static inline void open(const Context& context) {
-//  out_file.open(context.evolutionary.filename, std::ios_base::app);
-//}
-//static inline void close() {
-//  out_file.close();
-//}
+
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
 
   std::ostringstream oss;
@@ -265,14 +257,13 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
     default: 
       LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
   }
-    //best = metrics::km1(hg);
+   
   std::string graph_name = context.partition.graph_filename;
   std::string truncated_graph_name = graph_name.substr(graph_name.find_last_of("/") + 1);
   oss << "RESULT " 
       << "connectivity=" << metrics::km1(hg) 
             <<" action=" << context.evolutionary.action.decision() 
             <<" time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
-            //<<" best=" << context.evolutionary.best_partition
             <<" iteration=" << context.evolutionary.iteration
             <<" replace-strategy=" << context.evolutionary.replace_strategy 
             <<" combine-strategy=" << combine_strat
@@ -293,54 +284,8 @@ static inline void serializeEvolutionary(const Context& context, const Hypergrap
             << std::endl;
   std::cout << oss.str() << std::endl;
    
-   //std::cout << " fitness=" << ;
 
-   //oss << " time=" << time.count();
-   //fitness
-   //action
-   //imbalance
-   //time
-   //rest of context junk
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
+ 
    
    
  }

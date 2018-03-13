@@ -37,7 +37,6 @@ class HeavyEdgeScore final : public meta::PolicyBase {
 
 class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
-  // TODO(andre): hyperedge Weight add
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph,
                                                                  const HyperedgeID he,
                                                                  const Context& context) {

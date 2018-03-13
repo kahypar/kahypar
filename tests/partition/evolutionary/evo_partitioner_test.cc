@@ -1,3 +1,23 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2018 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2018 Robin Andre <robinandre1995@web.de>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+******************************************************************************/
 #include <boost/program_options.hpp>
 
 #include <limits>
@@ -22,8 +42,6 @@ namespace partition {
     public :
     TheEvoPartitioner() :
       context(),
-    //hypergraph(6, 3, HyperedgeIndexVector { 0, 3, 6, /*sentinel*/ 8},
-    //           HyperedgeVector {0,1,2,3,4,5,4,5}) {hypergraph.changeK(2); }
     hypergraph(6, 1, HyperedgeIndexVector {0, 6},
                 HyperedgeVector {0,1,2,3,4,5})
                 {
@@ -87,7 +105,7 @@ namespace partition {
     context.evolutionary.time_limit_seconds = 60;
     context.evolutionary.dynamic_population_size = true;
     context.evolutionary.dynamic_population_amount_of_time = 0.15;
-    context.partition.graph_filename = "../../../../tests/partition/evolutionary/ISPD98_ibm09.hgr";
+    context.partition.graph_filename = "../../../../tests/end_to_end/test_instances/ISPD98_ibm01.hgr";
       Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
@@ -98,14 +116,14 @@ namespace partition {
     ASSERT_EQ(evo_part._population.size(),  std::round(context.evolutionary.dynamic_population_amount_of_time
                                            * context.evolutionary.time_limit_seconds
                                            / Timer::instance().evolutionaryResult().evolutionary.at(0))) ;
-      //std::cout << elapsed_seconds.count();
+
   }
   TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
     context.partition.quiet_mode = true;
     context.evolutionary.time_limit_seconds = 60;
     context.evolutionary.dynamic_population_size = true;
     context.evolutionary.dynamic_population_amount_of_time = 0.15;
-    context.partition.graph_filename = "../../../../tests/partition/evolutionary/ISPD98_ibm09.hgr";
+    context.partition.graph_filename = "../../../../tests/end_to_end/test_instances/ISPD98_ibm01.hgr";
       Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
@@ -117,7 +135,6 @@ namespace partition {
     double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
     ASSERT_GT(total_time, context.evolutionary.time_limit_seconds);
     ASSERT_LT(total_time - times.at(times.size() - 1), context.evolutionary.time_limit_seconds);
-      //std::cout << elapsed_seconds.count();
   }
    
 }

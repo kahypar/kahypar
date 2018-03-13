@@ -1,7 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Robin Andre <robinandre1995@web.de>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,15 +44,20 @@ Individual partitions(Hypergraph& hg,
   context.evolutionary.parent1 = &parents.first.partition();
   context.evolutionary.parent2 = &parents.second.partition();
 #ifndef NDEBUG
-  hg.setPartition(parents.first.partition());
-  ASSERT(parents.first.fitness() == metrics::km1(hg));
+  ASSERT(parents.first.fitness() == [&hg, &parents](int){
+    hg.setPartition(parents.first.partition());
+    int metric = metrics::km1(hg);
+    hg.reset;
+    return metric;
+  });
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  hg.reset();
   if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
-    hg.setPartition(parents.second.partition());
-    ASSERT(parents.second.fitness() == metrics::km1(hg));
-    DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-    hg.reset();
+    ASSERT(parents.first.fitness() == [&hg, &parents](int){
+      hg.setPartition(parents.second.partition());
+      int metric = metrics::km1(hg);
+      hg.reset;
+      return metric;
+    });
   }
 #endif
   hg.reset();
@@ -73,7 +79,6 @@ Individual partitions(Hypergraph& hg,
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
   io::printEvolutionaryInformation(context);
-  //Individual indi = Individual(hg);
   return Individual(hg, context);
 }
 
@@ -129,30 +134,6 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
   return Individual(hg, context);
 }
 
-/*Individual usingTournamentSelectionAndEdgeFrequency(Hypergraph& hg,
-                                                    const Context& context,
-                                                    const Population& population) {
-  Context temporary_context(context);
-
-  temporary_context.evolutionary.action =
-    Action { meta::Int2Type<static_cast<int>(EvoDecision::combine)>() };
-
-  temporary_context.coarsening.rating.rating_function = RatingFunction::edge_frequency;
-  temporary_context.coarsening.rating.partition_policy = RatingPartitionPolicy::evolutionary;
-  temporary_context.evolutionary.edge_frequency =
-    computeEdgeFrequency(population.listOfBest(context.evolutionary.edge_frequency_amount),
-                         hg.initialNumEdges());
-
-  const auto& parents = population.tournamentSelect();
-
-  // TODO remove
-
-  // temporary_context.evolutionary.parent1 = &parents.first.get().partition();
-  // temporary_context.evolutionary.parent2 = &parents.second.get().partition();
-
-  DBG << V(temporary_context.evolutionary.action.decision());
-  return combine::partitions(hg, parents, temporary_context);
-}*/
 
 
 }  // namespace combine

@@ -1,7 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017 Robin Andre <robinandre1995@web.de>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,12 +39,6 @@ class Individual {
     _strong_cut_edges(),
     _fitness() { }
 
-  /*Individual(std::vector<PartitionID>&& partition, std::vector<HyperedgeID>&& cut_edges,
-             std::vector<HyperedgeID>&& strong_edges, HyperedgeWeight fitness) :
-    _partition(std::move(partition)),
-    _cut_edges(std::move(cut_edges)),
-    _strong_cut_edges(std::move(strong_edges)),
-    _fitness(fitness) { }*/
   Individual(HyperedgeWeight fitness) :
     _partition(),
     _cut_edges(),
