@@ -50,8 +50,8 @@ namespace kahypar {
     Hypergraph hypergraph;
   };
 
-  /*TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+  TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 8;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::cut;
@@ -66,9 +66,9 @@ namespace kahypar {
     ASSERT_EQ(population.size(), 1);
     population.generateIndividual(hypergraph, context);
     ASSERT_EQ(population.size(), 2);
-  }*/
+  }
   TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 4;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::cut;
@@ -138,7 +138,7 @@ namespace kahypar {
     
   }
     TEST_F(APopulation, IsCorrectlyReplacingWithStrongDiverseStrategy) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 4;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
@@ -236,7 +236,7 @@ namespace kahypar {
     ASSERT_EQ(population.difference(ind1, 0, true), 0);
   }
     TEST_F(APopulation, IsPerformingTournamentSelection) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 4;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;

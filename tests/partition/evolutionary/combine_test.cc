@@ -53,7 +53,7 @@ namespace kahypar {
     std::vector<PartitionID> parent1 {0,1,0,1,0,1,0,1};
     std::vector<PartitionID> parent2 {0,1,1,0,0,1,1,0};
   TEST_F(ACombine, RespectsItsParents) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 2;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
@@ -92,7 +92,7 @@ namespace kahypar {
     
   }
     TEST_F(ACombine, TakesTheBetterParent) {
-    parseIniToContext(context, "../../../../config/km1_direct_kway_alenex17.ini");
+    parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 2;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
