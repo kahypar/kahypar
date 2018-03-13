@@ -412,7 +412,7 @@ class Context {
     partition_evolutionary(other.partition_evolutionary) { }
 
   Context& operator= (const Context&) = delete;
-  
+
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }

@@ -24,8 +24,9 @@
 #include <limits>
 #include <utility>
 #include <vector>
-#include "kahypar/partition/metrics.h"
+
 #include "kahypar/partition/evolutionary/individual.h"
+#include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
 #include "kahypar/utils/randomize.h"
 
@@ -43,14 +44,14 @@ class Population {
     switch (context.evolutionary.replace_strategy) {
       case EvoReplaceStrategy::worst:
         return forceInsert(std::move(individual), worst());
-        
+
       case EvoReplaceStrategy::diverse:
         return replaceDiverse(std::move(individual), false);
-        
+
       case EvoReplaceStrategy::strong_diverse:
         return replaceDiverse(std::move(individual), true);
-      default : 
-      return std::numeric_limits<int>::max();  
+      default:
+        return std::numeric_limits<int>::max();
     }
   }
   inline size_t forceInsert(Individual&& individual, const size_t position) {
@@ -60,11 +61,10 @@ class Population {
   }
   inline size_t forceInsertSaveBest(Individual&& individual, const size_t position) {
     DBG << V(position) << V(individual.fitness());
-    if(individual.fitness() <= _individuals[position].fitness() || position != best()) {
-       _individuals[position] = std::move(individual);
-    } 
+    if (individual.fitness() <= _individuals[position].fitness() || position != best()) {
+      _individuals[position] = std::move(individual);
+    }
     return position;
-   
   }
   inline const Individual & singleTournamentSelection() const {
     const size_t first_pos = randomIndividual();
@@ -141,7 +141,7 @@ class Population {
   inline HyperedgeWeight bestFitness() const {
     size_t best_position = std::numeric_limits<size_t>::max();
     HyperedgeWeight best_fitness = std::numeric_limits<int>::max();
-    if(size() == 0) {
+    if (size() == 0) {
       DBG << "SIZE IS 0";
       return best_fitness;
     }
@@ -181,7 +181,7 @@ class Population {
     }
 
     std::partial_sort(sorting.begin(), sorting.begin() + amount, sorting.end());
-    
+
     Individuals best_individuals;
     for (size_t i = 0; i < amount; ++i) {
       best_individuals.push_back(_individuals[sorting[i].second]);
@@ -192,18 +192,16 @@ class Population {
   inline void print() const {
     std::cout << std::endl << "Population Fitness: ";
     for (size_t i = 0; i < _individuals.size(); ++i) {
-
       std::cout << _individuals[i].fitness() << " ";
     }
     std::cout << std::endl;
   }
   inline void printDebug() const {
-      for (size_t i = 0; i < _individuals.size(); ++i) {
-
+    for (size_t i = 0; i < _individuals.size(); ++i) {
       _individuals[i].printDebug();
     }
   }
-    inline size_t difference(const Individual& individual, const size_t position,
+  inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
     if (strong_set) {
@@ -230,11 +228,9 @@ class Population {
     DBG << V(output_diff.size());
     return output_diff.size();
   }
+
  private:
-
-
   inline size_t replaceDiverse(Individual&& individual, const bool strong_set) {
-
     size_t max_similarity = std::numeric_limits<size_t>::max();
     size_t max_similarity_id = 0;
     if (individual.fitness() > individualAt(worst()).fitness()) {
@@ -259,9 +255,9 @@ class Population {
   std::vector<Individual> _individuals;
 };
 std::ostream& operator<< (std::ostream& os, const Population& population) {
-   for(size_t i = 0; i < population.size(); ++i) {
-     os << population.individualAt(i).fitness() << " ";
-   }
-   return os;
+  for (size_t i = 0; i < population.size(); ++i) {
+    os << population.individualAt(i).fitness() << " ";
+  }
+  return os;
 }
 }  // namespace kahypar

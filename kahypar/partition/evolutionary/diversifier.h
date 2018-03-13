@@ -34,7 +34,6 @@ static void diversify(Context& context) {
     context.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
   } else {
     context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
-
   }
 }
 }  // namespace partition

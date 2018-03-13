@@ -163,7 +163,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache.resetDelta();
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
-  
+
   std::vector<Move> rollbackImpl() {
     return std::vector<Move>();
   }

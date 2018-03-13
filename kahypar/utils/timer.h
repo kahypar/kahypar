@@ -130,15 +130,15 @@ class Timer {
     _result.total_evolutionary = 0;
     std::vector<double> time_vector;
     for (const Timing& timing : _timings) {
-      if(timing.timepoint == Timepoint::evolutionary) {
+      if (timing.timepoint == Timepoint::evolutionary) {
         time_vector.emplace_back(timing.time);
         _result.total_evolutionary += timing.time;
       }
-      
     }
     _result.evolutionary = time_vector;
     return _result;
   }
+
  private:
   Timer() :
     _current_timing(),

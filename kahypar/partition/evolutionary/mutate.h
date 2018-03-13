@@ -21,6 +21,7 @@
 #pragma once
 
 #include <vector>
+
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/partitioner.h"
@@ -43,16 +44,15 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
   DBG << V(temporary_context.evolutionary.action.decision());
   DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  
-  
-  
+
+
   Partitioner().partition(hg, temporary_context);
-  
+
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
-  
-  
+
+
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
@@ -72,22 +72,19 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   DBG << V(temporary_context.evolutionary.action.decision());
   DBG << "initial" << V(in.fitness()) << V(metrics::imbalance(hg, context));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  
-  
-  
+
+
   Partitioner().partition(hg, temporary_context);
-  
+
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
-  
+
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
   return Individual(hg, context);
 }
-
-
 }  // namespace mutate
 }  // namespace partition
 }  // namespace kahypar

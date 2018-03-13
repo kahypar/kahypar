@@ -27,14 +27,13 @@
 #include "kahypar/definitions.h"
 #include "kahypar/git_revision.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
-#include "kahypar/partition/evolutionary/individual.h"
 
 namespace kahypar {
 namespace io {
 namespace serializer {
-
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds) {
   const auto& timings = Timer::instance().result();
@@ -238,57 +237,48 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 }
 
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
-
   std::ostringstream oss;
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
   EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
-  switch(context.evolutionary.action.decision()) {
-    case EvoDecision::combine: {
+  switch (context.evolutionary.action.decision()) {
+    case EvoDecision::combine:
       combine_strat = context.evolutionary.combine_strategy;
       break;
-    }
-    case EvoDecision::mutation: {
+    case EvoDecision::mutation:
       mutate_strat = context.evolutionary.mutate_strategy;
       break;
-    }
-    case EvoDecision::normal: {
+    case EvoDecision::normal:
       break;
-    }
-    default: 
+    default:
       LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
   }
-   
+
   std::string graph_name = context.partition.graph_filename;
   std::string truncated_graph_name = graph_name.substr(graph_name.find_last_of("/") + 1);
-  oss << "RESULT " 
-      << "connectivity=" << metrics::km1(hg) 
-            <<" action=" << context.evolutionary.action.decision() 
-            <<" time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
-            <<" iteration=" << context.evolutionary.iteration
-            <<" replace-strategy=" << context.evolutionary.replace_strategy 
-            <<" combine-strategy=" << combine_strat
-            <<" mutate-strategy=" << mutate_strat
-            <<" population-size=" << context.evolutionary.population_size 
-            <<" mutation-chance=" << context.evolutionary.mutation_chance 
-            <<" diversify-interval=" << context.evolutionary.diversify_interval
-            <<" dynamic-pop-size=" << context.evolutionary.dynamic_population_size
-            <<" dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
-            <<" seed=" << context.partition.seed  
-            <<" graph-name=" << truncated_graph_name
-            <<" SOED=" << metrics::soed(hg)
-            <<" cut=" << metrics::hyperedgeCut(hg)
-            <<" absorption="<<metrics::absorption(hg)
-            <<" imbalance=" << metrics::imbalance(hg, context)
-            <<" k=" << context.partition.k
-            <<" best=" << metrics::km1(hg) 
-            << std::endl;
+  oss << "RESULT "
+      << "connectivity=" << metrics::km1(hg)
+      << " action=" << context.evolutionary.action.decision()
+      << " time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
+      << " iteration=" << context.evolutionary.iteration
+      << " replace-strategy=" << context.evolutionary.replace_strategy
+      << " combine-strategy=" << combine_strat
+      << " mutate-strategy=" << mutate_strat
+      << " population-size=" << context.evolutionary.population_size
+      << " mutation-chance=" << context.evolutionary.mutation_chance
+      << " diversify-interval=" << context.evolutionary.diversify_interval
+      << " dynamic-pop-size=" << context.evolutionary.dynamic_population_size
+      << " dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
+      << " seed=" << context.partition.seed
+      << " graph-name=" << truncated_graph_name
+      << " SOED=" << metrics::soed(hg)
+      << " cut=" << metrics::hyperedgeCut(hg)
+      << " absorption=" << metrics::absorption(hg)
+      << " imbalance=" << metrics::imbalance(hg, context)
+      << " k=" << context.partition.k
+      << " best=" << metrics::km1(hg)
+      << std::endl;
   std::cout << oss.str() << std::endl;
-   
-
- 
-   
-   
- }
+}
 }  // namespace serializer
 }  // namespace io
 }  // namespace kahypar

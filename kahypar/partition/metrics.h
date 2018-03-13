@@ -223,17 +223,14 @@ static inline HypernodeID hyperedgeSizePercentile(const Hypergraph& hypergraph, 
 }
 
 static inline HyperedgeWeight correctMetric(const Hypergraph& hypergraph, const Context& context) {
-  switch(context.partition.objective) {
-    case Objective::km1: {
+  switch (context.partition.objective) {
+    case Objective::km1:
       return km1(hypergraph);
-    }
-    case Objective::cut: {
+    case Objective::cut:
       return hyperedgeCut(hypergraph);
-    }
-    default: {
+    default:
       LOG << "The specified Objective is not listed in the Metrics";
       std::exit(0);
-    }
   }
 }
 

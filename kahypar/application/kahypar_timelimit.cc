@@ -23,11 +23,11 @@
 #include <memory>
 #include <string>
 
-#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/io/partitioning_output.h"
+#include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
@@ -65,16 +65,15 @@ int main(int argc, char* argv[]) {
   Partitioner partitioner;
 
 
- const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
-  while(Timer::instance().evolutionaryResult().total_evolutionary < context.evolutionary.time_limit_seconds) {
-
-     const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-     partitioner.partition(hypergraph, context);
-     const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-     Timer::instance().add(context, Timepoint::evolutionary,
-                        std::chrono::duration<double>(end - start).count());
-     kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
-     hypergraph.reset();
+  const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
+  while (Timer::instance().evolutionaryResult().total_evolutionary < context.evolutionary.time_limit_seconds) {
+    const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    partitioner.partition(hypergraph, context);
+    const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(context, Timepoint::evolutionary,
+                          std::chrono::duration<double>(end - start).count());
+    kahypar::io::serializer::serializeEvolutionary(context, hypergraph);
+    hypergraph.reset();
   }
   const HighResClockTimepoint complete_end = std::chrono::high_resolution_clock::now();
 

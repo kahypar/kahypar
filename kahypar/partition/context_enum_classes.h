@@ -190,7 +190,7 @@ std::ostream& operator<< (std::ostream& os, const EvoDecision& decision) {
     case EvoDecision::mutation:  return os << "mutation";
     case EvoDecision::combine:  return os << "combine";
     case EvoDecision::diversify: return os << "diversify";
-    // omit default case to trigger compiler warning for missing cases
+      // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);
 }
@@ -418,7 +418,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
     return EvoMutateStrategy::new_initial_partitioning_vcycle;
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
-  } 
+  }
   std::cout << "No valid mutate strategy. " << std::endl;
   exit(0);
 }

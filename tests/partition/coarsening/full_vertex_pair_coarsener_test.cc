@@ -111,12 +111,12 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
 
   ASSERT_THAT(true,
               AnyOf(
-                  AllOf(
-                      hypergraph.nodeIsEnabled(0) == true,
-                      hypergraph.nodeIsEnabled(1) == false),
-                  AllOf(
-                      hypergraph.nodeIsEnabled(0) == false,
-                      hypergraph.nodeIsEnabled(1) == true)));
+                AllOf(
+                  hypergraph.nodeIsEnabled(0) == true,
+                  hypergraph.nodeIsEnabled(1) == false),
+                AllOf(
+                  hypergraph.nodeIsEnabled(0) == false,
+                  hypergraph.nodeIsEnabled(1) == true)));
   ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
 }
 

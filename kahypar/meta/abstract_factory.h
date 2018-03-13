@@ -34,7 +34,7 @@ template <typename IdentifierType = Mandatory,
 class Factory {
  private:
   using AbstractProduct = typename std::remove_pointer_t<
-          typename FunctionTraits<ProductCreator>::result_type>;
+    typename FunctionTraits<ProductCreator>::result_type>;
   using AbstractProductPtr = std::unique_ptr<AbstractProduct>;
   using UnderlyingIdentifierType = typename std::underlying_type_t<IdentifierType>;
   using CallbackMap = std::unordered_map<UnderlyingIdentifierType,

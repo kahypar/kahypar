@@ -195,7 +195,7 @@ class MinHashSparsifier {
     }
   }
 
-  const std::vector<HypernodeID>& hnToSparsifiedHnMapping() const {
+  const std::vector<HypernodeID> & hnToSparsifiedHnMapping() const {
     return _clusters;
   }
 
