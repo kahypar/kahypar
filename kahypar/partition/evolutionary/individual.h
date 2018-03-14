@@ -23,11 +23,11 @@
 #include <limits>
 #include <utility>
 #include <vector>
-#include "kahypar/partition/metrics.h"
+
 #include "kahypar/definitions.h"
+#include "kahypar/partition/metrics.h"
 
 namespace kahypar {
-
 class Individual {
  private:
   static constexpr bool debug = false;
@@ -39,11 +39,12 @@ class Individual {
     _strong_cut_edges(),
     _fitness() { }
 
-  Individual(HyperedgeWeight fitness) :
+  explicit Individual(const HyperedgeWeight fitness) :
     _partition(),
     _cut_edges(),
     _strong_cut_edges(),
-    _fitness(fitness) { } 
+    _fitness(fitness) { }
+
   explicit Individual(const std::vector<PartitionID>& partition) :
     _partition(std::move(partition)),
     _cut_edges(),
@@ -121,7 +122,7 @@ class Individual {
     }
     LOG << "\n--------------------------------------------------";
   }
-  
+
  private:
   std::vector<PartitionID> _partition;
   std::vector<HyperedgeID> _cut_edges;
@@ -129,12 +130,12 @@ class Individual {
   HyperedgeWeight _fitness;
 };
 std::ostream& operator<< (std::ostream& os, const Individual& individual) {
-   os << "Fitness: " << individual.fitness() << std::endl;
-   os << "Partition:------------------------------------" << std::endl;
-   for(size_t i = 0; i < individual.partition().size(); ++i) {
-     os << individual.partition()[i] << " ";
-   }
-   return os;
+  os << "Fitness: " << individual.fitness() << std::endl;
+  os << "Partition:------------------------------------" << std::endl;
+  for (size_t i = 0; i < individual.partition().size(); ++i) {
+    os << individual.partition()[i] << " ";
+  }
+  return os;
 }
 using Individuals = std::vector<std::reference_wrapper<const Individual> >;
 using Parents = std::pair<const Individual&, const Individual&>;

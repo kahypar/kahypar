@@ -93,6 +93,4 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                                 context.coarsening.rating.partition_policy),
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy));
-                                
-                                
 }  // namespace kahypar

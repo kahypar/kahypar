@@ -39,7 +39,6 @@ static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
-
   io::printCoarseningBanner(context);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -51,7 +50,7 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-  
+
   if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
     if (context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
       hypergraph.reset();
@@ -69,7 +68,7 @@ static inline void partition(Hypergraph& hypergraph,
       LOG << "Initial Partitioning Result:";
       LOG << "Initial" << context.partition.objective << "      ="
           << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
-              metrics::km1(hypergraph));
+          metrics::km1(hypergraph));
       LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
       LOG << "Initial part sizes and weights:";
       io::printPartSizesAndWeights(hypergraph);
@@ -90,24 +89,22 @@ static inline void partition(Hypergraph& hypergraph,
 
     // There is currently no reason why an evolutionary contraction should be used
     // in conjunction with initial partitioning ... Yet
-    
+
 
     hypergraph.setPartition(*context.evolutionary.parent1);
 
-    
 
     const HyperedgeWeight parent_1_objective = metrics::correctMetric(hypergraph, context);
 
     hypergraph.setPartition(*context.evolutionary.parent2);
     const HyperedgeWeight parent_2_objective = metrics::correctMetric(hypergraph, context);
-    
+
     if (parent_1_objective < parent_2_objective) {
       hypergraph.setPartition(*context.evolutionary.parent1);
     }
-    
   }
 
-  
+
   if (context.partition_evolutionary) {
     hypergraph.initializeNumCutHyperedges();
   }
@@ -127,7 +124,5 @@ static inline void partition(Hypergraph& hypergraph,
 
   io::printLocalSearchResults(context, hypergraph);
 }
-
-  
 }  // namespace multilevel
 }  // namespace kahypar

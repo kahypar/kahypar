@@ -307,6 +307,8 @@ struct PartitioningParameters {
   PartitionID rb_upper_k = std::numeric_limits<PartitionID>::max();
   int seed = 0;
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
+  int time_limit = 0;
+
   mutable uint32_t current_v_cycle = 0;
   std::array<HypernodeWeight, 2> perfect_balance_part_weights { {
                                                                   std::numeric_limits<HypernodeWeight>::max(),
@@ -335,6 +337,7 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  epsilon:                            " << params.epsilon << std::endl;
   str << "  seed:                               " << params.seed << std::endl;
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
+  str << "  time limit:                         " << params.time_limit << "s" << std::endl;
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
   str << "  total hypergraph weight:            " << params.total_graph_weight << std::endl;
   str << "  L_opt0:                             " << params.perfect_balance_part_weights[0]
@@ -412,7 +415,7 @@ class Context {
     partition_evolutionary(other.partition_evolutionary) { }
 
   Context& operator= (const Context&) = delete;
-  
+
   bool isMainRecursiveBisection() const {
     return partition.mode == Mode::recursive_bisection && type == ContextType::main;
   }
@@ -436,9 +439,11 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
       << context.initial_partitioning
       << context.local_search
       << "-------------------------------------------------------------------------------"
-      << std::endl
-      << context.evolutionary
-      << "-------------------------------------------------------------------------------";
+      << std::endl;
+  if (context.partition_evolutionary) {
+    str << context.evolutionary
+        << "-------------------------------------------------------------------------------";
+  }
   return str;
 }
 

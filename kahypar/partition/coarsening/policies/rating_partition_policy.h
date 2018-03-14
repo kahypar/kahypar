@@ -38,14 +38,14 @@ class NormalPartitionPolicy final : public meta::PolicyBase {
 
 class EvoPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph&,
                                                             const Context& context,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {
     ASSERT(context.evolutionary.parent1 != nullptr);
     ASSERT(context.evolutionary.parent2 != nullptr);
     return (*context.evolutionary.parent1)[u] == (*context.evolutionary.parent1)[v] &&
-        (*context.evolutionary.parent2)[u] == (*context.evolutionary.parent2)[v];
+           (*context.evolutionary.parent2)[u] == (*context.evolutionary.parent2)[v];
   }
 };
 

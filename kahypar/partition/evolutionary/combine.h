@@ -37,43 +37,43 @@ static constexpr bool debug = false;
 Individual partitions(Hypergraph& hg,
                       const Parents& parents,
                       Context& context) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   DBG << V(context.evolutionary.action.decision());
   DBG << "Parent 1: initial" << V(parents.first.fitness());
   DBG << "Parent 2: initial" << V(parents.second.fitness());
   context.evolutionary.parent1 = &parents.first.partition();
   context.evolutionary.parent2 = &parents.second.partition();
 #ifndef NDEBUG
-  ASSERT(parents.first.fitness() == [&hg, &parents](int){
-    hg.setPartition(parents.first.partition());
-    int metric = metrics::km1(hg);
-    hg.reset;
-    return metric;
-  });
+  ASSERT(parents.first.fitness() ==[&hg, &parents]() {
+        hg.setPartition(parents.first.partition());
+        HyperedgeWeight metric = metrics::km1(hg);
+        hg.reset();
+        return metric;
+      });
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
-    ASSERT(parents.first.fitness() == [&hg, &parents](int){
-      hg.setPartition(parents.second.partition());
-      int metric = metrics::km1(hg);
-      hg.reset;
-      return metric;
-    });
+    ASSERT(parents.first.fitness() ==[&hg, &parents]() {
+          hg.setPartition(parents.second.partition());
+          HyperedgeWeight metric = metrics::km1(hg);
+          hg.reset();
+          return metric;
+        });
   }
 #endif
+
   hg.reset();
-  HypernodeID original_contraction_limit_multiplier = context.coarsening.contraction_limit_multiplier;
+  const HypernodeID original_contraction_limit_multiplier =
+    context.coarsening.contraction_limit_multiplier;
   if (context.evolutionary.unlimited_coarsening_contraction) {
     context.coarsening.contraction_limit_multiplier = 1;
   }
-  
-  
-  
+
   Partitioner().partition(hg, context);
-  
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
-                        
+
   context.coarsening.contraction_limit_multiplier = original_contraction_limit_multiplier;
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
@@ -98,9 +98,8 @@ Individual usingTournamentSelection(Hypergraph& hg, const Context& context, cons
 }
 
 
-
 Individual edgeFrequency(Hypergraph& hg, const Context& context, const Population& population) {
-  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   hg.reset();
   Context temporary_context(context);
 
@@ -118,23 +117,19 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
                          hg.initialNumEdges());
 
   DBG << V(temporary_context.evolutionary.action.decision());
-  
-  
-  
+
+
   Partitioner().partition(hg, temporary_context);
-  
-  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+
+  const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::evolutionary,
                         std::chrono::duration<double>(end - start).count());
-                        
-                        
+
+
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
   io::printEvolutionaryInformation(temporary_context);
   return Individual(hg, context);
 }
-
-
-
 }  // namespace combine
 }  // namespace kahypar

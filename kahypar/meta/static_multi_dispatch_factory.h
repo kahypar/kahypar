@@ -125,9 +125,9 @@ class StaticMultiDispatchFactory {
       // Add it to the list of matched types and continue matching the class of the
       // next policy.
       using NewMatchedTypes =
-              typename concat<MatchedPolicyClasses,
-                              Typelist<std::remove_reference_t<CurrentPolicyClass> >
-                              >::type;
+        typename concat<MatchedPolicyClasses,
+                        Typelist<std::remove_reference_t<CurrentPolicyClass> >
+                        >::type;
       // After we found the corresponding type, we have to perform type matching for the
       // remaining policies.
       using RemainingPolicies = Policies;

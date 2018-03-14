@@ -161,7 +161,7 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
   }
 
   if (context.preprocessing.enable_community_detection &&
-       context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
+      context.preprocessing.community_detection.edge_weight == LouvainEdgeWeight::hybrid) {
     const double density = static_cast<double>(hypergraph.initialNumEdges()) /
                            static_cast<double>(hypergraph.initialNumNodes());
     if (density < 0.75) {

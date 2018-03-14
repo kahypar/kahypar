@@ -23,7 +23,6 @@
 #include "kahypar/definitions.h"
 
 namespace kahypar {
-
 struct Move {
   const HypernodeID hn;
   const PartitionID from;
@@ -32,9 +31,9 @@ struct Move {
   Move(const HypernodeID hn,
        const PartitionID from,
        const PartitionID to) :
-       hn(hn),
-       from(from),
-       to(to) { }
+    hn(hn),
+    from(from),
+    to(to) { }
 
   Move(const Move&) = delete;
   Move& operator= (const Move&) = delete;
@@ -43,7 +42,5 @@ struct Move {
   Move& operator= (Move&&) = default;
 
   ~Move() = default;
-
 };
-
-} // namespace kahypar
+}  // namespace kahypar
