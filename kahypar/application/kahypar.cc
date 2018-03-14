@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
   } else if (context.partition_evolutionary) {
     EvoPartitioner partitioner(context);
-    partitioner.evo_partition(hypergraph, context);
+    partitioner.partition(hypergraph, context);
 
     std::vector<PartitionID> best_partition = partitioner.bestPartition();
     hypergraph.reset();

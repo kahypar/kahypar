@@ -49,7 +49,7 @@ class EvoPartitioner {
     _timelimit = context.evolutionary.time_limit_seconds;
   }
 
-  inline void evo_partition(Hypergraph& hg, Context& context) {
+  inline void partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
 
 
