@@ -116,6 +116,7 @@ class Timer {
   void clear() {
     _timings.clear();
     _evaluated = false;
+    _result = Result{ };
   }
 
 
