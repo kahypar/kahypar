@@ -439,6 +439,9 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
                                                              const int num_columns) {
   po::options_description evolutionary_options("Evolutionary Options", num_columns);
   evolutionary_options.add_options()
+      ("partition-evolutionary",
+       po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
+       "Use memetic algorithm for partitioning")
     ("evolutionary-time-limit",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& time_limit) {
