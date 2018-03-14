@@ -35,7 +35,8 @@ namespace kahypar {
 namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
-                             const std::chrono::duration<double>& elapsed_seconds) {
+                             const std::chrono::duration<double>& elapsed_seconds,
+                             const size_t iteration = 0) {
   const auto& timings = Timer::instance().result();
   std::ostringstream oss;
   oss << "RESULT"
@@ -199,6 +200,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " flow_use_improvement_history="
         << std::boolalpha << context.local_search.flow.use_improvement_history;
   }
+  oss << " iteration= " << iteration;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " partSize" << i << "=" << hypergraph.partSize(i);
   }
