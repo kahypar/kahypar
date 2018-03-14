@@ -85,6 +85,10 @@ class EvoPartitioner {
     hg.setPartition(_population.individualAt(_population.best()).partition());
   }
 
+  const std::vector<PartitionID> & bestPartition() const {
+    return _polulation.individualAt(_population.best()).partition();
+  }
+
  private:
   FRIEND_TEST(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation);
   FRIEND_TEST(TheEvoPartitioner, RespectsLimitsOfTheInitialPopulation);
