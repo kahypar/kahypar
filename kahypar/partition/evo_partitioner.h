@@ -86,7 +86,7 @@ class EvoPartitioner {
   }
 
   const std::vector<PartitionID> & bestPartition() const {
-    return _polulation.individualAt(_population.best()).partition();
+    return _population.individualAt(_population.best()).partition();
   }
 
  private:
