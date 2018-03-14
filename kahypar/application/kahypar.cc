@@ -30,12 +30,14 @@
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/evo_partitioner.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
+using kahypar::partition::EvoPartitioner;
 using kahypar::Context;
 using kahypar::PartitionID;
 using kahypar::HyperedgeWeight;
@@ -63,7 +65,6 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
   size_t iteration = 0;
   std::chrono::duration<double> elapsed_time(0);
 
@@ -75,6 +76,7 @@ int main(int argc, char* argv[]) {
     HyperedgeWeight best_solution_quality = std::numeric_limits<HyperedgeWeight>::max();
     double best_imbalance = 1.0;
 
+    Partitioner partitioner;
     while (elapsed_time.count() < context.partition.time_limit) {
       const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
       partitioner.partition(hypergraph, context);
@@ -112,8 +114,18 @@ int main(int argc, char* argv[]) {
     for (const auto& hn : hypergraph.nodes()) {
       hypergraph.setNodePart(hn, best_solution[hn]);
     }
+  } else if (context.partition_evolutionary) {
+    EvoPartitioner partitioner(context);
+    partitioner.evo_partition(hypergraph, context);
+
+    std::vector<PartitionID> best_partition = partitioner.bestPartition();
+    hypergraph.reset();
+
+    for (const auto& hn : hypergraph.nodes()) {
+      hypergraph.setNodePart(hn, best_partition[hn]);
+    }
   } else {
-    partitioner.partition(hypergraph, context);
+    Partitioner().partition(hypergraph, context);
   }
 
   const HighResClockTimepoint complete_end = std::chrono::high_resolution_clock::now();

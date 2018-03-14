@@ -439,9 +439,11 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
       << context.initial_partitioning
       << context.local_search
       << "-------------------------------------------------------------------------------"
-      << std::endl
-      << context.evolutionary
-      << "-------------------------------------------------------------------------------";
+      << std::endl;
+  if (context.partition_evolutionary) {
+    str << context.evolutionary
+        << "-------------------------------------------------------------------------------";
+  }
   return str;
 }
 
