@@ -439,7 +439,7 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
                                                              const int num_columns) {
   po::options_description evolutionary_options("Evolutionary Options", num_columns);
   evolutionary_options.add_options()
-    ("time-limit",
+    ("evolutionary-time-limit",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& time_limit) {
       context.evolutionary.time_limit_seconds = time_limit;
@@ -560,6 +560,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Verbose initial partitioning output")
     ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
     "Quiet Mode: Completely suppress console output")
+    ("time-limit", po::value<int>(&context.partition.time_limit)->value_name("<int>"),
+     "Time limit in seconds")
     ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)");
