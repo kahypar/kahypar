@@ -6,3 +6,4 @@ target_link_libraries(integration_tests ${Boost_LIBRARIES})
 target_link_libraries(evolutionary_integration_tests ${Boost_LIBRARIES})
 # exclude integration tests from default build target
 set_target_properties(integration_tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+set_target_properties(evolutionary_integration_tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
