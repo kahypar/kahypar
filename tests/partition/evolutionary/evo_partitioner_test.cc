@@ -102,9 +102,9 @@ TEST_F(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation) {
 
   EvoPartitioner evo_part(context);
   evo_part.generateInitialPopulation(hypergraph, context);
-  ASSERT_EQ(evo_part._population.size(), std::max(3.0, std::round(context.evolutionary.dynamic_population_amount_of_time
+  ASSERT_EQ(evo_part._population.size(), std::min(50.0, std::max(3.0, std::round(context.evolutionary.dynamic_population_amount_of_time
                                                     * context.evolutionary.time_limit_seconds
-                                                    / Timer::instance().evolutionaryResult().evolutionary.at(0))));
+                                                    / Timer::instance().evolutionaryResult().evolutionary.at(0)))));
 }
 TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   context.partition.quiet_mode = true;
