@@ -46,7 +46,7 @@ TEST_F(KaHyParE, MeasuresTimeForEveryAction) {
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   context.partition.quiet_mode = true;
   context.partition_evolutionary = true;
-  context.partition.graph_filename = "../../../tests/end_to_end/test_instances/ISPD98_ibm01.hgr";
+  context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));

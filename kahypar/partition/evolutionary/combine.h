@@ -44,21 +44,21 @@ Individual partitions(Hypergraph& hg,
   context.evolutionary.parent1 = &parents.first.partition();
   context.evolutionary.parent2 = &parents.second.partition();
 #ifndef NDEBUG
-  ASSERT(parents.first.fitness() ==[&hg, &parents]() {
+  ASSERT(parents.first.fitness() == ([](Hypergraph& hg, const Parents& parents) -> int {
         hg.setPartition(parents.first.partition());
         HyperedgeWeight metric = metrics::km1(hg);
         hg.reset();
         return metric;
-      });
+      })(hg,parents));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
-  if (!context.evolutionary.action.requires().invalidation_of_second_partition) {
-    ASSERT(parents.first.fitness() ==[&hg, &parents]() {
-          hg.setPartition(parents.second.partition());
-          HyperedgeWeight metric = metrics::km1(hg);
-          hg.reset();
-          return metric;
-        });
-  }
+
+  ASSERT(parents.second.fitness() == ([](Hypergraph& hg, const Parents& parents) -> int {
+        hg.setPartition(parents.second.partition());
+        HyperedgeWeight metric = metrics::km1(hg);
+        hg.reset();
+        return metric;
+      })(hg,parents));
+
 #endif
 
   hg.reset();

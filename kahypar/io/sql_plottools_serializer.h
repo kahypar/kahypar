@@ -240,6 +240,9 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
   std::ostringstream oss;
+  if(context.partition.quiet_mode) {
+    return;
+  }
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
   EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
   switch (context.evolutionary.action.decision()) {
