@@ -303,11 +303,11 @@ struct PartitioningParameters {
   int seed = 0;
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
   mutable uint32_t current_v_cycle = 0;
-  std::array<HypernodeWeight, 2> perfect_balance_part_weights { {
+  std::vector<HypernodeWeight> perfect_balance_part_weights { {
                                                                   std::numeric_limits<HypernodeWeight>::max(),
                                                                   std::numeric_limits<HypernodeWeight>::max()
                                                                 } };
-  std::array<HypernodeWeight, 2> max_part_weights { { std::numeric_limits<HypernodeWeight>::max(),
+  std::vector<HypernodeWeight> max_part_weights { { std::numeric_limits<HypernodeWeight>::max(),
                                                       std::numeric_limits<HypernodeWeight>::max() } };
   HypernodeWeight total_graph_weight = std::numeric_limits<HypernodeWeight>::max();
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
@@ -315,6 +315,7 @@ struct PartitioningParameters {
   bool verbose_output = false;
   bool quiet_mode = false;
   bool sp_process_output = false;
+  bool use_individual_block_weights = false;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
@@ -332,12 +333,21 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
   str << "  total hypergraph weight:            " << params.total_graph_weight << std::endl;
+  str << "  use individual block weights:       " << std::boolalpha
+      << params.use_individual_block_weights << std::endl;
+  if (params.use_individual_block_weights) {
+    for (PartitionID i = 0; i < params.k; ++i) {
+      str << "  L_max" << i << ":                             " << params.max_part_weights[i]
+          << std::endl;
+    }
+  } else {
   str << "  L_opt0:                             " << params.perfect_balance_part_weights[0]
       << std::endl;
   str << "  L_opt1:                             " << params.perfect_balance_part_weights[1]
       << std::endl;
   str << "  L_max0:                             " << params.max_part_weights[0] << std::endl;
   str << "  L_max1:                             " << params.max_part_weights[1] << std::endl;
+  }
   return str;
 }
 

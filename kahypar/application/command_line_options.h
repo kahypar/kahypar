@@ -79,7 +79,13 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     "Hyperedges larger than cmaxnet are ignored during partitioning process.")
     ("vcycles",
     po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
-    "# V-cycle iterations for direct k-way partitioning");
+    "# V-cycle iterations for direct k-way partitioning")
+        ("use-individual-blockweights",
+    po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
+    "# Use individual block weights specified with --blockweights= option")
+      ("blockweights",
+       po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
+       "Individual target block weights");
   return options;
 }
 
@@ -565,6 +571,11 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     + ".seed"
     + std::to_string(context.partition.seed)
     + ".KaHyPar";
+
+  if (context.partition.use_individual_block_weights) {
+    context.partition.epsilon = 0;
+  }
+
 }
 
 
