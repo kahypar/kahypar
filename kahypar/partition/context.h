@@ -509,5 +509,31 @@ static inline void sanityCheck(Context& context) {
       // should never happen, because initial partitioning is either done via RB or directly
       break;
   }
+  if (context.partition.use_individual_block_weights &&
+      context.partition.max_part_weights[0] == std::numeric_limits<HypernodeWeight>::max()) {
+    LOG << "Individual block weights not specified. Please use --blockweights to specify the weight of each block";
+    std::exit(0);
+  }
+
+  if (!context.partition.use_individual_block_weights &&
+      context.partition.max_part_weights[0] != std::numeric_limits<HypernodeWeight>::max()) {
+    LOG << "Individual block weights specified, but --use-individual-blockweights=false.";
+    LOG << "Do you want to use the block weights you specified (Y/N)?";
+    char answer = 'N';
+    std::cin >> answer;
+    answer = std::toupper(answer);
+    if (answer == 'Y') {
+      context.partition.use_individual_block_weights = true;
+    } else {
+      LOG << "Individual block weights will be ignored. Partition with imbalance epsilon="
+          << context.partition.epsilon << " (Y/N)?";
+      answer = 'N';
+      std::cin >> answer;
+      answer = std::toupper(answer);
+      if (answer == 'N') {
+        std::exit(0);
+      }
+    }
+  }
 }
 }  // namespace kahypar
