@@ -200,7 +200,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " flow_use_improvement_history="
         << std::boolalpha << context.local_search.flow.use_improvement_history;
   }
-  oss << " iteration= " << iteration;
+  oss << " iteration=" << iteration;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " partSize" << i << "=" << hypergraph.partSize(i);
   }

@@ -349,7 +349,6 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   return str;
 }
 struct EvolutionaryParameters {
-  int time_limit_seconds;
   size_t population_size;
   float mutation_chance;
   float edge_frequency_chance;
@@ -375,7 +374,6 @@ struct EvolutionaryParameters {
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {
   str << "Evolutionary Parameters:              " << std::endl;
-  str << "  Time Limit:                         " << params.time_limit_seconds << std::endl;
   str << "  Population Size:                    " << params.population_size << std::endl;
   str << "  Mutation Chance                     " << params.mutation_chance << std::endl;
   str << "  Edge Frequency Chance               " << params.edge_frequency_chance << std::endl;

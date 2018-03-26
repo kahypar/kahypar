@@ -46,6 +46,10 @@ TEST_F(KaHyParE, MeasuresTimeForEveryAction) {
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   context.partition.quiet_mode = true;
   context.partition_evolutionary = true;
+  /*context.evolutionary.dynamic_population = false;
+  context.evolutionary.population_size = 3;
+  context.evolutionary.mutate_chance = 0;
+  context.evolutionary */
   context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
   const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
 
-  if (context.partition.time_limit != 0) {
+  if (context.partition.time_limit != 0 && !context.partition_evolutionary) {
     // We are running in time limit mode. Therefore we have to remember the best solution
     std::vector<PartitionID> best_solution(hypergraph.initialNumNodes(), 0);
     HyperedgeWeight best_solution_quality = std::numeric_limits<HyperedgeWeight>::max();
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     for (const auto& hn : hypergraph.nodes()) {
       hypergraph.setNodePart(hn, best_solution[hn]);
     }
-  } else if (context.partition_evolutionary) {
+  } else if (context.partition_evolutionary && context.partition.time_limit != 0) {
     EvoPartitioner partitioner(context);
     partitioner.partition(hypergraph, context);
 

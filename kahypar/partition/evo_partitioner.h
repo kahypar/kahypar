@@ -46,7 +46,7 @@ class EvoPartitioner {
   explicit EvoPartitioner(const Context& context) :
     _timelimit(),
     _population() {
-    _timelimit = context.evolutionary.time_limit_seconds;
+    _timelimit = context.partition.time_limit;
   }
 
   inline void partition(Hypergraph& hg, Context& context) {
@@ -105,7 +105,7 @@ class EvoPartitioner {
       ++context.evolutionary.iteration;
       io::serializer::serializeEvolutionary(context, hg);
       int dynamic_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
-                                               * context.evolutionary.time_limit_seconds
+                                               * context.partition.time_limit
                                                / Timer::instance().evolutionaryResult().total_evolutionary);
       int minimal_size = std::max(dynamic_population_size, 3);
 

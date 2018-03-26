@@ -442,13 +442,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       ("partition-evolutionary",
        po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
        "Use memetic algorithm for partitioning")
-    ("evolutionary-time-limit",
-    po::value<int>()->value_name("<int>")->notifier(
-      [&](const int& time_limit) {
-      context.evolutionary.time_limit_seconds = time_limit;
-    }),
-    "Time Limit for Algorithm in seconds\n"
-    "(default 5 hours = 18000 seconds)")
     ("population-size",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& pop_size) {
