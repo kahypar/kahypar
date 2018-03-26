@@ -133,10 +133,10 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
           (equal_metric && improved_imbalance) ||
           (is_feasible_partition && !is_best_cut_feasible_paritition)) {
-          for (const HypernodeID& hn : _hg.nodes()) {
-            best_partition[hn] = _hg.partID(hn);
-          }
-          applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
+        for (const HypernodeID& hn : _hg.nodes()) {
+          best_partition[hn] = _hg.partID(hn);
+        }
+        applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
       }
       if (current_cut < min_cut.cut) {
         applyPartitioningResults(min_cut, current_cut, current_imbalance, algo);
