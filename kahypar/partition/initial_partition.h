@@ -53,7 +53,6 @@ static inline Context createContext(const Hypergraph& hg,
   context.partition.global_search_iterations = 0;
 
   context.initial_partitioning.k = context.partition.k;
-  context.initial_partitioning.epsilon = init_alpha * original_context.partition.epsilon;
 
   context.initial_partitioning.perfect_balance_partition_weight.clear();
   context.initial_partitioning.upper_allowed_partition_weight.clear();
@@ -166,7 +165,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
           << "" << context.initial_partitioning.mode << ""
           << context.initial_partitioning.algo
           << "(k=" << init_context.initial_partitioning.k << ", epsilon="
-          << init_context.initial_partitioning.epsilon << ")";
+          << init_context.partition.epsilon << ")";
     }
     if (context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
         context.initial_partitioning.mode == Mode::direct_kway) {
