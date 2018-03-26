@@ -26,6 +26,7 @@
 #include "kahypar/kahypar.h"
 #include "kahypar/partition/evolutionary/combine.h"
 #include "kahypar/partition/evolutionary/mutate.h"
+#include "kahypar/partition/evo_partitioner.h"
 #include "kahypar/partition/evolutionary/population.h"
 using ::testing::Eq;
 using ::testing::Test;
@@ -37,30 +38,25 @@ class KaHyParE : public Test {
   Context context;
 };
 TEST_F(KaHyParE, MeasuresTimeForEveryAction) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_gecco18.ini");
+  parseIniToContext(context, "../../../tests/end_to_end/configs/test.ini");
   context.partition.k = 2;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
-  context.partition.quiet_mode = true;
+  context.partition.quiet_mode = false;
   context.partition_evolutionary = true;
-  /*context.evolutionary.dynamic_population = false;
-  context.evolutionary.population_size = 3;
-  context.evolutionary.mutate_chance = 0;
-  context.evolutionary */
   context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Population population;
-  population.generateIndividual(hypergraph, context);
-  population.generateIndividual(hypergraph, context);
-  population.generateIndividual(hypergraph, context);
-
-  context.evolutionary.combine_strategy = EvoCombineStrategy::basic;
+  partition::EvoPartitioner partitioner(context);
+  
+  partitioner.partition(hypergraph, context);
+  ASSERT_LT(metrics::imbalance(hypergraph, context), 0.03);
+  /*context.evolutionary.combine_strategy = EvoCombineStrategy::basic;
   Individual temporary_individual = combine::usingTournamentSelection(hypergraph, context, population);
   hypergraph.reset();
   hypergraph.setPartition(temporary_individual.partition());
@@ -88,6 +84,6 @@ TEST_F(KaHyParE, MeasuresTimeForEveryAction) {
   hypergraph.reset();
   hypergraph.setPartition(temporary_individual.partition());
   ASSERT_LT(metrics::imbalance(hypergraph, context), 0.03);
-  ASSERT_EQ(Timer::instance().evolutionaryResult().evolutionary.size(), 4);
+  ASSERT_EQ(Timer::instance().evolutionaryResult().evolutionary.size(), 4);*/
 }
 }  // namespace kahypar
