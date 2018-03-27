@@ -167,4 +167,45 @@ TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
   ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
   ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
+
+TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
+  parseIniToContext(context, "../../../config/km1_direct_kway_sea18.ini");
+  context.partition.k = 6;
+
+  context.partition.epsilon = 0;
+  context.partition.mode = Mode::direct_kway;
+  context.partition.objective = Objective::km1;
+  context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+  context.partition.use_individual_block_weights = true;
+  context.partition.verbose_output = true;
+  context.partition.max_part_weights = { 2750, 1000, 3675, 2550, 2550, 250 };
+
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+  Partitioner partitioner;
+  partitioner.partition(hypergraph, context);
+
+
+  kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
+
+  ASSERT_LE(hypergraph.partWeight(0), 2750);
+  ASSERT_LE(hypergraph.partWeight(1), 1000);
+  ASSERT_LE(hypergraph.partWeight(2), 3675);
+  ASSERT_LE(hypergraph.partWeight(3), 2550);
+  ASSERT_LE(hypergraph.partWeight(4), 2550);
+  ASSERT_LE(hypergraph.partWeight(5), 250);
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
+}
 }  // namespace kahypar
