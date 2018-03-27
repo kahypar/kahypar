@@ -93,7 +93,6 @@ class AGreedyQueueSelectionTest : public Test {
   void initializeContext(PartitionID k) {
     context.initial_partitioning.k = k;
     context.partition.k = k;
-    context.initial_partitioning.epsilon = 0.05;
     context.partition.epsilon = 0.05;
     context.initial_partitioning.upper_allowed_partition_weight.resize(k);
     context.initial_partitioning.perfect_balance_partition_weight.resize(k);

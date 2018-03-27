@@ -40,7 +40,6 @@ void initializeContext(Context& context, PartitionID k,
                        HypernodeWeight hypergraph_weight) {
   context.initial_partitioning.k = k;
   context.partition.k = k;
-  context.initial_partitioning.epsilon = 1.0;
   context.partition.epsilon = 1.0;
   context.initial_partitioning.refinement = false;
   context.initial_partitioning.upper_allowed_partition_weight.resize(

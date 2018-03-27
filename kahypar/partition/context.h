@@ -258,7 +258,6 @@ struct InitialPartitioningParameters {
   // The following parameters are only used internally and are not supposed to
   // be changed by the user.
   PartitionID k = std::numeric_limits<PartitionID>::max();
-  double epsilon = std::numeric_limits<double>::max();
   HypernodeWeightVector upper_allowed_partition_weight = { };
   HypernodeWeightVector perfect_balance_partition_weight = { };
   PartitionID unassigned_part = 1;

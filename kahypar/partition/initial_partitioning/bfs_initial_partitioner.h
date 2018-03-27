@@ -109,7 +109,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     if (unassigned_part != -1) {
       assigned_nodes_weight =
         _context.initial_partitioning.perfect_balance_partition_weight[unassigned_part]
-        * (1.0 - _context.initial_partitioning.epsilon);
+        * (1.0 - _context.partition.epsilon);
     }
 
 
