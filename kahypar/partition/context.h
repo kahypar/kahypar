@@ -297,8 +297,8 @@ struct PartitioningParameters {
   Objective objective = Objective::UNDEFINED;
   double epsilon = std::numeric_limits<double>::max();
   PartitionID k = std::numeric_limits<PartitionID>::max();
-  PartitionID rb_lower_k = std::numeric_limits<PartitionID>::max();
-  PartitionID rb_upper_k = std::numeric_limits<PartitionID>::max();
+  PartitionID rb_lower_k = 0;
+  PartitionID rb_upper_k = 0;
   int seed = 0;
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
   mutable uint32_t current_v_cycle = 0;
