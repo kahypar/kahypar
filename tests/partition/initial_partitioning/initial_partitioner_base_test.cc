@@ -43,13 +43,12 @@ class InitialPartitionerBaseTest : public Test {
 
     initializeContext(hypergraph_weight);
     partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, context);
-    partitioner->recalculateBalanceConstraints(context.initial_partitioning.epsilon);
+    partitioner->recalculateBalanceConstraints(context.partition.epsilon);
   }
 
   void initializeContext(HypernodeWeight hypergraph_weight) {
     context.initial_partitioning.k = 2;
     context.partition.k = 2;
-    context.initial_partitioning.epsilon = 0.05;
     context.partition.epsilon = 0.05;
     context.initial_partitioning.upper_allowed_partition_weight.resize(2);
     context.initial_partitioning.perfect_balance_partition_weight.resize(2);

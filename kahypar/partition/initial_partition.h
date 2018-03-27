@@ -53,16 +53,25 @@ static inline Context createContext(const Hypergraph& hg,
   context.partition.global_search_iterations = 0;
 
   context.initial_partitioning.k = context.partition.k;
-  context.initial_partitioning.epsilon = init_alpha * original_context.partition.epsilon;
 
   context.initial_partitioning.perfect_balance_partition_weight.clear();
   context.initial_partitioning.upper_allowed_partition_weight.clear();
+
+  if (context.partition.use_individual_block_weights) {
+    for (int i = context.partition.rb_lower_k; i <= context.partition.rb_upper_k; ++i) {
+      context.initial_partitioning.perfect_balance_partition_weight.push_back(
+          context.partition.perfect_balance_part_weights[i]);
+    context.initial_partitioning.upper_allowed_partition_weight.push_back(
+      context.initial_partitioning.perfect_balance_partition_weight[i]);
+    }
+  } else {
   for (int i = 0; i < context.initial_partitioning.k; ++i) {
     context.initial_partitioning.perfect_balance_partition_weight.push_back(
       context.partition.perfect_balance_part_weights[i % 2]);
     context.initial_partitioning.upper_allowed_partition_weight.push_back(
       context.initial_partitioning.perfect_balance_partition_weight[i]
       * (1.0 + context.partition.epsilon));
+  }
   }
 
   // Coarsening-Parameters
@@ -166,7 +175,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
           << "" << context.initial_partitioning.mode << ""
           << context.initial_partitioning.algo
           << "(k=" << init_context.initial_partitioning.k << ", epsilon="
-          << init_context.initial_partitioning.epsilon << ")";
+          << init_context.partition.epsilon << ")";
     }
     if (context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
         context.initial_partitioning.mode == Mode::direct_kway) {

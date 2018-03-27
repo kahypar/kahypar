@@ -34,6 +34,8 @@ class KaHyParCA : public ::testing::Test {
     context.partition.mode = Mode::direct_kway;
     context.partition.objective = Objective::cut;
     context.partition.seed = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = 0;
     context.preprocessing.enable_community_detection = true;
     context.preprocessing.enable_min_hash_sparsifier = true;
     context.preprocessing.community_detection.enable_in_initial_partitioning = true;
@@ -76,6 +78,8 @@ class KaHyParK : public ::testing::Test {
     context.partition.mode = Mode::direct_kway;
     context.partition.objective = Objective::cut;
     context.partition.seed = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = 0;
     context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
     context.coarsening.max_allowed_weight_multiplier = 1;
     context.coarsening.contraction_limit_multiplier = 160;
@@ -106,6 +110,8 @@ class KaHyParR : public ::testing::Test {
     context.partition.mode = Mode::recursive_bisection;
     context.partition.objective = Objective::cut;
     context.partition.seed = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = 0;
     context.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
     context.coarsening.max_allowed_weight_multiplier = 3.25;
     context.coarsening.contraction_limit_multiplier = 160;

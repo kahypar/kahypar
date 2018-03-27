@@ -44,7 +44,6 @@ void initializeContext(Hypergraph& hg, Context& context,
                        PartitionID k) {
   context.initial_partitioning.k = k;
   context.partition.k = k;
-  context.initial_partitioning.epsilon = 0.05;
   context.partition.epsilon = 0.05;
   context.initial_partitioning.unassigned_part = 1;
   context.initial_partitioning.nruns = 1;

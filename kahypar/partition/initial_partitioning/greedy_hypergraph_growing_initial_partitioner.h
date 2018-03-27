@@ -125,7 +125,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         // Every part is disabled and the upper weight bound is released
         // to finish initial partitioning
         if (!is_upper_bound_released) {
-          InitialPartitionerBase::recalculateBalanceConstraints(_context.initial_partitioning.epsilon);
+          InitialPartitionerBase::recalculateBalanceConstraints(_context.partition.epsilon);
           is_upper_bound_released = true;
           for (PartitionID part = 0; part < _context.initial_partitioning.k; ++part) {
             if (part != _context.initial_partitioning.unassigned_part && !_pq.isEnabled(part) &&
@@ -236,7 +236,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     }
 
     _context.initial_partitioning.unassigned_part = unassigned_part;
-    InitialPartitionerBase::recalculateBalanceConstraints(_context.initial_partitioning.epsilon);
+    InitialPartitionerBase::recalculateBalanceConstraints(_context.partition.epsilon);
     InitialPartitionerBase::performFMRefinement();
   }
 

@@ -84,7 +84,8 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
                                                     const Hypergraph& current_hypergraph,
                                                     const PartitionID current_k,
                                                     const PartitionID k0,
-                                                    const PartitionID k1) {
+                                                    const PartitionID k1,
+                                                    const PartitionID kl) {
   Context current_context(original_context);
   current_context.partition.k = 2;
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -94,19 +95,35 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   current_context.partition.total_graph_weight =
     current_hypergraph.totalWeight();
 
-  current_context.partition.perfect_balance_part_weights[0] =
-    ceil((k0 / static_cast<double>(current_k))
-         * static_cast<double>(current_context.partition.total_graph_weight));
+  if (original_context.partition.use_individual_block_weights) {
+    current_context.partition.epsilon = 0;
+    current_context.partition.perfect_balance_part_weights[0] = 0;
+    for (PartitionID i = 0; i < k0; ++i) {
+      const PartitionID block = kl + i;
+      current_context.partition.perfect_balance_part_weights[0] += original_context.partition.perfect_balance_part_weights[block];
+    }
+    current_context.partition.perfect_balance_part_weights[1] = 0;
+    for (PartitionID i = 0 ; i < k1; ++i) {
+      const PartitionID block = kl + k0 + i;
+      current_context.partition.perfect_balance_part_weights[1] += original_context.partition.perfect_balance_part_weights[block];
+    }
+    current_context.partition.max_part_weights[0] = current_context.partition.perfect_balance_part_weights[0];
+    current_context.partition.max_part_weights[1] = current_context.partition.perfect_balance_part_weights[1];
+  } else {
+    current_context.partition.perfect_balance_part_weights[0] =
+        ceil((k0 / static_cast<double>(current_k))
+             * static_cast<double>(current_context.partition.total_graph_weight));
 
-  current_context.partition.perfect_balance_part_weights[1] =
-    ceil((k1 / static_cast<double>(current_k))
-         * static_cast<double>(current_context.partition.total_graph_weight));
+    current_context.partition.perfect_balance_part_weights[1] =
+        ceil((k1 / static_cast<double>(current_k))
+             * static_cast<double>(current_context.partition.total_graph_weight));
 
-  current_context.partition.max_part_weights[0] =
-    (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0];
+    current_context.partition.max_part_weights[0] =
+        (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0];
 
-  current_context.partition.max_part_weights[1] =
-    (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1];
+    current_context.partition.max_part_weights[1] =
+        (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1];
+  }
 
   current_context.coarsening.contraction_limit =
     current_context.coarsening.contraction_limit_multiplier * current_context.partition.k;
@@ -181,7 +198,7 @@ static inline void partition(Hypergraph& input_hypergraph,
       case RBHypergraphState::unpartitioned: {
           Context current_context =
             createCurrentBisectionContext(original_context, input_hypergraph,
-                                          current_hypergraph, k, km, k - km);
+                                          current_hypergraph, k, km, k - km,k1);
           current_context.partition.rb_lower_k = k1;
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;

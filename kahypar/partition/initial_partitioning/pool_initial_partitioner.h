@@ -95,7 +95,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
-    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, 0.0);
+    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, kInvalidImbalance);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, 0.0);
     PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
     PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut,
@@ -123,19 +123,20 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
       DBG << algo << V(current_cut) << V(current_imbalance);
-      if (current_cut <= best_cut.cut) {
-        bool apply_best_partition = true;
-        if (best_cut.cut != kInvalidCut &&
-            current_imbalance > _context.initial_partitioning.epsilon &&
-            current_imbalance > best_cut.imbalance) {
-          apply_best_partition = false;
+
+      const bool equal_metric = current_cut == best_cut.cut;
+      const bool improved_metric = current_cut < best_cut.cut;
+      const bool improved_imbalance = current_imbalance < best_cut.imbalance;
+      const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
+      const bool is_best_cut_feasible_paritition = best_cut.imbalance <= _context.partition.epsilon;
+
+      if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
+          (equal_metric && improved_imbalance) ||
+          (is_feasible_partition && !is_best_cut_feasible_paritition)) {
+        for (const HypernodeID& hn : _hg.nodes()) {
+          best_partition[hn] = _hg.partID(hn);
         }
-        if (apply_best_partition) {
-          for (const HypernodeID& hn : _hg.nodes()) {
-            best_partition[hn] = _hg.partID(hn);
-          }
-          applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
-        }
+        applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
       }
       if (current_cut < min_cut.cut) {
         applyPartitioningResults(min_cut, current_cut, current_imbalance, algo);
