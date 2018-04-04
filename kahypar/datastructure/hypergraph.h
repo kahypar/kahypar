@@ -807,10 +807,16 @@ class GenericHypergraph {
     ASSERT(!hypernode(v).isDisabled(), "Hypernode" << v << "is disabled");
     ASSERT(partID(u) == partID(v), "Hypernodes" << u << "&" << v << "are in different parts: "
                                                 << partID(u) << "&" << partID(v));
+    ASSERT(!isFixedVertex(u) || !isFixedVertex(v), "Both hypernodes are fixed vertices");
+    ASSERT(isFixedVertex(v), "Hypernode " << v << " is a fixed vertex and have to be"
+                                          << "the representive of the contraction")
 
     DBG << "contracting (" << u << "," << v << ")";
 
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
+    if (isFixedVertex(u)) {
+      _part_info[fixedVertexPart(u)].fixed_vertex_weight += hypernode(v).weight();
+    }
     const HypernodeID u_offset = hypernode(u).firstEntry();
     const HypernodeID u_size = hypernode(u).size();
 
@@ -890,6 +896,9 @@ class GenericHypergraph {
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
+      _part_info[fixedVertexPart(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+    }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
@@ -1009,6 +1018,9 @@ class GenericHypergraph {
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
+      _part_info[fixedVertexPart(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+    }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
@@ -1116,6 +1128,7 @@ class GenericHypergraph {
     ASSERT(partID(hn) == from, "Hypernode" << hn << "is not in partition" << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
     ASSERT(from != to, "from part" << from << "==" << to << "part");
+    ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is a fixed vertex");
     updatePartInfo(hn, from, to);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       const bool no_pins_left_in_source_part = decrementPinCountInPart(he, from);
@@ -1184,6 +1197,10 @@ class GenericHypergraph {
     ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << "is not unpartitioned: "
                                                         << partID(hn));
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
+    ASSERT(!isFixedVertex(hn) || hypernode(hn).fixed_part_id == id,
+           "Hypernode " << hn << " is a fixed vertex"
+           << " and should be assigned to part " << hypernode(hn).fixed_part_id
+           << " instead of part " << id);
     updatePartInfo(hn, id);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       incrementPinCountInPart(he, id);
@@ -1476,7 +1493,7 @@ class GenericHypergraph {
     return hypernode(u).fixed_part_id;
   }
 
-  void isFixedVertex(const HypernodeID hn) const {
+  bool isFixedVertex(const HypernodeID hn) const {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
     return hypernode(hn).fixed_part_id != kInvalidPartition;
   }
