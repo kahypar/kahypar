@@ -377,7 +377,9 @@ class KWayFMRefiner final : public IRefiner,
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
         !hypernodeIsConnectedToPart(pin, from_part)) {
-      _pq.remove(pin, from_part);
+      if (!_hg.isFixedVertex(pin)) {
+        _pq.remove(pin, from_part);
+      }
       // LOG << "normal connectivity decrease for" << pin << V(from_part);
       _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
       // Now pq might actually not contain any moves for HN pin.
@@ -402,13 +404,15 @@ class KWayFMRefiner final : public IRefiner,
         _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part, gain);
       }
       // LOG << "normal connectivity increase for" << pin << V(to_part);
-      _pq.insert(pin, to_part, gain);
-      _already_processed_part.set(pin, to_part);
-      if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
-        _pq.enablePart(to_part);
+      if (!_hg.isFixedVertex(pin)) {
+        _pq.insert(pin, to_part, gain);
+        if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
+          _pq.enablePart(to_part);
+        }
       }
+      _already_processed_part.set(pin, to_part);
     }
-    ASSERT(_pq.contains(pin) && _hg.active(pin), V(pin));
+    ASSERT((_pq.contains(pin) && _hg.active(pin)) || _hg.isFixedVertex(pin), V(pin));
   }
 
   void connectivityUpdateForCache(const HypernodeID pin, const PartitionID from_part,
@@ -460,7 +464,7 @@ class KWayFMRefiner final : public IRefiner,
       for (const HypernodeID& pin : _hg.pins(he)) {
         if (!_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
-          if (!_hg.active(pin)) {
+          if (!_hg.active(pin) && !_hg.isFixedVertex(pin)) {
             _hns_to_activate.push_back(pin);
             ++num_active_pins;
           } else {
@@ -556,7 +560,7 @@ class KWayFMRefiner final : public IRefiner,
       for (const HypernodeID& pin : _hg.pins(he)) {
         if (!_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
-          ASSERT(_hg.active(pin), V(pin));
+          ASSERT(_hg.active(pin) || _hg.isFixedVertex(pin), V(pin));
           ASSERT(_hg.isBorderNode(pin), V(pin));
           connectivityUpdate(pin, from_part, to_part, he,
                              move_decreased_connectivity,
@@ -601,9 +605,9 @@ class KWayFMRefiner final : public IRefiner,
     fullUpdate(moved_hn, from_part, to_part, he);
 
     ASSERT([&]() {
-        // all border will be activate
+        // all border nodes will be activate, except fixed vertices
         for (const HypernodeID& pin : _hg.pins(he)) {
-          if (_hg.isBorderNode(pin) && !_hg.active(pin) && !_hg.marked(pin)) {
+          if (!_hg.isFixedVertex(pin) && (_hg.isBorderNode(pin) && !_hg.active(pin) && !_hg.marked(pin))) {
             if (std::find(_hns_to_activate.cbegin(), _hns_to_activate.cend(), pin) ==
                 _hns_to_activate.cend()) {
               return false;
@@ -631,9 +635,9 @@ class KWayFMRefiner final : public IRefiner,
     //     return valid;
     //   } (), "");
     ASSERT([&]() {
-        // Loose HEs remaining loose should have only active border HNs
+        // Loose HEs remaining loose should have only active border HNs which are not fixed vertices
         for (const HypernodeID& pin : _hg.pins(he)) {
-          if (_hg.isBorderNode(pin) && !_hg.active(pin) && !_hg.marked(pin)) {
+          if (_hg.isBorderNode(pin) && !_hg.active(pin) && !_hg.marked(pin) && !_hg.isFixedVertex(pin)) {
             return false;
           }
         }
@@ -645,10 +649,10 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT([&]() {
         HypernodeID count = 0;
         for (const HypernodeID& pin : _hg.pins(he)) {
-          // - All border HNs are active
+          // - All border HNs which are not fixed vertices are active
           // - At least two pins of the HE are marked
           // - No internal HNs have moves in PQ
-          if (_hg.isBorderNode(pin) && !_hg.active(pin) && !_hg.marked(pin)) {
+          if (_hg.isBorderNode(pin) && !_hg.isFixedVertex(pin) && !_hg.active(pin) && !_hg.marked(pin)) {
             return false;
           }
           if (_hg.marked(pin)) {
@@ -675,11 +679,11 @@ class KWayFMRefiner final : public IRefiner,
 
     ASSERT([&]() {
         // If a HE becomes locked, the activation of its pins will definitely
-        // happen because it not has to be a cut HE.
+        // happen because it not has to be a cut HE, except the pin is a fixed vertex
         for (const HypernodeID& pin : _hg.pins(he)) {
-          if (!_hg.active(pin) && !_hg.marked(pin) &&
+          if (!_hg.isFixedVertex(pin) && (!_hg.active(pin) && !_hg.marked(pin) &&
               std::find(_hns_to_activate.cbegin(), _hns_to_activate.cend(), pin) ==
-              _hns_to_activate.cend()) {
+              _hns_to_activate.cend())) {
             return false;
           }
         }
@@ -690,9 +694,9 @@ class KWayFMRefiner final : public IRefiner,
   void updatePinsOfHyperedgeRemainingLocked(const HypernodeID moved_hn, const PartitionID from_part,
                                             const PartitionID to_part, const HyperedgeID he) {
     ASSERT([&]() {
-        // All pins of a locked HE have to be active.
+        // All pins of a locked HE have to be active, except fixed vertices.
         for (const HypernodeID& pin : _hg.pins(he)) {
-          if (!_hg.active(pin) && !_hg.marked(pin)) {
+          if (!_hg.active(pin) && !_hg.marked(pin) && !_hg.isFixedVertex(pin)) {
             return false;
           }
         }
@@ -761,7 +765,7 @@ class KWayFMRefiner final : public IRefiner,
     // remove dups
     // TODO(schlag): fix this!!!
     for (const HypernodeID& hn : _hns_to_activate) {
-      if (!_hg.active(hn)) {
+      if (!_hg.active(hn) && !_hg.isFixedVertex(hn)) {
         activate(hn);
       }
     }
@@ -820,8 +824,8 @@ class KWayFMRefiner final : public IRefiner,
                   }
                 } else {
                   // if it is not in the PQ then either the HN has already been marked as moved
-                  // or we currently look at the source partition of pin.
-                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin));
+                  // or we currently look at the source partition of pin or the pin is a fixed vertex
+                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin) || _hg.isFixedVertex(pin));
                   if (!valid) {
                     LOG << "HN" << pin << "not in PQ but also not marked";
                     LOG << "gain=" << gainInducedByHypergraph(pin, part);
@@ -898,25 +902,27 @@ class KWayFMRefiner final : public IRefiner,
     ONLYDEBUG(he);
     if (delta != 0 && _gain_cache.entryExists(pin, part) &&
         _already_processed_part.get(pin) != part) {
-      ASSERT(!_hg.marked(pin));
-      ASSERT(_hg.active(pin));
-      ASSERT(_hg.isBorderNode(pin));
-      ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
-              _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
-      // Assert that we only perform delta-gain updates on moves that are not stale!
-      ASSERT([&]() {
-          for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
-            if (_hg.pinCountInPart(he, part) > 0) {
-              return true;
+      if (!_hg.isFixedVertex(pin)) {
+        ASSERT(!_hg.marked(pin));
+        ASSERT(_hg.active(pin));
+        ASSERT(_hg.isBorderNode(pin));
+        ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
+                _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
+        // Assert that we only perform delta-gain updates on moves that are not stale!
+        ASSERT([&]() {
+            for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
+              if (_hg.pinCountInPart(he, part) > 0) {
+                return true;
+              }
             }
-          }
-          return false;
-        } (), V(pin));
+            return false;
+          } (), V(pin));
 
-      DBG << "updating gain of HN" << pin
-          << "from gain" << _pq.key(pin, part) << "to" << _pq.key(pin, part) + delta
-          << "(to_part=" << part << ")";
-      _pq.updateKeyBy(pin, part, delta);
+        DBG << "updating gain of HN" << pin
+            << "from gain" << _pq.key(pin, part) << "to" << _pq.key(pin, part) + delta
+            << "(to_part=" << part << ")";
+        _pq.updateKeyBy(pin, part, delta);
+      }
       _gain_cache.updateExistingEntry(pin, part, delta);
     }
   }
@@ -942,7 +948,7 @@ class KWayFMRefiner final : public IRefiner,
       initializeGainCacheFor(hn);
     }
 
-    if (_hg.isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
       insertHNintoPQ(hn);
       // mark HN as active for this round.
       _hg.activate(hn);
@@ -1019,17 +1025,19 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT(!_hg.marked(hn));
     ASSERT(_hg.isBorderNode(hn));
 
-    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
-      ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
-      ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-             V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-             V(gainInducedByHypergraph(hn, part)));
-      ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-      DBGC(hn == hn_to_debug) << "inserting" << V(hn) << V(part)
-                              << V(_gain_cache.entry(hn, part));
-      _pq.insert(hn, part, _gain_cache.entry(hn, part));
-      if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
-        _pq.enablePart(part);
+    if (!_hg.isFixedVertex(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
+        ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
+        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+              V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+              V(gainInducedByHypergraph(hn, part)));
+        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        DBGC(hn == hn_to_debug) << "inserting" << V(hn) << V(part)
+                                << V(_gain_cache.entry(hn, part));
+        _pq.insert(hn, part, _gain_cache.entry(hn, part));
+        if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
+          _pq.enablePart(part);
+        }
       }
     }
   }
@@ -1055,7 +1063,7 @@ class KWayFMRefiner final : public IRefiner,
         ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)));
+               V(gainInducedByHypergraph(hn, part)) << V(_hg.isFixedVertex(hn)));
         ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
       } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part));
