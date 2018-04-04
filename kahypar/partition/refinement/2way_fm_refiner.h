@@ -80,7 +80,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void activate(const HypernodeID hn,
                 const HypernodeWeightArray& max_allowed_part_weights) {
-    if (_hg.isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
@@ -205,8 +205,10 @@ class TwoWayFMRefiner final : public IRefiner,
       // If Lmax0==Lmax1, then all border nodes should be active. However, if Lmax0 != Lmax1,
       // because k!=2^x or we intend to further partition the hypergraph into unequal number of
       // blocks, then it might not be possible to activate all refinement nodes, because a
-      // part could be overweight regarding Lmax.
+      // part could be overweight regarding Lmax. Additionaly, if hypernode hn is a fixed
+      // vertex, it should not be activated.
       ASSERT((_context.partition.max_part_weights[0] != _context.partition.max_part_weights[1]) ||
+             _hg.isFixedVertex(hn) ||
              (!_hg.isBorderNode(hn) || _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
@@ -413,7 +415,7 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
                               << V(_hg.partID(pin)) << V(other_part));
-              } else if (!_hg.marked(pin)) {
+              } else if (!_hg.marked(pin) && !_hg.isFixedVertex(pin)) {
                 ASSERT(true == false, "HN" << pin << "not in PQ, but also not marked!");
               }
             }
@@ -612,18 +614,21 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
-    const PartitionID target_part = 1 - _hg.partID(pin);
+    if (!_hg.isFixedVertex(pin)) {
+      const PartitionID target_part = 1 - _hg.partID(pin);
+      ASSERT(_hg.active(pin), V(pin) << V(target_part));
+      ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
+      ASSERT(!_hg.marked(pin));
+
+      DBG << "TwoWayFM updating gain of HN" << pin
+          << "from gain" << _pq.key(pin, target_part) << "to "
+          << _pq.key(pin, target_part) + gain_delta << "in PQ" << target_part;
+
+      _pq.updateKeyBy(pin, target_part, gain_delta);
+    }
+
     ASSERT(_gain_cache.isCached(pin), V(pin));
     ASSERT(gain_delta != 0, V(gain_delta));
-    ASSERT(_hg.active(pin), V(pin) << V(target_part));
-    ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
-    ASSERT(!_hg.marked(pin));
-
-    DBG << "TwoWayFM updating gain of HN" << pin
-        << "from gain" << _pq.key(pin, target_part) << "to "
-        << _pq.key(pin, target_part) + gain_delta << "in PQ" << target_part;
-
-    _pq.updateKeyBy(pin, target_part, gain_delta);
     _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 

@@ -423,12 +423,13 @@ class KWayKMinusOneRefiner final : public IRefiner,
         gain = gainInducedByHypergraph(pin, to_part);
         _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part, gain);
       }
-      _pq.insert(pin, to_part, gain);
-      _new_adjacent_part.set(pin, to_part);
-
-      if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
-        _pq.enablePart(to_part);
+      if (!_hg.isFixedVertex(pin)) {
+        _pq.insert(pin, to_part, gain);
+        if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
+          _pq.enablePart(to_part);
+        }
       }
+      _new_adjacent_part.set(pin, to_part);
     }
     ASSERT(_pq.contains(pin) && _hg.active(pin), V(pin));
   }
@@ -679,7 +680,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     // remove dups
     // TODO(schlag): fix this!!!
     for (const HypernodeID& hn : _hns_to_activate) {
-      if (!_hg.active(hn)) {
+      if (!_hg.active(hn) && !_hg.isFixedVertex(hn)) {
         activate(hn);
       }
     }
@@ -738,8 +739,8 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   }
                 } else {
                   // if it is not in the PQ then either the HN has already been marked as moved
-                  // or we currently look at the source partition of pin.
-                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin));
+                  // or we currently look at the source partition of pin or pin is a fixed vertex
+                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin)) || _hg.isFixedVertex(pin);
                   valid = valid || _hg.edgeSize(he) > _context.partition.hyperedge_size_threshold;
                   if (!valid) {
                     LOG << "HN" << pin << "not in PQ but also not marked";
@@ -820,22 +821,24 @@ class KWayKMinusOneRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updatePin(const HypernodeID pin, const PartitionID part,
                                                  const HyperedgeID he, const Gain delta) {
     ONLYDEBUG(he);
-    ASSERT(_gain_cache.entryExists(pin, part), V(pin) << V(part));
-    ASSERT(_new_adjacent_part.get(pin) != part, V(pin) << V(part));
-    ASSERT(!_hg.marked(pin));
-    ASSERT(_hg.active(pin));
-    ASSERT(_hg.isBorderNode(pin));
-    ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
-            _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
-    // Assert that we only perform delta-gain updates on moves that are not stale!
-    ASSERT(hypernodeIsConnectedToPart(pin, part), V(pin) << V(part));
-    ASSERT(_hg.partID(pin) != part, V(pin) << V(part));
+    if (!_hg.isFixedVertex(pin)) {
+      ASSERT(_gain_cache.entryExists(pin, part), V(pin) << V(part));
+      ASSERT(_new_adjacent_part.get(pin) != part, V(pin) << V(part));
+      ASSERT(!_hg.marked(pin));
+      ASSERT(_hg.active(pin));
+      ASSERT(_hg.isBorderNode(pin));
+      ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
+              _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
+      // Assert that we only perform delta-gain updates on moves that are not stale!
+      ASSERT(hypernodeIsConnectedToPart(pin, part), V(pin) << V(part));
+      ASSERT(_hg.partID(pin) != part, V(pin) << V(part));
 
-    DBG << "updating gain of HN" << pin
-        << "from gain" << _pq.key(pin, part) << "to" << _pq.key(pin, part) + delta
-        << "(to_part=" << part << ", ExpectedGain="
-        << gainInducedByHypergraph(pin, part) << ")";
-    _pq.updateKeyBy(pin, part, delta);
+      DBG << "updating gain of HN" << pin
+          << "from gain" << _pq.key(pin, part) << "to" << _pq.key(pin, part) + delta
+          << "(to_part=" << part << ", ExpectedGain="
+          << gainInducedByHypergraph(pin, part) << ")";
+      _pq.updateKeyBy(pin, part, delta);
+    }
   }
 
   template <bool invalidate_hn = false>
@@ -855,7 +858,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       _gain_cache.clear(hn);
       initializeGainCacheFor(hn);
     }
-    if (_hg.isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), "Hypernode" << hn << "is already marked");
       insertHNintoPQ(hn);
@@ -918,16 +921,18 @@ class KWayKMinusOneRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(_hg.isBorderNode(hn));
 
-    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
-      ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
-      ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-             V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-             V(gainInducedByHypergraph(hn, part)));
-      ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-      DBGC(hn == 12518) << "inserting" << V(hn) << V(part) << V(_gain_cache.entry(hn, part));
-      _pq.insert(hn, part, _gain_cache.entry(hn, part));
-      if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
-        _pq.enablePart(part);
+    if (!_hg.isFixedVertex(hn)) {
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
+        ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
+        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+              V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+              V(gainInducedByHypergraph(hn, part)));
+        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        DBGC(hn == 12518) << "inserting" << V(hn) << V(part) << V(_gain_cache.entry(hn, part));
+        _pq.insert(hn, part, _gain_cache.entry(hn, part));
+        if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
+          _pq.enablePart(part);
+        }
       }
     }
   }
@@ -953,7 +958,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)) << V(_hg.partID(hn)));
+               V(gainInducedByHypergraph(hn, part)) << V(_hg.partID(hn)) << V(_hg.isFixedVertex(hn)));
         ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
       } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
         ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
