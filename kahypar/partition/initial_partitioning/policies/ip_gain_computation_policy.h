@@ -119,7 +119,7 @@ class FMGainComputationPolicy {
           case 1: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
               for (const HypernodeID& node : hg.pins(he)) {
-                if (node == hn) {
+                if (node == hn && hg.isFixedVertex(node)) {
                   continue;
                 }
                 for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
@@ -133,7 +133,7 @@ class FMGainComputationPolicy {
           case 2: {
               const HyperedgeWeight he_weight = hg.edgeWeight(he);
               for (const HypernodeID& node : hg.pins(he)) {
-                if (node == hn) {
+                if (node == hn && hg.isFixedVertex(node)) {
                   continue;
                 }
                 for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
@@ -152,7 +152,7 @@ class FMGainComputationPolicy {
       if (connectivity == 2 && pin_count_in_target_part_after == he_size - 1) {
         const HyperedgeWeight he_weight = hg.edgeWeight(he);
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           if (hg.partID(node) != to && pq.contains(node, to)) {
@@ -182,7 +182,7 @@ class FMGainComputationPolicy {
         ASSERT(hg.connectivity(he) == 1, V(hg.connectivity(he)));
         ASSERT(pin_count_in_source_part_before == 1, V(pin_count_in_source_part_before));
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
@@ -196,7 +196,7 @@ class FMGainComputationPolicy {
         ASSERT(hg.connectivity(he) == 2, V(hg.connectivity(he)));
         ASSERT(pin_count_in_target_part_after == 1, V(pin_count_in_target_part_after));
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
@@ -211,7 +211,7 @@ class FMGainComputationPolicy {
           pin_count_in_source_part_before == he_size - 1) {
         // special case for HEs with 3 pins
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           if (hg.partID(node) != to && pq.contains(node, to)) {
@@ -224,7 +224,7 @@ class FMGainComputationPolicy {
       } else if (pin_count_in_target_part_after == he_size - 1) {
         // Update single pin that remains outside of to_part after applying the move
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           if (hg.partID(node) != to && pq.contains(node, to)) {
@@ -235,7 +235,7 @@ class FMGainComputationPolicy {
       } else if (pin_count_in_source_part_before == he_size - 1) {
         // Update single pin that was outside from_part before applying the move.
         for (const HypernodeID& node : hg.pins(he)) {
-          if (node == hn) {
+          if (node == hn && hg.isFixedVertex(node)) {
             continue;
           }
           if (hg.partID(node) != from && pq.contains(node, from)) {
@@ -261,7 +261,7 @@ class FMGainComputationPolicy {
     ASSERT([&]() {
         for (const HyperedgeID& he : hg.incidentEdges(hn)) {
           for (const HypernodeID& node : hg.pins(he)) {
-            if (node != hn) {
+            if (node != hn && !hg.isFixedVertex(node)) {
               for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
                 if (pq.contains(node, i)) {
                   const Gain gain = calculateGain(hg, node, i, foo);
@@ -320,7 +320,7 @@ class MaxPinGainComputationPolicy {
       for (const HyperedgeID& he : hg.incidentEdges(hn)) {
         for (const HypernodeID& pin : hg.pins(he)) {
           if (!visit[pin]) {
-            if (pq.contains(pin, to)) {
+            if (pq.contains(pin, to) && !hg.isFixedVertex(pin)) {
               pq.updateKeyBy(pin, to, hg.nodeWeight(hn));
             }
             visit.set(pin, true);
@@ -330,7 +330,7 @@ class MaxPinGainComputationPolicy {
     } else {
       for (const HyperedgeID& he : hg.incidentEdges(hn)) {
         for (const HypernodeID& pin : hg.pins(he)) {
-          if (!visit[pin]) {
+          if (!visit[pin] && !hg.isFixedVertex(pin)) {
             if (pq.contains(pin, to)) {
               pq.updateKeyBy(pin, to, hg.nodeWeight(hn));
             }
@@ -379,13 +379,15 @@ class MaxNetGainComputationPolicy {
 
       if (pins_in_source_part == 0 || pins_in_target_part == 1) {
         for (const HypernodeID& pin : hg.pins(he)) {
-          if (from != -1 &&
-              pins_in_source_part == 0 &&
-              pq.contains(pin, from)) {
-            pq.updateKeyBy(pin, from, -hg.edgeWeight(he));
-          }
-          if (pins_in_target_part == 1 && pq.contains(pin, to)) {
-            pq.updateKeyBy(pin, to, hg.edgeWeight(he));
+          if(!hg.isFixedVertex(pin)) {
+            if (from != -1 &&
+                pins_in_source_part == 0 &&
+                pq.contains(pin, from)) {
+              pq.updateKeyBy(pin, from, -hg.edgeWeight(he));
+            }
+            if (pins_in_target_part == 1 && pq.contains(pin, to)) {
+              pq.updateKeyBy(pin, to, hg.edgeWeight(he));
+            }
           }
         }
       }

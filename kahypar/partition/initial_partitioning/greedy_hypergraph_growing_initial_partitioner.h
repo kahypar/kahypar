@@ -43,12 +43,12 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
  private:
   using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                                  std::numeric_limits<Gain>, true>;
+  static constexpr Gain InvalidGain = std::numeric_limits<Gain>::max() - 1;
 
  public:
   GreedyHypergraphGrowingInitialPartitioner(Hypergraph& hypergraph,
                                             Context& context) :
     InitialPartitionerBase(hypergraph, context),
-    _start_nodes(),
     _pq(context.initial_partitioning.k),
     _visit(_hg.initialNumNodes()),
     _hyperedge_in_queue(context.initial_partitioning.k * _hg.initialNumEdges()) {
@@ -147,18 +147,19 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       ASSERT(current_hn < _hg.initialNumNodes(),
              "Current Hypernode" << current_hn << "is not a valid hypernode!");
       ASSERT(current_id != -1, "Part" << current_id << "is no valid part!");
-      ASSERT(_hg.partID(current_hn) == _context.initial_partitioning.unassigned_part,
+      ASSERT(_hg.partID(current_hn) == _context.initial_partitioning.unassigned_part ||
+             _hg.isFixedVertex(current_hn),
              "The current selected hypernode" << current_hn
                                               << "is already assigned to a part during initial partitioning!");
 
-      if (assignHypernodeToPartition(current_hn, current_id)) {
+      if (_hg.isFixedVertex(current_hn) || assignHypernodeToPartition(current_hn, current_id)) {
         ASSERT(_hg.partID(current_hn) == current_id,
                "Assignment of hypernode" << current_hn << "to partition" << current_id
                                          << "failed!");
-
         ASSERT([&]() {
             if (_context.initial_partitioning.unassigned_part != -1 &&
-                GainComputation::getType() == GainType::fm_gain) {
+                GainComputation::getType() == GainType::fm_gain &&
+                !_hg.isFixedVertex(current_hn)) {
               _hg.changeNodePart(current_hn, current_id,
                                  _context.initial_partitioning.unassigned_part);
               const HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
@@ -173,7 +174,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         insertAndUpdateNodesAfterMove(current_hn, current_id);
 
         if (_hg.partWeight(current_id)
-            == _context.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+            >= _context.initial_partitioning.upper_allowed_partition_weight[current_id]) {
           _pq.disablePart(current_id);
         }
       } else {
@@ -241,7 +242,6 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   }
 
   void reset() {
-    _start_nodes.clear();
     _visit.reset();
     _hyperedge_in_queue.reset();
     _pq.clear();
@@ -250,8 +250,9 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   void insertNodeIntoPQ(const HypernodeID hn, const PartitionID target_part,
                         const bool updateGain = false) {
     // We don't want to insert hypernodes which are already assigned to the target_part
-    // into the corresponding PQ again
-    if (_hg.partID(hn) != target_part) {
+    // into the corresponding PQ again and a fixed vertex should only be inserted into
+    // the PQ of its fixed part id
+    if (_hg.partID(hn) != target_part && !_hg.isFixedVertex(hn)) {
       if (!_pq.contains(hn, target_part)) {
         const Gain gain = GainComputation::calculateGain(_hg, hn, target_part, _visit);
         _pq.insert(hn, target_part, gain);
@@ -274,9 +275,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
   void insertAndUpdateNodesAfterMove(const HypernodeID hn, const PartitionID target_part,
                                      const bool insert = true, const bool delete_nodes = true) {
-    GainComputation::deltaGainUpdate(_hg, _context, _pq, hn,
-                                     _context.initial_partitioning.unassigned_part, target_part,
-                                     _visit);
+    if (!_hg.isFixedVertex(hn)) {
+      GainComputation::deltaGainUpdate(_hg, _context, _pq, hn,
+                                      _context.initial_partitioning.unassigned_part, target_part,
+                                      _visit);
+    }
     // Pushing incident hypernode into bucket queue or update gain value
     // TODO(heuer): Shouldn't it be possible to do this within the deltaGainUpdate function?
     if (insert) {
@@ -286,7 +289,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
             for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == _context.initial_partitioning.unassigned_part) {
                 insertNodeIntoPQ(pin, target_part);
-                ASSERT(_pq.contains(pin, target_part),
+                ASSERT(_pq.contains(pin, target_part) || _hg.isFixedVertex(pin),
                        "PQ of partition" << target_part << "should contain hypernode "
                                          << pin << "!");
               }
@@ -313,8 +316,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
             for (const HypernodeID& pin : _hg.pins(he)) {
               for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
                 if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
-                  const Gain gain = GainComputation::calculateGain(_hg, pin, i, _visit);
+                  const Gain gain = _hg.isFixedVertex(pin) ? InvalidGain :
+                                     GainComputation::calculateGain(_hg, pin, i, _visit);
                   if (gain != _pq.key(pin, i)) {
+                    LOG << V(pin) << V(gain) << V(_pq.key(pin, i)) << V(_hg.isFixedVertex(pin));
                     return false;
                   }
                 }
@@ -349,25 +354,33 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
 
   void calculateStartNodes() {
-    StartNodeSelection::calculateStartNodes(_start_nodes, _context, _hg,
+    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
+                                                     std::vector<HypernodeID>());
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
+    }
+    StartNodeSelection::calculateStartNodes(startNodes, _context, _hg,
                                             _context.initial_partitioning.k);
 
-    const int start_node_size = _start_nodes.size();
-
-    for (PartitionID i = 0; i < start_node_size; ++i) {
-      insertNodeIntoPQ(_start_nodes[i], i);
+    for (PartitionID i = 0; i < static_cast<PartitionID>(startNodes.size()); ++i) {
+      for (const HypernodeID hn : startNodes[i]) {
+        if (_hg.isFixedVertex(hn) &&
+            _hg.fixedVertexPartID(hn) != _context.initial_partitioning.unassigned_part) {
+          PartitionID fixedVertexPart = _hg.fixedVertexPartID(hn);
+          _pq.insert(hn, fixedVertexPart, InvalidGain);
+          if (!_pq.isEnabled(fixedVertexPart)) {
+            _pq.enablePart(fixedVertexPart);
+          }
+        } else {
+          insertNodeIntoPQ(hn, i);
+        }
+      }
     }
-
-    ASSERT([&]() {
-        std::sort(_start_nodes.begin(), _start_nodes.end());
-        return std::unique(_start_nodes.begin(), _start_nodes.end()) == _start_nodes.end();
-      } (), "There are at least two start nodes which are equal!");
   }
 
   using InitialPartitionerBase::_hg;
   using InitialPartitionerBase::_context;
   using InitialPartitionerBase::kInvalidNode;
-  std::vector<HypernodeID> _start_nodes;
   KWayRefinementPQ _pq;
   ds::FastResetFlagArray<> _visit;
   ds::FastResetFlagArray<> _hyperedge_in_queue;

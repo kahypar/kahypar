@@ -32,59 +32,7 @@ namespace kahypar {
 template <bool UseRandomStartHypernode = true>
 class BFSStartNodeSelectionPolicy {
  public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Context& context,
-                                         const Hypergraph& hg, const PartitionID k) {
-    HypernodeID start_hn = 0;
-    if (UseRandomStartHypernode) {
-      start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-    }
-    start_nodes.push_back(start_hn);
-    ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
-    ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
-
-    while (start_nodes.size() != static_cast<size_t>(k)) {
-      std::queue<HypernodeID> bfs;
-      HypernodeID lastHypernode = -1;
-      size_t visited_nodes = 0;
-      for (const HypernodeID& start_node : start_nodes) {
-        bfs.push(start_node);
-        in_queue.set(start_node, true);
-      }
-
-
-      while (!bfs.empty()) {
-        lastHypernode = bfs.front();
-        bfs.pop();
-        visited_nodes++;
-        for (const HyperedgeID& he : hg.incidentEdges(lastHypernode)) {
-          if (!hyperedge_in_queue[he]) {
-            if (hg.edgeSize(he) <= context.partition.hyperedge_size_threshold) {
-              for (const HypernodeID& pin : hg.pins(he)) {
-                if (!in_queue[pin]) {
-                  bfs.push(pin);
-                  in_queue.set(pin, true);
-                }
-              }
-            }
-            hyperedge_in_queue.set(he, true);
-          }
-        }
-        if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
-          for (const HypernodeID& hn : hg.nodes()) {
-            if (!in_queue[hn]) {
-              bfs.push(hn);
-              in_queue.set(hn, true);
-            }
-          }
-        }
-      }
-      start_nodes.push_back(lastHypernode);
-      in_queue.reset();
-      hyperedge_in_queue.reset();
-    }
-  }
-
-  static inline void calculateStartNodes2(std::vector<std::vector<HypernodeID>>& start_nodes,
+  static inline void calculateStartNodes(std::vector<std::vector<HypernodeID>>& start_nodes,
                                           const Context& context, const Hypergraph& hg,
                                           const PartitionID k) {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
@@ -158,7 +106,7 @@ class BFSStartNodeSelectionPolicy {
                                        const PartitionID k) {
     ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
     for (PartitionID i = 0; i < k; ++i) {
-      if (start_nodes.size() == 0) {
+      if (start_nodes[i].size() == 0) {
         return i;
       }
     }

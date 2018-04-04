@@ -35,7 +35,7 @@ namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
                                private InitialPartitionerBase {
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
   static constexpr HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
@@ -166,7 +166,9 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     InitialPartitionerBase::resetPartitioning();
     _context.initial_partitioning.unassigned_part = unassigned_part;
     for (const HypernodeID& hn : _hg.nodes()) {
-      _hg.setNodePart(hn, best_partition[hn]);
+      if (!_hg.isFixedVertex(hn)) {
+        _hg.setNodePart(hn, best_partition[hn]);
+      }
     }
 
     _hg.initializeNumCutHyperedges();

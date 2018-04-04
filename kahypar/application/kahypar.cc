@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
                                           context.partition.k));
 
   for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
-    int r = kahypar::Randomize::instance().getRandomInt(1, 1000);
-    if (r <= context.partition.fixed_vertex_fraction * 1000.0) {
+    int r = kahypar::Randomize::instance().getRandomInt(1, 100000);
+    if (r <= context.partition.fixed_vertex_fraction * 100000.0) {
       kahypar::PartitionID fixedPart = kahypar::Randomize::instance().
                                        getRandomInt(0, context.partition.k - 1);
       hypergraph.setFixedVertex(hn, fixedPart);

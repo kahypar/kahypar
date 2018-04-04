@@ -139,7 +139,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     for (const HypernodeID& hn : _hg.fixedVertices()) {
       startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
     }
-    StartNodeSelection::calculateStartNodes2(startNodes, _context, _hg,
+    StartNodeSelection::calculateStartNodes(startNodes, _context, _hg,
                                             _context.initial_partitioning.k);
     for (size_t k = 0; k < static_cast<size_t>(startNodes.size()); ++k) {
       for (const HypernodeID& hn : startNodes[k]) {
