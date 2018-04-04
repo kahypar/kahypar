@@ -141,6 +141,9 @@ class GenericHypergraph {
   struct AdditionalHypernodeData : public HypernodeData {
     // ! Block \f$b[v]\f$ of the hypernode \f$v\f$
     PartitionID part_id = kInvalidPartition;
+    // ! Indicates, if hypernode has to be in a fixed block
+    // ! or block can be choosen free (kInvalidPartition).
+    PartitionID fixed_part_id = kInvalidPartition;
     // ! Number of nets \f$e \in I(v)\f$ with \f$\lambda(e) > 1 \f$
     HyperedgeID num_incident_cut_hes = 0;
     // ! State during local search: inactive/active/marked
@@ -450,15 +453,18 @@ class GenericHypergraph {
   /*!
    * For each block \f$V_i\f$ of the \f$k\f$-way partition \f$\mathrm{\Pi} = \{V_1, \dots, V_k\}\f$,
    * a PartInfo object stores the number of hypernodes currently assigned to block \f$V_i\f$
-   * as well as the sum of their weights.
+   * as well as the sum of their weights and the sum of the weights of the fixed vertices
+   * assigned to that block.
    */
   class PartInfo {
  public:
     bool operator== (const PartInfo& other) const {
-      return weight == other.weight && size == other.size;
+      return weight == other.weight && size == other.size && 
+             fixed_vertex_weight == other.fixed_vertex_weight;
     }
 
     HypernodeWeight weight;
+    HypernodeWeight fixed_vertex_weight;
     HypernodeID size;
   };
 
@@ -2007,6 +2013,8 @@ class GenericHypergraph {
   // ! Stores the community structure revealed by community detection algorithms.
   // ! If community detection is disabled, all HNs are in the same community.
   std::vector<PartitionID> _communities;
+  // ! Stores fixed vertices
+  std::vector<HypernodeID> _fixed_vertices;
 
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
