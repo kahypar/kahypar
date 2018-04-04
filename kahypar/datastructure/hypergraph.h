@@ -459,7 +459,7 @@ class GenericHypergraph {
   class PartInfo {
  public:
     bool operator== (const PartInfo& other) const {
-      return weight == other.weight && size == other.size && 
+      return weight == other.weight && size == other.size &&
              fixed_vertex_weight == other.fixed_vertex_weight;
     }
 
@@ -525,6 +525,7 @@ class GenericHypergraph {
     _hyperedges(_num_hyperedges, Hyperedge(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
     _communities(_num_hypernodes, 0),
+    _fixed_vertices(),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
@@ -602,6 +603,7 @@ class GenericHypergraph {
     _hyperedges(),
     _incidence_array(),
     _communities(),
+    _fixed_vertices(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(),
@@ -768,6 +770,13 @@ class GenericHypergraph {
     return std::make_pair(HyperedgeIterator(_hyperedges.data(), 0, _num_hyperedges),
                           HyperedgeIterator((_hyperedges.data() + _num_hyperedges),
                                             _num_hyperedges, _num_hyperedges));
+  }
+
+  /*!
+   * Returns a for-each iterator-pair to loop over the set of fixed vertices.
+   */
+  std::pair<IncidenceIterator, IncidenceIterator> fixedVertices() const {
+    return std::make_pair(_fixed_vertices.cbegin(), _fixed_vertices.cend());
   }
 
   // ! Returns a reference to the connectivity set of hyperedge he.
@@ -1181,6 +1190,19 @@ class GenericHypergraph {
     }
   }
 
+  /*! 
+   * Set block ID of hypernode hn to a fixed block of the partition.
+   * Such hypernodes should be placed in block id in the final partition.
+   */
+  void makeFixedVertex(const HypernodeID hn, const PartitionID id) {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
+    ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is already a fixed vertex");
+    ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
+    _fixed_vertices.push_back(hn);
+    hypernode(hn).fixed_part_id = id;
+    _part_info[id].fixed_vertex_weight += nodeWeight(hn);
+  }
+
   /*!
    * Removes a hypernode from the hypergraph.
    *
@@ -1449,6 +1471,16 @@ class GenericHypergraph {
     return hypernode(u).part_id;
   }
 
+  PartitionID fixedVertexPart(const HypernodeID u) const {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
+    return hypernode(u).fixed_part_id;
+  }
+
+  void isFixedVertex(const HypernodeID hn) const {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
+    return hypernode(hn).fixed_part_id != kInvalidPartition;
+  }
+
   // ! Returns true if the hypernode is enabled
   // ! This is mainly used in assertions.
   bool nodeIsEnabled(const HypernodeID u) const {
@@ -1679,6 +1711,12 @@ class GenericHypergraph {
   HypernodeWeight partWeight(const PartitionID id) const {
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID" << id << "is out of bounds");
     return _part_info[id].weight;
+  }
+
+  // ! Returns the sum of the weights of all fixed vertices in a block
+  HypernodeWeight fixedVertexPartWeight(const PartitionID id) const {
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID" << id << "is out of bounds");
+    return _part_info[id].fixed_vertex_weight;
   }
 
   // ! Returns the number of hypernodes in a block
