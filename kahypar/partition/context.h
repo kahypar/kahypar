@@ -316,6 +316,8 @@ struct PartitioningParameters {
   bool sp_process_output = false;
   bool use_individual_block_weights = false;
 
+  double fixed_vertex_fraction = 0.01;
+
   std::string graph_filename { };
   std::string graph_partition_filename { };
 };

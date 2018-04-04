@@ -59,11 +59,27 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
+  for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
+    int r = kahypar::Randomize::instance().getRandomInt(1, 1000);
+    if (r <= context.partition.fixed_vertex_fraction * 1000.0) {
+      kahypar::PartitionID fixedPart = kahypar::Randomize::instance().
+                                       getRandomInt(0, context.partition.k - 1);
+      hypergraph.setFixedVertex(hn, fixedPart);
+    }
+  }
+
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
+
+  for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
+    if (hypergraph.isFixedVertex(hn)) {
+      ASSERT(hypergraph.partID(hn) == hypergraph.fixedVertexPartID(hn),
+             "Hypernode " << hn << " should be in part " << hypergraph.fixedVertexPartID(hn));
+    }
+  }
 
 #ifdef GATHER_STATS
   LOG << "*******************************";

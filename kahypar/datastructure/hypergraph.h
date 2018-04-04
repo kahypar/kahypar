@@ -807,14 +807,14 @@ class GenericHypergraph {
     ASSERT(partID(u) == partID(v), "Hypernodes" << u << "&" << v << "are in different parts: "
                                                 << partID(u) << "&" << partID(v));
     ASSERT(!isFixedVertex(u) || !isFixedVertex(v), "Both hypernodes are fixed vertices");
-    ASSERT(isFixedVertex(v), "Hypernode " << v << " is a fixed vertex and have to be"
-                                          << "the representive of the contraction")
+    ASSERT(!isFixedVertex(v),
+           "Hypernode " << v << " is a fixed vertex and have to be the representive of the contraction");
 
     DBG << "contracting (" << u << "," << v << ")";
 
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     if (isFixedVertex(u)) {
-      _part_info[fixedVertexPart(u)].fixed_vertex_weight += hypernode(v).weight();
+      _part_info[fixedVertexPartID(u)].fixed_vertex_weight += hypernode(v).weight();
     }
     const HypernodeID u_offset = hypernode(u).firstEntry();
     const HypernodeID u_size = hypernode(u).size();
@@ -896,7 +896,7 @@ class GenericHypergraph {
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
     if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
-      _part_info[fixedVertexPart(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+      _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
     }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
@@ -1018,7 +1018,7 @@ class GenericHypergraph {
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
     if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
-      _part_info[fixedVertexPart(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+      _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
     }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
@@ -1197,9 +1197,7 @@ class GenericHypergraph {
                                                         << partID(hn));
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
     ASSERT(!isFixedVertex(hn) || _fixed_vertex_part_id[hn] == id,
-           "Hypernode " << hn << " is a fixed vertex"
-           << " and should be assigned to part " << hypernode(hn).fixed_part_id
-           << " instead of part " << id);
+           "Fixed vertex " << hn << " assigned to wrong part " << id);
     updatePartInfo(hn, id);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       incrementPinCountInPart(he, id);
@@ -1210,7 +1208,7 @@ class GenericHypergraph {
    * Set block ID of hypernode hn to a fixed block of the partition.
    * Such hypernodes should be placed in block id in the final partition.
    */
-  void makeFixedVertex(const HypernodeID hn, const PartitionID id) {
+  void setFixedVertex(const HypernodeID hn, const PartitionID id) {
     ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
     ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is already a fixed vertex");
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
@@ -1487,7 +1485,7 @@ class GenericHypergraph {
     return hypernode(u).part_id;
   }
 
-  PartitionID fixedVertexPart(const HypernodeID u) const {
+  PartitionID fixedVertexPartID(const HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
     return _fixed_vertex_part_id[u];
   }
@@ -2231,6 +2229,7 @@ reindex(const Hypergraph& hypergraph) {
   }
 
   reindexed_hypergraph->_hypernodes.resize(num_hypernodes);
+  reindexed_hypergraph->_fixed_vertex_part_id.assign(num_hypernodes, -1);
   reindexed_hypergraph->_num_hypernodes = num_hypernodes;
 
   HyperedgeID num_hyperedges = 0;
@@ -2285,6 +2284,12 @@ reindex(const Hypergraph& hypergraph) {
   }
 
   reindexed_hypergraph->_part_info.resize(reindexed_hypergraph->_k);
+  for (const HypernodeID& hn : reindexed_hypergraph->nodes()) {
+    HypernodeID original_hn = reindexed_to_original[hn];
+    if (hypergraph.isFixedVertex(original_hn)) {
+      reindexed_hypergraph->setFixedVertex(hn, hypergraph.fixedVertexPartID(original_hn));
+    }
+  }
 
   return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
 }

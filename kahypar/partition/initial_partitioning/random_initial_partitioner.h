@@ -49,7 +49,11 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
+    InitialPartitionerBase::preassignAllFixedVertices();
     for (const HypernodeID& hn : _hg.nodes()) {
+      if (_hg.isFixedVertex(hn)) {
+        continue;
+      }
       PartitionID p = -1;
       _already_tried_to_assign_hn_to_part.reset();
       int partition_sum = 0;
@@ -60,10 +64,8 @@ class RandomInitialPartitioner : public IInitialPartitioner,
           // If the current hypernode fits in no part of the partition
           // (partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
           // him to a part which violates the imbalance definition
-          if (partition_sum
-              == (_context.initial_partitioning.k
-                  * (_context.initial_partitioning.k + 1))
-              / 2) {
+          if (partition_sum ==
+              (_context.initial_partitioning.k * (_context.initial_partitioning.k + 1)) / 2) {
             _hg.setNodePart(hn, p);
             break;
           }

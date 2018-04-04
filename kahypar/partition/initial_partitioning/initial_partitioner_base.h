@@ -91,6 +91,13 @@ class InitialPartitionerBase {
     _unassigned_node_bound = _unassigned_nodes.size();
   }
 
+  void preassignAllFixedVertices() {
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      ASSERT(_hg.partID(hn) == -1, "Fixed vertex already assigned to part");
+      _hg.setNodePart(hn, _hg.fixedVertexPartID(hn));
+    }
+  }
+
   void performFMRefinement() {
     if (_context.initial_partitioning.refinement) {
       std::unique_ptr<IRefiner> refiner;

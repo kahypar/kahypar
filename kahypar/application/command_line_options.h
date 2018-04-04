@@ -83,6 +83,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
         ("use-individual-blockweights",
     po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
     "# Use individual block weights specified with --blockweights= option")
+    ("fixed-vertex-fraction",
+    po::value<double>(&context.partition.fixed_vertex_fraction)->value_name("<double>"),
+    "Fraction of hypernodes randomly choosen as fixed vertices")
       ("blockweights",
        po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
        "Individual target block weights");
