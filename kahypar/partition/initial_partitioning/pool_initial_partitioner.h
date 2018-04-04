@@ -35,7 +35,7 @@ namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
                                private InitialPartitionerBase {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
   static constexpr HyperedgeWeight kInvalidCut = std::numeric_limits<HyperedgeWeight>::max();
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();

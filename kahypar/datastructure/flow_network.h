@@ -336,6 +336,16 @@ class FlowNetwork {
     _visited.reset();
     HyperedgeWeight cut = 0;
     for (const HypernodeID& hn : hypernodes()) {
+
+      // Fixed Vertices should not be movable after flow computation
+      if (_hg.isFixedVertex(hn)) {
+        if (_hg.partID(hn) == block_0) {
+          addSource(hn);
+        } else {
+          addSink(hn);
+        }
+      }
+
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
           const size_t pins_u_block0 = _pins_block0.get(he);
@@ -634,7 +644,7 @@ class HeuerNetwork final : public FlowNetwork<HeuerNetwork>{
           _he_visited.reset();
           for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hypernodes.contains(pin)) {
-              if (_hg.nodeDegree(pin) <= 3) {
+              if (_hg.nodeDegree(pin) <= 3 && !_hg.isFixedVertex(pin)) {
                 ASSERT(!containsNode(pin),
                        "Pin " << pin << " of HE " << he << " is already contained in flow problem!");
                 addClique(he, pin);
@@ -763,7 +773,8 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
           for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hypernodes.contains(pin)) {
               if (!_contains_graph_hyperedges[pin] &&
-                  _hg.nodeDegree(pin) <= 3) {
+                  _hg.nodeDegree(pin) <= 3 &&
+                  !_hg.isFixedVertex(pin)) {
                 ASSERT(!containsNode(pin), "Pin " << pin << " of HE " << he
                                                   << " is already contained in flow problem!");
                 addClique(he, pin);
