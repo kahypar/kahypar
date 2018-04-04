@@ -66,7 +66,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
           for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hg.partID(pin) == _context.initial_partitioning.unassigned_part &&
-                !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
+                !_hypernode_in_queue[part * _hg.initialNumNodes() + pin] &&
+                !_hg.isFixedVertex(pin)) {
               queue.push(pin);
               _hypernode_in_queue.set(part * _hg.initialNumNodes() + pin, true);
             }
@@ -81,7 +82,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
           if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
             for (const HypernodeID& pin : _hg.pins(he)) {
               if (_hg.partID(pin) == _context.initial_partitioning.unassigned_part &&
-                  !_hypernode_in_queue[part * _hg.initialNumNodes() + pin]) {
+                  !_hypernode_in_queue[part * _hg.initialNumNodes() + pin] &&
+                  !_hg.isFixedVertex(pin)) {
                 return false;
               }
             }
@@ -90,6 +92,21 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         return true;
       } (),
            "Some hypernodes are missing into the queue!");
+
+    ASSERT([&]() {
+        for (const HyperedgeID& hn : _hg.fixedVertices()) {
+          for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
+            if (i == _hg.fixedVertexPartID(hn)) {
+              continue;
+            }
+            if (_hypernode_in_queue[i * _hg.initialNumNodes() + hn]) {
+              return true;
+            }
+          }
+        }
+        return true;
+      } (),
+           "No fixed vertex should be in a queue of an other block than its fixed block!");
   }
 
 
@@ -117,12 +134,18 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     _hyperedge_in_queue.reset();
 
     // Calculate Startnodes and push them into the queues.
-    std::vector<HypernodeID> startNodes;
-    StartNodeSelection::calculateStartNodes(startNodes, _context, _hg,
+    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
+                                                     std::vector<HypernodeID>());
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
+    }
+    StartNodeSelection::calculateStartNodes2(startNodes, _context, _hg,
                                             _context.initial_partitioning.k);
     for (size_t k = 0; k < static_cast<size_t>(startNodes.size()); ++k) {
-      _queues[k].push(startNodes[k]);
-      _hypernode_in_queue.set(k * _hg.initialNumNodes() + startNodes[k], true);
+      for (const HypernodeID& hn : startNodes[k]) {
+        _queues[k].push(hn);
+        _hypernode_in_queue.set(k * _hg.initialNumNodes() + hn, true);
+      }
     }
 
     while (assigned_nodes_weight < _hg.totalWeight()) {
@@ -137,22 +160,22 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             hn = _queues[part].front();
             _queues[part].pop();
             while (_hg.partID(hn) != unassigned_part && !_queues[part].empty()) {
+              if (_hg.isFixedVertex(hn)) {
+                break;
+              }
               hn = _queues[part].front();
               _queues[part].pop();
             }
           }
 
           // If no unassigned hypernode was found we have to select a new startnode.
-          if (hn == kInvalidNode || _hg.partID(hn) != unassigned_part) {
+          if (hn == kInvalidNode || (_hg.partID(hn) != unassigned_part && !_hg.isFixedVertex(hn))) {
             hn = InitialPartitionerBase::getUnassignedNode();
           }
 
           if (hn != kInvalidNode) {
             _hypernode_in_queue.set(static_cast<size_t>(part) * _hg.initialNumNodes() + hn, true);
-            ASSERT(_hg.partID(hn) == unassigned_part,
-                   "Hypernode" << hn << "isn't a node from an unassigned part.");
-
-            if (assignHypernodeToPartition(hn, part)) {
+            if (_hg.isFixedVertex(hn) || assignHypernodeToPartition(hn, part)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);
               pushIncidentHypernodesIntoQueue(_queues[part], hn);
             } else if (_queues[part].empty()) {

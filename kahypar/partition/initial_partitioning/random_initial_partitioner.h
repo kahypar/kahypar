@@ -49,7 +49,6 @@ class RandomInitialPartitioner : public IInitialPartitioner,
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
     InitialPartitionerBase::resetPartitioning();
-    InitialPartitionerBase::preassignAllFixedVertices();
     for (const HypernodeID& hn : _hg.nodes()) {
       if (_hg.isFixedVertex(hn)) {
         continue;

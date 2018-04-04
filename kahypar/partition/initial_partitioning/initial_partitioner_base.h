@@ -82,20 +82,16 @@ class InitialPartitionerBase {
 
   void resetPartitioning() {
     _hg.resetPartitioning();
+    preassignAllFixedVertices();
     if (_context.initial_partitioning.unassigned_part != -1) {
       for (const HypernodeID& hn : _hg.nodes()) {
-        _hg.setNodePart(hn, _context.initial_partitioning.unassigned_part);
+        if (!_hg.isFixedVertex(hn)) {
+          _hg.setNodePart(hn, _context.initial_partitioning.unassigned_part);
+        }
       }
       _hg.initializeNumCutHyperedges();
     }
     _unassigned_node_bound = _unassigned_nodes.size();
-  }
-
-  void preassignAllFixedVertices() {
-    for (const HypernodeID& hn : _hg.fixedVertices()) {
-      ASSERT(_hg.partID(hn) == -1, "Fixed vertex already assigned to part");
-      _hg.setNodePart(hn, _hg.fixedVertexPartID(hn));
-    }
   }
 
   void performFMRefinement() {
@@ -200,7 +196,8 @@ class InitialPartitionerBase {
     HypernodeID unassigned_node = kInvalidNode;
     for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];
-      if (_hg.partID(hn) == _context.initial_partitioning.unassigned_part) {
+      if (_hg.partID(hn) == _context.initial_partitioning.unassigned_part &&
+          !_hg.isFixedVertex(hn)) {
         unassigned_node = hn;
         break;
       } else {
@@ -219,6 +216,13 @@ class InitialPartitionerBase {
   Context& _context;
 
  private:
+  void preassignAllFixedVertices() {
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      ASSERT(_hg.partID(hn) == -1, "Fixed vertex already assigned to part");
+      _hg.setNodePart(hn, _hg.fixedVertexPartID(hn));
+    }
+  }
+
   std::vector<HypernodeID> _unassigned_nodes;
   unsigned int _unassigned_node_bound;
   HypernodeWeight _max_hypernode_weight;

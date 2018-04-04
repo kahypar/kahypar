@@ -83,27 +83,86 @@ class BFSStartNodeSelectionPolicy {
       hyperedge_in_queue.reset();
     }
   }
-};
 
-class RandomStartNodeSelectionPolicy {
- public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Context&,
-                                         const Hypergraph& hg, const PartitionID k) {
-    if (k == 2) {
-      startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));
-      return;
-    }
+  static inline void calculateStartNodes2(std::vector<std::vector<HypernodeID>>& start_nodes,
+                                          const Context& context, const Hypergraph& hg,
+                                          const PartitionID k) {
+    ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
+    ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
-    for (PartitionID i = 0; i < k; ++i) {
-      while (true) {
-        HypernodeID hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-        auto node = std::find(startNodes.begin(), startNodes.end(), hn);
-        if (node == startNodes.end()) {
-          startNodes.push_back(hn);
-          break;
+    PartitionID cur_part = nextPartID(start_nodes, k);
+    while (cur_part != k) {
+      std::queue<HypernodeID> bfs;
+      HypernodeID lastHypernode = -1;
+      size_t visited_nodes = 0;
+      initializeQueue(start_nodes, bfs, in_queue, hg, k);
+
+      while (!bfs.empty()) {
+        lastHypernode = bfs.front();
+        bfs.pop();
+        visited_nodes++;
+        for (const HyperedgeID& he : hg.incidentEdges(lastHypernode)) {
+          if (!hyperedge_in_queue[he]) {
+            if (hg.edgeSize(he) <= context.partition.hyperedge_size_threshold) {
+              for (const HypernodeID& pin : hg.pins(he)) {
+                if (!in_queue[pin]) {
+                  bfs.push(pin);
+                  in_queue.set(pin, true);
+                }
+              }
+            }
+            hyperedge_in_queue.set(he, true);
+          }
+        }
+        if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
+          for (const HypernodeID& hn : hg.nodes()) {
+            if (!in_queue[hn]) {
+              bfs.push(hn);
+              in_queue.set(hn, true);
+            }
+          }
         }
       }
+      start_nodes[cur_part].push_back(lastHypernode);
+      cur_part = nextPartID(start_nodes, k);
+      in_queue.reset();
+      hyperedge_in_queue.reset();
     }
+  }
+
+  static inline void initializeQueue(std::vector<std::vector<HypernodeID>>& start_nodes,
+                                     std::queue<HypernodeID>& q, 
+                                     ds::FastResetFlagArray<>& in_queue,
+                                     const Hypergraph& hg,
+                                     const PartitionID k) {
+    ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
+
+    for (PartitionID i = 0; i < k; ++i) {
+      for (const HypernodeID& hn : start_nodes[i]) {
+        q.push(hn);
+        in_queue.set(hn, true);
+      }
+    }
+
+    if (q.empty()) {
+      HypernodeID start_hn = 0;
+      if (UseRandomStartHypernode) {
+        start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+      }
+      q.push(start_hn);
+      in_queue.set(start_hn, true);
+    }
+  }
+
+  static inline PartitionID nextPartID(std::vector<std::vector<HypernodeID>>& start_nodes,
+                                       const PartitionID k) {
+    ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
+    for (PartitionID i = 0; i < k; ++i) {
+      if (start_nodes.size() == 0) {
+        return i;
+      }
+    }
+    return k;
   }
 };
 }  // namespace kahypar
