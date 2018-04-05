@@ -292,14 +292,6 @@ using Flow = HyperedgeWeight;
 
 static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& input_hypergraph,
                                                                   const Context& original_context) {
-
-  // TODO(heuer): Different modeling approaches for objective cut and km1
-  //               - cut: Only count a hyperedge if the assignment of the
-  //                      fixed vertex to a different part would make that
-  //                      edge cut.
-  //               - km1: Only count a hyperedge if the assignment of the
-  //                      fixed vertex to a different part would increase
-  //                      the connectivity of that edge.
   PartitionID k = original_context.partition.k;
   AdjacencyMatrix graph(k, std::vector<HyperedgeWeight>(k, 0));
 
@@ -314,8 +306,16 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     for (const HypernodeID& hn : fixed_vertices[i]) {
       for (const HyperedgeID& he : input_hypergraph.incidentEdges(hn)) {
         if (!visited[he]) {
-          for (const PartitionID& j : input_hypergraph.connectivitySet(he)) {
-            graph[i][j] += input_hypergraph.edgeWeight(he);
+          if (original_context.partition.objective == Objective::cut) {
+            if (input_hypergraph.connectivity(he) == 1) {
+              for (PartitionID j : input_hypergraph.connectivitySet(he)) {
+                graph[i][j] += input_hypergraph.edgeWeight(he);
+              }
+            }
+          } else if (original_context.partition.objective == Objective::km1) {
+            for (PartitionID j : input_hypergraph.connectivitySet(he)) {
+              graph[i][j] += input_hypergraph.edgeWeight(he);
+            }
           }
           visited.set(he, true);
         }
@@ -534,6 +534,11 @@ static inline void partition(Hypergraph& input_hypergraph,
       input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
     }
   }
+  DBG << original_context.partition.objective << "="
+      << (original_context.partition.objective == Objective::cut
+          ? metrics::hyperedgeCut(input_hypergraph)
+          : metrics::km1(input_hypergraph))
+      << V(metrics::imbalance(input_hypergraph, original_context));
 }
 }  // namespace fixed_vertices
 }  // namespace kahypar
