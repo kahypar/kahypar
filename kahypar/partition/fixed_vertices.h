@@ -40,7 +40,7 @@ using NodeID = int32_t;
 using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight>>;
 using Matching = std::vector<std::pair<PartitionID, PartitionID>>;
 using VertexCover = std::vector<NodeID>;
-static constexpr bool debug = false;
+static constexpr bool debug = true;
 
 class BipartiteMaximumFlow {
 using Flow = HyperedgeWeight;
@@ -318,16 +318,29 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
   return graph;
 }
 
-/*static inline void printAdjacencyMatrix(const AdjacencyMatrix& graph) {
-  PartitionID k = graph.size();
-  LOG << "MATCHING GRAPH:";
-  for (PartitionID i = 0; i < k; ++i) {
-    for (PartitionID j = 0; j < k; ++j) {
-      std::cout << graph[i][j] << " ";
+static inline void printAdjacencyMatrix(const AdjacencyMatrix& graph, bool weighted = false) {
+  if (debug) {
+    PartitionID k = graph.size();
+    std::cout << (weighted ? "WEIGHTED" : "UNWEIGHTED") << "MATCHING GRAPH:" << std::endl;
+    for (PartitionID i = 0; i < k; ++i) {
+      for (PartitionID j = 0; j < k; ++j) {
+        std::cout << graph[i][j] << " ";
+      }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
   }
-}*/
+}
+
+static inline void printMatching(const Matching& matching) {
+  if (debug) {
+    DBG << "Calculated Matching (Size:" << matching.size() << "):";
+    for (auto matched_edge : matching) {
+      PartitionID left_vertex = matched_edge.first;
+      PartitionID right_vertex = matched_edge.second;
+      DBG << V(left_vertex) << V(right_vertex);
+    }
+  }
+}
 
 static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatrix& graph) {
   PartitionID k = graph.size();
@@ -350,14 +363,37 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
   };
 
   auto excess = [&u, &v, &graph](PartitionID i, PartitionID j) {
-    return u[i] + v[i] - graph[i][j];
+    return u[i] + v[j] - graph[i][j];
   };
 
   Matching matching;
+  size_t iteration = 1;
   while (true) {
+    DBG << "Maximum Weighted Bipartite Matching - Iteration" << iteration;
+    if (debug) {
+      for (PartitionID i = 0; i < k; ++i) {
+        DBG << V(i) << V(u[i]) << V(v[i]);
+      }
+    }
+
+    ASSERT([&]() {
+        for (PartitionID i = 0; i < k; ++i) {
+          for (PartitionID j = 0; j < k; ++j) {
+            if (u[i] + v[j] < graph[i][j]) {
+              LOG << V(i) << V(j) << "=>" << V(u[i]) << "+" << V(v[j]) << ">=" << V(graph[i][j]);
+              return false;
+            }
+          }
+        }
+        return true;
+      } (), "Minimum weighted cover invariant violated");
+
     AdjacencyMatrix matching_graph = construct_matching_graph();
+    printAdjacencyMatrix(matching_graph);
+
     MinimumBipartiteVertexCover vertex_cover(matching_graph);
     matching = vertex_cover.computeMaximumBipartiteMatching();
+    printMatching(matching);
 
     if (matching.size() == k) {
       break;
@@ -395,7 +431,24 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
         }
       }
     }
+    ++iteration;
   }
+
+  ASSERT([&]() {
+      std::vector<bool> matched_left(k, false);
+      std::vector<bool> matched_right(k, false);
+      for (auto matched_edge : matching) {
+        PartitionID l = matched_edge.first;
+        PartitionID r = matched_edge.second;
+        if (matched_left[l] || matched_right[r]) {
+          return false;
+        }
+        matched_left[l] = true;
+        matched_right[r] = true;
+      }
+      return true;
+    } (), "Invalid matching");
+
   return matching;
 }
 
@@ -416,22 +469,48 @@ static inline void partition(Hypergraph& input_hypergraph,
       return true;
     } (), "Precondition check for fixed vertex assignment failed");
 
-  AdjacencyMatrix graph = setupWeightedBipartiteMatchingGraph(input_hypergraph, original_context);
-  Matching maximum_weighted_matching = findMaximumWeightedBipartiteMatching(graph);
-  std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
-  for (auto matched_edge : maximum_weighted_matching) {
-    partition_permutation[matched_edge.second] = matched_edge.first;
-  }
+  if (original_context.partition.use_maximum_bipartite_weighted_matching) {
+    // Idea: Fixed vertices assigned to a fixed block should be assigned to a part
+    // of the current partition, in which the increase in the objective function is minimal.
+    // However several fixed vertex sets might be assigned to the same part of the current
+    // partition such that the increase is minimal, which is obviously not possible.
+    // Therefore, we try to find a permutation of the partition ids such that the assignment
+    // of the fixed vertices is optimal among all possible permutations.
+    // Reference:
+    // Aykanat, Cevdet, B. Barla Cambazoglu, and Bora Uçar.
+    // "Multi-level direct k-way hypergraph partitioning with multiple constraints and fixed vertices."
+    // Journal of Parallel and Distributed Computing 68.5 (2008): 609-625.
+    AdjacencyMatrix graph = setupWeightedBipartiteMatchingGraph(input_hypergraph, original_context);
+    printAdjacencyMatrix(graph, true);
 
-  for (const HypernodeID& hn : input_hypergraph.nodes()) {
-    if (input_hypergraph.isFixedVertex(hn)) {
-      input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
-    } else {
-      PartitionID from = input_hypergraph.partID(hn);
-      PartitionID to = partition_permutation[from];
-      if (from != to) {
-        input_hypergraph.changeNodePart(hn, from, to);
+    Matching maximum_weighted_matching = findMaximumWeightedBipartiteMatching(graph);
+    ASSERT(maximum_weighted_matching.size() == original_context.partition.k,
+          "Matching is not a perfect matching");
+
+    std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
+    DBG << "Computed Permutation:";
+    for (auto matched_edge : maximum_weighted_matching) {
+      PartitionID from = matched_edge.second;
+      PartitionID to = matched_edge.first;
+      partition_permutation[from] = to;
+      DBG << "Block" << from << "assigned to fixed vertices with id"
+          << to << "with weight" << graph[to][from];
+    }
+
+    for (const HypernodeID& hn : input_hypergraph.nodes()) {
+      if (input_hypergraph.isFixedVertex(hn)) {
+        input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
+      } else {
+        PartitionID from = input_hypergraph.partID(hn);
+        PartitionID to = partition_permutation[from];
+        if (from != to) {
+          input_hypergraph.changeNodePart(hn, from, to);
+        }
       }
+    }
+  } else {
+    for (const HypernodeID& hn : input_hypergraph.fixedVertices()) {
+      input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
     }
   }
 }

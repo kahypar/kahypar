@@ -86,6 +86,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("fixed-vertex-fraction",
     po::value<double>(&context.partition.fixed_vertex_fraction)->value_name("<double>"),
     "Fraction of hypernodes randomly choosen as fixed vertices")
+    ("use-maximum-bipartite-weighted-matching",
+    po::value<bool>(&context.partition.use_maximum_bipartite_weighted_matching)->value_name("<bool>"),
+    "Use maximum bipartite weighted matching to assign fixed vertices after recursive bisection")
       ("blockweights",
        po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
        "Individual target block weights");

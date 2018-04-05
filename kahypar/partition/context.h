@@ -317,6 +317,7 @@ struct PartitioningParameters {
   bool use_individual_block_weights = false;
 
   double fixed_vertex_fraction = 0.01;
+  bool use_maximum_bipartite_weighted_matching = true;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
