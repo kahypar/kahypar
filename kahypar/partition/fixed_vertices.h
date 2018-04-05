@@ -40,7 +40,7 @@ using NodeID = int32_t;
 using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight>>;
 using Matching = std::vector<std::pair<PartitionID, PartitionID>>;
 using VertexCover = std::vector<NodeID>;
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 class BipartiteMaximumFlow {
 using Flow = HyperedgeWeight;
@@ -292,6 +292,14 @@ using Flow = HyperedgeWeight;
 
 static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& input_hypergraph,
                                                                   const Context& original_context) {
+
+  // TODO(heuer): Different modeling approaches for objective cut and km1
+  //               - cut: Only count a hyperedge if the assignment of the
+  //                      fixed vertex to a different part would make that
+  //                      edge cut.
+  //               - km1: Only count a hyperedge if the assignment of the
+  //                      fixed vertex to a different part would increase
+  //                      the connectivity of that edge.
   PartitionID k = original_context.partition.k;
   AdjacencyMatrix graph(k, std::vector<HyperedgeWeight>(k, 0));
 
@@ -321,7 +329,7 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
 static inline void printAdjacencyMatrix(const AdjacencyMatrix& graph, bool weighted = false) {
   if (debug) {
     PartitionID k = graph.size();
-    std::cout << (weighted ? "WEIGHTED" : "UNWEIGHTED") << "MATCHING GRAPH:" << std::endl;
+    std::cout << (weighted ? "WEIGHTED" : "UNWEIGHTED") << " MATCHING GRAPH:" << std::endl;
     for (PartitionID i = 0; i < k; ++i) {
       for (PartitionID j = 0; j < k; ++j) {
         std::cout << graph[i][j] << " ";
@@ -338,6 +346,14 @@ static inline void printMatching(const Matching& matching) {
       PartitionID left_vertex = matched_edge.first;
       PartitionID right_vertex = matched_edge.second;
       DBG << V(left_vertex) << V(right_vertex);
+    }
+  }
+}
+static inline void printVertexCover(const VertexCover& cover, const PartitionID k) {
+  if (debug) {
+    DBG << "Calculated Vertex Cover (Size:" << cover.size() << "):";
+    for (const NodeID u : cover) {
+      DBG << (u < k ? "Left-Side Vertex" : "Right-Side Vertex") << (u < k ? u : (u-k));
     }
   }
 }
@@ -396,9 +412,12 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
     printMatching(matching);
 
     if (matching.size() == k) {
+      DBG << "Maximum bipartite weighted matching found";
       break;
     } else {
+      DBG << "Maximum matching is not a perfect matching";
       VertexCover cover = vertex_cover.findMinimumBipartiteVertexCover();
+      printVertexCover(cover, k);
 
       // (Un)Matched vertices from left and right side of bipartite graph
       std::vector<bool> L(k, false);
@@ -420,6 +439,7 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
           }
         }
       }
+      DBG << V(min_excess);
 
       // Update minimum cost vertex cover vectors
       for (PartitionID i = 0; i < k; ++i) {
@@ -431,6 +451,7 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
         }
       }
     }
+    DBG << "================================================================";
     ++iteration;
   }
 
