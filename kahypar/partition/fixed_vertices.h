@@ -53,6 +53,11 @@ using Flow = HyperedgeWeight;
     _parent(_num_nodes, -1),
     _source(_num_nodes - 2),
     _sink(_num_nodes - 1) {
+    // Converts the bipartite graph representation into a general
+    // adjacency matrix. Therefore, nodes are relabeled. Vertices
+    // from the left side of the bipartite graph are numbered from
+    // 0..(k-1) and vertices from the right side of the bipartte graph
+    // are numbered from k..(2k-1).
     PartitionID k = graph.size();
     for (PartitionID i = 0; i < k; ++i) {
       for (PartitionID j = 0; j < k; ++j) {
@@ -68,12 +73,12 @@ using Flow = HyperedgeWeight;
 
     // Connect source to all left side nodes of the bipartite graph (Source Node: 2k)
     for (PartitionID i = 0; i < k; ++i) {
-      _residualGraph[2*k][i] = 1;
+      _residualGraph[_source][i] = 1;
     }
 
     // Connect all right side nodes of the bipartite graph to sink (Sink Node: 2k + 1)
     for (PartitionID i = 0; i < k; ++i) {
-      _residualGraph[i + k][2*k + 1] = 1;
+      _residualGraph[i + k][_sink] = 1;
     }
   }
 
@@ -92,6 +97,7 @@ using Flow = HyperedgeWeight;
     while (bfs(_source)) {
       max_flow += augment(_sink);
     }
+    ASSERT(!bfs(_source), "There still exists an augmenting path in the residual graph");
     return max_flow;
   }
 
@@ -115,9 +121,9 @@ using Flow = HyperedgeWeight;
 
  protected:
   /**
-   * Breath-First-Search starting from source node source 
-   * and searching for sink node sink in the residual graph.
-   * Returns true, if a path from s to t in the residual 
+   * Breath-First-Search starting from a specific node 
+   * and searching for the sink node in the residual graph.
+   * Returns true, if a path from node to _sink in the residual 
    * graph exists.
    */
   bool bfs(NodeID node, bool reset = true) {
@@ -147,7 +153,7 @@ using Flow = HyperedgeWeight;
     return false;
   }
 
-  size_t _num_nodes;
+  NodeID _num_nodes;
   AdjacencyMatrix _residualGraph;
   ds::FastResetFlagArray<> _visited;
   std::vector<NodeID> _parent;
@@ -169,15 +175,27 @@ using Flow = HyperedgeWeight;
   MaximumBipartiteMatching& operator= (MaximumBipartiteMatching&&) = delete;
   ~MaximumBipartiteMatching() = default;
 
+  /**
+   * Function computes a maximum matching in an unweighted
+   * bipartite graph. There exists a duality between a
+   * maximum flow and a maximum bipartite matching. The size
+   * of a maximum bipartite matching is equal with the value of
+   * the maximum flow f. Each edge (u,v), where f(u,v) = 1 is part
+   * of the maximum bipartite matching.
+   */
   Matching findMaximumBipartiteMatching() {
     Matching matching;
     PartitionID k = _num_nodes/2 - 1;
-    NodeID source = _num_nodes - 2;
-    NodeID sink = _num_nodes - 1;
+    
     Flow max_flow = maximumFlow();
+    unused(max_flow);
 
+    // Iterate over L-vertices
     for (PartitionID i = 0; i < k; ++i) {
+      // Iterate over R-vertices
       for (PartitionID j = 0; j < k; ++j) {
+        // Map L- and R-vertices to their corresponding
+        // nodes of the flow graph
         NodeID u = i;
         NodeID v = j + k;
         // If (i,j) is part of maximum bipartite matching,
@@ -189,7 +207,23 @@ using Flow = HyperedgeWeight;
       }
     }
 
-    ASSERT(max_flow == matching.size(), "Maximum Matching calculation failed");
+    ASSERT(static_cast<size_t>(max_flow) == matching.size(),
+           "Size of maximum matching not equal to value of maximum flow");
+    // Verify, that the matching found is an valid matching.
+    ASSERT([&]() {
+        std::vector<bool> matched_left(k, false);
+        std::vector<bool> matched_right(k, false);
+        for (auto matched_edge : matching) {
+          PartitionID l = matched_edge.first;
+          PartitionID r = matched_edge.second;
+          if (matched_left[l] || matched_right[r]) {
+            return false;
+          }
+          matched_left[l] = true;
+          matched_right[r] = true;
+        }
+        return true;
+      } (), "Invalid matching");
     return matching;
   }
 
@@ -205,6 +239,7 @@ using Flow = HyperedgeWeight;
  public:
   explicit MinimumBipartiteVertexCover(const AdjacencyMatrix& graph) :
     MaximumBipartiteMatching(graph),
+    _bipartite_graph(graph),
     _maximum_matching_already_calculated(false),
     _maximum_matching() { }
 
@@ -214,13 +249,16 @@ using Flow = HyperedgeWeight;
   MinimumBipartiteVertexCover& operator= (MinimumBipartiteVertexCover&&) = delete;
   ~MinimumBipartiteVertexCover() = default;
 
+  /**
+   * Function computes a minimum vertex cover in an unweighted
+   * bipartite graph. There exists a duality between a
+   * minimum vertex cover and a maximum bipartite matching.
+   */
   VertexCover findMinimumBipartiteVertexCover() {
     VertexCover cover;
     PartitionID k = _num_nodes/2 - 1;
 
-    if (_maximum_matching_already_calculated) {
-      computeMaximumBipartiteMatching();
-    }
+    computeMaximumBipartiteMatching();
 
     // Compute all unmatched left side vertices
     _visited.reset();
@@ -265,9 +303,35 @@ using Flow = HyperedgeWeight;
         cover.push_back(u);
       }
     }
-    // Note: L-vertices are labeled from 0..(k-1) and
-    //       R-vertices are labeled from k..(2k-1)
-    ASSERT(cover.size() == _maximum_matching.size(), "Minimum Vertex Cover computation failed");
+
+    ASSERT(cover.size() == _maximum_matching.size(),
+          "Size of minimum vertex cover is not equal with size of the maximum matching");
+    // Verify, that the vertex cover found is an valid vertex cover.
+    ASSERT([&]() {
+        // Remove all edges covered by the vertex cover
+        for (NodeID u : cover) {
+          if (u < k) {
+            for (PartitionID i = 0; i < k; ++i) {
+              _bipartite_graph[u][i] = 0;
+            }
+          } else {
+            for (PartitionID i = 0; i < k; ++i) {
+              _bipartite_graph[i][u - k] = 0;
+            }
+          }
+        }
+        // If there is still an edge left in the graph, than
+        // our vertex cover is not an valid vertex cover
+        for (PartitionID i = 0; i < k; ++i) {
+          for (PartitionID j = 0; j < k; ++j) {
+            if (_bipartite_graph[i][j]) {
+              LOG << "Unmatched edge found (" << i << "," << j << ")";
+              return false;
+            }
+          }
+        }
+        return true;
+      } (), "Invalid vertex cover");
     return cover;
   }
 
@@ -286,6 +350,7 @@ using Flow = HyperedgeWeight;
   using BipartiteMaximumFlow::_source;
   using BipartiteMaximumFlow::_sink;
 
+  AdjacencyMatrix _bipartite_graph;
   bool _maximum_matching_already_calculated;
   Matching _maximum_matching;
 };
@@ -337,8 +402,8 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
               // NOTE: We can transform Minimum Weighted Bipartite Matching
               //       to Maximum Weighted Bipartite Matching by multiply
               //       -1 to the weight of each edge.
-              // TODO(heuer): In experiments results with the PaToH and this
-              //              this approach where the same. There might be
+              // TODO(heuer): In experiments results with the PaToH and
+              //              this approach are the same. There might be
               //              a duality between both modeling approaches.
               k_visited.reset();
               for (PartitionID j : input_hypergraph.connectivitySet(he)) {
@@ -392,14 +457,60 @@ static inline void printVertexCover(const VertexCover& cover, const PartitionID 
   }
 }
 
+
+/** 
+ * This method implements the Hungarian Algorithm for solving
+ * Maximum Weighted Bipartite Matching. It make use of a duality
+ * between maximum weighted bipartite matching problem and the
+ * to find a minimum weighted cover in a bipartite graph.
+ * 
+ * The Minimum Weighted Cover Problem:
+ * Given a bipartite graph G = (L u R,E,w) where L are the nodes
+ * from the left side and R are the nodes from the right side 
+ * of the bipartite graph. A weighted cover is a choice of
+ * labels u[1..|L|] and v[1..|R|] such that u[i] + v[j] >= w[i][j]
+ * for all i,j. The cost of the cover is the sum of all labels.
+ * The minimum weighted cover problem is to find a cover of
+ * minimum cost.
+ * 
+ * The basic idea is to construct a subgraph G' which contains
+ * an edge (i,j) (with i \in L and j \in R) between each pair of 
+ * nodes where u[i] + v[j] = w[i][j]. If we find a perfect matching
+ * in that subgraph, we are done and can report the maximum weighted
+ * bipartite matching. Otherwise, we have to adapt the weights of
+ * the cover u and v and repeat the procedure until we find a perfect
+ * matching in the subgraph.
+ * 
+ * Time complexity: O(k^3)
+ * 
+ * Input:
+ * The input of the function is an adjacency matrix which contains
+ * as columns the L-vertices and as rows the R-vertices. A value
+ * w := graph[i][j] means, that there is an edge between L-vertex i 
+ * and R-vertex j with a weight of w.
+ * 
+ * References:
+ * Kuhn, Harold W. 
+ * "The Hungarian method for the assignment problem." 
+ * Naval Research Logistics (NRL) 2.1‐2 (1955): 83-97.
+ * 
+ * The implementation is similiar as proposed in the following
+ * online resource:
+ * https://www.ti.inf.ethz.ch/ew/lehre/GT03/lectures/PDF/lecture6f.pdf
+ */
 static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatrix& graph) {
   PartitionID k = graph.size();
+
+  // Initialize Weighted Cover
   std::vector<HyperedgeWeight> u(k, 0);
   std::vector<HyperedgeWeight> v(k, 0);
   for (PartitionID i = 0; i < k; ++i) {
     u[i] = *std::max_element(graph[i].begin(), graph[i].end());
   }
 
+  // Lambda function to construct the subgraph which contains
+  // an edge between each pair of nodes (i,j) of the bipartite
+  // graph where u[i] + v[j] == graph[i][j].
   auto construct_matching_graph = [&u, &v, &graph, k]() {
     AdjacencyMatrix matching_graph(k, std::vector<HyperedgeWeight>(k, 0));
     for (PartitionID i = 0; i < k; ++i) {
@@ -412,6 +523,8 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
     return matching_graph;
   };
 
+  // Excess function which is important to adjust the
+  // weights of the weighted cover.
   auto excess = [&u, &v, &graph](PartitionID i, PartitionID j) {
     return u[i] + v[j] - graph[i][j];
   };
@@ -438,22 +551,32 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
         return true;
       } (), "Minimum weighted cover invariant violated");
 
+    // Compute matching subgraph
     AdjacencyMatrix matching_graph = construct_matching_graph();
     printAdjacencyMatrix(matching_graph);
 
+    // Compute maximum matching
+    // NOTE: matching_graph is a unweighted bipartite graph
     MinimumBipartiteVertexCover vertex_cover(matching_graph);
     matching = vertex_cover.computeMaximumBipartiteMatching();
     printMatching(matching);
 
-    if (matching.size() == k) {
+    if (matching.size() == static_cast<size_t>(k)) {
+      // If we found a perfect matching we are done and
+      // report the maximum bipartite weighted matching
       DBG << "Maximum bipartite weighted matching found";
       break;
     } else {
+      // Otherwise we have to adapt the weights of the
+      // weighted cover.
       DBG << "Maximum matching is not a perfect matching";
+      // Therefore we compute a minimum vertex cover in
+      // the subgraph.
       VertexCover cover = vertex_cover.findMinimumBipartiteVertexCover();
       printVertexCover(cover, k);
 
-      // (Un)Matched vertices from left and right side of bipartite graph
+      // (Un)Matched vertices (not contained in the vertex cover)
+      // from left and right side of bipartite graph
       std::vector<bool> L(k, false);
       std::vector<bool> R(k, false);
       for (NodeID u : cover) {
@@ -475,7 +598,7 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
       }
       DBG << V(min_excess);
 
-      // Update minimum cost vertex cover vectors
+      // Update weighted cover vectors
       for (PartitionID i = 0; i < k; ++i) {
         if (!L[i]) {
           u[i] -= min_excess;
@@ -489,6 +612,7 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
     ++iteration;
   }
 
+  // Verify, that the matching found is an valid matching.
   ASSERT([&]() {
       std::vector<bool> matched_left(k, false);
       std::vector<bool> matched_right(k, false);
@@ -539,7 +663,7 @@ static inline void partition(Hypergraph& input_hypergraph,
     printAdjacencyMatrix(graph, true);
 
     Matching maximum_weighted_matching = findMaximumWeightedBipartiteMatching(graph);
-    ASSERT(maximum_weighted_matching.size() == original_context.partition.k,
+    ASSERT(maximum_weighted_matching.size() == static_cast<size_t>(original_context.partition.k),
           "Matching is not a perfect matching");
 
     std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
@@ -564,6 +688,7 @@ static inline void partition(Hypergraph& input_hypergraph,
       }
     }
   } else {
+    // Naive assignment of fixed vertices
     for (const HypernodeID& hn : input_hypergraph.fixedVertices()) {
       input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
     }
