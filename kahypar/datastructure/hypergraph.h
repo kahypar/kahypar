@@ -1395,6 +1395,10 @@ class GenericHypergraph {
       hyperedge(i).connectivity = 0;
       _connectivity_sets[i].clear();
     }
+    // Recalculate fixed vertex part weights
+    for (const HypernodeID& hn : fixedVertices()) {
+      _part_info[fixedVertexPartID(hn)].fixed_vertex_weight += nodeWeight(hn);
+    }
   }
 
   // ! Resets the hypergraph to initial state after construction
