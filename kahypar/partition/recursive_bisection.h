@@ -142,7 +142,6 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
 
 static inline void partition(Hypergraph& input_hypergraph,
                              const Context& original_context) {
-
   // Remove fixed vertices from input hypergraph. Fixed vertices are
   // added in a postprocessing step to the hypergraph after recursive
   // bisection finished.
@@ -304,7 +303,6 @@ static inline void partition(Hypergraph& input_hypergraph,
         break;
     }
   }
-
   // Postprocessing: Add fixed vertices to input hypergraph after
   //                 recursive bisection
   fixed_vertices::partition(input_hypergraph, original_context);

@@ -511,6 +511,7 @@ class GenericHypergraph {
     _num_hyperedges(num_hyperedges),
     _num_pins(edge_vector.size()),
     _total_weight(0),
+    _fixed_vertex_total_weight(0),
     _k(k),
     _type(Type::Unweighted),
     _current_num_hypernodes(_num_hypernodes),
@@ -590,6 +591,7 @@ class GenericHypergraph {
     _num_hyperedges(0),
     _num_pins(0),
     _total_weight(0),
+    _fixed_vertex_total_weight(0),
     _k(2),
     _type(Type::Unweighted),
     _current_num_hypernodes(0),
@@ -815,6 +817,7 @@ class GenericHypergraph {
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
     if (isFixedVertex(u)) {
       _part_info[fixedVertexPartID(u)].fixed_vertex_weight += hypernode(v).weight();
+      _fixed_vertex_total_weight += hypernode(v).weight();
     }
     const HypernodeID u_offset = hypernode(u).firstEntry();
     const HypernodeID u_size = hypernode(u).size();
@@ -897,6 +900,7 @@ class GenericHypergraph {
     ++_part_info[partID(memento.u)].size;
     if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
       _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+      _fixed_vertex_total_weight -= hypernode(memento.v).weight();
     }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
@@ -1019,6 +1023,7 @@ class GenericHypergraph {
     ++_part_info[partID(memento.u)].size;
     if (isFixedVertex(memento.u) && !isFixedVertex(memento.v)) {
       _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+      _fixed_vertex_total_weight -= hypernode(memento.v).weight();
     }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
@@ -1215,6 +1220,7 @@ class GenericHypergraph {
     _fixed_vertices.push_back(hn);
     _fixed_vertex_part_id[hn] = id;
     _part_info[id].fixed_vertex_weight += nodeWeight(hn);
+    _fixed_vertex_total_weight += nodeWeight(hn);
   }
 
   /*!
@@ -1396,9 +1402,12 @@ class GenericHypergraph {
       _connectivity_sets[i].clear();
     }
     // Recalculate fixed vertex part weights
+    HyperedgeWeight fixed_vertex_weight = 0;
     for (const HypernodeID& hn : fixedVertices()) {
       _part_info[fixedVertexPartID(hn)].fixed_vertex_weight += nodeWeight(hn);
+      fixed_vertex_weight += nodeWeight(hn);
     }
+    ASSERT(fixed_vertex_weight == _fixed_vertex_total_weight, "Fixed vertex weight calculation failed");
   }
 
   // ! Resets the hypergraph to initial state after construction
@@ -1697,6 +1706,11 @@ class GenericHypergraph {
   // ! Returns the sum of the weights of all hypernodes
   HypernodeWeight totalWeight() const {
     return _total_weight;
+  }
+
+  // ! Returns the sum of the weights of all fixed vertices
+  HypernodeWeight fixedVertexTotalWeight() const {
+    return _fixed_vertex_total_weight;
   }
 
   // ! Returns the community structure of the hypergraph
@@ -2042,6 +2056,8 @@ class GenericHypergraph {
   HypernodeID _num_pins;
   // ! Sum of the weights of all hypernodes
   HypernodeWeight _total_weight;
+  // ! Sum of the weights of all fixed vertices
+  HypernodeWeight _fixed_vertex_total_weight;
   // ! Number of blocks the hypergraph will be partitioned in
   int _k;
   // ! Type of the hypergraph

@@ -156,10 +156,13 @@ class VertexPairRater {
 
   bool acceptFixedVertexContraction(const HypernodeID u, const HypernodeID v) const {
     PartitionID fixedPartID = _hg.fixedVertexPartID(u);
+    HypernodeWeight max_allowed_fixed_vertex_weight = floor((1.0 + _context.partition.epsilon) *
+    static_cast<double>(_hg.fixedVertexTotalWeight()) / _context.partition.k);
+
     return !_hg.isFixedVertex(v) &&
            (!_hg.isFixedVertex(u) ||
             _hg.fixedVertexPartWeight(fixedPartID) + _hg.nodeWeight(v) <=
-            _context.partition.max_part_weights[fixedPartID > 0]);
+            max_allowed_fixed_vertex_weight);
   }
 
   Hypergraph& _hg;
