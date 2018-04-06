@@ -89,6 +89,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("use-maximum-bipartite-weighted-matching",
     po::value<bool>(&context.partition.use_maximum_bipartite_weighted_matching)->value_name("<bool>"),
     "Use maximum bipartite weighted matching to assign fixed vertices after recursive bisection")
+    ("use-patoh-bipartite-graph-modeling",
+    po::value<bool>(&context.partition.use_patoh_bipartite_graph_modeling)->value_name("<bool>"),
+    "Use bipartite graph modeling approach proposed by PaToH")
       ("blockweights",
        po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
        "Individual target block weights");

@@ -301,20 +301,54 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
   }
 
   ds::FastResetFlagArray<> visited(input_hypergraph.initialNumEdges());
+  ds::FastResetFlagArray<> k_visited(k);
   for (PartitionID i = 0; i < k; ++i) {
     visited.reset();
     for (const HypernodeID& hn : fixed_vertices[i]) {
       for (const HyperedgeID& he : input_hypergraph.incidentEdges(hn)) {
         if (!visited[he]) {
-          if (original_context.partition.objective == Objective::cut) {
-            if (input_hypergraph.connectivity(he) == 1) {
-              for (PartitionID j : input_hypergraph.connectivitySet(he)) {
-                graph[i][j] += input_hypergraph.edgeWeight(he);
-              }
-            }
-          } else if (original_context.partition.objective == Objective::km1) {
+          if (original_context.partition.use_patoh_bipartite_graph_modeling) {
             for (PartitionID j : input_hypergraph.connectivitySet(he)) {
               graph[i][j] += input_hypergraph.edgeWeight(he);
+            }
+          } else {
+            if (original_context.partition.objective == Objective::cut) {
+              // The cut metric only increases, if we would make a non-cut
+              // hyperedge cut. Therefore, we increase the weight on the edge
+              // (i,j) by the weight of a non-cut hyperedge, where i is
+              // the fixed vertex part and j the part contained in a non-cut
+              // hyperedge. More general, if we would not assign the fixed
+              // vertices of block i to block j, we would make that hyperedge
+              // cut. Therefore, maximum weighted bipartite matching optimizes
+              // the cut metric.
+              if (input_hypergraph.connectivity(he) == 1) {
+                for (PartitionID j : input_hypergraph.connectivitySet(he)) {
+                  graph[i][j] += input_hypergraph.edgeWeight(he);
+                }
+              }
+            } else if (original_context.partition.objective == Objective::km1) {
+              // The km1 metric only increases, if we would assign a fixed vertex
+              // to a block not contained in the connectivity set of a hyperedge.
+              // Therefore, we increase the weight of all edges (i,j) in the
+              // bipartite graph by the weight of the hyperedge, where j is a block
+              // not contained in the connectivty set of the hyperedge.
+              // Therefore, minimum weighted bipartitie matching optimizes
+              // the km1 metric.
+              // NOTE: We can transform Minimum Weighted Bipartite Matching
+              //       to Maximum Weighted Bipartite Matching by multiply
+              //       -1 to the weight of each edge.
+              // TODO(heuer): In experiments results with the PaToH and this
+              //              this approach where the same. There might be
+              //              a duality between both modeling approaches.
+              k_visited.reset();
+              for (PartitionID j : input_hypergraph.connectivitySet(he)) {
+                k_visited.set(j, true);
+              }
+              for (PartitionID j = 0; j < k; ++j) {
+                if (!k_visited[j]) {
+                  graph[i][j] -= input_hypergraph.edgeWeight(he);
+                }
+              }
             }
           }
           visited.set(he, true);

@@ -318,6 +318,7 @@ struct PartitioningParameters {
 
   double fixed_vertex_fraction = 0.01;
   bool use_maximum_bipartite_weighted_matching = true;
+  bool use_patoh_bipartite_graph_modeling = false;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
