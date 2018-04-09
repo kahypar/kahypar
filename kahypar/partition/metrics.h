@@ -160,6 +160,15 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
   return max_balance - 1.0;
 }
 
+inline double imbalanceFixedVertices(const Hypergraph& hypergraph, const PartitionID k) {
+  HypernodeWeight max_weight = hypergraph.fixedVertexPartWeight(0);
+  for (PartitionID i = 1; i != k; ++i) {
+    max_weight = std::max(max_weight, hypergraph.fixedVertexPartWeight(i));
+  }
+  return static_cast<double>(max_weight) /
+         ceil(static_cast<double>(hypergraph.fixedVertexTotalWeight()) / k) - 1.0;
+}
+
 static inline double avgHyperedgeDegree(const Hypergraph& hypergraph) {
   return static_cast<double>(hypergraph.currentNumPins()) / hypergraph.currentNumEdges();
 }

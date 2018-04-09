@@ -74,6 +74,9 @@ static inline double calculateRelaxedEpsilon(const HypernodeWeight original_hype
                                              const HypernodeWeight current_hypergraph_weight,
                                              const PartitionID k,
                                              const Context& original_context) {
+  if (current_hypergraph_weight == 0) {
+    return 0.0;
+  }
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_context.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_context.partition.epsilon);
@@ -92,7 +95,7 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
                                                               current_hypergraph.totalWeight(),
                                                               current_k, original_context);
-  ASSERT(current_context.partition.epsilon > 0.0, "start partition already too imbalanced");
+  ASSERT(current_context.partition.epsilon >= 0.0, "start partition already too imbalanced");
   current_context.partition.total_graph_weight =
     current_hypergraph.totalWeight();
 
@@ -269,7 +272,9 @@ static inline void partition(Hypergraph& input_hypergraph,
           ASSERT(coarsener.get() != nullptr, "coarsener not found");
           ASSERT(refiner.get() != nullptr, "refiner not found");
 
-          multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
+          if (current_hypergraph.initialNumNodes() > 0) {
+            multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
+          }
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1, current_context.partition.objective);
@@ -303,6 +308,12 @@ static inline void partition(Hypergraph& input_hypergraph,
         break;
     }
   }
+  /*for (PartitionID i = 0; i < original_context.partition.k; ++i) {
+    LOG << "w[" << i << "] =" << input_hypergraph.partWeight(i)
+        << "fixedVertexWeight[" << i << "] =" << input_hypergraph.fixedVertexPartWeight(i)
+        << "max_w[" << i << "] =" << original_context.partition.max_part_weights[0];
+  }*/
+
   // Postprocessing: Add fixed vertices to input hypergraph after
   //                 recursive bisection
   fixed_vertices::partition(input_hypergraph, original_context);
