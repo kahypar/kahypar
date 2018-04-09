@@ -322,6 +322,7 @@ struct PartitioningParameters {
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
+  std::string graph_fixed_vertex_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {

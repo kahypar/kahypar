@@ -581,6 +581,14 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     + std::to_string(context.partition.seed)
     + ".KaHyPar";
 
+  context.partition.graph_fixed_vertex_filename =
+    context.partition.graph_filename
+    + ".part"
+    + std::to_string(context.partition.k)
+    + ".seed"
+    + std::to_string(context.partition.seed)
+    + ".FixedVertices";
+
   if (context.partition.use_individual_block_weights) {
     context.partition.epsilon = 0;
   }

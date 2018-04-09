@@ -1598,6 +1598,10 @@ class GenericHypergraph {
     return _current_num_pins;
   }
 
+  HypernodeID numFixedVertices() const {
+    return _fixed_vertices.size();
+  }
+
   bool isModified() const {
     return _current_num_pins != _num_pins || _current_num_hypernodes != _num_hypernodes ||
            _current_num_hyperedges != _num_hyperedges;

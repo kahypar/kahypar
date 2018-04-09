@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
       hypergraph.setFixedVertex(hn, fixedPart);
     }
   }
+  // kahypar::io::writeFixedVertexPartitionFile(hypergraph,
+  //                                           context.partition.graph_fixed_vertex_filename);
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
