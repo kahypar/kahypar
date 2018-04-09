@@ -316,6 +316,7 @@ struct PartitioningParameters {
   bool sp_process_output = false;
   bool use_individual_block_weights = false;
 
+  FixedVertexGenerator fixed_vertex_generator = FixedVertexGenerator::UNDEFINED;
   double fixed_vertex_fraction = 0.01;
   bool use_maximum_bipartite_weighted_matching = true;
   bool use_patoh_bipartite_graph_modeling = false;

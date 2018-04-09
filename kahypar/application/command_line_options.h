@@ -83,6 +83,13 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
         ("use-individual-blockweights",
     po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
     "# Use individual block weights specified with --blockweights= option")
+    ("fixed-vertex-generator",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& type) {
+      context.partition.fixed_vertex_generator =
+        kahypar::fixedVertexGeneratorFromString(type);
+    }),
+    "Set artificial generator for generating fixed vertices (random, bubble, retard)")
     ("fixed-vertex-fraction",
     po::value<double>(&context.partition.fixed_vertex_fraction)->value_name("<double>"),
     "Fraction of hypernodes randomly choosen as fixed vertices")

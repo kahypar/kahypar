@@ -32,6 +32,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/application/fixed_vertex_generator.h"
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
@@ -59,13 +60,14 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
-    int r = kahypar::Randomize::instance().getRandomInt(1, 100000);
-    if (r <= context.partition.fixed_vertex_fraction * 100000.0) {
-      kahypar::PartitionID fixedPart = kahypar::Randomize::instance().
-                                       getRandomInt(0, context.partition.k - 1);
-      hypergraph.setFixedVertex(hn, fixedPart);
-    }
+  if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::random) {
+    kahypar::randomFixedVertexGenerator(hypergraph, context);
+  } else if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::bubble) {
+    kahypar::bubbleFixedVertexGenerator(hypergraph, context);
+  }
+  LOG << V(hypergraph.initialNumNodes()) << V(hypergraph.numFixedVertices());
+  for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
+    LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
   }
   // kahypar::io::writeFixedVertexPartitionFile(hypergraph,
   //                                           context.partition.graph_fixed_vertex_filename);
