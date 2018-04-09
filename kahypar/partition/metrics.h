@@ -87,7 +87,7 @@ static inline HyperedgeWeight soed(const Hypergraph& hg) {
 static inline HyperedgeWeight km1(const Hypergraph& hg) {
   HyperedgeWeight k_minus_1 = 0;
   for (const HyperedgeID& he : hg.edges()) {
-    k_minus_1 += (hg.connectivity(he) - 1) * hg.edgeWeight(he);
+    k_minus_1 += std::max(hg.connectivity(he) - 1, 0) * hg.edgeWeight(he);
   }
   return k_minus_1;
 }

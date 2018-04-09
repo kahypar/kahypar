@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
   for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
     LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
   }
+  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));
   // kahypar::io::writeFixedVertexPartitionFile(hypergraph,
   //                                           context.partition.graph_fixed_vertex_filename);
 

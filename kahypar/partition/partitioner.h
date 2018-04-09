@@ -170,21 +170,21 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
   context.coarsening.contraction_limit =
     context.coarsening.contraction_limit_multiplier * context.partition.k;
 
+  context.coarsening.hypernode_weight_fraction =
+    context.coarsening.max_allowed_weight_multiplier
+    / context.coarsening.contraction_limit;
+
   // If we initial partition the hypergraph in recursive bisection mode and
   // the number of fixed vertices are greater than the contraction limit,
   // we adapt the contraction limit such that we increase the probability
   // to find an balanced initial partition of the fixed vertex free subgraph.
   if (context.initial_partitioning.mode == Mode::recursive_bisection) {
     if (hypergraph.numFixedVertices() > context.coarsening.contraction_limit) {
-      // TODO(heuer): 20 should be tunning parameter?
+      // TODO(heuer): 20 should be a tunning parameter?
       context.coarsening.contraction_limit = hypergraph.numFixedVertices() +
                                              context.partition.k * 20;
     }
   }
-
-  context.coarsening.hypernode_weight_fraction =
-    context.coarsening.max_allowed_weight_multiplier
-    / context.coarsening.contraction_limit;
 
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
                                                     * context.partition.total_graph_weight);
