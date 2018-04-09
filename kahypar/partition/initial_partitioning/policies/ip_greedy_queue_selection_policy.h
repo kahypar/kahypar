@@ -54,6 +54,7 @@ class RoundRobinQueueSelectionPolicy {
       current_id = ((current_id + 1) % context.initial_partitioning.k);
     }
     if (current_id != -1) {
+      ASSERT(_pq.isEnabled(current_id), "PQ" << current_id << "should be enabled!");
       _pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
     }
     return true;
@@ -130,7 +131,9 @@ class SequentialQueueSelectionPolicy {
     if (!is_upper_bound_released) {
       bool next_part = false;
       if (hg.partWeight(current_id)
-          < context.initial_partitioning.upper_allowed_partition_weight[current_id]) {
+          < context.initial_partitioning.upper_allowed_partition_weight[current_id] &&
+          _pq.isEnabled(current_id)) {
+        ASSERT(_pq.isEnabled(current_id), "PQ" << current_id << "should be enabled!");
         _pq.deleteMaxFromPartition(current_hn, current_gain, current_id);
 
         if (hg.partWeight(current_id) + hg.nodeWeight(current_hn)
@@ -144,12 +147,12 @@ class SequentialQueueSelectionPolicy {
 
       if (next_part) {
         current_id++;
-        if (current_id == context.initial_partitioning.unassigned_part) {
+        while (current_id < context.initial_partitioning.k && !_pq.isEnabled(current_id)) {
           current_id++;
         }
+
         if (current_id != context.initial_partitioning.k) {
-          ASSERT(_pq.isEnabled(current_id),
-                 "PQ" << current_id << "should be enabled!");
+          ASSERT(_pq.isEnabled(current_id), "PQ" << current_id << "should be enabled!");
           _pq.deleteMaxFromPartition(current_hn, current_gain,
                                      current_id);
         } else {

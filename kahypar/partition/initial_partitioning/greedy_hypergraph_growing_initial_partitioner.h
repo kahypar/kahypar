@@ -106,6 +106,14 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     bool is_upper_bound_released = false;
     // Define a weight bound, which every part has to reach, to avoid very small partitions.
     InitialPartitionerBase::recalculateBalanceConstraints(0);
+    // Disable PQs of all overloaded parts
+    // Occurs, if many fixed vertices are present
+    for (PartitionID part = 0; part < _context.initial_partitioning.k; ++part) {
+      if (_pq.isEnabled(part) && _hg.partWeight(part) >=
+         _context.initial_partitioning.upper_allowed_partition_weight[part]) {
+        _pq.disablePart(part);
+      }
+    }
 
     // current_id = 0 is used in QueueSelection policy. Therefore we don't use
     // and invalid part id for initialization.
@@ -147,19 +155,18 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       ASSERT(current_hn < _hg.initialNumNodes(),
              "Current Hypernode" << current_hn << "is not a valid hypernode!");
       ASSERT(current_id != -1, "Part" << current_id << "is no valid part!");
-      ASSERT(_hg.partID(current_hn) == _context.initial_partitioning.unassigned_part ||
-             _hg.isFixedVertex(current_hn),
+      ASSERT(!_hg.isFixedVertex(current_hn), "Moved hypernode is a fixed vertex");
+      ASSERT(_hg.partID(current_hn) == _context.initial_partitioning.unassigned_part,
              "The current selected hypernode" << current_hn
                                               << "is already assigned to a part during initial partitioning!");
 
-      if (_hg.isFixedVertex(current_hn) || assignHypernodeToPartition(current_hn, current_id)) {
+      if (assignHypernodeToPartition(current_hn, current_id)) {
         ASSERT(_hg.partID(current_hn) == current_id,
                "Assignment of hypernode" << current_hn << "to partition" << current_id
                                          << "failed!");
         ASSERT([&]() {
             if (_context.initial_partitioning.unassigned_part != -1 &&
-                GainComputation::getType() == GainType::fm_gain &&
-                !_hg.isFixedVertex(current_hn)) {
+                GainComputation::getType() == GainType::fm_gain) {
               _hg.changeNodePart(current_hn, current_id,
                                  _context.initial_partitioning.unassigned_part);
               const HyperedgeWeight cut_before = metrics::hyperedgeCut(_hg);
@@ -186,9 +193,11 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
           bool exist_unassigned_node = InitialPartitionerBase::getUnassignedNode() != kInvalidNode;
           for (PartitionID part = 0; part < _context.initial_partitioning.k; ++part) {
             if (!_pq.isEnabled(part) && part != _context.initial_partitioning.unassigned_part) {
-              if ((exist_unassigned_node || _pq.size(part) > 0) &&
+              if ((exist_unassigned_node && _pq.size(part) > 0) &&
                   _hg.partWeight(part) + InitialPartitionerBase::getMaxHypernodeWeight()
                   <= _context.initial_partitioning.upper_allowed_partition_weight[part]) {
+                LOG << V(part) << V(_hg.partWeight(part)) << V(_pq.isEnabled(part)) << V(_pq.size(part))
+                    << V(_context.initial_partitioning.upper_allowed_partition_weight[part]);
                 return false;
               }
             }
@@ -200,8 +209,10 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       ASSERT([&]() {
           for (PartitionID part = 0; part < _context.initial_partitioning.k; ++part) {
             if (_pq.isEnabled(part) && part != _context.initial_partitioning.unassigned_part) {
-              if (_hg.partWeight(part) ==
+              if (_hg.partWeight(part) >=
                   _context.initial_partitioning.upper_allowed_partition_weight[part]) {
+                LOG << V(part) << V(_hg.partWeight(part)) << V(_pq.isEnabled(part)) << V(_pq.size(part))
+                    << V(_context.initial_partitioning.upper_allowed_partition_weight[part]);
                 return false;
               }
             }
@@ -305,7 +316,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       removeHypernodeFromAllPQs(hn);
     }
 
-    if (!_pq.isEnabled(target_part)) {
+    if (!_pq.isEnabled(target_part) && !_hg.isFixedVertex(hn)) {
       insertUnassignedHypernodeIntoPQ(target_part);
     }
 
@@ -366,11 +377,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
       for (const HypernodeID hn : startNodes[i]) {
         if (_hg.isFixedVertex(hn) &&
             _hg.fixedVertexPartID(hn) != _context.initial_partitioning.unassigned_part) {
-          PartitionID fixedVertexPart = _hg.fixedVertexPartID(hn);
-          _pq.insert(hn, fixedVertexPart, InvalidGain);
-          if (!_pq.isEnabled(fixedVertexPart)) {
-            _pq.enablePart(fixedVertexPart);
-          }
+          insertAndUpdateNodesAfterMove(hn, _hg.fixedVertexPartID(hn));
         } else {
           insertNodeIntoPQ(hn, i);
         }
