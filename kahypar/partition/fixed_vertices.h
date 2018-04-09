@@ -365,7 +365,6 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     fixed_vertices[input_hypergraph.fixedVertexPartID(hn)].push_back(hn);
   }
 
-  HyperedgeWeight upper_bound = 0;
   ds::FastResetFlagArray<> visited(input_hypergraph.initialNumEdges());
   for (PartitionID i = 0; i < k; ++i) {
     visited.reset();
@@ -389,7 +388,6 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
             //       to optimize the km1 metric (proposed by kPaToH)
             for (PartitionID j : input_hypergraph.connectivitySet(he)) {
               graph[i][j] += input_hypergraph.edgeWeight(he);
-              upper_bound += input_hypergraph.edgeWeight(he);
             }
           } else if (original_context.partition.objective == Objective::cut) {
             // The cut metric only increases, if we would make a non-cut
@@ -421,19 +419,43 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
   }
 
   if (debug) {
-    visited.reset();
-    if (original_context.partition.objective == Objective::cut) {
-      for (const HypernodeID hn : input_hypergraph.fixedVertices()) {
-        for (const HyperedgeID he : input_hypergraph.incidentEdges(hn)) {
-          if (!visited[he] && input_hypergraph.connectivity(he) == 1) {
-            upper_bound += input_hypergraph.edgeWeight(he);
-            visited.set(he, true);
+    // In this DEBUG code, we compute the best and worst quality
+    // achievable with a matching. Matchings are computed hyperedge-
+    // wise.
+    HyperedgeWeight lower_bound = 0;
+    HyperedgeWeight upper_bound = 0;
+    std::vector<PartitionID> min_connectivity(input_hypergraph.initialNumEdges(), 0);
+    std::vector<PartitionID> max_connectivity(input_hypergraph.initialNumEdges(), 0);
+    ds::FastResetFlagArray<> k_visited(k);
+    for (const HyperedgeID& he : input_hypergraph.edges()) {
+      k_visited.reset();
+      for (const HypernodeID& pin : input_hypergraph.pins(he)) {
+        PartitionID part = input_hypergraph.isFixedVertex(pin) ? input_hypergraph.fixedVertexPartID(pin) :
+                                                                 input_hypergraph.partID(pin);
+        if (!k_visited[part]) {
+          if (!input_hypergraph.isFixedVertex(pin)) {
+            min_connectivity[he]++;
+          } else {
+            max_connectivity[he]++;
           }
+          k_visited.set(part, true);
         }
       }
+      PartitionID tmp_min_connectivity = min_connectivity[he];
+      // The best achievable connectivity for hyperedge he is a perfect matching
+      // between existing and fixed vertex parts (first term) plus the parts which
+      // are unmatched.
+      min_connectivity[he] = std::min(min_connectivity[he], max_connectivity[he]) +
+                             std::abs(max_connectivity[he] - min_connectivity[he]);
+      max_connectivity[he] += tmp_min_connectivity;
+      if (original_context.partition.objective == Objective::cut) {
+        lower_bound += (min_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
+        upper_bound += (max_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
+      } else if (original_context.partition.objective == Objective::km1) {
+        lower_bound += (min_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
+        upper_bound += (max_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
+      }
     }
-    HyperedgeWeight lower_bound = metrics::objective(input_hypergraph, original_context.partition.objective);
-    upper_bound += lower_bound;
     DBG << V(original_context.partition.objective) << V(lower_bound) << V(upper_bound);
   }
 
