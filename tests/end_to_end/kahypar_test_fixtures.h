@@ -131,4 +131,26 @@ class KaHyParR : public ::testing::Test {
 
   Context context;
 };
+
+class KaHyParE : public ::testing::Test {
+ public:
+  KaHyParE() :
+    context() {
+    parseIniToContext(context, "configs/test.ini");
+    context.partition.seed = 2;
+    context.partition.k = 3;
+    context.partition.quiet_mode = true;
+    context.partition.epsilon = 0.03;
+    context.partition.objective = Objective::km1;
+    context.partition.mode = Mode::direct_kway;
+    context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+    context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
+    context.partition.quiet_mode = false;
+    context.partition_evolutionary = true;
+    context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
+
+    kahypar::Randomize::instance().setSeed(context.partition.seed);
+  }
+  Context context;
+};
 }  // namespace kahypar

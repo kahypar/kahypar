@@ -24,6 +24,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/kahypar.h"
+#include "kahypar/partition/evo_partitioner.h"
 #include "tests/end_to_end/kahypar_test_fixtures.h"
 
 namespace kahypar {
@@ -202,6 +203,40 @@ TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
     verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
+}
+
+TEST_F(KaHyParE, ComputesDirectKwayKm1Partitioning) {
+  parseIniToContext(context, "configs/test.ini");
+  context.partition.k = 3;
+  context.partition.quiet_mode = true;
+  context.partition.epsilon = 0.03;
+  context.partition.objective = Objective::km1;
+  context.partition.mode = Mode::direct_kway;
+  context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+  context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
+  context.partition.quiet_mode = false;
+  context.partition_evolutionary = true;
+  context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  partition::EvoPartitioner partitioner(context);
+  partitioner.partition(hypergraph, context);
+
+  const std::vector<PartitionID> best_partition = partitioner.bestPartition();
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    verification_hypergraph.setNodePart(hn, best_partition[hn]);
   }
 
   ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
