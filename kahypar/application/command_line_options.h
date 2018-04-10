@@ -572,7 +572,7 @@ po::options_description createGenericOptionsDescription(Context& context,
 void processCommandLineInput(Context& context, int argc, char* argv[]) {
   const int num_columns = platform::getTerminalWidth();
 
-  po::options_description generic_options = createGeneralOptionsDescription(context,
+  po::options_description generic_options = createGenericOptionsDescription(context,
                                                                             num_columns);
 
   po::options_description required_options("Required Options", num_columns);
