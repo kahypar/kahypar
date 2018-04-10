@@ -57,6 +57,7 @@ the website accompanying each publication.
 #### Additional Resources
 |KaHyPar-MF (latest version of KaHyPar)|SEA'18| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
 |:--|:--|:--:|:--:|:--:|
+|KaHyPar-E / EvoHGP|GECCO'18|[TR](https://arxiv.org/abs/1710.01968)|-|[Experimental Results][GECCO'18bench]|
 |KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
@@ -214,4 +215,5 @@ feel free to contact me or create an issue on the
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
 [SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
+[GECCO'18bench]: http://algo2.iti.kit.edu/schlag/gecco2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
