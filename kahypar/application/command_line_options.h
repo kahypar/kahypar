@@ -80,12 +80,12 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("vcycles",
     po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
     "# V-cycle iterations for direct k-way partitioning")
-        ("use-individual-blockweights",
+    ("use-individual-blockweights",
     po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
     "# Use individual block weights specified with --blockweights= option")
-      ("blockweights",
-       po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
-       "Individual target block weights");
+    ("blockweights",
+    po::value<std::vector<HypernodeWeight> >(&context.partition.max_part_weights)->multitoken(),
+    "Individual target block weights");
   return options;
 }
 
@@ -445,9 +445,9 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
                                                              const int num_columns) {
   po::options_description evolutionary_options("Evolutionary Options", num_columns);
   evolutionary_options.add_options()
-      ("partition-evolutionary",
-       po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
-       "Use memetic algorithm for partitioning")
+    ("partition-evolutionary",
+    po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
+    "Use memetic algorithm for partitioning")
     ("population-size",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& pop_size) {
@@ -550,9 +550,8 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
   return evolutionary_options;
 }
 
-void processCommandLineInput(Context& context, int argc, char* argv[]) {
-  const int num_columns = platform::getTerminalWidth();
-
+po::options_description createGenericOptionsDescription(Context& context,
+                                                        const int num_columns) {
   po::options_description generic_options("Generic Options", num_columns);
   generic_options.add_options()
     ("help", "show help message")
@@ -563,10 +562,18 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
     "Quiet Mode: Completely suppress console output")
     ("time-limit", po::value<int>(&context.partition.time_limit)->value_name("<int>"),
-     "Time limit in seconds")
+    "Time limit in seconds")
     ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)");
+  return generic_options;
+}
+
+void processCommandLineInput(Context& context, int argc, char* argv[]) {
+  const int num_columns = platform::getTerminalWidth();
+
+  po::options_description generic_options = createGeneralOptionsDescription(context,
+                                                                            num_columns);
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
@@ -690,7 +697,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   if (context.partition.use_individual_block_weights) {
     context.partition.epsilon = 0;
   }
-
 }
 
 
@@ -705,6 +711,7 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   po::variables_map cmd_vm;
   po::options_description ini_line_options;
   ini_line_options.add(createGeneralOptionsDescription(context, num_columns))
+  .add(createGenericOptionsDescription(context, num_columns))
   .add(createPreprocessingOptionsDescription(context, num_columns))
   .add(createCoarseningOptionsDescription(context, num_columns))
   .add(createInitialPartitioningOptionsDescription(context, num_columns))
