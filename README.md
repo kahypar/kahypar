@@ -55,11 +55,11 @@ algorithm if its corresponding ratio values are below those of the other algorit
 the website accompanying each publication.
 
 #### Additional Resources
-|KaHyPar-MF (latest version of KaHyPar)| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
-|:--|:--:|:--:|:--:|
-|KaHyPar-CA|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
-|KaHyPar-K|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
-|KaHyPar-R|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+|KaHyPar-MF (latest version of KaHyPar)|SEA'18| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
+|:--|:--|:--:|:--:|:--:|
+|KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
+|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
 
 Requirements:
 -----------
