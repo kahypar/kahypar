@@ -26,6 +26,7 @@
 #include "kahypar/utils/randomize.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
+#include "kahypar/kahypar.h"
 
 namespace kahypar {
 
@@ -33,8 +34,10 @@ static inline void randomFixedVertexGenerator(Hypergraph& hypergraph, const Cont
   for (const HypernodeID& hn : hypergraph.nodes()) {
     int r = Randomize::instance().getRandomInt(1, 100000);
     if (r <= context.partition.fixed_vertex_fraction * 100000.0) {
-      kahypar::PartitionID fixedPart = kahypar::Randomize::instance().
-                                       getRandomInt(0, context.partition.k - 1);
+      kahypar::PartitionID fixedPart = hypergraph.partID(hn);
+      if (fixedPart == -1) {
+        fixedPart =  Randomize::instance().getRandomInt(0, context.partition.k - 1);
+      }
       hypergraph.setFixedVertex(hn, fixedPart);
     }
   }
@@ -118,6 +121,21 @@ static inline void bubbleFixedVertexGenerator(Hypergraph& hypergraph, const Cont
       hypergraph.setFixedVertex(hn, hypergraph.partID(hn));
     }
   }
+  hypergraph.resetPartitioning();
+}
+
+static inline void repartitioningFixedVertexGenerator(Hypergraph& hypergraph, const Context& context) {
+  Partitioner partitioner;
+  Context current_context(context);
+  current_context.partition.quiet_mode = true;
+  current_context.partition.verbose_output = false;
+
+  // Compute k-way partition for fixed vertex generation
+  partitioner.partition(hypergraph, current_context);
+
+  // Select random fixed vertices with part ids from
+  // previously computed partition
+  randomFixedVertexGenerator(hypergraph, context);
   hypergraph.resetPartitioning();
 }
 
