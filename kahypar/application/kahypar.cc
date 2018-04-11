@@ -80,9 +80,10 @@ int main(int argc, char* argv[]) {
   std::chrono::duration<double> elapsed_seconds = end - start;
 
   for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
-    if (hypergraph.isFixedVertex(hn)) {
-      ASSERT(hypergraph.partID(hn) == hypergraph.fixedVertexPartID(hn),
-             "Hypernode " << hn << " should be in part " << hypergraph.fixedVertexPartID(hn));
+    if (hypergraph.isFixedVertex(hn) &&
+        hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
+        LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn);
+        exit(-1);
     }
   }
 
