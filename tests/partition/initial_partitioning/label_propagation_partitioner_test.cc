@@ -69,6 +69,18 @@ void initializeContext(Hypergraph& hg, Context& context,
   Randomize::instance().setSeed(context.partition.seed);
 }
 
+void generateRandomFixedVertices(Hypergraph& hypergraph,
+                                 const double fixed_vertices_percentage,
+                                 const PartitionID k) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    int p = Randomize::instance().getRandomInt(0, 100);
+    if (p < fixed_vertices_percentage * 100) {
+      PartitionID part = Randomize::instance().getRandomInt(0, k-1);
+      hypergraph.setFixedVertex(hn, part);
+    }
+  }
+}
+
 template <typename StartNodeSelection, typename GainComputation>
 struct LPTemplateStruct {
   typedef StartNodeSelection Type1;
@@ -149,6 +161,17 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassig
 
   for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
+  }
+}
+
+TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, SetCorrectFixedVertexPart) {
+  generateRandomFixedVertices(*(this->hypergraph), 0.1, 4);
+  ASSERT_GE(this->hypergraph->numFixedVertices(), 0);
+
+  this->lp->partition(*(this->hypergraph), this->context);
+
+  for (const HypernodeID& hn : this->hypergraph->fixedVertices()) {
+    ASSERT_EQ(this->hypergraph->partID(hn), this->hypergraph->fixedVertexPartID(hn));
   }
 }
 }  // namespace kahypar

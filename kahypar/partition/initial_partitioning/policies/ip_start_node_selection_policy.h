@@ -38,6 +38,10 @@ class BFSStartNodeSelectionPolicy {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
     ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
+    if (!UseRandomStartHypernode) {
+      start_nodes[0].push_back(0);
+    }
+
     PartitionID cur_part = nextPartID(start_nodes, k);
     while (cur_part != k) {
       std::queue<HypernodeID> bfs;
@@ -93,10 +97,7 @@ class BFSStartNodeSelectionPolicy {
     }
 
     if (q.empty()) {
-      HypernodeID start_hn = 0;
-      if (UseRandomStartHypernode) {
-        start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-      }
+      HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
       q.push(start_hn);
       in_queue.set(start_hn, true);
     }

@@ -113,6 +113,12 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, TryingToInsertAHypernodeIntoTh
   ASSERT_TRUE(!ghg->_pq.contains(0, 0) && !ghg->_pq.isEnabled(0));
 }
 
+TEST_F(AGreedyHypergraphGrowingFunctionalityTest, TryingToInsertAFixedVertex) {
+  hypergraph.setFixedVertex(0, 0);
+  ghg->insertNodeIntoPQ(0, 0);
+  ASSERT_TRUE(!ghg->_pq.contains(0, 0) && !ghg->_pq.isEnabled(0));
+}
+
 
 TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
        ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue) {
@@ -224,23 +230,4 @@ TEST_F(AGreedyHypergraphGrowingFunctionalityTest, DeletesAssignedHypernodesFromP
   ASSERT_TRUE(ghg->_pq.contains(4));
   ASSERT_TRUE(ghg->_pq.contains(6));
 }
-
-/*TEST_F(AGreedyHypergraphGrowingFunctionalityTest,
-      CheckIfAllEnabledPQContainsAtLeastOneHypernode) {
-  hypergraph.resetPartitioning();
-  context.initial_partitioning.unassigned_part = -1;
-
-  ghg->insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
-  ASSERT_EQ(ghg->_pq.size(), 2);
-  ASSERT_TRUE(ghg->_pq.contains(0, 0));
-  ASSERT_TRUE(ghg->_pq.contains(0, 1));
-
-  ghg->removeHypernodeFromAllPQs(0);
-  ghg->_partEnabled[0] = false;
-  ASSERT_EQ(ghg->_pq.size(), 0);
-  ghg->insertInAllEmptyEnabledQueuesAnUnassignedHypernode();
-  ASSERT_EQ(ghg->_pq.size(), 1);
-  ASSERT_TRUE(!ghg->_pq.contains(0, 0));
-  ASSERT_TRUE(ghg->_pq.contains(0, 1));
-}*/
 }  // namespace kahypar

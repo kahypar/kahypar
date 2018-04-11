@@ -68,6 +68,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
               TryingToInsertAHypernodeIntoTheSamePQAsHisCurrentPart);
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
+              TryingToInsertAFixedVertex);
+  FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
               ChecksCorrectMaxGainValueAndHypernodeAfterPushingSomeHypernodesIntoPriorityQueue);
   FRIEND_TEST(AGreedyHypergraphGrowingFunctionalityTest,
               ChecksCorrectGainValueAfterUpdatePriorityQueue);

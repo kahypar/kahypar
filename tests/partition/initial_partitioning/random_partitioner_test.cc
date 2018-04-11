@@ -30,6 +30,7 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
 #include "kahypar/partition/initial_partitioning/random_initial_partitioner.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/utils/randomize.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -63,6 +64,18 @@ void initializeContext(Context& context, PartitionID k,
     context.initial_partitioning.upper_allowed_partition_weight[0];
   context.partition.max_part_weights[1] =
     context.initial_partitioning.upper_allowed_partition_weight[1];
+}
+
+void generateRandomFixedVertices(Hypergraph& hypergraph,
+                                 const double fixed_vertices_percentage,
+                                 const PartitionID k) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    int p = Randomize::instance().getRandomInt(0, 100);
+    if (p < fixed_vertices_percentage * 100) {
+      PartitionID part = Randomize::instance().getRandomInt(0, k-1);
+      hypergraph.setFixedVertex(hn, part);
+    }
+  }
 }
 
 class ARandomBisectionInitialPartitionerTest : public Test {
@@ -155,6 +168,16 @@ TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   }
 }
 
+TEST_F(ARandomBisectionInitialPartitionerTest, SetCorrectFixedVertexPart) {
+  generateRandomFixedVertices(*hypergraph, 0.1, 2);
+
+  partitioner->partition(*hypergraph, context);
+
+  for (const HypernodeID& hn : hypergraph->fixedVertices()) {
+    ASSERT_EQ(hypergraph->partID(hn), hypergraph->fixedVertexPartID(hn));
+  }
+}
+
 TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
   PartitionID k = 4;
   initializePartitioning(k);
@@ -195,4 +218,18 @@ TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
     ASSERT_NE(hypergraph->partID(hn), -1);
   }
 }
+
+TEST_F(AKWayRandomInitialPartitionerTest, SetCorrectFixedVertexPart) {
+  PartitionID k = 4;
+  initializePartitioning(k);
+  generateRandomFixedVertices(*hypergraph, 0.1, 4);
+  ASSERT_GE(hypergraph->numFixedVertices(), 0);
+
+  partitioner->partition(*hypergraph, context);
+
+  for (const HypernodeID& hn : hypergraph->fixedVertices()) {
+    ASSERT_EQ(hypergraph->partID(hn), hypergraph->fixedVertexPartID(hn));
+  }
+}
+
 }  // namespace kahypar
