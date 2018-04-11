@@ -53,6 +53,16 @@ class IInitialPartitioner {
     for (const HypernodeID& hn : hg.nodes()) {
       hg.setNodePart(hn, best_partition[hn]);
     }
+    
+    ASSERT([&]() {
+      for (const HypernodeID& hn : hg.fixedVertices()) {
+        if (hg.partID(hn) != hg.fixedVertexPartID(hn)) {
+          LOG << V(hn) << V(hg.partID(hn)) << V(hg.fixedVertexPartID(hn));
+          return false;
+        }
+      }
+      return true;
+    }, "Fixed Vertices are not correctly assigned!");
   }
 
 
