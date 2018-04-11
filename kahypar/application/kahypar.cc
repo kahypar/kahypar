@@ -65,11 +65,11 @@ int main(int argc, char* argv[]) {
   } else if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::bubble) {
     kahypar::bubbleFixedVertexGenerator(hypergraph, context);
   }
-  LOG << V(hypergraph.initialNumNodes()) << V(hypergraph.numFixedVertices());
+  /*LOG << V(hypergraph.initialNumNodes()) << V(hypergraph.numFixedVertices());
   for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
     LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
   }
-  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));
+  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));*/
   // kahypar::io::writeFixedVertexPartitionFile(hypergraph,
   //                                           context.partition.graph_fixed_vertex_filename);
 
@@ -79,9 +79,8 @@ int main(int argc, char* argv[]) {
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
 
-  for (const kahypar::HypernodeID& hn : hypergraph.nodes()) {
-    if (hypergraph.isFixedVertex(hn) &&
-        hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
+  for (const kahypar::HypernodeID& hn : hypergraph.fixedVertices()) {
+    if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
         LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn);
         exit(-1);
     }

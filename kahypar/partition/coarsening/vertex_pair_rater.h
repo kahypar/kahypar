@@ -156,13 +156,22 @@ class VertexPairRater {
 
   bool acceptFixedVertexContraction(const HypernodeID u, const HypernodeID v) const {
     PartitionID fixedPartID = _hg.fixedVertexPartID(u);
-    HypernodeWeight max_allowed_fixed_vertex_weight = floor((1.0 + _context.partition.epsilon) *
-    static_cast<double>(_hg.fixedVertexTotalWeight()) / _context.partition.k);
+    // Consider, the subhypergraph which consists of all fixed vertices.
+    // The partition of this subhypergraph is given by the fixed vertex part ids.
+    // If this partition is balanced, max_allowed_fixed_vertex_part_weight ensures
+    // that the fixed vertex subhypergraph is balanced after coarsening phase terminates.
+    // If the partition is imbalanced this upper bound implicitly force an balanced
+    // partition. Keeping the fixed vertex subhypergraph balanced is very important
+    // to obtain a balanced partition in recursive bisection initial partitioning mode.
+    // NOTE: There are corner cases where a balanced partition of the fixed vertex
+    //       subhypergraph is not possible.
+    HypernodeWeight max_allowed_fixed_vertex_part_weight = (1.0 + _context.partition.epsilon) *
+    ceil(static_cast<double>(_hg.fixedVertexTotalWeight()) / _context.partition.k);
 
     return !_hg.isFixedVertex(v) &&
            (!_hg.isFixedVertex(u) ||
             _hg.fixedVertexPartWeight(fixedPartID) + _hg.nodeWeight(v) <=
-            max_allowed_fixed_vertex_weight);
+            max_allowed_fixed_vertex_part_weight);
   }
 
   Hypergraph& _hg;

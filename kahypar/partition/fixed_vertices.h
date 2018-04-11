@@ -40,7 +40,7 @@ using NodeID = int32_t;
 using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight>>;
 using Matching = std::vector<std::pair<PartitionID, PartitionID>>;
 using VertexCover = std::vector<NodeID>;
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 class BipartiteMaximumFlow {
 using Flow = HyperedgeWeight;

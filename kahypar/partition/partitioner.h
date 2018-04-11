@@ -180,9 +180,7 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
   // to find an balanced initial partition of the fixed vertex free subgraph.
   if (context.initial_partitioning.mode == Mode::recursive_bisection) {
     if (hypergraph.numFixedVertices() > context.coarsening.contraction_limit) {
-      // TODO(heuer): 20 should be a tunning parameter?
-      context.coarsening.contraction_limit = hypergraph.numFixedVertices() +
-                                             context.partition.k * 20;
+      context.coarsening.contraction_limit += hypergraph.numFixedVertices();
     }
   }
 
