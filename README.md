@@ -5,6 +5,22 @@ License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarCloud
 :--:|:--:|:--:|:--:|:--:|:--:|:--:
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)
 
+Table of Contents
+=================
+
+   * [What is a Hypergraph? What is Hypergraph Partitioning?]()
+   * [What is KaHyPar?]()
+     * [Experimental Results]()
+     * [Additional Resources]()
+   * [Requirements]()
+   * [Building KaHyPar]()
+   * [Testing and Profiling]()
+   * [Running KaHyPar]()
+   * [Bug Reports]()
+   * [Licensing]()
+   * [Contributing]()
+
+
 What is a Hypergraph? What is Hypergraph Partitioning?
 -----------
 [Hypergraphs][HYPERGRAPHWIKI] are a generalization of graphs, where each (hyper)edge (also called net) can
@@ -62,7 +78,7 @@ the website accompanying each publication.
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
 
-Requirements:
+Requirements
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
@@ -72,7 +88,7 @@ The Karlsruhe Hypergraph Partitioning Framework requires:
  - The [Boost.Program_options][Boost.Program_options] library.
 
 
-Building KaHyPar:
+Building KaHyPar
 -----------
 
 1. Clone the repository including submodules: 
@@ -82,13 +98,13 @@ Building KaHyPar:
 3. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
 4. Run make: `make`
 
-Testing and Profiling:
+Testing and Profiling
 -----------
 
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
 End-to-end integration tests can be started with: `make integration_tests`. Profiling can be enabled via cmake flag: `-DENABLE_PROFILE=ON`.  
 
-Running KaHyPar:
+Running KaHyPar
 -----------
 
 The binary is located at: `build/kahypar/application/`.
@@ -118,13 +134,13 @@ To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net 
 All preset parameters can be overwritten by using the corresponding command line options.
 
 
-Bug Reports:
+Bug Reports
 -----------
 
 We encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
-Licensing:
+Licensing
 ---------
 
 KaHyPar is free software provided under the GNU General Public License (GPLv3).
@@ -203,7 +219,7 @@ The IBFS algorithm **can be used for research purposes only** and is described i
 	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Robert E. Tarjan, and Renato F. Werneck.
 	    In Proceedings of the 19th European conference on Algorithms, ESA'11, 2011.
 
-Contributing:
+Contributing
 ------------
 If you are interested in contributing to the KaHyPar framework
 feel free to contact me or create an issue on the
