@@ -185,8 +185,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
         InitialPartitioningFactory::getInstance().createObject(
           context.initial_partitioning.algo,
           *extracted_init_hypergraph.first, init_context));
-      partitioner->partition(*extracted_init_hypergraph.first,
-                             init_context);
+      partitioner->partition();
     } else {
       // ... we call the partitioner again with the new configuration.
       partition::partition(* extracted_init_hypergraph.first, init_context);

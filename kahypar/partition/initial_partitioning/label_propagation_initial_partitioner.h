@@ -41,14 +41,19 @@ namespace kahypar {
 template <class StartNodeSelection = Mandatory,
           class GainComputation = Mandatory>
 class LabelPropagationInitialPartitioner : public IInitialPartitioner,
-                                           private InitialPartitionerBase {
+                                           private InitialPartitionerBase<LabelPropagationInitialPartitioner<
+                                                                            StartNodeSelection,
+                                                                            GainComputation>> {
  private:
   using PartitionGainPair = std::pair<const PartitionID, const Gain>;
+  using Base = InitialPartitionerBase<LabelPropagationInitialPartitioner<StartNodeSelection,
+                                                                         GainComputation>>;
+  friend Base;
 
  public:
   LabelPropagationInitialPartitioner(Hypergraph& hypergraph,
                                      Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _valid_parts(context.initial_partitioning.k),
     _in_queue(hypergraph.initialNumNodes()),
     _tmp_scores(_context.initial_partitioning.k, 0) {
@@ -65,10 +70,14 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   LabelPropagationInitialPartitioner& operator= (LabelPropagationInitialPartitioner&&) = delete;
 
   void partitionImpl() override final {
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initial_partition() {
     PartitionID unassigned_part =
       _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
 
     std::vector<HypernodeID> nodes;
     for (const HypernodeID& hn : _hg.nodes()) {
@@ -130,7 +139,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
 #ifndef NDEBUG
           PartitionID source_part = _hg.partID(v);
 #endif
-          if (InitialPartitionerBase::assignHypernodeToPartition(v, max_part)) {
+          if (Base::assignHypernodeToPartition(v, max_part)) {
             ASSERT(
               [&]() {
                 ASSERT(GainComputation::getType() == GainType::fm_gain, "Error");
@@ -163,9 +172,9 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       // five additional hypernodes and assign them to the part with minimum weight to continue with
       // Label Propagation.
 
-      if (converged && getUnassignedNode() != kInvalidNode) {
+      if (converged && Base::getUnassignedNode() != kInvalidNode) {
         for (auto i = 0; i < _context.initial_partitioning.lp_assign_vertex_to_part; ++i) {
-          HypernodeID hn = getUnassignedNode();
+          HypernodeID hn = Base::getUnassignedNode();
           if (hn == kInvalidNode) {
             break;
           }
@@ -176,8 +185,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     }
 
     // If there are any unassigned hypernodes left, we assign them to a part with minimum weight.
-    while (getUnassignedNode() != kInvalidNode) {
-      HypernodeID hn = getUnassignedNode();
+    while (Base::getUnassignedNode() != kInvalidNode) {
+      HypernodeID hn = Base::getUnassignedNode();
       assignHypernodeToPartWithMinimumPartWeight(hn);
     }
 
@@ -193,7 +202,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       } (), "There are unassigned hypernodes!");
 
     _hg.initializeNumCutHyperedges();
-    InitialPartitionerBase::performFMRefinement();
+    Base::performFMRefinement();
   }
 
  private:
@@ -376,7 +385,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
       if (assigned_nodes == k * static_cast<int>(hypernodes.size())) {
         break;
       } else if (_bfs_queue.empty()) {
-        const HypernodeID unassigned = getUnassignedNode();
+        const HypernodeID unassigned = Base::getUnassignedNode();
         if (unassigned == kInvalidNode) {
           break;
         } else {
@@ -398,10 +407,10 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     _hg.setNodePart(hn, p);
   }
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
-  using InitialPartitionerBase::kInvalidNode;
-  using InitialPartitionerBase::kInvalidPart;
+  using Base::_hg;
+  using Base::_context;
+  using Base::kInvalidNode;
+  using Base::kInvalidPart;
 
   ds::FastResetFlagArray<> _valid_parts;
   ds::FastResetFlagArray<> _in_queue;

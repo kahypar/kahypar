@@ -33,7 +33,10 @@
 
 namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
-                               private InitialPartitionerBase {
+                               private InitialPartitionerBase<PoolInitialPartitioner> {
+using Base = InitialPartitionerBase<PoolInitialPartitioner>;
+friend Base;
+
  private:
   static constexpr bool debug = false;
 
@@ -67,7 +70,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  public:
   PoolInitialPartitioner(Hypergraph& hypergraph, Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _partitioner_pool() {
     // mix3 => pool_type = 011110110111_{2} = 1975_{10}
     // Set bits in pool_type decides which partitioner is executed
@@ -102,6 +105,10 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initial_partition() {
     Objective obj = _context.partition.objective;
     PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, kInvalidImbalance);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, 0.0);
@@ -127,7 +134,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(algo, _hg, _context));
-      partitioner->partition(_hg, _context);
+      partitioner->partition();
       HyperedgeWeight current_quality = obj == Objective::cut
                                       ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
@@ -172,7 +179,7 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
     _context.initial_partitioning.unassigned_part = unassigned_part;
     for (const HypernodeID& hn : _hg.nodes()) {
       if (!_hg.isFixedVertex(hn)) {
@@ -190,7 +197,10 @@ class PoolInitialPartitioner : public IInitialPartitioner,
         }
         return true;
       } (), "There are unassigned hypernodes!");
-
+      
+    // Pool Partitioner executes each initial partitioner nruns times.
+    // To prevent pool partitioner to execute himself nruns times, we
+    // set the nruns parameter to 1.
     _context.initial_partitioning.nruns = 1;
   }
 
@@ -202,8 +212,8 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     result.algo = algo;
   }
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
+  using Base::_hg;
+  using Base::_context;
   std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
 };
 }  // namespace kahypar

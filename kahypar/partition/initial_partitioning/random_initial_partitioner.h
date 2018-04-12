@@ -30,10 +30,13 @@
 
 namespace kahypar {
 class RandomInitialPartitioner : public IInitialPartitioner,
-                                 private InitialPartitionerBase {
+                                 private InitialPartitionerBase<RandomInitialPartitioner> {
+using Base = InitialPartitionerBase<RandomInitialPartitioner>;
+friend Base;
+
  public:
   RandomInitialPartitioner(Hypergraph& hypergraph, Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _already_tried_to_assign_hn_to_part(context.initial_partitioning.k) { }
 
   ~RandomInitialPartitioner() override = default;
@@ -46,9 +49,13 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initial_partition() {
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
     for (const HypernodeID& hn : _hg.nodes()) {
       if (_hg.isFixedVertex(hn)) {
         continue;
@@ -87,11 +94,11 @@ class RandomInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
-    InitialPartitionerBase::performFMRefinement();
+    Base::performFMRefinement();
   }
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
+  using Base::_hg;
+  using Base::_context;
   ds::FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace kahypar

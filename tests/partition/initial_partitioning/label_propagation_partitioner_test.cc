@@ -133,12 +133,12 @@ typedef ::testing::Types<
 TYPED_TEST_CASE(AKWayLabelPropagationInitialPartitionerTest, LPTestTemplates);
 
 TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasValidImbalance) {
-  this->lp->partition(*(this->hypergraph), this->context);
+  this->lp->partition();
   ASSERT_LE(metrics::imbalance(*(this->hypergraph), this->context), this->context.partition.epsilon);
 }
 
 TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
-  this->lp->partition(*(this->hypergraph), this->context);
+  this->lp->partition();
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
@@ -157,7 +157,7 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, HasNoSignificantLowParti
 }
 
 TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
-  this->lp->partition(*(this->hypergraph), this->context);
+  this->lp->partition();
 
   for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
@@ -168,7 +168,7 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, SetCorrectFixedVertexPar
   generateRandomFixedVertices(*(this->hypergraph), 0.1, 4);
   ASSERT_GE(this->hypergraph->numFixedVertices(), 0);
 
-  this->lp->partition(*(this->hypergraph), this->context);
+  this->lp->partition();
 
   for (const HypernodeID& hn : this->hypergraph->fixedVertices()) {
     ASSERT_EQ(this->hypergraph->partID(hn), this->hypergraph->fixedVertexPartID(hn));

@@ -139,7 +139,7 @@ class AKWayBFSInitialPartitioner : public Test {
 
 
 TEST_F(ABFSBisectionInitialPartioner, ChecksCorrectBisectionCut) {
-  partitioner->partition(hypergraph, context);
+  partitioner->partition();
   std::vector<HypernodeID> partition_zero { 0, 1, 2, 3 };
   std::vector<HypernodeID> partition_one { 4, 5, 6 };
   for (unsigned int i = 0; i < partition_zero.size(); i++) {
@@ -152,7 +152,7 @@ TEST_F(ABFSBisectionInitialPartioner, ChecksCorrectBisectionCut) {
 
 
 TEST_F(ABFSBisectionInitialPartioner, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_NE(hypergraph.partID(hn), -1);
@@ -195,7 +195,7 @@ TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingInc
 TEST_F(ABFSBisectionInitialPartioner, SetCorrectFixedVertexPart) {
   generateRandomFixedVertices(hypergraph, 0.1, 2);
 
-  partitioner->partition(hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph.fixedVertices()) {
     ASSERT_EQ(hypergraph.partID(hn), hypergraph.fixedVertexPartID(hn));
@@ -203,13 +203,13 @@ TEST_F(ABFSBisectionInitialPartioner, SetCorrectFixedVertexPart) {
 }
 
 TEST_F(AKWayBFSInitialPartitioner, HasValidImbalance) {
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   ASSERT_LE(metrics::imbalance(*hypergraph, context), context.partition.epsilon);
 }
 
 TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
@@ -228,7 +228,7 @@ TEST_F(AKWayBFSInitialPartitioner, HasNoSignificantLowPartitionWeights) {
 }
 
 TEST_F(AKWayBFSInitialPartitioner, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
@@ -237,7 +237,7 @@ TEST_F(AKWayBFSInitialPartitioner, LeavesNoHypernodeUnassigned) {
 
 TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
   context.initial_partitioning.unassigned_part = -1;
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
@@ -248,7 +248,7 @@ TEST_F(AKWayBFSInitialPartitioner, SetCorrectFixedVertexPart) {
   generateRandomFixedVertices(*hypergraph, 0.1, 4);
   ASSERT_GE(hypergraph->numFixedVertices(), 0);
 
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph->fixedVertices()) {
     ASSERT_EQ(hypergraph->partID(hn), hypergraph->fixedVertexPartID(hn));

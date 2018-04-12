@@ -36,10 +36,12 @@
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 namespace kahypar {
+template<typename Derived = Mandatory>
 class InitialPartitionerBase {
  protected:
   static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
   static constexpr HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
+  static constexpr bool debug = false;
 
  public:
   InitialPartitionerBase(Hypergraph& hypergraph, Context& context) :
@@ -92,6 +94,53 @@ class InitialPartitionerBase {
       _hg.initializeNumCutHyperedges();
     }
     _unassigned_node_bound = _unassigned_nodes.size();
+  }
+
+  void multipleRunsInitialPartitioning() {
+    Objective obj = _context.partition.objective;
+    HyperedgeWeight best_quality = std::numeric_limits<HyperedgeWeight>::max();
+    double best_imbalance = std::numeric_limits<double>::max();
+    std::vector<PartitionID> best_partition(_hg.initialNumNodes(), 0);
+    for (uint32_t i = 0; i < _context.initial_partitioning.nruns; ++i) {
+      // hg.resetPartitioning() is called in initial_partition
+      static_cast<Derived*>(this)->initial_partition();
+
+      HyperedgeWeight current_quality = obj == Objective::cut
+                                      ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      double current_imbalance = metrics::imbalance(_hg, _context);
+      DBG << V(obj) << V(current_quality) << V(current_imbalance);
+
+      const bool equal_metric = current_quality == best_quality;
+      const bool improved_metric = current_quality < best_quality;
+      const bool improved_imbalance = current_imbalance < best_imbalance;
+      const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
+      const bool is_best_cut_feasible_paritition = best_imbalance <= _context.partition.epsilon;
+
+      if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
+          (equal_metric && improved_imbalance) ||
+          (is_feasible_partition && !is_best_cut_feasible_paritition)) {
+        best_quality = current_quality;
+        best_imbalance = current_imbalance;
+        for (const HypernodeID& hn : _hg.nodes()) {
+          best_partition[hn] = _hg.partID(hn);
+        }
+      }
+    }
+
+    _hg.resetPartitioning();
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _hg.setNodePart(hn, best_partition[hn]);
+    }
+
+    ASSERT([&]() {
+      for (const HypernodeID& hn : _hg.fixedVertices()) {
+        if (_hg.partID(hn) != _hg.fixedVertexPartID(hn)) {
+          LOG << V(hn) << V(_hg.partID(hn)) << V(_hg.fixedVertexPartID(hn));
+          return false;
+        }
+      }
+      return true;
+    } (), "Fixed Vertices are not correctly assigned!");
   }
 
   void performFMRefinement() {
