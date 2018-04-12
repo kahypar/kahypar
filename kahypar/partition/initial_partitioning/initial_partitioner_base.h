@@ -144,7 +144,7 @@ class InitialPartitionerBase {
       do {
         refinement_nodes.clear();
         for (const HypernodeID& hn : _hg.nodes()) {
-          if (_hg.isBorderNode(hn)) {
+          if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
             refinement_nodes.push_back(hn);
           }
         }
