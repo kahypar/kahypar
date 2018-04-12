@@ -36,10 +36,14 @@
 namespace kahypar {
 template <class StartNodeSelection = Mandatory>
 class BFSInitialPartitioner : public IInitialPartitioner,
-                              private InitialPartitionerBase {
+                              private InitialPartitionerBase<BFSInitialPartitioner<
+                                                              StartNodeSelection>> {
+using Base = InitialPartitionerBase<BFSInitialPartitioner<StartNodeSelection>>;
+friend Base;
+
  public:
   BFSInitialPartitioner(Hypergraph& hypergraph, Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _queues(),
     _hypernode_in_queue(context.initial_partitioning.k * hypergraph.initialNumNodes()),
     _hyperedge_in_queue(context.initial_partitioning.k * hypergraph.initialNumEdges()) { }
@@ -92,10 +96,13 @@ class BFSInitialPartitioner : public IInitialPartitioner,
            "Some hypernodes are missing into the queue!");
   }
 
-
   void partitionImpl() override final {
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initial_partition() {
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
 
     _queues.clear();
     _queues.assign(_context.initial_partitioning.k, std::queue<HypernodeID>());
@@ -144,7 +151,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
 
           // If no unassigned hypernode was found we have to select a new startnode.
           if (hn == kInvalidNode || _hg.partID(hn) != unassigned_part) {
-            hn = InitialPartitionerBase::getUnassignedNode();
+            hn = Base::getUnassignedNode();
           }
 
           if (hn != kInvalidNode) {
@@ -152,7 +159,7 @@ class BFSInitialPartitioner : public IInitialPartitioner,
             ASSERT(_hg.partID(hn) == unassigned_part,
                    "Hypernode" << hn << "isn't a node from an unassigned part.");
 
-            if (assignHypernodeToPartition(hn, part)) {
+            if (Base::assignHypernodeToPartition(hn, part)) {
               assigned_nodes_weight += _hg.nodeWeight(hn);
               pushIncidentHypernodesIntoQueue(_queues[part], hn);
             } else if (_queues[part].empty()) {
@@ -178,11 +185,11 @@ class BFSInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
-    InitialPartitionerBase::performFMRefinement();
+    Base::performFMRefinement();
   }
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
-  using InitialPartitionerBase::kInvalidNode;
+  using Base::_hg;
+  using Base::_context;
+  using Base::kInvalidNode;
 
   std::vector<std::queue<HypernodeID> > _queues;
   ds::FastResetFlagArray<> _hypernode_in_queue;

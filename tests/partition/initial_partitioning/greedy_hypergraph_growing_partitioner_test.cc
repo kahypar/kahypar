@@ -140,12 +140,12 @@ TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,
                 GreedyTestTemplates);
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasValidImbalance) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
   ASSERT_LE(metrics::imbalance(*(this->hypergraph), this->context), this->context.partition.epsilon);
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowPartitionWeights) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
@@ -164,7 +164,7 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowParti
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassigned) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
 
   for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
@@ -173,6 +173,6 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
   this->context.initial_partitioning.nruns = 3;
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
 }
 }  // namespace kahypar

@@ -141,14 +141,14 @@ class AKWayRandomInitialPartitionerTest : public Test {
 };
 
 TEST_F(ARandomBisectionInitialPartitionerTest, HasValidImbalance) {
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   ASSERT_LE(metrics::imbalance(*hypergraph, context),
             context.partition.epsilon);
 }
 
 TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);
@@ -158,7 +158,7 @@ TEST_F(ARandomBisectionInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
 TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   ASSERT_LE(metrics::imbalance(*hypergraph, context),
             context.partition.epsilon);
@@ -167,7 +167,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasValidImbalance) {
 TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
@@ -189,7 +189,7 @@ TEST_F(AKWayRandomInitialPartitionerTest, HasNoSignificantLowPartitionWeights) {
 TEST_F(AKWayRandomInitialPartitionerTest, LeavesNoHypernodeUnassigned) {
   PartitionID k = 4;
   initializePartitioning(k);
-  partitioner->partition(*hypergraph, context);
+  partitioner->partition();
 
   for (const HypernodeID& hn : hypergraph->nodes()) {
     ASSERT_NE(hypergraph->partID(hn), -1);

@@ -33,7 +33,10 @@
 
 namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
-                               private InitialPartitionerBase {
+                               private InitialPartitionerBase<PoolInitialPartitioner> {
+using Base = InitialPartitionerBase<PoolInitialPartitioner>;
+friend Base;
+
  private:
   static constexpr bool debug = false;
 
@@ -41,26 +44,33 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 
   class PartitioningResult {
- public:
-    PartitioningResult(InitialPartitionerAlgorithm algo, HyperedgeWeight cut,
-                       double imbalance) :
+   public:
+    PartitioningResult(InitialPartitionerAlgorithm algo, Objective objective,
+                       HyperedgeWeight quality, double imbalance) :
       algo(algo),
-      cut(cut),
+      objective(objective),
+      quality(quality),
       imbalance(imbalance) { }
 
     void print_result(const std::string& desc) const {
-      LOG << desc << "=" << "[ Cut=" << cut << "- Imbalance=" << imbalance << "- Algorithm="
-          << algo << "]";
+      if (objective == Objective::cut) {
+        LOG << desc << "=" << "[ Cut=" << quality << "- Imbalance=" << imbalance << "- Algorithm="
+            << algo << "]";
+      } else {
+        LOG << desc << "=" << "[ Km1=" << quality << "- Imbalance=" << imbalance << "- Algorithm="
+            << algo << "]";
+      }
     }
 
     InitialPartitionerAlgorithm algo;
-    HyperedgeWeight cut;
+    Objective objective;
+    HyperedgeWeight quality;
     double imbalance;
   };
 
  public:
   PoolInitialPartitioner(Hypergraph& hypergraph, Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _partitioner_pool() {
     // mix3 => pool_type = 011110110111_{2} = 1975_{10}
     // Set bits in pool_type decides which partitioner is executed
@@ -95,12 +105,18 @@ class PoolInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
-    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, kInvalidImbalance);
-    PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, kInvalidCut, 0.0);
-    PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, -1, 0.0);
-    PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut,
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initial_partition() {
+    Objective obj = _context.partition.objective;
+    PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, kInvalidImbalance);
+    PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, 0.0);
+    PartitioningResult max_cut(InitialPartitionerAlgorithm::pool, obj, -1, 0.0);
+    PartitioningResult min_imbalance(InitialPartitionerAlgorithm::pool, obj, kInvalidCut,
                                      kInvalidImbalance);
-    PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, kInvalidCut, -0.1);
+    PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, -0.1);
+
 
     std::vector<PartitionID> best_partition(_hg.initialNumNodes());
     unsigned int n = _partitioner_pool.size() - 1;
@@ -119,13 +135,14 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       }
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(algo, _hg, _context));
-      partitioner->partition(_hg, _context);
-      HyperedgeWeight current_cut = metrics::hyperedgeCut(_hg);
+      partitioner->partition();
+      HyperedgeWeight current_quality = obj == Objective::cut
+                                      ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
-      DBG << algo << V(current_cut) << V(current_imbalance);
+      DBG << algo << V(obj) << V(current_quality) << V(current_imbalance);
 
-      const bool equal_metric = current_cut == best_cut.cut;
-      const bool improved_metric = current_cut < best_cut.cut;
+      const bool equal_metric = current_quality == best_cut.quality;
+      const bool improved_metric = current_quality < best_cut.quality;
       const bool improved_imbalance = current_imbalance < best_cut.imbalance;
       const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
       const bool is_best_cut_feasible_paritition = best_cut.imbalance <= _context.partition.epsilon;
@@ -136,34 +153,34 @@ class PoolInitialPartitioner : public IInitialPartitioner,
         for (const HypernodeID& hn : _hg.nodes()) {
           best_partition[hn] = _hg.partID(hn);
         }
-        applyPartitioningResults(best_cut, current_cut, current_imbalance, algo);
+        applyPartitioningResults(best_cut, current_quality, current_imbalance, algo);
       }
-      if (current_cut < min_cut.cut) {
-        applyPartitioningResults(min_cut, current_cut, current_imbalance, algo);
+      if (current_quality < min_cut.quality) {
+        applyPartitioningResults(min_cut, current_quality, current_imbalance, algo);
       }
-      if (current_cut > max_cut.cut) {
-        applyPartitioningResults(max_cut, current_cut, current_imbalance, algo);
+      if (current_quality > max_cut.quality) {
+        applyPartitioningResults(max_cut, current_quality, current_imbalance, algo);
       }
       if (current_imbalance < min_imbalance.imbalance) {
-        applyPartitioningResults(min_imbalance, current_cut, current_imbalance, algo);
+        applyPartitioningResults(min_imbalance, current_quality, current_imbalance, algo);
       }
       if (current_imbalance > max_imbalance.imbalance) {
-        applyPartitioningResults(max_imbalance, current_cut, current_imbalance, algo);
+        applyPartitioningResults(max_imbalance, current_quality, current_imbalance, algo);
       }
     }
 
     if (_context.initial_partitioning.verbose_output) {
-      min_cut.print_result("Minimum Cut      ");
-      max_cut.print_result("Maximum Cut      ");
+      min_cut.print_result("Minimum Quality  ");
+      max_cut.print_result("Maximum Quality  ");
       min_imbalance.print_result("Minimum Imbalance");
       max_imbalance.print_result("Maximum Imbalance");
-      best_cut.print_result("==> Best Cut     ");
+      best_cut.print_result("==> Best Quality ");
     }
 
 
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
     _context.initial_partitioning.unassigned_part = unassigned_part;
     for (const HypernodeID& hn : _hg.nodes()) {
       _hg.setNodePart(hn, best_partition[hn]);
@@ -180,19 +197,22 @@ class PoolInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
+    // Pool Partitioner executes each initial partitioner nruns times.
+    // To prevent pool partitioner to execute himself nruns times, we
+    // set the nruns parameter to 1.
     _context.initial_partitioning.nruns = 1;
   }
 
-  void applyPartitioningResults(PartitioningResult& result, const HyperedgeWeight cut,
+  void applyPartitioningResults(PartitioningResult& result, const HyperedgeWeight quality,
                                 const double imbalance,
                                 const InitialPartitionerAlgorithm algo) const {
-    result.cut = cut;
+    result.quality = quality;
     result.imbalance = imbalance;
     result.algo = algo;
   }
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
+  using Base::_hg;
+  using Base::_context;
   std::vector<InitialPartitionerAlgorithm> _partitioner_pool;
 };
 }  // namespace kahypar

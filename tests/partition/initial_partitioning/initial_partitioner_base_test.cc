@@ -23,6 +23,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/random_initial_partitioner.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -42,7 +43,7 @@ class InitialPartitionerBaseTest : public Test {
     }
 
     initializeContext(hypergraph_weight);
-    partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, context);
+    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner>>(hypergraph, context);
     partitioner->recalculateBalanceConstraints(context.partition.epsilon);
   }
 
@@ -60,7 +61,7 @@ class InitialPartitionerBaseTest : public Test {
     }
   }
 
-  std::shared_ptr<InitialPartitionerBase> partitioner;
+  std::shared_ptr<InitialPartitionerBase<RandomInitialPartitioner>> partitioner;
   Hypergraph hypergraph;
   Context context;
 };
