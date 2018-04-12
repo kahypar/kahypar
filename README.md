@@ -9,16 +9,16 @@ Table of Contents
 =================
 
    * [What is a Hypergraph? What is Hypergraph Partitioning?]()
-   * [What is KaHyPar?]()
-      * [Experimental Results]()
-      * [Additional Resources]()
-   * [Requirements]()
-   * [Building KaHyPar]()
-   * [Testing and Profiling]()
-   * [Running KaHyPar]()
+   * [What is KaHyPar?](#what-is-kahypar)
+      * [Experimental Results](#experimental-results)
+      * [Additional Resources](#additional-resources)
+   * [Requirements](#requirements)
+   * [Building KaHyPar](#building-kahypar)
+   * [Testing and Profiling](#testing-and-profiling)
+   * [Running KaHyPar](#running-kahypar)
    * [Bug Reports](#bug-reports)
-   * [Licensing]()
-   * [Contributing]()
+   * [Licensing](#licensing)
+   * [Contributing](#contributing)
 
 
 
