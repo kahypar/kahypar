@@ -37,9 +37,9 @@ namespace kahypar {
 template <class StartNodeSelection = Mandatory>
 class BFSInitialPartitioner : public IInitialPartitioner,
                               private InitialPartitionerBase<BFSInitialPartitioner<
-                                                              StartNodeSelection>> {
-using Base = InitialPartitionerBase<BFSInitialPartitioner<StartNodeSelection>>;
-friend Base;
+                                                               StartNodeSelection> >{
+  using Base = InitialPartitionerBase<BFSInitialPartitioner<StartNodeSelection> >;
+  friend Base;
 
  public:
   BFSInitialPartitioner(Hypergraph& hypergraph, Context& context) :
@@ -100,7 +100,7 @@ friend Base;
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     Base::resetPartitioning();
 

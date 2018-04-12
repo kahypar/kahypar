@@ -40,16 +40,16 @@ template <class StartNodeSelection = Mandatory,
           class QueueSelection = Mandatory>
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase<
-                                                            GreedyHypergraphGrowingInitialPartitioner<
-                                                              StartNodeSelection,
-                                                              GainComputation,
-                                                              QueueSelection>> {
+                                                    GreedyHypergraphGrowingInitialPartitioner<
+                                                      StartNodeSelection,
+                                                      GainComputation,
+                                                      QueueSelection> >{
  private:
   using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                                  std::numeric_limits<Gain>, true>;
   using Base = InitialPartitionerBase<GreedyHypergraphGrowingInitialPartitioner<StartNodeSelection,
                                                                                 GainComputation,
-                                                                                QueueSelection>>;
+                                                                                QueueSelection> >;
   friend Base;
 
  public:
@@ -94,7 +94,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     // Every QueueSelectionPolicy specifies its own operating unassigned part.
     // Therefore we only change the unassigned_part variable in this method and reset it at
     // the end to original value.

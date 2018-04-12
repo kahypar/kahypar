@@ -30,9 +30,9 @@
 
 namespace kahypar {
 class RandomInitialPartitioner : public IInitialPartitioner,
-                                 private InitialPartitionerBase<RandomInitialPartitioner> {
-using Base = InitialPartitionerBase<RandomInitialPartitioner>;
-friend Base;
+                                 private InitialPartitionerBase<RandomInitialPartitioner>{
+  using Base = InitialPartitionerBase<RandomInitialPartitioner>;
+  friend Base;
 
  public:
   RandomInitialPartitioner(Hypergraph& hypergraph, Context& context) :
@@ -52,7 +52,7 @@ friend Base;
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
     Base::resetPartitioning();

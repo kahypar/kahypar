@@ -37,8 +37,7 @@
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 namespace kahypar {
-
-template<typename Derived = Mandatory>
+template <typename Derived = Mandatory>
 class InitialPartitionerBase {
  protected:
   static constexpr bool debug = false;
@@ -67,16 +66,15 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() = default;
 
   void recalculateBalanceConstraints(const double epsilon) {
-
-    if (!_context.partition.use_individual_block_weights){
+    if (!_context.partition.use_individual_block_weights) {
       for (int i = 0; i < _context.initial_partitioning.k; ++i) {
         _context.initial_partitioning.upper_allowed_partition_weight[i] =
-            _context.initial_partitioning.perfect_balance_partition_weight[i]
-            * (1.0 + epsilon);
+          _context.initial_partitioning.perfect_balance_partition_weight[i]
+          * (1.0 + epsilon);
       }
     } else {
       _context.initial_partitioning.upper_allowed_partition_weight =
-          _context.initial_partitioning.perfect_balance_partition_weight;
+        _context.initial_partitioning.perfect_balance_partition_weight;
     }
     _context.partition.max_part_weights[0] =
       _context.initial_partitioning.upper_allowed_partition_weight[0];
@@ -102,10 +100,10 @@ class InitialPartitionerBase {
     std::vector<PartitionID> best_partition(_hg.initialNumNodes(), 0);
     for (uint32_t i = 0; i < _context.initial_partitioning.nruns; ++i) {
       // hg.resetPartitioning() is called in initial_partition
-      static_cast<Derived*>(this)->initial_partition();
+      static_cast<Derived*>(this)->initialPartition();
 
-      HyperedgeWeight current_quality = obj == Objective::cut
-                                      ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      HyperedgeWeight current_quality = obj == Objective::cut ?
+                                        metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
       DBG << V(obj) << V(current_quality) << V(current_imbalance);
 

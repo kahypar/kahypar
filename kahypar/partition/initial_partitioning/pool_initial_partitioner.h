@@ -33,9 +33,9 @@
 
 namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
-                               private InitialPartitionerBase<PoolInitialPartitioner> {
-using Base = InitialPartitionerBase<PoolInitialPartitioner>;
-friend Base;
+                               private InitialPartitionerBase<PoolInitialPartitioner>{
+  using Base = InitialPartitionerBase<PoolInitialPartitioner>;
+  friend Base;
 
  private:
   static constexpr bool debug = false;
@@ -44,7 +44,7 @@ friend Base;
   static constexpr double kInvalidImbalance = std::numeric_limits<double>::max();
 
   class PartitioningResult {
-   public:
+ public:
     PartitioningResult(InitialPartitionerAlgorithm algo, Objective objective,
                        HyperedgeWeight quality, double imbalance) :
       algo(algo),
@@ -108,7 +108,7 @@ friend Base;
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     Objective obj = _context.partition.objective;
     PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, kInvalidImbalance);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, 0.0);
@@ -136,8 +136,8 @@ friend Base;
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(algo, _hg, _context));
       partitioner->partition();
-      HyperedgeWeight current_quality = obj == Objective::cut
-                                      ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      HyperedgeWeight current_quality = obj == Objective::cut ?
+                                        metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
       DBG << algo << V(obj) << V(current_quality) << V(current_imbalance);
 
