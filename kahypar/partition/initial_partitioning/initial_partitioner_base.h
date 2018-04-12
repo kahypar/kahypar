@@ -102,9 +102,9 @@ class InitialPartitionerBase {
       // hg.resetPartitioning() is called in initial_partition
       static_cast<Derived*>(this)->initialPartition();
 
-      HyperedgeWeight current_quality = obj == Objective::cut ?
-                                        metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
-      double current_imbalance = metrics::imbalance(_hg, _context);
+      const HyperedgeWeight current_quality = obj == Objective::cut ?
+                                              metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      const double current_imbalance = metrics::imbalance(_hg, _context);
       DBG << V(obj) << V(current_quality) << V(current_imbalance);
 
       const bool equal_metric = current_quality == best_quality;
