@@ -16,7 +16,7 @@ Table of Contents
    * [Building KaHyPar]()
    * [Testing and Profiling]()
    * [Running KaHyPar]()
-   * [Bug Reports]()
+   * [Bug Reports](#bug-reports)
    * [Licensing]()
    * [Contributing]()
 
