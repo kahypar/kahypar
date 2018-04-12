@@ -169,12 +169,20 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      year      = {2017},
     }
     
-    // KaHyPar-MF
+    // KaHyPar-MF  - accepted at SEA'18
     @misc{1802.03587,
      author = {{Heuer, T. and Sanders, P. and Schlag, S.}},
      title = {{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
      year = {2018},
      Eprint = {1802.03587},
+    }
+    
+    // KaHyPar-E (EvoHGP) - accepted at GECCO'18
+    @misc{1802.03587,
+     author = {{Andre, R. and Schlag, S. and Schulz, C.}},
+     title = {{Memetic Multilevel Hypergraph Partitioning}},
+     year = {2018},
+     Eprint = {1710.01968},
     }
 
 A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
