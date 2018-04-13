@@ -574,6 +574,12 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   std::string epsilon_str = std::to_string(context.partition.epsilon);
   epsilon_str.erase(epsilon_str.find_last_not_of('0') + 1, std::string::npos);
+  std::string fraction_str = std::to_string(context.partition.fixed_vertex_fraction);
+  fraction_str.erase(fraction_str.find_last_not_of('0') + 1, std::string::npos);
+  std::string fixed_vertex_gen_str = (context.partition.fixed_vertex_generator ==
+                                      FixedVertexGenerator::random ? "random" :
+                                      (context.partition.fixed_vertex_generator ==
+                                      FixedVertexGenerator::bubble ? "bubble" : "repart"));
 
   context.partition.graph_partition_filename =
     context.partition.graph_filename
@@ -589,14 +595,18 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     context.partition.graph_filename
     + ".part"
     + std::to_string(context.partition.k)
+    + ".epsilon"
+    + epsilon_str
     + ".seed"
     + std::to_string(context.partition.seed)
+    + ".fraction"
+    + fraction_str
+    + fixed_vertex_gen_str
     + ".FixedVertices";
 
   if (context.partition.use_individual_block_weights) {
     context.partition.epsilon = 0;
   }
-
 }
 
 

@@ -72,8 +72,6 @@ int main(int argc, char* argv[]) {
     LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
   }
   LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));*/
-  // kahypar::io::writeFixedVertexPartitionFile(hypergraph,
-  //                                           context.partition.graph_fixed_vertex_filename);
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -83,10 +81,14 @@ int main(int argc, char* argv[]) {
 
   for (const kahypar::HypernodeID& hn : hypergraph.fixedVertices()) {
     if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
-        LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn);
+        LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
+            << "but actually is in" << hypergraph.partID(hn);
         exit(-1);
     }
   }
+
+  kahypar::io::writeFixedVertexPartitionFile(hypergraph,
+                                             context.partition.graph_fixed_vertex_filename);
 
 #ifdef GATHER_STATS
   LOG << "*******************************";
