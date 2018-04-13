@@ -90,7 +90,7 @@ class SparseSetBase {
 
   SparseSetBase(SparseSetBase&& other) :
     _size(other._size),
-    _sparse(other._sparse),
+    _sparse(std::move(other._sparse)),
     _dense(other._dense) {
     other._size = 0;
     other._sparse = nullptr;
