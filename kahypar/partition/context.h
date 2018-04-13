@@ -318,6 +318,7 @@ struct PartitioningParameters {
 
   FixedVertexGenerator fixed_vertex_generator = FixedVertexGenerator::UNDEFINED;
   double fixed_vertex_fraction = 0.01;
+  bool write_fixed_vertex_file = false;
   bool use_maximum_bipartite_weighted_matching = true;
 
   std::string graph_filename { };

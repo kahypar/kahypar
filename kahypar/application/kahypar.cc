@@ -87,8 +87,10 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  kahypar::io::writeFixedVertexPartitionFile(hypergraph,
-                                             context.partition.graph_fixed_vertex_filename);
+  if (context.partition.write_fixed_vertex_file) {
+    kahypar::io::writeFixedVertexPartitionFile(hypergraph,
+                                              context.partition.graph_fixed_vertex_filename);
+  }
 
 #ifdef GATHER_STATS
   LOG << "*******************************";

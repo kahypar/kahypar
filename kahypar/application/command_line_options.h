@@ -93,6 +93,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("fixed-vertex-fraction",
     po::value<double>(&context.partition.fixed_vertex_fraction)->value_name("<double>"),
     "Fraction of hypernodes randomly choosen as fixed vertices")
+    ("write-fixed-vertex-file",
+    po::value<bool>(&context.partition.write_fixed_vertex_file)->value_name("<bool>"),
+    "Write generated fixed vertex file to disk")
     ("use-maximum-bipartite-weighted-matching",
     po::value<bool>(&context.partition.use_maximum_bipartite_weighted_matching)->value_name("<bool>"),
     "Use maximum bipartite weighted matching to assign fixed vertices after recursive bisection")
