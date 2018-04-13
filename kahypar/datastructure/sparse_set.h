@@ -42,14 +42,12 @@ class SparseSetBase {
   SparseSetBase& operator= (const SparseSetBase&) = delete;
 
   SparseSetBase& operator= (SparseSetBase&& other) {
-    if (this != &other) {
-      _sparse = std::move(other._sparse);
-      _size = other._size;
-      _dense = other._dense;
+    _sparse = std::move(other._sparse);
+    _size = other._size;
+    _dense = other._dense;
 
-      other._size = 0;
-      other._dense = nullptr;
-    }
+    other._size = 0;
+    other._dense = nullptr;
     return *this;
   }
 
