@@ -27,6 +27,7 @@
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertices_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -40,6 +41,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class FixedVertexPolicy = FixedVertexContractionsAllowedPolicy,
           typename RatingType = RatingType>
 class LazyVertexPairCoarsener final : public ICoarsener,
                                       private VertexPairCoarsenerBase<>{
@@ -50,6 +52,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
                                 AcceptancePolicy,
+                                FixedVertexPolicy,
                                 RatingType>;
   using Base = VertexPairCoarsenerBase;
   using Rating = typename Rater::Rating;

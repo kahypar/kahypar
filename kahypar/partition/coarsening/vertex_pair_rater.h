@@ -28,6 +28,7 @@
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertices_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -40,6 +41,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = MultiplicativePenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class FixedVertexPolicy = FixedVertexContractionsAllowedPolicy,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
@@ -116,7 +118,7 @@ class VertexPairRater {
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
                                          target, tmp_target, _already_matched) &&
-          acceptFixedVertexContraction(u, tmp_target)) {
+          FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)) {
         max_rating = tmp_rating;
         target = tmp_target;
       }
@@ -152,26 +154,6 @@ class VertexPairRater {
   bool belowThresholdNodeWeight(const HypernodeWeight weight_u,
                                 const HypernodeWeight weight_v) const {
     return weight_v + weight_u <= _context.coarsening.max_allowed_node_weight;
-  }
-
-  bool acceptFixedVertexContraction(const HypernodeID u, const HypernodeID v) const {
-    PartitionID fixedPartID = _hg.fixedVertexPartID(u);
-    // Consider, the subhypergraph which consists of all fixed vertices.
-    // The partition of this subhypergraph is given by the fixed vertex part ids.
-    // If this partition is balanced, max_allowed_fixed_vertex_part_weight ensures
-    // that the fixed vertex subhypergraph is balanced after coarsening phase terminates.
-    // If the partition is imbalanced this upper bound implicitly force an balanced
-    // partition. Keeping the fixed vertex subhypergraph balanced is very important
-    // to obtain a balanced partition in recursive bisection initial partitioning mode.
-    // NOTE: There are corner cases where a balanced partition of the fixed vertex
-    //       subhypergraph is not possible.
-    HypernodeWeight max_allowed_fixed_vertex_part_weight = (1.0 + _context.partition.epsilon) *
-    ceil(static_cast<double>(_hg.fixedVertexTotalWeight()) / _context.partition.k);
-
-    return !_hg.isFixedVertex(v) &&
-           (!_hg.isFixedVertex(u) ||
-            _hg.fixedVertexPartWeight(fixedPartID) + _hg.nodeWeight(v) <=
-            max_allowed_fixed_vertex_part_weight);
   }
 
   Hypergraph& _hg;

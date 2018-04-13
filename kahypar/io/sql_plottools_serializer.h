@@ -100,6 +100,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.coarsening.rating.heavy_node_penalty_policy
       << " coarsening_rating_acceptance_policy="
       << context.coarsening.rating.acceptance_policy
+      << " coarsening_rating_fixed_vertex_acceptance_policy="
+      << context.coarsening.rating.fixed_vertex_acceptance_policy
       << " IP_mode=" << context.initial_partitioning.mode
       << " IP_technique=" << context.initial_partitioning.technique
       << " IP_algorithm=" << context.initial_partitioning.algo
@@ -118,6 +120,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy
       << " IP_coarsening_rating_acceptance_policy="
       << context.initial_partitioning.coarsening.rating.acceptance_policy
+      << " IP_coarsening_rating_fixed_vertex_acceptance_policy="
+      << context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy
       << " IP_local_search_algorithm="
       << context.initial_partitioning.local_search.algorithm
       << " IP_local_search_iterations_per_level="
