@@ -985,6 +985,23 @@ TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterContraction) {
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
 }
 
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterFixedVertexContraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(5, 1);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_EQ(hypergraph.numFixedVertices(), 4);
+
+  hypergraph.contract(0, 1);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.numFixedVertices(), 3);
+
+  hypergraph.contract(6, 5);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+  ASSERT_EQ(hypergraph.numFixedVertices(), 2);
+}
+
 TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterUncontraction) {
   hypergraph.setFixedVertex(0, 0);
   hypergraph.setFixedVertex(1, 0);
@@ -1018,6 +1035,38 @@ TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterUncontraction) {
 
   hypergraph.uncontract(mementos.top());
   mementos.pop();
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+}
+
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterFixedVertexUncontraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(5, 1);
+  hypergraph.setFixedVertex(6, 1);
+
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 1));
+  mementos.push(hypergraph.contract(6, 5));
+
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 1);
+  hypergraph.setNodePart(4, 1);
+  hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
+
+  ASSERT_EQ(hypergraph.numFixedVertices(), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.numFixedVertices(), 3);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.numFixedVertices(), 4);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
 }
 }  // namespace ds
