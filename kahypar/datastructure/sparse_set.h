@@ -41,7 +41,17 @@ class SparseSetBase {
   SparseSetBase(const SparseSetBase&) = delete;
   SparseSetBase& operator= (const SparseSetBase&) = delete;
 
-  SparseSetBase& operator= (SparseSetBase&&) = delete;
+  SparseSetBase& operator= (SparseSetBase&& other) {
+    if (this != &other) {
+      _sparse = std::move(other._sparse);
+      _size = other._size;
+      _dense = other._dense;
+
+      other._size = 0;
+      other._dense = nullptr;
+    }
+    return *this;
+  }
 
   ValueType size() const {
     return _size;
@@ -104,11 +114,19 @@ class SparseSet final : public SparseSetBase<ValueType, SparseSet<ValueType> >{
     Base(k) { }
 
   SparseSet(const SparseSet&) = delete;
+
   SparseSet(SparseSet&& other) :
     Base(std::move(other)) { }
 
-  SparseSet& operator= (SparseSet&&) = delete;
-  SparseSet& operator= (const SparseSet&) = delete;
+
+  SparseSet& operator= (SparseSet&& other) {
+    if (this != &other) {
+      Base::operator= (std::move(other));
+    }
+    return *this;
+  }
+
+  SparseSet& operator= (SparseSet&) = delete;
 
   ~SparseSet() = default;
 
@@ -156,13 +174,23 @@ class InsertOnlySparseSet final : public SparseSetBase<ValueType,
     _threshold(0) { }
 
   InsertOnlySparseSet(const InsertOnlySparseSet&) = delete;
+
   InsertOnlySparseSet(InsertOnlySparseSet&& other) :
     Base(std::move(other)),
     _threshold(other._threshold) {
     other._threshold = 0;
   }
 
-  InsertOnlySparseSet& operator= (InsertOnlySparseSet&&) = delete;
+  InsertOnlySparseSet& operator= (InsertOnlySparseSet&& other) {
+    if (this != &other) {
+      Base::operator= (std::move(other));
+      _threshold = other._threshold;
+
+      other._threshold = 0;
+    }
+    return *this;
+  }
+
   InsertOnlySparseSet& operator= (const InsertOnlySparseSet&) = delete;
 
   ~InsertOnlySparseSet() = default;
