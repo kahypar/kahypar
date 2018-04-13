@@ -129,6 +129,11 @@ static inline void repartitioningFixedVertexGenerator(Hypergraph& hypergraph, co
   Context current_context(context);
   current_context.partition.quiet_mode = true;
   current_context.partition.verbose_output = false;
+  current_context.partition.sp_process_output = false;
+  current_context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
+  current_context.initial_partitioning.mode = Mode::recursive_bisection;
+  current_context.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
+  current_context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
 
   // Compute k-way partition for fixed vertex generation
   partitioner.partition(hypergraph, current_context);
