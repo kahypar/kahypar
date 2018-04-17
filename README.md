@@ -55,9 +55,11 @@ it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
 #### Additional Features
- - Hypergraph Partitioning with Variable Block Weights (soon)
+ - Hypergraph Partitioning with Variable Block Weights:
+ 
+ 	KaHyPar now has support for variable block weights. If command line option `--use-individual-blockweights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--blockweights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
 
- - Evolutionary Framework (KaHyPar-E) (soon)
+ - Evolutionary Framework (KaHyPar-E) (soon):
    
    KaHyPar-E enhances KaHyPar with an evolutionary framework as described in our [GECCO'18 publication][GECCO'18]. Given a fairly large amount of running time, this memetic multilevel algorithm is able to compute partitions of very high quality and performs better than repeated executions of KaHyPar-MF/-CA, hMetis, and PaToH. The configuration [/config/km1_direct_kway_sea18.ini](/config/km1_direct_kway_sea18.ini) uses KaHyPar-CA to exploit the local solution space and was used in the [GECCO'18 experiments][GECCO'18bench]. The command line parameter `--time-limit=xxx` can be used to set the maximum running time (in seconds).
  
