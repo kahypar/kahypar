@@ -81,6 +81,7 @@ static inline void bubbleFixedVertexGenerator(Hypergraph& hypergraph, const Cont
     HypernodeID hn = unassigned_hypernodes[0];
     while (unassigned_index > 0 && hypergraph.partID(hn) != -1) {
       std::swap(unassigned_hypernodes[0], unassigned_hypernodes[--unassigned_index]);
+      hn = unassigned_hypernodes[0];
     }
     if (unassigned_index == 0) {
       hn = num_nodes;
@@ -95,18 +96,16 @@ static inline void bubbleFixedVertexGenerator(Hypergraph& hypergraph, const Cont
     PartitionID part = q.front().second;
     q.pop();
 
-    if (hypergraph.partID(hn) != -1) {
-      continue;
-    }
-
-    if (hypergraph.partWeight(part) + hypergraph.nodeWeight(hn) <= max_part_weight) {
-      hypergraph.setNodePart(hn, part);
-      push_incident_nodes_into_pq(hn, part);
+    if (hypergraph.partID(hn) == -1) {
+      if (hypergraph.partWeight(part) + hypergraph.nodeWeight(hn) <= max_part_weight) {
+        hypergraph.setNodePart(hn, part);
+        push_incident_nodes_into_pq(hn, part);
+      }
     }
 
     if (q.empty()) {
       for (PartitionID i = 0; i < k; ++i) {
-        if (hypergraph.partWeight(part) < max_part_weight) {
+        if (hypergraph.partWeight(i) < max_part_weight) {
           HypernodeID hn = get_unassigned_hypernode();
           if (hn != num_nodes) {
             q.push(std::make_pair(hn, i));
