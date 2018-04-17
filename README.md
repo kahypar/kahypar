@@ -10,6 +10,7 @@ Table of Contents
 
    * [What is a Hypergraph? What is Hypergraph Partitioning?](#what-is-a-hypergraph-what-is-hypergraph-partitioning)
    * [What is KaHyPar?](#what-is-kahypar)
+      * [Additional Features](#additional-features)
       * [Experimental Results](#experimental-results)
       * [Additional Resources](#additional-resources)
    * [Requirements](#requirements)
@@ -53,6 +54,15 @@ By using this very fine grained *n*-level approach combined with strong local se
 it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
+#### Additional Features
+ - Hypergraph Partitioning with Variable Block Weights (soon)
+
+ - Evolutionary Framework (KaHyPar-E) (soon)
+   
+   KaHyPar-E enhances KaHyPar with an evolutionary framework as described in our [GECCO'18 publication][GECCO'18]. Given a fairly large amount of running time, this memetic multilevel algorithm is able to compute partitions of very high quality and performs better than repeated executions of KaHyPar-MF/-CA, hMetis, and PaToH. The configuration [/config/km1_direct_kway_sea18.ini](/config/km1_direct_kway_sea18.ini) uses KaHyPar-CA to exploit the local solution space and was used in the [GECCO'18 experiments][GECCO'18bench]. The command line parameter `--time-limit=xxx` can be used to set the maximum running time (in seconds).
+ 
+ - Hypergraph Partitioning with Fixed Vertices (soon)
+   
 #### Experimental Results
  We use the performance plots introduced in [ALENEX'16][ALENEX'16] to compare KaHyPar to other partitioning algorithms in terms of solution quality:
 For each algorithm, these plots relate the smallest minimum cut of all algorithms to the
@@ -68,7 +78,7 @@ that violated the balance constraint. Thus an algorithm is considered to outperf
 algorithm if its corresponding ratio values are below those of the other algorithm.
 
 
-**Interactive** visualizations of the performance plots and detailed per-instance results can be found on
+Performance plots and detailed per-instance results can be found on
 the website accompanying each publication.
 
 #### Additional Resources
@@ -78,7 +88,7 @@ the website accompanying each publication.
 |KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
-
+ 
 Requirements
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
@@ -114,7 +124,11 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
 Currently we provide four different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and in the [technical report](https://arxiv.org/abs/1802.03587) about KaHyPar-MF.
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18](https://arxiv.org/abs/1802.03587), and [GECCO'18][GECCO'18].
+
+To start EvoHGP/KaHyPar-E optimizing the (connectivity - 1) objective using direct k-way mode run
+   
+     	./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
@@ -242,3 +256,4 @@ feel free to contact me or create an issue on the
 [SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
 [GECCO'18bench]: http://algo2.iti.kit.edu/schlag/gecco2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
+[GECCO'18]: https://arxiv.org/abs/1710.01968
