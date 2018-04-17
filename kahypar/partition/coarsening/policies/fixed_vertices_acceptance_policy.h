@@ -24,6 +24,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 class FixedVertexAcceptancePolicy : public meta::PolicyBase {
@@ -32,7 +33,8 @@ class FixedVertexAcceptancePolicy : public meta::PolicyBase {
                                                                                 const Context& context,
                                                                                 const HypernodeID u,
                                                                                 const HypernodeID v) {
-    if (hg.isFixedVertex(u) && hg.isFixedVertex(v)) {
+    if ((hg.isFixedVertex(u) && hg.isFixedVertex(v)) ||
+        (!hg.isFixedVertex(u) && !hg.isFixedVertex(v))) {
       return true;
     }
     // Consider, the subhypergraph which consists of all fixed vertices.
