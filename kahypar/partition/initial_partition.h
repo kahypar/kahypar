@@ -161,7 +161,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
   double init_alpha = context.initial_partitioning.init_alpha;
   double best_imbalance = std::numeric_limits<double>::max();
-  std::vector<PartitionID> best_imbalanced_partition(
+  std::vector<PartitionID> best_balanced_partition(
     extracted_init_hypergraph.first->initialNumNodes(), 0);
 
   do {
@@ -194,7 +194,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
     const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, context);
     if (imbalance < best_imbalance) {
       for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
-        best_imbalanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
+        best_balanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
       }
       best_imbalance = imbalance;
     }
@@ -214,8 +214,8 @@ static inline void partition(Hypergraph& hg, const Context& context) {
   // Apply the best balanced partition to the original hypergraph
   for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
     PartitionID part = extracted_init_hypergraph.first->partID(hn);
-    if (part != best_imbalanced_partition[hn]) {
-      part = best_imbalanced_partition[hn];
+    if (part != best_balanced_partition[hn]) {
+      part = best_balanced_partition[hn];
     }
     hg.setNodePart(mapping[hn], part);
   }

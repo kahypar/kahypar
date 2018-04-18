@@ -43,11 +43,11 @@ template <class StartNodeSelection = Mandatory,
 class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                            private InitialPartitionerBase<LabelPropagationInitialPartitioner<
                                                                             StartNodeSelection,
-                                                                            GainComputation>> {
+                                                                            GainComputation> >{
  private:
   using PartitionGainPair = std::pair<const PartitionID, const Gain>;
   using Base = InitialPartitionerBase<LabelPropagationInitialPartitioner<StartNodeSelection,
-                                                                         GainComputation>>;
+                                                                         GainComputation> >;
   friend Base;
 
  public:
@@ -73,7 +73,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     PartitionID unassigned_part =
       _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;

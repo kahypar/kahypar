@@ -33,9 +33,9 @@
 
 namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,
-                               private InitialPartitionerBase<PoolInitialPartitioner> {
-using Base = InitialPartitionerBase<PoolInitialPartitioner>;
-friend Base;
+                               private InitialPartitionerBase<PoolInitialPartitioner>{
+  using Base = InitialPartitionerBase<PoolInitialPartitioner>;
+  friend Base;
 
  private:
   static constexpr bool debug = false;
@@ -108,7 +108,7 @@ friend Base;
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     Objective obj = _context.partition.objective;
     PartitioningResult best_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, kInvalidImbalance);
     PartitioningResult min_cut(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, 0.0);
@@ -135,8 +135,8 @@ friend Base;
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(algo, _hg, _context));
       partitioner->partition();
-      HyperedgeWeight current_quality = obj == Objective::cut
-                                      ? metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      HyperedgeWeight current_quality = obj == Objective::cut ?
+                                        metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
       double current_imbalance = metrics::imbalance(_hg, _context);
       DBG << algo << V(obj) << V(current_quality) << V(current_imbalance);
 
@@ -197,7 +197,7 @@ friend Base;
         }
         return true;
       } (), "There are unassigned hypernodes!");
-      
+
     // Pool Partitioner executes each initial partitioner nruns times.
     // To prevent pool partitioner to execute himself nruns times, we
     // set the nruns parameter to 1.

@@ -35,7 +35,7 @@ class IInitialPartitioner {
   IInitialPartitioner& operator= (IInitialPartitioner&&) = delete;
 
   void partition() {
-      partitionImpl();
+    partitionImpl();
   }
 
   virtual ~IInitialPartitioner() = default;

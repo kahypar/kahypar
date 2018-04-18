@@ -36,6 +36,8 @@ class ASparseSet : public Test {
     sparse_set(20) { }
 
   T sparse_set;
+
+  using TestType = T;
 };
 
 template <typename T>
@@ -76,6 +78,16 @@ TYPED_TEST(ASparseSet, ReturnsFalseIfElementIsNotInTheSet) {
   this->sparse_set.add(6);
   ASSERT_FALSE(this->sparse_set.contains(5));
 }
+
+TYPED_TEST(ASparseSet, AllowsMoveAssigment) {
+  this->sparse_set.add(6);
+
+  typename TestFixture::TestType another_set(20);
+  another_set = std::move(this->sparse_set);
+
+  ASSERT_TRUE(another_set.contains(6));
+}
+
 
 TYPED_TEST(ASparseSet, ReturnsFalseIfSetIsEmpty) {
   ASSERT_FALSE(this->sparse_set.contains(5));

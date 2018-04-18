@@ -40,10 +40,10 @@ template <class StartNodeSelection = Mandatory,
           class QueueSelection = Mandatory>
 class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                   private InitialPartitionerBase<
-                                                            GreedyHypergraphGrowingInitialPartitioner<
-                                                              StartNodeSelection,
-                                                              GainComputation,
-                                                              QueueSelection>> {
+                                                    GreedyHypergraphGrowingInitialPartitioner<
+                                                      StartNodeSelection,
+                                                      GainComputation,
+                                                      QueueSelection> >{
  private:
   using KWayRefinementPQ = ds::KWayPriorityQueue<HypernodeID, Gain,
                                                  std::numeric_limits<Gain>, true>;
@@ -96,7 +96,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     Base::multipleRunsInitialPartitioning();
   }
 
-  void initial_partition() {
+  void initialPartition() {
     // Every QueueSelectionPolicy specifies its own operating unassigned part.
     // Therefore we only change the unassigned_part variable in this method and reset it at
     // the end to original value.
@@ -255,7 +255,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
         hn = Base::getUnassignedNode();
       }
       // In the case if the unassigned part is != -1, the cut hyperedges are initialized within
-      // the resetPartitioning() method in InitialPartitionerBase.
+      // the resetPartitioning() method in Base.
       // If the unassigned part is equal to -1, we have to do it here, because at this point
       // finally all hypernodes are assigned to a valid part.
       _hg.initializeNumCutHyperedges();
