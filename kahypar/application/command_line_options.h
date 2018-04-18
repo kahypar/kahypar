@@ -159,7 +159,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     "Acceptance criterion for fixed vertex contraction:\n"
     "free_vertex_only "
     "fixed_vertex_allowed"
-    "same_type");
+    "equivalent");
   return options;
 }
 
@@ -257,7 +257,7 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     "Acceptance criterion for fixed vertex contraction:\n"
     "free_vertex_only "
     "fixed_vertex_allowed"
-    "same_type")
+    "equivalent_vertices")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials")

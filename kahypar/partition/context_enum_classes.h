@@ -68,7 +68,7 @@ enum class AcceptancePolicy : uint8_t {
 enum class FixVertexContractionAcceptancePolicy : uint8_t {
   free_vertex_only,
   fixed_vertex_allowed,
-  same_type,
+  equivalent_vertices,
   UNDEFINED
 };
 
@@ -206,7 +206,7 @@ std::ostream& operator<< (std::ostream& os, const FixVertexContractionAcceptance
   switch (acceptance_policy) {
     case FixVertexContractionAcceptancePolicy::free_vertex_only: return os << "free_vertex_only";
     case FixVertexContractionAcceptancePolicy::fixed_vertex_allowed: return os << "fixed_vertex_allowed";
-    case FixVertexContractionAcceptancePolicy::same_type: return os << "same_type";
+    case FixVertexContractionAcceptancePolicy::equivalent_vertices: return os << "equivalent_vertices";
     case FixVertexContractionAcceptancePolicy::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
@@ -365,8 +365,8 @@ static FixVertexContractionAcceptancePolicy fixedVertexAcceptanceCriterionFromSt
     return FixVertexContractionAcceptancePolicy::free_vertex_only;
   } else if (crit == "fixed_vertex_allowed") {
     return FixVertexContractionAcceptancePolicy::fixed_vertex_allowed;
-  } else if (crit == "same_type") {
-    return FixVertexContractionAcceptancePolicy::same_type;
+  } else if (crit == "equivalent_vertices") {
+    return FixVertexContractionAcceptancePolicy::equivalent_vertices;
   }
   std::cout << "No valid fixed vertex acceptance criterion for rating." << std::endl;
   exit(0);

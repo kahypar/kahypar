@@ -105,7 +105,7 @@ class FixedVertexContractionsAllowedPolicy final : public FixedVertexAcceptanceP
   }
 };
 
-class OnlySameTypeContractionPolicy final : public FixedVertexAcceptancePolicy {
+class EquivalentVerticesAcceptancePolicy final : public FixedVertexAcceptancePolicy {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptContraction(const Hypergraph& hg,
                                                                        const Context& context,
@@ -130,5 +130,5 @@ class OnlySameTypeContractionPolicy final : public FixedVertexAcceptancePolicy {
 
 using FixedVertexAcceptancePolicies = meta::Typelist<FreeContractionPartnerOnlyPolicy,
                                                      FixedVertexContractionsAllowedPolicy,
-                                                     OnlySameTypeContractionPolicy>;
+                                                     EquivalentVerticesAcceptancePolicy>;
 }  // namespace kahypar
