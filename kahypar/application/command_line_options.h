@@ -83,25 +83,12 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
         ("use-individual-blockweights",
     po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
     "# Use individual block weights specified with --blockweights= option")
-    ("fixed-vertex-generator",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& type) {
-      context.partition.fixed_vertex_generator =
-        kahypar::fixedVertexGeneratorFromString(type);
-    }),
-    "Set artificial generator for generating fixed vertices (random, bubble, retard)")
-    ("fixed-vertex-fraction",
-    po::value<double>(&context.partition.fixed_vertex_fraction)->value_name("<double>"),
-    "Fraction of hypernodes randomly choosen as fixed vertices")
-    ("write-fixed-vertex-file",
-    po::value<bool>(&context.partition.write_fixed_vertex_file)->value_name("<bool>"),
-    "Write generated fixed vertex file to disk")
     ("use-maximum-bipartite-weighted-matching",
     po::value<bool>(&context.partition.use_maximum_bipartite_weighted_matching)->value_name("<bool>"),
     "Use maximum bipartite weighted matching to assign fixed vertices after recursive bisection")
-      ("blockweights",
-       po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
-       "Individual target block weights");
+    ("blockweights",
+      po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
+      "Individual target block weights");
   return options;
 }
 
@@ -597,12 +584,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   std::string epsilon_str = std::to_string(context.partition.epsilon);
   epsilon_str.erase(epsilon_str.find_last_not_of('0') + 1, std::string::npos);
-  std::string fraction_str = std::to_string(context.partition.fixed_vertex_fraction);
-  fraction_str.erase(fraction_str.find_last_not_of('0') + 1, std::string::npos);
-  std::string fixed_vertex_gen_str = (context.partition.fixed_vertex_generator ==
-                                      FixedVertexGenerator::random ? "random" :
-                                      (context.partition.fixed_vertex_generator ==
-                                      FixedVertexGenerator::bubble ? "bubble" : "repart"));
 
   context.partition.graph_partition_filename =
     context.partition.graph_filename
@@ -613,19 +594,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     + ".seed"
     + std::to_string(context.partition.seed)
     + ".KaHyPar";
-
-  context.partition.graph_fixed_vertex_filename =
-    context.partition.graph_filename
-    + ".part"
-    + std::to_string(context.partition.k)
-    + ".epsilon"
-    + epsilon_str
-    + ".seed"
-    + std::to_string(context.partition.seed)
-    + ".fraction"
-    + fraction_str
-    + fixed_vertex_gen_str
-    + ".FixedVertices";
 
   if (context.partition.use_individual_block_weights) {
     context.partition.epsilon = 0;

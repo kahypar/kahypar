@@ -56,8 +56,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " L_opt1=" << context.partition.perfect_balance_part_weights[1]
       << " L_max0=" << context.partition.max_part_weights[0]
       << " L_max1=" << context.partition.max_part_weights[1]
-      << " fixed_vertex_fraction=" << context.partition.fixed_vertex_fraction
-      << " fixed_vertex_generator=" << context.partition.fixed_vertex_generator
       << " pre_enable_min_hash_sparsifier=" << std::boolalpha
       << context.preprocessing.enable_min_hash_sparsifier
       << " pre_min_hash_max_hyperedge_size="

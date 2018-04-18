@@ -319,14 +319,11 @@ struct PartitioningParameters {
   bool sp_process_output = false;
   bool use_individual_block_weights = false;
 
-  FixedVertexGenerator fixed_vertex_generator = FixedVertexGenerator::UNDEFINED;
-  double fixed_vertex_fraction = 0.01;
-  bool write_fixed_vertex_file = false;
   bool use_maximum_bipartite_weighted_matching = true;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
-  std::string graph_fixed_vertex_filename { };
+  std::string fixed_vertex_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {

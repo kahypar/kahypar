@@ -32,7 +32,6 @@
 #include "kahypar/macros.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
-#include "kahypar/application/fixed_vertex_generator.h"
 
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
@@ -60,19 +59,6 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::random) {
-    kahypar::randomFixedVertexGenerator(hypergraph, context);
-  } else if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::bubble) {
-    kahypar::bubbleFixedVertexGenerator(hypergraph, context);
-  } else if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::repart) {
-    kahypar::repartitioningFixedVertexGenerator(hypergraph, context);
-  }
-  /*LOG << V(hypergraph.initialNumNodes()) << V(hypergraph.numFixedVertices());
-  for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
-    LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
-  }
-  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));*/ 
-
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, context);
@@ -85,11 +71,6 @@ int main(int argc, char* argv[]) {
             << "but actually is in" << hypergraph.partID(hn);
         exit(-1);
     }
-  }
-
-  if (context.partition.write_fixed_vertex_file) {
-    kahypar::io::writeFixedVertexPartitionFile(hypergraph,
-                                              context.partition.graph_fixed_vertex_filename);
   }
 
 #ifdef GATHER_STATS

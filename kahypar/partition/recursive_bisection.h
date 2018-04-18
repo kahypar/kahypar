@@ -308,11 +308,6 @@ static inline void partition(Hypergraph& input_hypergraph,
         break;
     }
   }
-  /*for (PartitionID i = 0; i < original_context.partition.k; ++i) {
-    LOG << "w[" << i << "] =" << input_hypergraph.partWeight(i)
-        << "fixedVertexWeight[" << i << "] =" << input_hypergraph.fixedVertexPartWeight(i)
-        << "max_w[" << i << "] =" << original_context.partition.max_part_weights[0];
-  }*/
 
   // Postprocessing: Add fixed vertices to input hypergraph after
   //                 recursive bisection

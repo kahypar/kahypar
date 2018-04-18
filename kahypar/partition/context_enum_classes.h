@@ -153,13 +153,6 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
-enum class FixedVertexGenerator : uint8_t {
-  random,
-  bubble,
-  repart,
-  UNDEFINED
-};
-
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection: return os << "recursive";
@@ -355,17 +348,6 @@ std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mode);
-}
-
-std::ostream& operator<< (std::ostream& os, const FixedVertexGenerator& type) {
-  switch (type) {
-    case FixedVertexGenerator::random: return os << "random";
-    case FixedVertexGenerator::bubble: return os << "bubble";
-    case FixedVertexGenerator::repart: return os << "repart";
-    case FixedVertexGenerator::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(type);
 }
 
 static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
@@ -572,16 +554,5 @@ static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) 
   std::cout << "No valid flow execution mode." << std::endl;
   exit(0);
   return FlowExecutionMode::exponential;
-}
-
-static FixedVertexGenerator fixedVertexGeneratorFromString(const std::string& type) {
-  if (type == "random") {
-    return FixedVertexGenerator::random;
-  } else if (type == "bubble") {
-    return FixedVertexGenerator::bubble;
-  } else if (type == "repart") {
-    return FixedVertexGenerator::repart;
-  }
-  return FixedVertexGenerator::UNDEFINED;
 }
 }  // namespace kahypar
