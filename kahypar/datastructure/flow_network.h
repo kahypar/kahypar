@@ -147,6 +147,29 @@ class FlowNetwork {
           return true;
         } (), "Hypernodes not correctly added or removed from flow network!");
 
+    // Add fixed vertices to source and sink
+    for (const HypernodeID& hn : hypernodes()) {
+      if (_hg.isFixedVertex(hn)) {
+        if (containsNode(hn)) {
+          if (_hg.partID(hn) == block_0) {
+            addSource(hn);
+          } else if (_hg.partID(hn) == block_1) {
+            addSink(hn);
+          }
+        } else {
+          for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+            if (_hg.partID(hn) == block_0) {
+              ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
+              addSource(mapToIncommingHyperedgeID(he));
+            } else if (_hg.partID(hn) == block_1) {
+              ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
+              addSink(mapToOutgoingHyperedgeID(he));
+            }
+          }
+        }
+      }
+    }
+
     const HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
     return cut;
   }
@@ -336,16 +359,6 @@ class FlowNetwork {
     _visited.reset();
     HyperedgeWeight cut = 0;
     for (const HypernodeID& hn : hypernodes()) {
-
-      // Fixed Vertices should not be movable after flow computation
-      if (_hg.isFixedVertex(hn)) {
-        if (_hg.partID(hn) == block_0) {
-          addSource(hn);
-        } else {
-          addSink(hn);
-        }
-      }
-
       for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
         if (!_visited[he]) {
           const size_t pins_u_block0 = _pins_block0.get(he);
@@ -460,6 +473,15 @@ class FlowNetwork {
             return (num_flow_hns == 1 ? true : false);
           } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
 
+      PartitionID fixed_vertex_part_id = -1;
+      if (_hg.numFixedVertices() > 0) {
+        for (const HypernodeID& pin : _hg.pins(he)) {
+          if (containsHypernode(pin) && _hg.isFixedVertex(pin)) {
+            fixed_vertex_part_id = _hg.fixedVertexPartID(pin);
+          }
+        }
+      }
+
       if ((pinsNotInFlowProblem(he, _cur_block0) > 0 &&
            pinsNotInFlowProblem(he, _cur_block1) > 0) ||
           (_context.partition.objective == Objective::cut &&
@@ -470,6 +492,16 @@ class FlowNetwork {
           addNode(u);
         } else if (pinsNotInFlowProblem(he, _cur_block1) > 0) {
           addNode(v);
+        }
+
+        if (fixed_vertex_part_id == _cur_block0) {
+          addNode(u);
+        } else if (fixed_vertex_part_id == _cur_block1) {
+          addNode(v);
+        }
+
+        if (containsNode(u) && containsNode(v)) {
+          addEdge(u, v, _hg.edgeWeight(he));
         }
       }
     } else {
@@ -644,7 +676,7 @@ class HeuerNetwork final : public FlowNetwork<HeuerNetwork>{
           _he_visited.reset();
           for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hypernodes.contains(pin)) {
-              if (_hg.nodeDegree(pin) <= 3 && !_hg.isFixedVertex(pin)) {
+              if (_hg.nodeDegree(pin) <= 3) {
                 ASSERT(!containsNode(pin),
                        "Pin " << pin << " of HE " << he << " is already contained in flow problem!");
                 addClique(he, pin);
@@ -773,8 +805,7 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
           for (const HypernodeID& pin : _hg.pins(he)) {
             if (_hypernodes.contains(pin)) {
               if (!_contains_graph_hyperedges[pin] &&
-                  _hg.nodeDegree(pin) <= 3 &&
-                  !_hg.isFixedVertex(pin)) {
+                  _hg.nodeDegree(pin) <= 3) {
                 ASSERT(!containsNode(pin), "Pin " << pin << " of HE " << he
                                                   << " is already contained in flow problem!");
                 addClique(he, pin);
