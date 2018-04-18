@@ -35,7 +35,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context);
 }
 
 namespace initial {
-static constexpr bool debug = true;
+static constexpr bool debug = false;
 
 static inline Context createContext(const Hypergraph& hg,
                                     const Context& original_context,

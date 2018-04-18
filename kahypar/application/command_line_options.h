@@ -159,7 +159,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     "Acceptance criterion for fixed vertex contraction:\n"
     "free_vertex_only "
     "fixed_vertex_allowed"
-    "equivalent");
+    "equivalent_vertices");
   return options;
 }
 
