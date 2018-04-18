@@ -268,5 +268,16 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
   }
+
+  ASSERT([&]() {
+      for (const HypernodeID& hn : hypergraph.fixedVertices()) {
+        if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
+            LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
+                << "but actually is in" << hypergraph.partID(hn);
+            return false;
+        }
+      }
+      return true;
+    } (), "Fixed Vertices are assigned incorrectly!");
 }
 }  // namespace kahypar

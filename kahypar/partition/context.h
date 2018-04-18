@@ -319,8 +319,6 @@ struct PartitioningParameters {
   bool sp_process_output = false;
   bool use_individual_block_weights = false;
 
-  bool use_maximum_bipartite_weighted_matching = true;
-
   std::string graph_filename { };
   std::string graph_partition_filename { };
   std::string fixed_vertex_filename { };
@@ -330,6 +328,9 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "Partitioning Parameters:" << std::endl;
   str << "  Hypergraph:                         " << params.graph_filename << std::endl;
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
+  if (!params.fixed_vertex_filename.empty()) {
+    str << "  Fixed Vertex File:                  " << params.fixed_vertex_filename << std::endl;
+  }
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Objective:                          " << params.objective << std::endl;
   str << "  k:                                  " << params.k << std::endl;

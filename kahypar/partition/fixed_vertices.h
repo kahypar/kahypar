@@ -685,51 +685,45 @@ static inline void partition(Hypergraph& input_hypergraph,
       return true;
     } (), "Precondition check for fixed vertex assignment failed");
 
-  if (original_context.partition.use_maximum_bipartite_weighted_matching) {
-    // Idea: Fixed vertices assigned to a fixed block should be assigned to a part
-    // of the current partition, in which the increase in the objective function is minimal.
-    // However several fixed vertex sets might be assigned to the same part of the current
-    // partition such that the increase is minimal, which is obviously not possible.
-    // Therefore, we try to find a permutation of the partition ids such that the assignment
-    // of the fixed vertices is optimal among all possible permutations.
-    // Reference:
-    // Aykanat, Cevdet, B. Barla Cambazoglu, and Bora Uçar.
-    // "Multi-level direct k-way hypergraph partitioning with multiple constraints and fixed vertices."
-    // Journal of Parallel and Distributed Computing 68.5 (2008): 609-625.
-    AdjacencyMatrix graph = setupWeightedBipartiteMatchingGraph(input_hypergraph, original_context);
-    printAdjacencyMatrix(graph, true);
+  // Idea: Fixed vertices assigned to a fixed block should be assigned to a part
+  // of the current partition, in which the increase in the objective function is minimal.
+  // However several fixed vertex sets might be assigned to the same part of the current
+  // partition such that the increase is minimal, which is obviously not possible.
+  // Therefore, we try to find a permutation of the partition ids such that the assignment
+  // of the fixed vertices is optimal among all possible permutations.
+  // Reference:
+  // Aykanat, Cevdet, B. Barla Cambazoglu, and Bora Uçar.
+  // "Multi-level direct k-way hypergraph partitioning with multiple constraints and fixed vertices."
+  // Journal of Parallel and Distributed Computing 68.5 (2008): 609-625.
+  AdjacencyMatrix graph = setupWeightedBipartiteMatchingGraph(input_hypergraph, original_context);
+  printAdjacencyMatrix(graph, true);
 
-    Matching maximum_weighted_matching = findMaximumWeightedBipartiteMatching(graph);
-    ASSERT(maximum_weighted_matching.size() == static_cast<size_t>(original_context.partition.k),
-          "Matching is not a perfect matching");
+  Matching maximum_weighted_matching = findMaximumWeightedBipartiteMatching(graph);
+  ASSERT(maximum_weighted_matching.size() == static_cast<size_t>(original_context.partition.k),
+        "Matching is not a perfect matching");
 
-    std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
-    DBG << "Computed Permutation:";
-    for (auto matched_edge : maximum_weighted_matching) {
-      PartitionID from = matched_edge.second;
-      PartitionID to = matched_edge.first;
-      partition_permutation[from] = to;
-      DBG << "Block" << from << "assigned to fixed vertices with id"
-          << to << "with weight" << graph[to][from];
-    }
+  std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
+  DBG << "Computed Permutation:";
+  for (auto matched_edge : maximum_weighted_matching) {
+    PartitionID from = matched_edge.second;
+    PartitionID to = matched_edge.first;
+    partition_permutation[from] = to;
+    DBG << "Block" << from << "assigned to fixed vertices with id"
+        << to << "with weight" << graph[to][from];
+  }
 
-    for (const HypernodeID& hn : input_hypergraph.nodes()) {
-      if (input_hypergraph.isFixedVertex(hn)) {
-        input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
-      } else {
-        PartitionID from = input_hypergraph.partID(hn);
-        PartitionID to = partition_permutation[from];
-        if (from != to) {
-          input_hypergraph.changeNodePart(hn, from, to);
-        }
+  for (const HypernodeID& hn : input_hypergraph.nodes()) {
+    if (input_hypergraph.isFixedVertex(hn)) {
+      input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
+    } else {
+      PartitionID from = input_hypergraph.partID(hn);
+      PartitionID to = partition_permutation[from];
+      if (from != to) {
+        input_hypergraph.changeNodePart(hn, from, to);
       }
     }
-  } else {
-    // Naive assignment of fixed vertices
-    for (const HypernodeID& hn : input_hypergraph.fixedVertices()) {
-      input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
-    }
   }
+
   DBG << original_context.partition.objective << "="
       << (original_context.partition.objective == Objective::cut
           ? metrics::hyperedgeCut(input_hypergraph)

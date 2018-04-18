@@ -69,6 +69,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     po::value<int>(&context.partition.seed)->value_name("<int>"),
     "Seed for random number generator \n"
     "(default: -1)")
+    ("fixed-vertices,f",
+    po::value<std::string>(&context.partition.fixed_vertex_filename)->value_name("<string>"),
+    "Fixed vertex filename")
     ("cmaxnet",
     po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
@@ -83,9 +86,6 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
         ("use-individual-blockweights",
     po::value<bool>(&context.partition.use_individual_block_weights)->value_name("<bool>"),
     "# Use individual block weights specified with --blockweights= option")
-    ("use-maximum-bipartite-weighted-matching",
-    po::value<bool>(&context.partition.use_maximum_bipartite_weighted_matching)->value_name("<bool>"),
-    "Use maximum bipartite weighted matching to assign fixed vertices after recursive bisection")
     ("blockweights",
       po::value<std::vector<HypernodeWeight>>(&context.partition.max_part_weights)->multitoken(),
       "Individual target block weights");

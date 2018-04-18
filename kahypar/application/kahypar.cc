@@ -59,19 +59,15 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
+  if (!context.partition.fixed_vertex_filename.empty()) {
+    kahypar::io::readFixedVertexFile(hypergraph, context.partition.fixed_vertex_filename);
+  }
+
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   partitioner.partition(hypergraph, context);
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-
-  for (const kahypar::HypernodeID& hn : hypergraph.fixedVertices()) {
-    if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
-        LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
-            << "but actually is in" << hypergraph.partID(hn);
-        exit(-1);
-    }
-  }
 
 #ifdef GATHER_STATS
   LOG << "*******************************";

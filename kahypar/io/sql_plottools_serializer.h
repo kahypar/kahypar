@@ -40,11 +40,18 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   std::ostringstream oss;
   oss << "RESULT"
       << " graph=" << context.partition.graph_filename.substr(
-    context.partition.graph_filename.find_last_of('/') + 1)
+         context.partition.graph_filename.find_last_of('/') + 1)
       << " numHNs=" << hypergraph.initialNumNodes()
       << " numHEs=" << hypergraph.initialNumEdges()
-      << " " << hypergraph.typeAsString()
-      << " mode=" << context.partition.mode
+      << " " << hypergraph.typeAsString();
+  if (!context.partition.fixed_vertex_filename.empty()) {
+    oss << " fixed_vertex_file=" << context.partition.fixed_vertex_filename.substr(
+    context.partition.fixed_vertex_filename.find_last_of('/') + 1)
+        << " num_fixed_vertices=" << hypergraph.numFixedVertices()
+        << " fixed_vertices_imbalance=" << metrics::imbalanceFixedVertices(hypergraph,
+                                           context.partition.k);
+  }
+  oss << " mode=" << context.partition.mode
       << " objective=" << context.partition.objective
       << " k=" << context.partition.k
       << " epsilon=" << context.partition.epsilon
