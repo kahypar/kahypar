@@ -212,6 +212,18 @@ class TwoWayFMRefiner final : public IRefiner,
              (!_hg.isBorderNode(hn) || _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
+    // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
+    for (const HypernodeID& hn : refinement_nodes) {
+      if (_hg.isFixedVertex(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
+            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
+              activate(pin, max_allowed_part_weights);
+            }
+          }
+        }
+      }
+    }
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;

@@ -145,6 +145,19 @@ class KWayKMinusOneRefiner final : public IRefiner,
     for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
     }
+
+    // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
+    for (const HypernodeID& hn : refinement_nodes) {
+      if (_hg.isFixedVertex(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
+            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
+              activate(pin);
+            }
+          }
+        }
+      }
+    }
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const double initial_imbalance = best_metrics.imbalance;
