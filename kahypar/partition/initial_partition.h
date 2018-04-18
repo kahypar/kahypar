@@ -35,7 +35,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context);
 }
 
 namespace initial {
-static constexpr bool debug = false;
+static constexpr bool debug = true;
 
 static inline Context createContext(const Hypergraph& hg,
                                     const Context& original_context,
@@ -164,6 +164,11 @@ static inline void partition(Hypergraph& hg, const Context& context) {
   std::vector<PartitionID> best_balanced_partition(
     extracted_init_hypergraph.first->initialNumNodes(), 0);
 
+  double fixed_vertex_subgraph_imbalance = 0.0;
+  if (hg.numFixedVertices() > 0) {
+    fixed_vertex_subgraph_imbalance = metrics::imbalanceFixedVertices(hg, context.partition.k);
+  }
+
   do {
     extracted_init_hypergraph.first->resetPartitioning();
     // we do not want to use the community structure used during coarsening in initial partitioning
@@ -177,10 +182,14 @@ static inline void partition(Hypergraph& hg, const Context& context) {
           << "(k=" << init_context.initial_partitioning.k << ", epsilon="
           << init_context.partition.epsilon << ")";
     }
-    if (context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-        context.initial_partitioning.mode == Mode::direct_kway) {
+    if ((context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+        context.initial_partitioning.mode == Mode::direct_kway) ||
+        fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
       // If the direct k-way flat initial partitioner is used we call the
       // corresponding initial partitioing algorithm, otherwise...
+      // NOTE: If the fixed vertex subgraph is imbalanced, we cannot guarantee
+      //       a balanced initial partition with recursive bisection. Therefore,
+      //       we switch to direct k-way flat mode in that case.
       std::unique_ptr<IInitialPartitioner> partitioner(
         InitialPartitioningFactory::getInstance().createObject(
           context.initial_partitioning.algo,
