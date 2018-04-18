@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
   for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
     LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
   }
-  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));*/
+  LOG << V(kahypar::metrics::imbalanceFixedVertices(hypergraph, context.partition.k));*/ 
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
