@@ -261,7 +261,7 @@ class FMGainComputationPolicy {
     ASSERT([&]() {
         for (const HyperedgeID& he : hg.incidentEdges(hn)) {
           for (const HypernodeID& node : hg.pins(he)) {
-            if (node != hn || !hg.isFixedVertex(node)) {
+            if (node != hn && !hg.isFixedVertex(node)) {
               for (PartitionID i = 0; i < context.initial_partitioning.k; ++i) {
                 if (pq.contains(node, i)) {
                   const Gain gain = calculateGain(hg, node, i, foo);
