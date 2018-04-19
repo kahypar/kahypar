@@ -57,7 +57,7 @@ class BFSStartNodeSelectionPolicy {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
       size_t visited_nodes = 0;
-      initializeQueue(start_nodes, bfs, in_queue, hg, k);
+      initializeQueue(start_nodes, bfs, in_queue, k);
 
       while (!bfs.empty()) {
         lastHypernode = bfs.front();
@@ -95,7 +95,6 @@ class BFSStartNodeSelectionPolicy {
   static inline void initializeQueue(std::vector<std::vector<HypernodeID>>& start_nodes,
                                      std::queue<HypernodeID>& q, 
                                      ds::FastResetFlagArray<>& in_queue,
-                                     const Hypergraph& hg,
                                      const PartitionID k) {
     ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
 
