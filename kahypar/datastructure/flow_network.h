@@ -473,15 +473,6 @@ class FlowNetwork {
             return (num_flow_hns == 1 ? true : false);
           } (), "Hyperedge " << he << " is not a size 1 hyperedge in flow problem!");
 
-      PartitionID fixed_vertex_part_id = -1;
-      if (_hg.numFixedVertices() > 0) {
-        for (const HypernodeID& pin : _hg.pins(he)) {
-          if (containsHypernode(pin) && _hg.isFixedVertex(pin)) {
-            fixed_vertex_part_id = _hg.fixedVertexPartID(pin);
-          }
-        }
-      }
-
       if ((pinsNotInFlowProblem(he, _cur_block0) > 0 &&
            pinsNotInFlowProblem(he, _cur_block1) > 0) ||
           (_context.partition.objective == Objective::cut &&
@@ -492,16 +483,6 @@ class FlowNetwork {
           addNode(u);
         } else if (pinsNotInFlowProblem(he, _cur_block1) > 0) {
           addNode(v);
-        }
-
-        if (fixed_vertex_part_id == _cur_block0) {
-          addNode(u);
-        } else if (fixed_vertex_part_id == _cur_block1) {
-          addNode(v);
-        }
-
-        if (containsNode(u) && containsNode(v)) {
-          addEdge(u, v, _hg.edgeWeight(he));
         }
       }
     } else {
