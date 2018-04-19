@@ -38,8 +38,18 @@ class BFSStartNodeSelectionPolicy {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
     ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
-    if (!UseRandomStartHypernode) {
-      start_nodes[0].push_back(0);
+    bool start_nodes_empty = true;
+    for (PartitionID i = 0; i < k; ++i) {
+      start_nodes_empty = start_nodes_empty && start_nodes[i].size() == 0;
+    }
+
+    if (start_nodes_empty) {
+      if (UseRandomStartHypernode) {
+        HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+        start_nodes[0].push_back(start_hn);
+      } else {
+        start_nodes[0].push_back(0);
+      }
     }
 
     PartitionID cur_part = nextPartID(start_nodes, k);
@@ -94,12 +104,6 @@ class BFSStartNodeSelectionPolicy {
         q.push(hn);
         in_queue.set(hn, true);
       }
-    }
-
-    if (q.empty()) {
-      HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-      q.push(start_hn);
-      in_queue.set(start_hn, true);
     }
   }
 
