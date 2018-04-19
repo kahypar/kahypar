@@ -38,8 +38,18 @@ class BFSStartNodeSelectionPolicy {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
     ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
-    if (!UseRandomStartHypernode) {
-      start_nodes[0].push_back(0);
+    bool start_nodes_empty = true;
+    for (PartitionID i = 0; i < k; ++i) {
+      start_nodes_empty = start_nodes_empty && start_nodes[i].size() == 0;
+    }
+
+    if (start_nodes_empty) {
+      if (UseRandomStartHypernode) {
+        HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+        start_nodes[0].push_back(start_hn);
+      } else {
+        start_nodes[0].push_back(0);
+      }
     }
 
     PartitionID cur_part = nextPartID(start_nodes, k);
@@ -47,7 +57,7 @@ class BFSStartNodeSelectionPolicy {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
       size_t visited_nodes = 0;
-      initializeQueue(start_nodes, bfs, in_queue, hg, k);
+      initializeQueue(start_nodes, bfs, in_queue, k);
 
       while (!bfs.empty()) {
         lastHypernode = bfs.front();
@@ -85,7 +95,6 @@ class BFSStartNodeSelectionPolicy {
   static inline void initializeQueue(std::vector<std::vector<HypernodeID>>& start_nodes,
                                      std::queue<HypernodeID>& q, 
                                      ds::FastResetFlagArray<>& in_queue,
-                                     const Hypergraph& hg,
                                      const PartitionID k) {
     ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
 
@@ -94,12 +103,6 @@ class BFSStartNodeSelectionPolicy {
         q.push(hn);
         in_queue.set(hn, true);
       }
-    }
-
-    if (q.empty()) {
-      HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-      q.push(start_hn);
-      in_queue.set(start_hn, true);
     }
   }
 
