@@ -67,6 +67,11 @@ int main(int argc, char* argv[]) {
   } else if (context.partition.fixed_vertex_generator == kahypar::FixedVertexGenerator::repart) {
     kahypar::repartitioningFixedVertexGenerator(hypergraph, context);
   }
+
+  if (hypergraph.numFixedVertices() > 0) {
+    context.preprocessing.enable_min_hash_sparsifier = false;
+  }
+
   /*LOG << V(hypergraph.initialNumNodes()) << V(hypergraph.numFixedVertices());
   for (kahypar::PartitionID part = 0; part < context.partition.k; ++part) {
     LOG << V(part) << V(hypergraph.fixedVertexPartWeight(part));
