@@ -185,61 +185,67 @@ class Louvain {
       Randomize::instance().shuffleVector(_random_node_order, _random_node_order.size());
     }
 
+    // std::vector<bool> neighborhood_changed(graph.numNodes(), true);
+    std::vector<size_t> node_time_stamp(graph.numNodes(), 0);
+    std::vector<size_t> cluster_time_stamp(graph.numNodes(), graph.numNodes());
+    size_t time_stamp = 0;
+
     do {
       ++iterations;
       DBG << "######## Starting Louvain-Pass-Iteration #" << iterations << "########";
       node_moves = 0;
       for (const NodeID& node : _random_node_order) {
+        /* if (!neighborhood_changed[node]) {
+          continue;
+        } */
+
         const ClusterID cur_cid = graph.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
         EdgeWeight best_incident_cluster_weight = 0.0L;
         EdgeWeight best_gain = 0.0L;
 
+        bool incident_cluster_changed = false;
         for (const Edge& e : graph.incidentEdges(node)) {
-          if (graph.clusterID(e.target_node) == cur_cid && e.target_node != node) {
+          NodeID v = e.target_node;
+          ClusterID v_cid = graph.clusterID(v);
+          if (v_cid == cur_cid && v != node) {
             cur_incident_cluster_weight += e.weight;
+          }
+          if (node_time_stamp[node] < cluster_time_stamp[v_cid]) {
+            incident_cluster_changed = true;
           }
         }
         best_incident_cluster_weight = cur_incident_cluster_weight;
 
-        quality.remove(node, cur_incident_cluster_weight);
+        if (incident_cluster_changed) {
+          quality.remove(node, cur_incident_cluster_weight);
 
-        for (const auto& cluster : graph.incidentClusterWeightOfNode(node)) {
-          const ClusterID cid = cluster.clusterID;
-          const EdgeWeight weight = cluster.weight;
-          const EdgeWeight gain = quality.gain(node, cid, weight);
-          if (gain > best_gain) {
-            best_gain = gain;
-            best_incident_cluster_weight = weight;
-            best_cid = cid;
+          for (const auto& cluster : graph.incidentClusterWeightOfNode(node)) {
+            const ClusterID cid = cluster.clusterID;
+            const EdgeWeight weight = cluster.weight;
+            const EdgeWeight gain = quality.gain(node, cid, weight);
+            if (gain > best_gain) {
+              best_gain = gain;
+              best_incident_cluster_weight = weight;
+              best_cid = cid;
+            }
+          }
+
+          quality.insert(node, best_cid, best_incident_cluster_weight);
+          // neighborhood_changed[node] = false;
+
+          if (best_cid != cur_cid) {
+            /*for (const Edge& e : graph.incidentEdges(node)) {
+              const NodeID id = e.target_node;
+              neighborhood_changed[id] = true;
+            }*/
+            cluster_time_stamp[cur_cid] = std::max(time_stamp, cluster_time_stamp[cur_cid]);
+            cluster_time_stamp[best_cid] = std::max(time_stamp, cluster_time_stamp[best_cid]);
+            ++node_moves;
           }
         }
-
-        quality.insert(node, best_cid, best_incident_cluster_weight);
-
-        if (best_cid != cur_cid) {
-          /*ASSERT([&]() {
-          // Remove node from best cluster...
-              quality.remove(node,best_incident_cluster_weight);
-              // ... and insert in his old cluster.
-              quality.insert(node,cur_cid,cur_incident_cluster_weight);
-              EdgeWeight quality_before = quality.quality();
-              //Remove node again from its old cluster ...
-              quality.remove(node,cur_incident_cluster_weight);
-              // ... and insert it in cluster with best gain.
-              quality.insert(node,best_cid,best_incident_cluster_weight);
-              EdgeWeight quality_after = quality.quality();
-              if(quality_after - quality_before < -Graph::kEpsilon) {
-                  LOG << V(quality_before);
-                  LOG << V(quality_after);
-                  return false;
-              }
-              return true;
-          }(),"Move did not increase the quality!");*/
-
-          ++node_moves;
-        }
+        node_time_stamp[node] = time_stamp++;
       }
 
       DBG << "Iteration #" << iterations << ": Moving" << node_moves << "nodes to new communities.";
