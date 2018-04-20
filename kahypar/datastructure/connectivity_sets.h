@@ -45,7 +45,7 @@ class ConnectivitySets final {
     explicit ConnectivitySet(const PartitionID k) :
       _k(k),
       _size(0) {
-      for (PartitionID i = 0; i < 2 * _k; ++i) {
+      for (PartitionID i = 0; i < _k; ++i) {
         new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
       }
     }
@@ -58,14 +58,6 @@ class ConnectivitySets final {
 
     ~ConnectivitySet() = default;
 
-    PartitionID* dense() {
-      return &_size + 1;
-    }
-
-    PartitionID* sparse() {
-      return &_size + 1 + _k;
-    }
-
     const PartitionID* begin()  const {
       return &_size + 1;
     }
@@ -75,26 +67,39 @@ class ConnectivitySets final {
     }
 
     bool contains(const PartitionID value) const {
-      const PartitionID index = sparse()[value];
-      return index < _size && dense()[index] == value;
+      const PartitionID* start = &_size + 1;
+      for (PartitionID i = 0; i < _k; ++i) {
+        const PartitionID k = *(start + i);
+        if (k == value) {
+          return true;
+        } else if (k == std::numeric_limits<PartitionID>::max()) {
+          return false;
+        }
+      }
     }
 
     void add(const PartitionID value) {
-      ASSERT((sparse()[value] >= _size || dense()[sparse()[value]] != value), V(value));
-      sparse()[value] = _size;
-      dense()[_size++] = value;
+      *(&_size + 1 + _size) = value;
+      ++_size;
     }
 
     void remove(const PartitionID value) {
-      const PartitionID index = sparse()[value];
-      ASSERT(index < _size && dense()[index] == value, V(value));
-      const PartitionID e = dense()[--_size];
-      dense()[index] = e;
-      sparse()[e] = index;
+      PartitionID* start = &_size + 1;
+      for (PartitionID i = 0; i < _k; ++i) {
+        const PartitionID k = *(start + i);
+        if (k == value) {
+          *(start + i) = *(start + _size - 1);
+          *(start + _size - 1) = std::numeric_limits<PartitionID>::max();
+          --_size;
+        }
+      }
     }
 
     void clear() {
       _size = 0;
+      for (PartitionID i = 0; i < _k; ++i) {
+        new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
+      }
     }
 
     PartitionID size() const {
@@ -172,7 +177,7 @@ class ConnectivitySets final {
   }
 
   constexpr size_t sizeOfConnectivitySet() const {
-    return (sizeof(ConnectivitySet) + 2 * _k * sizeof(PartitionID));
+    return (sizeof(ConnectivitySet) + _k * sizeof(PartitionID));
   }
 
   PartitionID _k;
