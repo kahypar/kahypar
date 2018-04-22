@@ -185,7 +185,13 @@ class Louvain {
       Randomize::instance().shuffleVector(_random_node_order, _random_node_order.size());
     }
 
-    // std::vector<bool> neighborhood_changed(graph.numNodes(), true);
+    // PERFORMANCE TUNING:
+    // A node can only change its cluster, if some of its incident cluster
+    // changed its weight. Therefore, we introduce a time stamp which tracks
+    // at which time a node was the last time processed and at which time
+    // a cluster changed its weight. Consider a node u is incident to a cluster
+    // id, then a node u might change its cluster, if node_time_stamp[u] <
+    // cluster_time_stamp[id].
     std::vector<size_t> node_time_stamp(graph.numNodes(), 0);
     std::vector<size_t> cluster_time_stamp(graph.numNodes(), graph.numNodes());
     size_t time_stamp = 0;
@@ -195,10 +201,6 @@ class Louvain {
       DBG << "######## Starting Louvain-Pass-Iteration #" << iterations << "########";
       node_moves = 0;
       for (const NodeID& node : _random_node_order) {
-        /* if (!neighborhood_changed[node]) {
-          continue;
-        } */
-
         const ClusterID cur_cid = graph.clusterID(node);
         EdgeWeight cur_incident_cluster_weight = 0.0L;
         ClusterID best_cid = cur_cid;
@@ -233,13 +235,8 @@ class Louvain {
           }
 
           quality.insert(node, best_cid, best_incident_cluster_weight);
-          // neighborhood_changed[node] = false;
 
           if (best_cid != cur_cid) {
-            /*for (const Edge& e : graph.incidentEdges(node)) {
-              const NodeID id = e.target_node;
-              neighborhood_changed[id] = true;
-            }*/
             cluster_time_stamp[cur_cid] = std::max(time_stamp, cluster_time_stamp[cur_cid]);
             cluster_time_stamp[best_cid] = std::max(time_stamp, cluster_time_stamp[best_cid]);
             ++node_moves;
