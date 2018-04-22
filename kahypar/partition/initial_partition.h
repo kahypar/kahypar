@@ -59,10 +59,12 @@ static inline Context createContext(const Hypergraph& hg,
 
   if (context.partition.use_individual_block_weights) {
     for (int i = context.partition.rb_lower_k; i <= context.partition.rb_upper_k; ++i) {
+      ASSERT(context.partition.perfect_balance_part_weights.size() >= context.partition.rb_upper_k,
+             "");
       context.initial_partitioning.perfect_balance_partition_weight.push_back(
           context.partition.perfect_balance_part_weights[i]);
     context.initial_partitioning.upper_allowed_partition_weight.push_back(
-      context.initial_partitioning.perfect_balance_partition_weight[i]);
+        context.initial_partitioning.perfect_balance_partition_weight.back());
     }
   } else {
   for (int i = 0; i < context.initial_partitioning.k; ++i) {
