@@ -1387,7 +1387,7 @@ void IBFSGraph::augment(Arc *bridge)
 template<bool sTree> void IBFSGraph::adoption(int fromLevel, bool toTop)
 {
 	Node *x, *y, *z;
-	register Arc *a;
+	Arc *a;
 	Arc *aEnd;
 	int threePassLevel;
 	int minLabel, numOrphans, numOrphansUniq;
