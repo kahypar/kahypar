@@ -66,9 +66,9 @@ class TwoWayFMFlowRefiner final : public IRefiner,
   void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
                                       std::vector<HypernodeID>&,
                                       const UncontractionGainChanges&,
-                                      Hypergraph&) { }
+                                      Hypergraph&) override final { }
 
-  std::vector<Move> rollbackImpl() {
+  std::vector<Move> rollbackImpl() override final {
     return std::vector<Move>();
   }
 
