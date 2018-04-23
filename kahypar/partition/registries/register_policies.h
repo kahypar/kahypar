@@ -69,12 +69,15 @@ REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
 REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
                 BestPreferringUnmatched);
 
-REGISTER_POLICY(FixVertexContractionAcceptancePolicy, FixVertexContractionAcceptancePolicy::free_vertex_only,
-                FreeContractionPartnerOnlyPolicy);
-REGISTER_POLICY(FixVertexContractionAcceptancePolicy, FixVertexContractionAcceptancePolicy::fixed_vertex_allowed,
-                FixedVertexContractionsAllowedPolicy);
-REGISTER_POLICY(FixVertexContractionAcceptancePolicy, FixVertexContractionAcceptancePolicy::equivalent_vertices,
-                EquivalentVerticesAcceptancePolicy);
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::free_vertex_only,
+                AllowFreeOnFixedFreeOnFree);
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::fixed_vertex_allowed,
+                AllowFreeOnFixedFreeOnFreeFixedOnFixed);
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::equivalent_vertices,
+                AllowFreeOnFreeFixedOnFixed);
 
 // //////////////////////////////////////////////////////////////////////////////
 //                       Local Search Algorithm Policies

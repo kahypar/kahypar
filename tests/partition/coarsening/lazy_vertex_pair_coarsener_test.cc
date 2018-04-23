@@ -32,7 +32,7 @@ using CoarsenerType = LazyVertexPairCoarsener<HeavyEdgeScore,
                                               MultiplicativePenalty,
                                               UseCommunityStructure,
                                               BestRatingWithTieBreaking<FirstRatingWins>,
-                                              FixedVertexContractionsAllowedPolicy,
+                                              AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                               RatingType>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{

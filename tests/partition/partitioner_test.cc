@@ -41,7 +41,7 @@ using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    MultiplicativePenalty,
                                                    UseCommunityStructure,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
-                                                   FixedVertexContractionsAllowedPolicy,
+                                                   AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                                    RatingType>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

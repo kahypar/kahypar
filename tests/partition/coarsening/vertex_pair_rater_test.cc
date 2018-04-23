@@ -41,19 +41,19 @@ using FirstWinsRater = VertexPairRater<HeavyEdgeScore,
                                        MultiplicativePenalty,
                                        UseCommunityStructure,
                                        BestRatingWithTieBreaking<FirstRatingWins>,
-                                       FixedVertexContractionsAllowedPolicy,
+                                       AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                        RatingType>;
 using LastWinsRater = VertexPairRater<HeavyEdgeScore,
                                       MultiplicativePenalty,
                                       UseCommunityStructure,
                                       BestRatingWithTieBreaking<LastRatingWins>,
-                                      FixedVertexContractionsAllowedPolicy,
+                                      AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                       RatingType>;
 using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
                                         MultiplicativePenalty,
                                         UseCommunityStructure,
                                         BestRatingWithTieBreaking<RandomRatingWins>,
-                                        FixedVertexContractionsAllowedPolicy,
+                                        AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                         RatingType>;
 
 class ARater : public Test {

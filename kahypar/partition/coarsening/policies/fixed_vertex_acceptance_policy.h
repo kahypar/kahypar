@@ -68,7 +68,7 @@ class FixedVertexAcceptancePolicy : public meta::PolicyBase {
   }
 };
 
-class FreeContractionPartnerOnlyPolicy final : public FixedVertexAcceptancePolicy {
+class AllowFreeOnFixedFreeOnFree final : public FixedVertexAcceptancePolicy {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptContraction(const Hypergraph& hg,
                                                                        const Context& context,
@@ -85,7 +85,7 @@ class FreeContractionPartnerOnlyPolicy final : public FixedVertexAcceptancePolic
   }
 };
 
-class FixedVertexContractionsAllowedPolicy final : public FixedVertexAcceptancePolicy {
+class AllowFreeOnFixedFreeOnFreeFixedOnFixed final : public FixedVertexAcceptancePolicy {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptContraction(const Hypergraph& hg,
                                                                        const Context& context,
@@ -107,7 +107,7 @@ class FixedVertexContractionsAllowedPolicy final : public FixedVertexAcceptanceP
   }
 };
 
-class EquivalentVerticesAcceptancePolicy final : public FixedVertexAcceptancePolicy {
+class AllowFreeOnFreeFixedOnFixed final : public FixedVertexAcceptancePolicy {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptContraction(const Hypergraph& hg,
                                                                        const Context& context,
@@ -130,7 +130,7 @@ class EquivalentVerticesAcceptancePolicy final : public FixedVertexAcceptancePol
 };
 
 
-using FixedVertexAcceptancePolicies = meta::Typelist<FreeContractionPartnerOnlyPolicy,
-                                                     FixedVertexContractionsAllowedPolicy,
-                                                     EquivalentVerticesAcceptancePolicy>;
+using FixedVertexAcceptancePolicies = meta::Typelist<AllowFreeOnFixedFreeOnFree,
+                                                     AllowFreeOnFixedFreeOnFreeFixedOnFixed,
+                                                     AllowFreeOnFreeFixedOnFixed>;
 }  // namespace kahypar

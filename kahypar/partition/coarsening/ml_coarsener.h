@@ -40,7 +40,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = NoWeightPenalty,
           class CommunityPolicy = UseCommunityStructure,
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
-          class FixedVertexPolicy = FixedVertexContractionsAllowedPolicy,
+          class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
           typename RatingType = RatingType>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
