@@ -130,7 +130,7 @@ Currently we provide four different presets that correspond to the configuration
 
 To start EvoHGP/KaHyPar-E (see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)) optimizing the (connectivity - 1) objective using direct k-way mode run
    
-     	./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
+     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
