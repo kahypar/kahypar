@@ -186,11 +186,11 @@ class Louvain {
     }
 
     // PERFORMANCE TUNING:
-    // A node can only change its cluster, if some of its incident cluster
-    // changed its weight. Therefore, we introduce a time stamp which tracks
-    // at which time a node was the last time processed and at which time
+    // A node can only change its cluster if some of its incident clusters
+    // changed their weight. Therefore we introduce a time stamp which tracks
+    // at which time a node was processed for the last time and at which time
     // a cluster changed its weight. Consider a node u is incident to a cluster
-    // id, then a node u might change its cluster, if node_time_stamp[u] <
+    // id, then u might change its cluster if node_time_stamp[u] <
     // cluster_time_stamp[id].
     std::vector<size_t> node_time_stamp(graph.numNodes(), 0);
     std::vector<size_t> cluster_time_stamp(graph.numNodes(), graph.numNodes());
