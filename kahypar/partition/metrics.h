@@ -144,7 +144,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
     const double balance_i =
       (hypergraph.partWeight(i) /
        static_cast<double>(context.partition.perfect_balance_part_weights[
-           context.partition.use_individual_block_weights? i : 1]));
+                             context.partition.use_individual_part_weights ? i : 1]));
     max_balance = std::max(max_balance, balance_i);
   }
 
