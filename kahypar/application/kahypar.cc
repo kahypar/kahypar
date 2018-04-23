@@ -36,6 +36,7 @@
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
 using kahypar::Context;
+using kahypar::HypernodeWeight;
 
 int main(int argc, char* argv[]) {
   Context context;
@@ -58,6 +59,17 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
+
+  if (context.partition.use_individual_block_weights) {
+    HypernodeWeight sum_part_weights = 0;
+    for (const HypernodeWeight& part_weight : context.partition.max_part_weights) {
+      sum_part_weights += part_weight;
+    }
+    if (sum_part_weights < hypergraph.totalWeight()) {
+      LOG << "Sum of individual part weights is less than sum of vertex weights";
+      std::exit(0);
+    }
+  }
 
   Partitioner partitioner;
   const HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
