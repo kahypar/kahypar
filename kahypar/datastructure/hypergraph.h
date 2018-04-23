@@ -809,11 +809,11 @@ class GenericHypergraph {
     ASSERT(!hypernode(v).isDisabled(), "Hypernode" << v << "is disabled");
     ASSERT(partID(u) == partID(v), "Hypernodes" << u << "&" << v << "are in different parts: "
                                                 << partID(u) << "&" << partID(v));
-    // If v is a fixed vertex, than u have to be a fixed vertex, too.
+    // If v is a fixed vertex, then u has to be a fixed vertex as well.
     // A fixed vertex should always be the representative in a fixed vertex contraction.
     ASSERT(!isFixedVertex(v) || isFixedVertex(u),
-           "Hypernode " << v << " is a fixed vertex and have to be the representive of the contraction");
-    // If both hypernodes are fixed vertices, than they have to be in the same fixed vertex part
+           "Hypernode " << v << " is a fixed vertex and has to be the representive of the contraction");
+    // If both hypernodes are fixed vertices, then they have to be in the same part.
     ASSERT(!(isFixedVertex(u) && isFixedVertex(v)) || (fixedVertexPartID(u) == fixedVertexPartID(v)),
            "Hypernode " << v << " is a fixed vertex and have to be the representive of the contraction");
 
@@ -1226,7 +1226,7 @@ class GenericHypergraph {
     }
   }
 
-  /*! 
+  /*!
    * Set block ID of hypernode hn to a fixed block of the partition.
    * Such hypernodes should be placed in block id in the final partition.
    */
@@ -1560,14 +1560,14 @@ class GenericHypergraph {
    *
    */
   HypernodeID currentNumNodes() const {
-    /*ASSERT([&]() {
+    ASSERT([&]() {
           HypernodeID count = 0;
           for (const HypernodeID& hn : nodes()) {
             ONLYDEBUG(hn);
             ++count;
           }
           return count == _current_num_hypernodes;
-        } ());*/
+        } ());
     return _current_num_hypernodes;
   }
 
@@ -2130,8 +2130,8 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                    typename Hypergraph::PartitionID part,
-                                                                                                                    const Objective& objective);
+                                                                                                                     typename Hypergraph::PartitionID part,
+                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
