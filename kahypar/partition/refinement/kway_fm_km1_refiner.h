@@ -962,31 +962,33 @@ class KWayKMinusOneRefiner final : public IRefiner,
   // TODO(schlag): Some of these assertions could easily be converted
   // into unit tests.
   void ASSERT_THAT_CACHE_IS_VALID_FOR_HN(const HypernodeID hn) const {
-    std::vector<bool> adjacent_parts(_context.partition.k, false);
-    for (PartitionID part = 0; part < _context.partition.k; ++part) {
-      if (hypernodeIsConnectedToPart(hn, part)) {
-        adjacent_parts[part] = true;
+    if (_gain_cache.entryExists(hn)) {
+      std::vector<bool> adjacent_parts(_context.partition.k, false);
+      for (PartitionID part = 0; part < _context.partition.k; ++part) {
+        if (hypernodeIsConnectedToPart(hn, part)) {
+          adjacent_parts[part] = true;
+        }
+        if (_gain_cache.entry(hn, part) != GainCache::kNotCached) {
+          ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
+          ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+                 V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+                 V(gainInducedByHypergraph(hn, part)) << V(_hg.partID(hn)));
+          ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
+          ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
+                                                           << "_hg.partID(hn) != part");
+          ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached, V(hn) << V(part));
+        }
+        if (_hg.partID(hn) == part) {
+          ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
+                                                           << "_hg.partID(hn) == part");
+          ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached,
+                 V(hn) << V(part));
+        }
       }
-      if (_gain_cache.entry(hn, part) != GainCache::kNotCached) {
-        ASSERT(_gain_cache.entryExists(hn, part), V(hn) << V(part));
-        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-               V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-               V(gainInducedByHypergraph(hn, part)) << V(_hg.partID(hn)) << V(_hg.isFixedVertex(hn)));
-        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-      } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
-        ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
-                                                         << "_hg.partID(hn) != part");
-        ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached, V(hn) << V(part));
+      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
+        ASSERT(adjacent_parts[part], V(part));
       }
-      if (_hg.partID(hn) == part) {
-        ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part)
-                                                         << "_hg.partID(hn) == part");
-        ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached,
-               V(hn) << V(part));
-      }
-    }
-    for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
-      ASSERT(adjacent_parts[part], V(part));
     }
   }
 

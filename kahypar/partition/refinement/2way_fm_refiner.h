@@ -148,7 +148,7 @@ class TwoWayFMRefiner final : public IRefiner,
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
                                       std::vector<HypernodeID>& refinement_nodes,
                                       const UncontractionGainChanges& uncontraction_changes,
-                                      Hypergraph& hypergraph) {
+                                      Hypergraph& hypergraph) override final {
     updateGainCacheAfterUncontraction(refinement_nodes, uncontraction_changes);
     for (const auto& move : moves) {
       hypergraph.changeNodePart(move.hn, move.from, move.to);
@@ -163,8 +163,8 @@ class TwoWayFMRefiner final : public IRefiner,
     _gain_cache.resetDelta();
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
-  
-  std::vector<Move> rollbackImpl() {
+
+  std::vector<Move> rollbackImpl() override final {
     return std::vector<Move>();
   }
 
