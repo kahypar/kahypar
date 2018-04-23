@@ -597,5 +597,9 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
+
+  if (context.partition.use_individual_block_weights) {
+    context.partition.epsilon = 0;
+  }
 }
 }  // namespace kahypar
