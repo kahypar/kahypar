@@ -45,7 +45,7 @@ class BFSStartNodeSelectionPolicy {
 
     if (start_nodes_empty) {
       if (UseRandomStartHypernode) {
-        HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+        const HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
         start_nodes[0].push_back(start_hn);
       } else {
         start_nodes[0].push_back(0);
