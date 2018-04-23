@@ -37,22 +37,23 @@ class FixedVertexAcceptancePolicy : public meta::PolicyBase {
         (!hg.isFixedVertex(u) && !hg.isFixedVertex(v))) {
       return true;
     }
-    // Consider, the subhypergraph which consists of all fixed vertices.
+    // Consider the subhypergraph which consists of all fixed vertices.
     // The partition of this subhypergraph is given by the fixed vertex part ids.
     // If this partition is balanced, max_allowed_fixed_vertex_part_weight ensures
     // that the fixed vertex subhypergraph is balanced after coarsening phase terminates.
-    // If the partition is imbalanced this upper bound implicitly force an balanced
+    // If the partition is imbalanced this upper bound implicitly forces a balanced
     // partition. Keeping the fixed vertex subhypergraph balanced is very important
     // to obtain a balanced partition in recursive bisection initial partitioning mode.
     // NOTE: There are corner cases where a balanced partition of the fixed vertex
     //       subhypergraph is not possible.
-    HypernodeWeight max_allowed_fixed_vertex_part_weight = (1.0 + context.partition.epsilon) *
-                  ceil(static_cast<double>(hg.fixedVertexTotalWeight()) / context.partition.k);
+    const HypernodeWeight max_allowed_fixed_vertex_part_weight =
+      (1.0 + context.partition.epsilon) *
+      ceil(static_cast<double>(hg.fixedVertexTotalWeight()) / context.partition.k);
     // Only consider the fixed vertex part weight, if u is a fixed vertex
-    HypernodeWeight fixed_vertex_part_weight = hg.isFixedVertex(u) ?
-                hg.fixedVertexPartWeight(hg.fixedVertexPartID(u)) : 0;
-    // A contraction of two fixed vertices do not increase the fixed vertex part weight
-    HypernodeWeight node_weight = hg.isFixedVertex(v) ? 0 : hg.nodeWeight(v);
+    const HypernodeWeight fixed_vertex_part_weight =
+      hg.isFixedVertex(u) ? hg.fixedVertexPartWeight(hg.fixedVertexPartID(u)) : 0;
+    // A contraction of two fixed vertices does not increase the fixed vertex part weight
+    const HypernodeWeight node_weight = hg.isFixedVertex(v) ? 0 : hg.nodeWeight(v);
     return fixed_vertex_part_weight + node_weight <= max_allowed_fixed_vertex_part_weight;
   }
 
@@ -60,8 +61,9 @@ class FixedVertexAcceptancePolicy : public meta::PolicyBase {
                                                                                 const Context& context,
                                                                                 const HypernodeID,
                                                                                 const HypernodeID v) {
-    size_t current_number_of_free_vertices = hg.currentNumNodes() - hg.numFixedVertices();
-    size_t number_of_free_vertices_after = current_number_of_free_vertices - (!hg.isFixedVertex(v));
+    const size_t current_number_of_free_vertices = hg.currentNumNodes() - hg.numFixedVertices();
+    const size_t number_of_free_vertices_after = current_number_of_free_vertices -
+                                                 (!hg.isFixedVertex(v));
     return number_of_free_vertices_after >= context.coarsening.contraction_limit;
   }
 };
@@ -72,13 +74,13 @@ class FreeContractionPartnerOnlyPolicy final : public FixedVertexAcceptancePolic
                                                                        const Context& context,
                                                                        const HypernodeID u,
                                                                        const HypernodeID v) {
-    bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
-    bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
+    const bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
+    const bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
     // Hypernode v is not allowed to be a fixed vertex
     // Allowed Contractions:
     //  1.) u = Fixed <- v = Free
     //  2.) u = Free <- v = Free
-    bool accept_contraction = !hg.isFixedVertex(v);
+    const bool accept_contraction = !hg.isFixedVertex(v);
     return accept_imbalance && accept_number_of_free_vertices && accept_contraction;
   }
 };
@@ -89,17 +91,17 @@ class FixedVertexContractionsAllowedPolicy final : public FixedVertexAcceptanceP
                                                                        const Context& context,
                                                                        const HypernodeID u,
                                                                        const HypernodeID v) {
-    bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
-    bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
+    const bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
+    const bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
     // Hypernode v is not allowed to be a fixed vertex
     // Allowed Contractions:
     //  1.) u = Fixed <- v = Free
     //  2.) u = Free <- v = Free
-    //  3.) u = Fixed <- v = Fixed, but have to be in the same part
-    bool accept_contraction = hg.isFixedVertex(u) || !hg.isFixedVertex(v);
-    // If both hypernodes are fixed vertices, than they have to be in the same part
-    bool accept_fixed_vertex_contraction = !(hg.isFixedVertex(u) && hg.isFixedVertex(v)) ||
-                                            (hg.fixedVertexPartID(u) == hg.fixedVertexPartID(v));
+    //  3.) u = Fixed <- v = Fixed, but both have to be in the same part
+    const bool accept_contraction = hg.isFixedVertex(u) || !hg.isFixedVertex(v);
+    // If both hypernodes are fixed vertices, they have to be in the same part
+    const bool accept_fixed_vertex_contraction = !(hg.isFixedVertex(u) && hg.isFixedVertex(v)) ||
+                                                 (hg.fixedVertexPartID(u) == hg.fixedVertexPartID(v));
     return accept_imbalance && accept_number_of_free_vertices && accept_contraction &&
            accept_fixed_vertex_contraction;
   }
@@ -111,17 +113,17 @@ class EquivalentVerticesAcceptancePolicy final : public FixedVertexAcceptancePol
                                                                        const Context& context,
                                                                        const HypernodeID u,
                                                                        const HypernodeID v) {
-    bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
-    bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
+    const bool accept_imbalance = acceptFixedVertexImbalance(hg, context, u, v);
+    const bool accept_number_of_free_vertices = acceptNumberOfFreeVertices(hg, context, u, v);
     // Hypernode v is not allowed to be a fixed vertex
     // Allowed Contractions:
-    //  1.) u = Fixed <- v = Fixed, but have to be in the same part
+    //  1.) u = Fixed <- v = Fixed, but has to be in the same part
     //  2.) u = Free <- v = Free
-    bool accept_contraction = (!hg.isFixedVertex(u) || hg.isFixedVertex(v)) &&
-                              (hg.isFixedVertex(u) || !hg.isFixedVertex(v));
-    // If both hypernodes are fixed vertices, than they have to be in the same part
-    bool accept_fixed_vertex_contraction = !(hg.isFixedVertex(u) && hg.isFixedVertex(v)) ||
-                                            (hg.fixedVertexPartID(u) == hg.fixedVertexPartID(v));
+    const bool accept_contraction = (!hg.isFixedVertex(u) || hg.isFixedVertex(v)) &&
+                                    (hg.isFixedVertex(u) || !hg.isFixedVertex(v));
+    // If both hypernodes are fixed vertices, they have to be in the same part
+    const bool accept_fixed_vertex_contraction = !(hg.isFixedVertex(u) && hg.isFixedVertex(v)) ||
+                                                 (hg.fixedVertexPartID(u) == hg.fixedVertexPartID(v));
     return accept_imbalance && accept_number_of_free_vertices && accept_contraction &&
            accept_fixed_vertex_contraction;
   }
