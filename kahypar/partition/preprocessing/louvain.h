@@ -209,8 +209,8 @@ class Louvain {
 
         bool incident_cluster_changed = false;
         for (const Edge& e : graph.incidentEdges(node)) {
-          NodeID v = e.target_node;
-          ClusterID v_cid = graph.clusterID(v);
+          const NodeID v = e.target_node;
+          const ClusterID v_cid = graph.clusterID(v);
           if (v_cid == cur_cid && v != node) {
             cur_incident_cluster_weight += e.weight;
           }
