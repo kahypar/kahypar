@@ -176,7 +176,7 @@ TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
   context.partition.mode = Mode::direct_kway;
   context.partition.objective = Objective::km1;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
-  context.partition.use_individual_block_weights = true;
+  context.partition.use_individual_part_weights = true;
   context.partition.verbose_output = true;
   context.partition.max_part_weights = { 2750, 1000, 3675, 2550, 2550, 250 };
 

@@ -57,7 +57,7 @@ Its algorithms and detailed experimental results are presented in several [resea
 #### Additional Features
  - Hypergraph Partitioning with Variable Block Weights:
  
- 	KaHyPar has support for variable block weights. If command line option `--use-individual-blockweights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--blockweights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
+ 	KaHyPar has support for variable block weights. If command line option `--use-individual-part-weights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--part-weights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
 
  - Evolutionary Framework (KaHyPar-E) (soon available, see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)):
    
@@ -130,7 +130,7 @@ Currently we provide four different presets that correspond to the configuration
 
 To start EvoHGP/KaHyPar-E (see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)) optimizing the (connectivity - 1) objective using direct k-way mode run
    
-     	./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
+     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 

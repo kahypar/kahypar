@@ -66,7 +66,7 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() = default;
 
   void recalculateBalanceConstraints(const double epsilon) {
-    if (!_context.partition.use_individual_block_weights) {
+    if (!_context.partition.use_individual_part_weights) {
       for (int i = 0; i < _context.initial_partitioning.k; ++i) {
         _context.initial_partitioning.upper_allowed_partition_weight[i] =
           _context.initial_partitioning.perfect_balance_partition_weight[i]

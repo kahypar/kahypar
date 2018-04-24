@@ -36,6 +36,7 @@
 using kahypar::HighResClockTimepoint;
 using kahypar::Partitioner;
 using kahypar::Context;
+using kahypar::HypernodeWeight;
 
 int main(int argc, char* argv[]) {
   Context context;
@@ -62,6 +63,23 @@ int main(int argc, char* argv[]) {
   if (!context.partition.fixed_vertex_filename.empty()) {
     kahypar::io::readFixedVertexFile(hypergraph, context.partition.fixed_vertex_filename);
     context.preprocessing.enable_min_hash_sparsifier = false;
+  }
+
+  if (context.partition.use_individual_part_weights) {
+    if (context.partition.max_part_weights.size() != static_cast<size_t>(context.partition.k)) {
+      LOG << "k=" << context.partition.k << ",but # part weights ="
+          << context.partition.max_part_weights.size();
+      std::exit(-1);
+    }
+
+    HypernodeWeight sum_part_weights = 0;
+    for (const HypernodeWeight& part_weight : context.partition.max_part_weights) {
+      sum_part_weights += part_weight;
+    }
+    if (sum_part_weights < hypergraph.totalWeight()) {
+      LOG << "Sum of individual part weights is less than sum of vertex weights";
+      std::exit(-1);
+    }
   }
 
   Partitioner partitioner;
