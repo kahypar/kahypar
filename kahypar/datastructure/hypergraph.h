@@ -2498,6 +2498,8 @@ removeFixedVertices(const Hypergraph& hypergraph) {
   std::vector<HypernodeID> subhypergraph_to_hypergraph;
   std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
 
+  subhypergraph->_k = hypergraph._k;
+
   HypernodeID num_hypernodes = 0;
   for (const HypernodeID& hn : hypergraph.nodes()) {
     if (!hypergraph.isFixedVertex(hn)) {
@@ -2560,11 +2562,15 @@ removeFixedVertices(const Hypergraph& hypergraph) {
     subhypergraph->_current_num_pins = num_pins;
     subhypergraph->_type = hypergraph.type();
 
-    subhypergraph->_incidence_array.resize(static_cast<size_t>(num_pins) * 2);
-    subhypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) * 2);
+    subhypergraph->_incidence_array.resize(static_cast<size_t>(num_pins) *
+                                           static_cast<size_t>(hypergraph._k));
+    subhypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) *
+                                        static_cast<size_t>(hypergraph._k));
     subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
-    subhypergraph->_connectivity_sets.initialize(num_hyperedges, 2);
+    subhypergraph->_connectivity_sets.initialize(num_hyperedges, hypergraph._k);
+
+    subhypergraph->_part_info.resize(hypergraph._k);
 
     subhypergraph->hypernode(0).setFirstEntry(num_pins);
     for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
