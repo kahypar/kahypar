@@ -158,7 +158,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     }),
     "Acceptance criterion for fixed vertex contraction:\n"
     "free_vertex_only "
-    "fixed_vertex_allowed"
+    "fixed_vertex_allowed "
     "equivalent_vertices");
   return options;
 }
@@ -521,6 +521,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   preset_options.add_options()
     ("preset,p", po::value<std::string>(&context_path)->value_name("<string>"),
     "Context Presets (see config directory):\n"
+    " - km1_direct_kway_sea18.ini\n"
     " - km1_direct_kway_sea17.ini\n"
     " - direct_kway_km1_alenex17.ini\n"
     " - rb_cut_alenex16.ini\n"
