@@ -316,7 +316,6 @@ static inline void printInputInformation(const Context& context, const Hypergrap
 
 static inline void printMaximumWeightedBipartiteMatchingBanner(const Context& context) {
   if (context.initial_partitioning.verbose_output) {
-    LOG << "================================================================================";
     LOG << "Maximum-Weighted Bipartite Matching";
     LOG << "================================================================================";
   }
