@@ -328,8 +328,10 @@ static inline void partition(Hypergraph& input_hypergraph,
   }
 
   if (input_hypergraph.containsFixedVertices()) {
+    io::printMaximumWeightedBipartiteMatchingBanner(original_context);
     if (original_context.initial_partitioning.verbose_output) {
-      LOG << original_context.partition.objective << " of hypergraph without fixed vertices"
+      LOG << "Partitioning objective of hypergraph without fixed vertices: "
+          << original_context.partition.objective << "="
           << metrics::objective(*input_hypergraph_without_fixed_vertices,
                             original_context.partition.objective);
     }
@@ -343,6 +345,10 @@ static inline void partition(Hypergraph& input_hypergraph,
 
     // Postprocessing: Add fixed vertices to input hypergraph after recursive bisection
     fixed_vertices::partition(input_hypergraph, original_context);
+
+    if (original_context.initial_partitioning.verbose_output) {
+      LOG << "================================================================================";
+    }
   }
 }
 }  // namespace recursive_bisection

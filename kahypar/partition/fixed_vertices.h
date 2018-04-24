@@ -409,7 +409,7 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     }
   }
 
-  if (debug) {
+  if (debug || original_context.initial_partitioning.verbose_output) {
     // In this DEBUG code, we compute the best and worst quality
     // achievable with a matching. Matchings are computed hyperedge-wise.
     HyperedgeWeight lower_bound = 0;
@@ -447,7 +447,8 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
         upper_bound += (max_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
       }
     }
-    DBG << V(original_context.partition.objective) << V(lower_bound) << V(upper_bound);
+    LOG << "Lower Bound (" << original_context.partition.objective << ") :" << lower_bound;
+    LOG << "Upper Bound (" << original_context.partition.objective << ") :" << upper_bound;
   }
 
   return graph;
