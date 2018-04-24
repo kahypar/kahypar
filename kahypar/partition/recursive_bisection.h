@@ -147,13 +147,6 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
 
 static inline void partition(Hypergraph& input_hypergraph,
                              const Context& original_context) {
-  // Remove fixed vertices from input hypergraph. Fixed vertices are
-  // added in a postprocessing step to the hypergraph after recursive
-  // bisection finished.
-  auto fixedVertexRemoval = ds::removeFixedVertices(input_hypergraph);
-  std::unique_ptr<Hypergraph> removedFixedVertexHypergraph(fixedVertexRemoval.first.release());
-  std::vector<HypernodeID> fixed_vertex_free_to_input = fixedVertexRemoval.second;
-
   // Custom deleters for Hypergraphs stored in hypergraph_stack. The top-level
   // hypergraph is the input hypergraph, which is not supposed to be deleted.
   // All extracted hypergraphs however can be deleted as soon as they are not needed
@@ -163,9 +156,28 @@ static inline void partition(Hypergraph& input_hypergraph,
                              delete h;
                            };
 
+  HypergraphPtr input_hypergraph_without_fixed_vertices = HypergraphPtr(nullptr, no_delete);
+  std::vector<HypernodeID> fixed_vertex_free_to_input;
+  if (input_hypergraph.containsFixedVertices()) {
+    // Remove fixed vertices from input hypergraph. Fixed vertices are
+    // added in a postprocessing step to the hypergraph after recursive
+    // bisection finished.
+    auto hg_without_fixed_vertices = ds::removeFixedVertices(input_hypergraph);
+    // The 'new' hypergraph without fixed vertices should be deleted.
+    input_hypergraph_without_fixed_vertices =
+      HypergraphPtr(hg_without_fixed_vertices.first.release(),
+                    delete_hypergraph);
+    fixed_vertex_free_to_input = hg_without_fixed_vertices.second;
+  } else {
+    // The original input hypergraph that did not contain any fixed vertices should not
+    // be deleted.
+    input_hypergraph_without_fixed_vertices = HypergraphPtr(&input_hypergraph, no_delete);
+  }
+
   std::vector<RBState> hypergraph_stack;
   MappingStack mapping_stack;
-  hypergraph_stack.emplace_back(HypergraphPtr(removedFixedVertexHypergraph.get(), no_delete),
+
+  hypergraph_stack.emplace_back(HypergraphPtr(input_hypergraph_without_fixed_vertices.get(), no_delete),
                                 RBHypergraphState::unpartitioned, 0,
                                 (original_context.partition.k - 1));
 
@@ -182,10 +194,26 @@ static inline void partition(Hypergraph& input_hypergraph,
 
     if (hypergraph_stack.back().lower_k == hypergraph_stack.back().upper_k) {
       for (const HypernodeID& hn : current_hypergraph.nodes()) {
-        const HypernodeID original_hn = fixed_vertex_free_to_input[originalHypernode(hn, mapping_stack)];
-        ASSERT(input_hypergraph.partID(original_hn) == Hypergraph::kInvalidPartition,
-               "Hypernode" << original_hn << "already assigned");
-        input_hypergraph.setNodePart(original_hn, hypergraph_stack.back().lower_k);
+        if (unlikely(input_hypergraph.containsFixedVertices())) {
+          // If the original input hypergraph contains fixed vertices, then we use the
+          // extracted hypergraph without fixed vertices to perform the first biseciton.
+          // Thus the input hypergraph is completely unpartiitoned in this case.
+          const HypernodeID original_hn = fixed_vertex_free_to_input[originalHypernode(hn, mapping_stack)];
+          ASSERT(input_hypergraph.partID(original_hn) == Hypergraph::kInvalidPartition,
+                 "Hypernode" << original_hn << "already assigned");
+          input_hypergraph.setNodePart(original_hn, hypergraph_stack.back().lower_k);
+        } else {
+          // If the hypergraph does not contain any fixed hypernodes, then the
+          // original input  hypergraph will be used for the first bisection.
+          // Therefore we have to use changeNodePart for the final assignment of vertices.
+          const HypernodeID original_hn = originalHypernode(hn, mapping_stack);
+          const PartitionID current_part = input_hypergraph.partID(original_hn);
+          ASSERT(current_part != Hypergraph::kInvalidPartition, V(current_part));
+          if (current_part != hypergraph_stack.back().lower_k) {
+            input_hypergraph.changeNodePart(original_hn, current_part,
+                                            hypergraph_stack.back().lower_k);
+          }
+        }
       }
       hypergraph_stack.pop_back();
       mapping_stack.pop_back();
@@ -207,8 +235,9 @@ static inline void partition(Hypergraph& input_hypergraph,
         break;
       case RBHypergraphState::unpartitioned: {
           Context current_context =
-            createCurrentBisectionContext(original_context, *(removedFixedVertexHypergraph.get()),
-                                          current_hypergraph, k, km, k - km,k1);
+            createCurrentBisectionContext(original_context,
+                                          *input_hypergraph_without_fixed_vertices,
+                                          current_hypergraph, k, km, k - km, k1);
           current_context.partition.rb_lower_k = k1;
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;
@@ -311,9 +340,10 @@ static inline void partition(Hypergraph& input_hypergraph,
     }
   }
 
-  // Postprocessing: Add fixed vertices to input hypergraph after
-  //                 recursive bisection
-  fixed_vertices::partition(input_hypergraph, original_context);
+  if (input_hypergraph.containsFixedVertices()) {
+    // Postprocessing: Add fixed vertices to input hypergraph after recursive bisection
+    fixed_vertices::partition(input_hypergraph, original_context);
+  }
 }
 }  // namespace recursive_bisection
 }  // namespace kahypar

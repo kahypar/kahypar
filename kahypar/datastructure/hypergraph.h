@@ -1628,7 +1628,11 @@ class GenericHypergraph {
   }
 
   HypernodeID numFixedVertices() const {
-      return _fixed_vertices ? _fixed_vertices->size() : 0;
+    return _fixed_vertices ? _fixed_vertices->size() : 0;
+  }
+
+  bool containsFixedVertices() const {
+    return numFixedVertices() > 0;
   }
 
   bool isModified() const {
