@@ -133,14 +133,14 @@ class InitialPartitionerBase {
     }
 
     ASSERT([&]() {
-      for (const HypernodeID& hn : _hg.fixedVertices()) {
-        if (_hg.partID(hn) != _hg.fixedVertexPartID(hn)) {
-          LOG << V(hn) << V(_hg.partID(hn)) << V(_hg.fixedVertexPartID(hn));
-          return false;
+        for (const HypernodeID& hn : _hg.fixedVertices()) {
+          if (_hg.partID(hn) != _hg.fixedVertexPartID(hn)) {
+            LOG << V(hn) << V(_hg.partID(hn)) << V(_hg.fixedVertexPartID(hn));
+            return false;
+          }
         }
-      }
-      return true;
-    } (), "Fixed Vertices are not correctly assigned!");
+        return true;
+      } (), "Fixed Vertices are not correctly assigned!");
   }
 
   void performFMRefinement() {
@@ -148,10 +148,27 @@ class InitialPartitionerBase {
       std::unique_ptr<IRefiner> refiner;
       if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm &&
           _context.initial_partitioning.k > 2) {
-        refiner = (RefinerFactory::getInstance().createObject(
-                     RefinementAlgorithm::kway_fm,
-                     _hg, _context));
-        LOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.";
+        LLOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to:";
+        switch (_context.partition.objective) {
+          case Objective::cut:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::kway_fm,
+                         _hg, _context));
+            LOG << "kway_fm.";
+            break;
+          case Objective::km1:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::kway_fm_km1,
+                         _hg, _context));
+            LOG << "kway_fm_km1.";
+            break;
+          case Objective::UNDEFINED:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::do_nothing,
+                         _hg, _context));
+            LOG << "do_nothing.";
+            // omit default case to trigger compiler warning for missing cases
+        }
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
                      _context.local_search.algorithm,
