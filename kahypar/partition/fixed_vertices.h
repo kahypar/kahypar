@@ -705,6 +705,8 @@ static inline void partition(Hypergraph& input_hypergraph,
 
   for (const HypernodeID& hn : input_hypergraph.nodes()) {
     if (input_hypergraph.isFixedVertex(hn)) {
+      // This explicit setNodePart is necessary since the fixed vertex part ID is stored
+      // in a different vector than the actual part id of the partition.
       input_hypergraph.setNodePart(hn, input_hypergraph.fixedVertexPartID(hn));
     } else {
       const PartitionID from = input_hypergraph.partID(hn);
