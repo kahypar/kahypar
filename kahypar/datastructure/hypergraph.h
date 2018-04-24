@@ -1242,9 +1242,9 @@ class GenericHypergraph {
     ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is already a fixed vertex");
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
     if (!_fixed_vertices) {
-      _fixed_vertices = std::make_unique<SparseSet<HypernodeID>>(initialNumNodes());
-      _fixed_vertex_part_id = std::make_unique<std::vector<PartitionID>>(initialNumNodes(),
-                                                                         kInvalidPartition);
+      _fixed_vertices = std::make_unique<SparseSet<HypernodeID> >(initialNumNodes());
+      _fixed_vertex_part_id = std::make_unique<std::vector<PartitionID> >(initialNumNodes(),
+                                                                          kInvalidPartition);
     }
     _fixed_vertices->add(hn);
     (*_fixed_vertex_part_id)[hn] = id;
@@ -2119,9 +2119,9 @@ class GenericHypergraph {
   // ! If community detection is disabled, all HNs are in the same community.
   std::vector<PartitionID> _communities;
   // ! Stores fixed vertices
-  std::unique_ptr<SparseSet<HypernodeID>> _fixed_vertices;
+  std::unique_ptr<SparseSet<HypernodeID> > _fixed_vertices;
   // ! Stores fixed vertex part ids
-  std::unique_ptr<std::vector<PartitionID>> _fixed_vertex_part_id;
+  std::unique_ptr<std::vector<PartitionID> > _fixed_vertex_part_id;
 
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
