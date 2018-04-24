@@ -199,7 +199,7 @@ class MaximumFlow {
   void moveHypernode(const HypernodeID hn, const PartitionID to) {
     ASSERT(_hg.partID(hn) != -1, "Hypernode " << hn << " should be assigned to a part");
     const PartitionID from = _hg.partID(hn);
-    if (from != to) {
+    if (from != to && !_hg.isFixedVertex(hn)) {
       _hg.changeNodePart(hn, from, to);
     }
   }

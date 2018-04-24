@@ -90,22 +90,17 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                             static_cast<int>(_hg.initialNumNodes()
                                                              / _context.initial_partitioning.k)), 1);
 
-    std::vector<HypernodeID> startNodes;
+    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
+                                                     std::vector<HypernodeID>());
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
+    }
     StartNodeSelection::calculateStartNodes(startNodes, _context, _hg,
                                             _context.initial_partitioning.k);
 
     for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
       assignKConnectedHypernodesToPart(startNodes[i], i, connected_nodes);
     }
-
-    ASSERT([&]() {
-        for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
-          if (static_cast<int>(_hg.partSize(i)) != connected_nodes) {
-            return false;
-          }
-        }
-        return true;
-      } ());
 
     bool converged = false;
     size_t iterations = 0;
@@ -119,6 +114,10 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
         int pos = std::rand() % unvisited_pos;
         std::swap(nodes[pos], nodes[unvisited_pos - 1]);
         HypernodeID v = nodes[--unvisited_pos];
+
+        if (_hg.isFixedVertex(v)) {
+          continue;
+        }
 
         std::pair<PartitionID, Gain> max_move = computeMaxGainMove(v);
         PartitionID max_part = max_move.first;
@@ -355,18 +354,22 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
   }
 
 
-  void assignKConnectedHypernodesToPart(const HypernodeID hn,
+  void assignKConnectedHypernodesToPart(const std::vector<HypernodeID>& hypernodes,
                                         const PartitionID p, const int k =
                                           std::numeric_limits<int>::max()) {
     std::queue<HypernodeID> _bfs_queue;
     int assigned_nodes = 0;
-    _bfs_queue.push(hn);
-    _in_queue.set(hn, true);
+    for (const HypernodeID& hn : hypernodes) {
+      _bfs_queue.push(hn);
+      _in_queue.set(hn, true);
+    }
     while (!_bfs_queue.empty()) {
       HypernodeID node = _bfs_queue.front();
       _bfs_queue.pop();
       if (_hg.partID(node) == -1) {
-        _hg.setNodePart(node, p);
+        if (!_hg.isFixedVertex(node)) {
+          _hg.setNodePart(node, p);
+        }
         ++assigned_nodes;
         for (const HyperedgeID& he : _hg.incidentEdges(node)) {
           if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
@@ -379,7 +382,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
           }
         }
       }
-      if (assigned_nodes == k) {
+      if (assigned_nodes == k * static_cast<int>(hypernodes.size())) {
         break;
       } else if (_bfs_queue.empty()) {
         const HypernodeID unassigned = Base::getUnassignedNode();

@@ -36,6 +36,7 @@
 
 #include "kahypar/datastructure/connectivity_sets.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/empty.h"
 #include "kahypar/meta/int_to_type.h"
@@ -450,15 +451,18 @@ class GenericHypergraph {
   /*!
    * For each block \f$V_i\f$ of the \f$k\f$-way partition \f$\mathrm{\Pi} = \{V_1, \dots, V_k\}\f$,
    * a PartInfo object stores the number of hypernodes currently assigned to block \f$V_i\f$
-   * as well as the sum of their weights.
+   * as well as the sum of their weights and the sum of the weights of the fixed vertices
+   * assigned to that block.
    */
   class PartInfo {
  public:
     bool operator== (const PartInfo& other) const {
-      return weight == other.weight && size == other.size;
+      return weight == other.weight && size == other.size &&
+             fixed_vertex_weight == other.fixed_vertex_weight;
     }
 
     HypernodeWeight weight;
+    HypernodeWeight fixed_vertex_weight;
     HypernodeID size;
   };
 
@@ -508,6 +512,7 @@ class GenericHypergraph {
     _num_hyperedges(num_hyperedges),
     _num_pins(edge_vector.size()),
     _total_weight(0),
+    _fixed_vertex_total_weight(0),
     _k(k),
     _type(Type::Unweighted),
     _current_num_hypernodes(_num_hypernodes),
@@ -519,6 +524,8 @@ class GenericHypergraph {
     _hyperedges(_num_hyperedges, Hyperedge(0, 0, 1)),
     _incidence_array(2 * _num_pins, 0),
     _communities(_num_hypernodes, 0),
+    _fixed_vertices(nullptr),
+    _fixed_vertex_part_id(nullptr),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
@@ -585,6 +592,7 @@ class GenericHypergraph {
     _num_hyperedges(0),
     _num_pins(0),
     _total_weight(0),
+    _fixed_vertex_total_weight(0),
     _k(2),
     _type(Type::Unweighted),
     _current_num_hypernodes(0),
@@ -596,6 +604,8 @@ class GenericHypergraph {
     _hyperedges(),
     _incidence_array(),
     _communities(),
+    _fixed_vertices(nullptr),
+    _fixed_vertex_part_id(nullptr),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(),
@@ -764,6 +774,17 @@ class GenericHypergraph {
                                             _num_hyperedges, _num_hyperedges));
   }
 
+  /*!
+   * Returns a for-each iterator-pair to loop over the set of fixed vertices.
+   */
+  std::pair<const HypernodeID*, const HypernodeID*> fixedVertices() const {
+    if (_fixed_vertices) {
+      return std::make_pair(_fixed_vertices->begin(), _fixed_vertices->end());
+    } else {
+      return std::make_pair(&_num_hypernodes, &_num_hypernodes);
+    }
+  }
+
   // ! Returns a reference to the connectivity set of hyperedge he.
   const typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet&
   connectivitySet(const HyperedgeID he) const {
@@ -792,10 +813,26 @@ class GenericHypergraph {
     ASSERT(!hypernode(v).isDisabled(), "Hypernode" << v << "is disabled");
     ASSERT(partID(u) == partID(v), "Hypernodes" << u << "&" << v << "are in different parts: "
                                                 << partID(u) << "&" << partID(v));
+    // If v is a fixed vertex, then u has to be a fixed vertex as well.
+    // A fixed vertex should always be the representative in a fixed vertex contraction.
+    ASSERT(!isFixedVertex(v) || isFixedVertex(u),
+           "Hypernode " << v << " is a fixed vertex and has to be the representive of the contraction");
+    // If both hypernodes are fixed vertices, then they have to be in the same part.
+    ASSERT(!(isFixedVertex(u) && isFixedVertex(v)) || (fixedVertexPartID(u) == fixedVertexPartID(v)),
+           "Hypernode " << v << " is a fixed vertex and have to be the representive of the contraction");
 
     DBG << "contracting (" << u << "," << v << ")";
 
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
+    if (isFixedVertex(u)) {
+      if (!isFixedVertex(v)) {
+        _part_info[fixedVertexPartID(u)].fixed_vertex_weight += hypernode(v).weight();
+        _fixed_vertex_total_weight += hypernode(v).weight();
+      } else {
+        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
+        _fixed_vertices->remove(v);
+      }
+    }
     const HypernodeID u_offset = hypernode(u).firstEntry();
     const HypernodeID u_size = hypernode(u).size();
 
@@ -875,6 +912,15 @@ class GenericHypergraph {
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u)) {
+      if (!isFixedVertex(memento.v)) {
+        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
+      } else {
+        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
+        _fixed_vertices->add(memento.v);
+      }
+    }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
@@ -994,6 +1040,15 @@ class GenericHypergraph {
     ++_current_num_hypernodes;
     hypernode(memento.v).part_id = hypernode(memento.u).part_id;
     ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u)) {
+      if (!isFixedVertex(memento.v)) {
+        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
+      } else {
+        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
+        _fixed_vertices->add(memento.v);
+      }
+    }
 
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
@@ -1101,6 +1156,7 @@ class GenericHypergraph {
     ASSERT(partID(hn) == from, "Hypernode" << hn << "is not in partition" << from);
     ASSERT(to < _k && to != kInvalidPartition, "Invalid to_part:" << to);
     ASSERT(from != to, "from part" << from << "==" << to << "part");
+    ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is a fixed vertex");
     updatePartInfo(hn, from, to);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       const bool no_pins_left_in_source_part = decrementPinCountInPart(he, from);
@@ -1169,10 +1225,31 @@ class GenericHypergraph {
     ASSERT(partID(hn) == kInvalidPartition, "Hypernode" << hn << "is not unpartitioned: "
                                                         << partID(hn));
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
+    ASSERT(!isFixedVertex(hn) || fixedVertexPartID(hn) == id,
+           "Fixed vertex " << hn << " assigned to wrong part " << id);
     updatePartInfo(hn, id);
     for (const HyperedgeID& he : incidentEdges(hn)) {
       incrementPinCountInPart(he, id);
     }
+  }
+
+  /*!
+   * Set block ID of hypernode hn to a fixed block of the partition.
+   * Such hypernodes should be placed in block id in the final partition.
+   */
+  void setFixedVertex(const HypernodeID hn, const PartitionID id) {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
+    ASSERT(!isFixedVertex(hn), "Hypernode " << hn << " is already a fixed vertex");
+    ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
+    if (!_fixed_vertices) {
+      _fixed_vertices = std::make_unique<SparseSet<HypernodeID>>(initialNumNodes());
+      _fixed_vertex_part_id = std::make_unique<std::vector<PartitionID>>(initialNumNodes(),
+                                                                         kInvalidPartition);
+    }
+    _fixed_vertices->add(hn);
+    (*_fixed_vertex_part_id)[hn] = id;
+    _part_info[id].fixed_vertex_weight += nodeWeight(hn);
+    _fixed_vertex_total_weight += nodeWeight(hn);
   }
 
   /*!
@@ -1353,6 +1430,13 @@ class GenericHypergraph {
       hyperedge(i).connectivity = 0;
       _connectivity_sets[i].clear();
     }
+    // Recalculate fixed vertex part weights
+    HyperedgeWeight fixed_vertex_weight = 0;
+    for (const HypernodeID& hn : fixedVertices()) {
+      _part_info[fixedVertexPartID(hn)].fixed_vertex_weight += nodeWeight(hn);
+      fixed_vertex_weight += nodeWeight(hn);
+    }
+    ASSERT(fixed_vertex_weight == _fixed_vertex_total_weight, "Fixed vertex weight calculation failed");
   }
 
   // ! Resets the hypergraph to initial state after construction
@@ -1443,6 +1527,16 @@ class GenericHypergraph {
     return hypernode(u).part_id;
   }
 
+  PartitionID fixedVertexPartID(const HypernodeID u) const {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
+    return _fixed_vertex_part_id ? (*_fixed_vertex_part_id)[u] : kInvalidPartition;
+  }
+
+  bool isFixedVertex(const HypernodeID hn) const {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
+    return fixedVertexPartID(hn) != kInvalidPartition;
+  }
+
   // ! Returns true if the hypernode is enabled
   // ! This is mainly used in assertions.
   bool nodeIsEnabled(const HypernodeID u) const {
@@ -1531,6 +1625,10 @@ class GenericHypergraph {
           return count == _current_num_pins;
         } ());
     return _current_num_pins;
+  }
+
+  HypernodeID numFixedVertices() const {
+      return _fixed_vertices ? _fixed_vertices->size() : 0;
   }
 
   bool isModified() const {
@@ -1643,6 +1741,11 @@ class GenericHypergraph {
     return _total_weight;
   }
 
+  // ! Returns the sum of the weights of all fixed vertices
+  HypernodeWeight fixedVertexTotalWeight() const {
+    return _fixed_vertex_total_weight;
+  }
+
   // ! Returns the community structure of the hypergraph
   const std::vector<PartitionID> & communities() const {
     return _communities;
@@ -1673,6 +1776,12 @@ class GenericHypergraph {
   HypernodeWeight partWeight(const PartitionID id) const {
     ASSERT(id < _k && id != kInvalidPartition, "Partition ID" << id << "is out of bounds");
     return _part_info[id].weight;
+  }
+
+  // ! Returns the sum of the weights of all fixed vertices in a block
+  HypernodeWeight fixedVertexPartWeight(const PartitionID id) const {
+    ASSERT(id < _k && id != kInvalidPartition, "Partition ID" << id << "is out of bounds");
+    return _part_info[id].fixed_vertex_weight;
   }
 
   // ! Returns the number of hypernodes in a block
@@ -1980,6 +2089,8 @@ class GenericHypergraph {
   HypernodeID _num_pins;
   // ! Sum of the weights of all hypernodes
   HypernodeWeight _total_weight;
+  // ! Sum of the weights of all fixed vertices
+  HypernodeWeight _fixed_vertex_total_weight;
   // ! Number of blocks the hypergraph will be partitioned in
   int _k;
   // ! Type of the hypergraph
@@ -2007,6 +2118,10 @@ class GenericHypergraph {
   // ! Stores the community structure revealed by community detection algorithms.
   // ! If community detection is disabled, all HNs are in the same community.
   std::vector<PartitionID> _communities;
+  // ! Stores fixed vertices
+  std::unique_ptr<SparseSet<HypernodeID>> _fixed_vertices;
+  // ! Stores fixed vertex part ids
+  std::unique_ptr<std::vector<PartitionID>> _fixed_vertex_part_id;
 
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
@@ -2027,8 +2142,8 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                    typename Hypergraph::PartitionID part,
-                                                                                                                    const Objective& objective);
+                                                                                                                     typename Hypergraph::PartitionID part,
+                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2041,6 +2156,10 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
+
+  template <typename Hypergraph>
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
 };
 
 template <typename Hypergraph>
@@ -2221,6 +2340,12 @@ reindex(const Hypergraph& hypergraph) {
   }
 
   reindexed_hypergraph->_part_info.resize(reindexed_hypergraph->_k);
+  for (const HypernodeID& hn : reindexed_hypergraph->nodes()) {
+    HypernodeID original_hn = reindexed_to_original[hn];
+    if (hypergraph.isFixedVertex(original_hn)) {
+      reindexed_hypergraph->setFixedVertex(hn, hypergraph.fixedVertexPartID(original_hn));
+    }
+  }
 
   return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
 }
@@ -2320,6 +2445,109 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       }
     }
 
+
+    const HypernodeID num_pins = pin_index;
+    subhypergraph->_num_pins = num_pins;
+    subhypergraph->_current_num_hypernodes = num_hypernodes;
+    subhypergraph->_current_num_hyperedges = num_hyperedges;
+    subhypergraph->_current_num_pins = num_pins;
+    subhypergraph->_type = hypergraph.type();
+
+    subhypergraph->_incidence_array.resize(static_cast<size_t>(num_pins) * 2);
+    subhypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) * 2);
+    subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
+
+    subhypergraph->_connectivity_sets.initialize(num_hyperedges, 2);
+
+    subhypergraph->hypernode(0).setFirstEntry(num_pins);
+    for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+      subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
+      subhypergraph->hypernode(i).setSize(0);
+      subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
+      subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
+    }
+    subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
+    subhypergraph->hypernode(num_hypernodes - 1).setWeight(
+      hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
+    subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
+
+    for (const HyperedgeID& he : subhypergraph->edges()) {
+      for (const HypernodeID& pin : subhypergraph->pins(he)) {
+        subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
+        subhypergraph->hypernode(pin).incrementSize();
+      }
+    }
+  }
+  return std::make_pair(std::move(subhypergraph),
+                        subhypergraph_to_hypergraph);
+}
+
+
+template <typename Hypergraph>
+std::pair<std::unique_ptr<Hypergraph>,
+          std::vector<typename Hypergraph::HypernodeID> >
+removeFixedVertices(const Hypergraph& hypergraph) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
+  std::vector<HypernodeID> subhypergraph_to_hypergraph;
+  std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
+
+  HypernodeID num_hypernodes = 0;
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    if (!hypergraph.isFixedVertex(hn)) {
+      hypergraph_to_subhypergraph[hn] = subhypergraph_to_hypergraph.size();
+      subhypergraph_to_hypergraph.push_back(hn);
+      ++num_hypernodes;
+    }
+  }
+
+  if (num_hypernodes > 0) {
+    subhypergraph->_hypernodes.resize(num_hypernodes);
+    subhypergraph->_num_hypernodes = num_hypernodes;
+
+    if (!hypergraph._communities.empty()) {
+      subhypergraph->_communities.resize(num_hypernodes, -1);
+      for (const HypernodeID& subhypergraph_hn : subhypergraph->nodes()) {
+        const HypernodeID original_hn = subhypergraph_to_hypergraph[subhypergraph_hn];
+        subhypergraph->_communities[subhypergraph_hn] = hypergraph._communities[original_hn];
+      }
+      ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
+                          subhypergraph->_communities.cend(),
+                          [](typename Hypergraph::PartitionID i) {
+            return i == -1;
+          }));
+    }
+
+    HyperedgeID num_hyperedges = 0;
+    HypernodeID pin_index = 0;
+    for (const HyperedgeID& he : hypergraph.edges()) {
+      ASSERT(hypergraph.edgeSize(he) > 1, V(he));
+      HypernodeID num_pins_he = 0;
+      for (const HypernodeID& pin : hypergraph.pins(he)) {
+        if (!hypergraph.isFixedVertex(pin)) {
+          ++num_pins_he;
+        }
+      }
+      // Remove single-node hyperedges
+      if (num_pins_he > 1) {
+        subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+        ++subhypergraph->_num_hyperedges;
+        subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+        for (const HypernodeID& pin : hypergraph.pins(he)) {
+          if (!hypergraph.isFixedVertex(pin)) {
+            subhypergraph->hyperedge(num_hyperedges).incrementSize();
+            subhypergraph->hyperedge(num_hyperedges).hash += math::hash(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+            subhypergraph->hypernode(hypergraph_to_subhypergraph[pin]).incrementSize();
+            ++pin_index;
+          }
+        }
+        ASSERT(subhypergraph->hyperedge(num_hyperedges).size() > 1, V(he));
+        ++num_hyperedges;
+      }
+    }
 
     const HypernodeID num_pins = pin_index;
     subhypergraph->_num_pins = num_pins;

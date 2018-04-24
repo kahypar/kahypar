@@ -118,6 +118,8 @@ struct RatingParameters {
   CommunityPolicy community_policy = CommunityPolicy::UNDEFINED;
   HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::UNDEFINED;
   AcceptancePolicy acceptance_policy = AcceptancePolicy::UNDEFINED;
+  FixVertexContractionAcceptancePolicy fixed_vertex_acceptance_policy =
+                                       FixVertexContractionAcceptancePolicy::UNDEFINED;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
@@ -126,6 +128,7 @@ inline std::ostream& operator<< (std::ostream& str, const RatingParameters& para
   str << "    Use Community Structure:          " << params.community_policy << std::endl;
   str << "    Heavy Node Penalty:               " << params.heavy_node_penalty_policy << std::endl;
   str << "    Acceptance Policy:                " << params.acceptance_policy << std::endl;
+  str << "    Fixed Vertex Acceptance Policy:   " << params.fixed_vertex_acceptance_policy << std::endl;
   return str;
 }
 
@@ -318,12 +321,16 @@ struct PartitioningParameters {
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
+  std::string fixed_vertex_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
   str << "Partitioning Parameters:" << std::endl;
   str << "  Hypergraph:                         " << params.graph_filename << std::endl;
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
+  if (!params.fixed_vertex_filename.empty()) {
+    str << "  Fixed Vertex File:                  " << params.fixed_vertex_filename << std::endl;
+  }
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Objective:                          " << params.objective << std::endl;
   str << "  k:                                  " << params.k << std::endl;

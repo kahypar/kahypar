@@ -117,7 +117,6 @@ class PoolInitialPartitioner : public IInitialPartitioner,
                                      kInvalidImbalance);
     PartitioningResult max_imbalance(InitialPartitionerAlgorithm::pool, obj, kInvalidCut, -0.1);
 
-
     std::vector<PartitionID> best_partition(_hg.initialNumNodes());
     unsigned int n = _partitioner_pool.size() - 1;
     for (unsigned int i = 0; i <= n; ++i) {
@@ -183,7 +182,9 @@ class PoolInitialPartitioner : public IInitialPartitioner,
     Base::resetPartitioning();
     _context.initial_partitioning.unassigned_part = unassigned_part;
     for (const HypernodeID& hn : _hg.nodes()) {
-      _hg.setNodePart(hn, best_partition[hn]);
+      if (!_hg.isFixedVertex(hn)) {
+        _hg.setNodePart(hn, best_partition[hn]);
+      }
     }
 
     _hg.initializeNumCutHyperedges();

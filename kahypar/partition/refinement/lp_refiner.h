@@ -99,7 +99,7 @@ class LPRefiner final : public IRefiner {
     for (const HypernodeID& cur_node : refinement_nodes) {
       _gain_cache.clear(cur_node);
       initializeGainCacheFor(cur_node);
-      if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node)) {
+      if (!_contained_cur_queue[cur_node] && _hg.isBorderNode(cur_node) && !_hg.isFixedVertex(cur_node)) {
         ASSERT(_hg.partWeight(_hg.partID(cur_node))
                <= _context.partition.max_part_weights[_hg.partID(cur_node) % 2],
                V(_hg.partWeight(_hg.partID(cur_node)))
@@ -173,7 +173,7 @@ class LPRefiner final : public IRefiner {
               }
 
               // add adjacent pins to next iteration
-              if (!_contained_next_queue[pin] && _hg.isBorderNode(pin)) {
+              if (!_contained_next_queue[pin] && _hg.isBorderNode(pin) && !_hg.isFixedVertex(pin)) {
                 _contained_next_queue.set(pin, true);
                 _next_queue.push_back(pin);
               }

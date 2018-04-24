@@ -72,6 +72,18 @@ void initializeContext(Hypergraph& hg, Context& context,
   Randomize::instance().setSeed(context.partition.seed);
 }
 
+void generateRandomFixedVertices(Hypergraph& hypergraph,
+                                 const double fixed_vertices_percentage,
+                                 const PartitionID k) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    int p = Randomize::instance().getRandomInt(0, 100);
+    if (p < fixed_vertices_percentage * 100) {
+      PartitionID part = Randomize::instance().getRandomInt(0, k-1);
+      hypergraph.setFixedVertex(hn, part);
+    }
+  }
+}
+
 template <typename StartNodeSelection, typename GainComputation,
           typename QueueSelection>
 struct GreedyTemplateStruct {
@@ -174,5 +186,16 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
   this->context.initial_partitioning.nruns = 3;
   this->ghg->partition();
+}
+
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, SetCorrectFixedVertexPart) {
+  generateRandomFixedVertices(*(this->hypergraph), 0.1, 4);
+  ASSERT_GE(this->hypergraph->numFixedVertices(), 0);
+
+  this->ghg->partition();
+
+  for (const HypernodeID& hn : this->hypergraph->fixedVertices()) {
+    ASSERT_EQ(this->hypergraph->partID(hn), this->hypergraph->fixedVertexPartID(hn));
+  }
 }
 }  // namespace kahypar

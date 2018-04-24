@@ -69,6 +69,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     po::value<int>(&context.partition.seed)->value_name("<int>"),
     "Seed for random number generator \n"
     "(default: -1)")
+    ("fixed-vertices,f",
+    po::value<std::string>(&context.partition.fixed_vertex_filename)->value_name("<string>"),
+    "Fixed vertex filename")
     ("cmaxnet",
     po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
@@ -146,7 +149,17 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random "
-    "prefer_unmatched");
+    "prefer_unmatched")
+    ("c-fixed-vertex-acceptance-criterion",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& crit) {
+      context.coarsening.rating.fixed_vertex_acceptance_policy =
+        kahypar::fixedVertexAcceptanceCriterionFromString(crit);
+    }),
+    "Acceptance criterion for fixed vertex contraction:\n"
+    "free_vertex_only "
+    "fixed_vertex_allowed"
+    "equivalent_vertices");
   return options;
 }
 
@@ -235,6 +248,16 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random"
     "prefer_unmatched")
+    ("i-c-fixed-vertex-acceptance-criterion",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& crit) {
+      context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy =
+        kahypar::fixedVertexAcceptanceCriterionFromString(crit);
+    }),
+    "Acceptance criterion for fixed vertex contraction:\n"
+    "free_vertex_only "
+    "fixed_vertex_allowed"
+    "equivalent_vertices")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials")

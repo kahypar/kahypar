@@ -60,6 +60,11 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
+  if (!context.partition.fixed_vertex_filename.empty()) {
+    kahypar::io::readFixedVertexFile(hypergraph, context.partition.fixed_vertex_filename);
+    context.preprocessing.enable_min_hash_sparsifier = false;
+  }
+
   if (context.partition.use_individual_part_weights) {
     if (context.partition.max_part_weights.size() != static_cast<size_t>(context.partition.k)) {
       LOG << "k=" << context.partition.k << ",but # part weights ="

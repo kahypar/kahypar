@@ -907,5 +907,167 @@ TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
   ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) !=
               hypergraph.pins(1).second, Eq(true));
 }
+
+TEST_F(AHypergraph, StoresCorrectNumberOfFixedVertices) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
+}
+
+TEST_F(AHypergraph, IndicatesCorrectFixedVertices) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_TRUE(hypergraph.isFixedVertex(0));
+  ASSERT_TRUE(hypergraph.isFixedVertex(1));
+  ASSERT_FALSE(hypergraph.isFixedVertex(2));
+  ASSERT_FALSE(hypergraph.isFixedVertex(3));
+  ASSERT_FALSE(hypergraph.isFixedVertex(4));
+  ASSERT_FALSE(hypergraph.isFixedVertex(5));
+  ASSERT_TRUE(hypergraph.isFixedVertex(6));
+}
+
+TEST_F(AHypergraph, StoresCorrectFixedVertexTotalWeight) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.fixedVertexTotalWeight(), Eq(3));
+}
+
+TEST_F(AHypergraph, IteratesOverCorrectFixedVertices) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
+  std::vector<HypernodeID> fixed_vertices = {0, 1, 6};
+  size_t i = 0;
+  for (const HypernodeID& hn : hypergraph.fixedVertices()) {
+    ASSERT_EQ(hn, fixed_vertices[i++]);
+  }
+}
+
+TEST_F(AHypergraph, StoresCorrectFixedVertexPartIDs) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
+  std::vector<HypernodeID> fixed_vertices_part_id = {0, 0, 1};
+  size_t i = 0;
+  for (const HypernodeID& hn : hypergraph.fixedVertices()) {
+    ASSERT_EQ(hypergraph.fixedVertexPartID(hn), fixed_vertices_part_id[i++]);
+  }
+}
+
+TEST_F(AHypergraph, StoresCorrectFixedVertexPartWeights) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 1);
+}
+
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterContraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  hypergraph.contract(0, 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 3);
+
+  hypergraph.contract(6, 5);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+}
+
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterFixedVertexContraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(5, 1);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_EQ(hypergraph.numFixedVertices(), 4);
+
+  hypergraph.contract(0, 1);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.numFixedVertices(), 3);
+
+  hypergraph.contract(6, 5);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+  ASSERT_EQ(hypergraph.numFixedVertices(), 2);
+}
+
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterUncontraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 2));
+  mementos.push(hypergraph.contract(6, 5));
+  mementos.push(hypergraph.contract(1, 3));
+  mementos.push(hypergraph.contract(6, 4));
+
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(1, 0);
+  hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
+
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 4);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 3);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 3);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 1);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+}
+
+TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterFixedVertexUncontraction) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(5, 1);
+  hypergraph.setFixedVertex(6, 1);
+
+  std::stack<Memento> mementos;
+  mementos.push(hypergraph.contract(0, 1));
+  mementos.push(hypergraph.contract(6, 5));
+
+  hypergraph.setNodePart(0, 0);
+  hypergraph.setNodePart(2, 0);
+  hypergraph.setNodePart(3, 1);
+  hypergraph.setNodePart(4, 1);
+  hypergraph.setNodePart(6, 1);
+  hypergraph.initializeNumCutHyperedges();
+
+  ASSERT_EQ(hypergraph.numFixedVertices(), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.numFixedVertices(), 3);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 2);
+
+  hypergraph.uncontract(mementos.top());
+  mementos.pop();
+  ASSERT_EQ(hypergraph.numFixedVertices(), 4);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+}
 }  // namespace ds
 }  // namespace kahypar

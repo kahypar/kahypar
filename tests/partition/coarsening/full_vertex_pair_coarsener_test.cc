@@ -23,6 +23,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
@@ -34,6 +35,7 @@ using CoarsenerType = FullVertexPairCoarsener<HeavyEdgeScore,
                                               MultiplicativePenalty,
                                               UseCommunityStructure,
                                               BestRatingWithTieBreaking<FirstRatingWins>,
+                                              AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                               RatingType>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{
@@ -110,12 +112,12 @@ TEST_F(ACoarsener, ReEvaluatesHypernodesWithNoIncidentEdges) {
 
   ASSERT_THAT(true,
               AnyOf(
-                  AllOf(
-                      hypergraph.nodeIsEnabled(0) == true,
-                      hypergraph.nodeIsEnabled(1) == false),
-                  AllOf(
-                      hypergraph.nodeIsEnabled(0) == false,
-                      hypergraph.nodeIsEnabled(1) == true)));
+                AllOf(
+                  hypergraph.nodeIsEnabled(0) == true,
+                  hypergraph.nodeIsEnabled(1) == false),
+                AllOf(
+                  hypergraph.nodeIsEnabled(0) == false,
+                  hypergraph.nodeIsEnabled(1) == true)));
   ASSERT_THAT(hypergraph.nodeIsEnabled(2), Eq(true));
 }
 

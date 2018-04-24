@@ -123,4 +123,42 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
     ASSERT_EQ(hypergraph.partID(hn), 0);
   }
 }
+
+TEST_F(InitialPartitionerBaseTest, ResetPartitionWithFixedVertices) {
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 1);
+  hypergraph.setNodePart(4, 1);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  context.initial_partitioning.unassigned_part = -1;
+  partitioner->resetPartitioning();
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    if (hn != 0 && hn != 6) {
+      ASSERT_EQ(hypergraph.partID(hn), -1);
+    } else {
+      ASSERT_EQ(hypergraph.partID(hn), (hn == 0 ? 0 : 1));
+    }
+  }
+}
+
+TEST_F(InitialPartitionerBaseTest, ReturnsUnassignedNode) {
+  context.initial_partitioning.unassigned_part = -1;
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  ASSERT_EQ(partitioner->getUnassignedNode(), 6);
+}
+
+TEST_F(InitialPartitionerBaseTest, ReturnsUnassignedNodeWithFixedVertices) {
+  context.initial_partitioning.unassigned_part = -1;
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  hypergraph.setFixedVertex(6, 1);
+  ASSERT_EQ(partitioner->getUnassignedNode(), 5);
+}
 }  // namespace kahypar

@@ -66,6 +66,13 @@ class MostBalancedMinimumCut {
   void mostBalancedMinimumCut(const PartitionID block_0, const PartitionID block_1) {
     reset();
 
+    // Mark all fixed vertices as visited => prevents them to move
+    for (const HypernodeID& hn : _flow_network.hypernodes()) {
+      if (_hg.isFixedVertex(hn)) {
+        _visited.set(hn, true);
+      }
+    }
+
     // Mark all reachable nodes from source and sink set as invalid
     markAllReachableNodesAsVisited<true>(block_0, block_1);
     markAllReachableNodesAsVisited<false>(block_0, block_1);
