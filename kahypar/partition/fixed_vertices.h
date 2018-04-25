@@ -42,23 +42,24 @@ using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight> >;
 using Matching = std::vector<std::pair<PartitionID, PartitionID> >;
 using VertexCover = std::vector<NodeID>;
 
-static constexpr auto verify =   // Verify, that the matching found is an valid matching.
-                               [](const Matching& matching, const PartitionID k) {
-                                 std::vector<bool> matched_left(k, false);
-                                 std::vector<bool> matched_right(k, false);
-                                 for (auto matched_edge : matching) {
-                                   const PartitionID l = matched_edge.first;
-                                   const PartitionID r = matched_edge.second;
-                                   if (matched_left[l] || matched_right[r]) {
-                                     return false;
-                                   }
-                                   matched_left[l] = true;
-                                   matched_right[r] = true;
-                                 }
-                                 return true;
-                               };
-
 static constexpr bool debug = false;
+
+ // Verify, that the matching found is an valid matching.
+static bool verify (const Matching& matching, const PartitionID k) {
+  std::vector<bool> matched_left(k, false);
+  std::vector<bool> matched_right(k, false);
+  for (auto matched_edge : matching) {
+    const PartitionID l = matched_edge.first;
+    const PartitionID r = matched_edge.second;
+    if (matched_left[l] || matched_right[r]) {
+      return false;
+    }
+    matched_left[l] = true;
+    matched_right[r] = true;
+  }
+  return true;
+}
+
 
 class BipartiteMaximumFlow {
  public:
