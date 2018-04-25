@@ -419,26 +419,23 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     ds::FastResetFlagArray<> k_visited(k);
     for (const HyperedgeID& he : input_hypergraph.edges()) {
       k_visited.reset();
+      ALWAYS_ASSERT(input_hypergraph.connectivity(he) >= 0,
+                    V(he) << V(input_hypergraph.connectivity(he)));
+      min_connectivity[he] = input_hypergraph.connectivity(he);
       for (const HypernodeID& pin : input_hypergraph.pins(he)) {
-        const PartitionID part = input_hypergraph.isFixedVertex(pin) ?
-                                 input_hypergraph.fixedVertexPartID(pin) :
-                                 input_hypergraph.partID(pin);
-        if (!k_visited[part]) {
-          if (!input_hypergraph.isFixedVertex(pin)) {
-            min_connectivity[he]++;
-          } else {
+        if (input_hypergraph.isFixedVertex(pin)) {
+          const PartitionID part = input_hypergraph.fixedVertexPartID(pin);
+          if (!k_visited[part]) {
             max_connectivity[he]++;
+            k_visited.set(part, true);
           }
-          k_visited.set(part, true);
         }
       }
-      const PartitionID tmp_min_connectivity = min_connectivity[he];
-      // The best achievable connectivity for hyperedge he is a perfect matching
-      // between existing and fixed vertex parts (first term) plus the parts which
-      // are unmatched.
-      min_connectivity[he] = std::min(min_connectivity[he], max_connectivity[he]) +
-                             std::abs(max_connectivity[he] - min_connectivity[he]);
-      max_connectivity[he] += tmp_min_connectivity;
+
+      // If min_connectivity[he] == 0, this means that the hyperedge only contains fixed vertices.
+      max_connectivity[he] += min_connectivity[he];
+      min_connectivity[he] = std::max(min_connectivity[he], 1);
+
       if (original_context.partition.objective == Objective::cut) {
         lower_bound += (min_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
         upper_bound += (max_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
@@ -695,14 +692,26 @@ static inline void partition(Hypergraph& input_hypergraph,
          "Matching is not a perfect matching");
 
   std::vector<PartitionID> partition_permutation(original_context.partition.k, 0);
-  DBG << "Computed Permutation:";
+
+  if (original_context.initial_partitioning.verbose_output) {
+    LOG << "Computed Permutation:";
+  }
+
+  HypernodeWeight matching_weight = 0;
   for (auto matched_edge : maximum_weighted_matching) {
     const PartitionID from = matched_edge.second;
     const PartitionID to = matched_edge.first;
     partition_permutation[from] = to;
-    DBG << "Block" << from << "assigned to fixed vertices with id"
-        << to << "with weight" << graph[to][from];
+    if (original_context.initial_partitioning.verbose_output) {
+      LOG << "Block" << from << "assigned to fixed vertices with id"
+          << to << "with weight" << graph[to][from];
+      matching_weight += graph[to][from];
+    }
   }
+  if (original_context.initial_partitioning.verbose_output) {
+    LOG << "Weight of matching  :" << matching_weight;
+  }
+
 
   for (const HypernodeID& hn : input_hypergraph.nodes()) {
     if (input_hypergraph.isFixedVertex(hn)) {
@@ -719,9 +728,7 @@ static inline void partition(Hypergraph& input_hypergraph,
   }
 
   DBG << original_context.partition.objective << "="
-      << (original_context.partition.objective == Objective::cut ?
-      metrics::hyperedgeCut(input_hypergraph) :
-      metrics::km1(input_hypergraph))
+      << metrics::objective(input_hypergraph, original_context.partition.objective)
       << V(metrics::imbalance(input_hypergraph, original_context));
 }
 }  // namespace fixed_vertices
