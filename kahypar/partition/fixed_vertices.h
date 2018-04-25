@@ -42,6 +42,22 @@ using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight> >;
 using Matching = std::vector<std::pair<PartitionID, PartitionID> >;
 using VertexCover = std::vector<NodeID>;
 
+static constexpr auto verify =   // Verify, that the matching found is an valid matching.
+                               [](const Matching& matching, const PartitionID k) {
+                                 std::vector<bool> matched_left(k, false);
+                                 std::vector<bool> matched_right(k, false);
+                                 for (auto matched_edge : matching) {
+                                   const PartitionID l = matched_edge.first;
+                                   const PartitionID r = matched_edge.second;
+                                   if (matched_left[l] || matched_right[r]) {
+                                     return false;
+                                   }
+                                   matched_left[l] = true;
+                                   matched_right[r] = true;
+                                 }
+                                 return true;
+                               };
+
 static constexpr bool debug = false;
 
 class BipartiteMaximumFlow {
@@ -201,23 +217,10 @@ class MaximumBipartiteMatching : public BipartiteMaximumFlow {
       }
     }
 
+    ASSERT(verify(matching, k), "Invalid matching");
     ASSERT(static_cast<size_t>(max_flow) == matching.size(),
            "Size of maximum matching not equal to value of maximum flow");
-    // Verify, that the matching found is an valid matching.
-    ASSERT([&]() {
-          std::vector<bool> matched_left(k, false);
-          std::vector<bool> matched_right(k, false);
-          for (auto matched_edge : matching) {
-            const PartitionID l = matched_edge.first;
-            const PartitionID r = matched_edge.second;
-            if (matched_left[l] || matched_right[r]) {
-              return false;
-            }
-            matched_left[l] = true;
-            matched_right[r] = true;
-          }
-          return true;
-        } (), "Invalid matching");
+
     return matching;
   }
 
@@ -638,21 +641,7 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
     ++iteration;
   }
 
-  // Verify, that the matching found is an valid matching.
-  ASSERT([&]() {
-        std::vector<bool> matched_left(k, false);
-        std::vector<bool> matched_right(k, false);
-        for (auto matched_edge : matching) {
-          const PartitionID l = matched_edge.first;
-          const PartitionID r = matched_edge.second;
-          if (matched_left[l] || matched_right[r]) {
-            return false;
-          }
-          matched_left[l] = true;
-          matched_right[r] = true;
-        }
-        return true;
-      } (), "Invalid matching");
+  ASSERT(verify(matching, k), "Invalid matching");
 
   return matching;
 }
