@@ -268,7 +268,7 @@ static inline void partition(Hypergraph& input_hypergraph,
             const bool detect_communities =
               !current_context.preprocessing.community_detection.reuse_communities ||
               bisection_counter == 1;
-            if (detect_communities) {
+            if (detect_communities && current_hypergraph.initialNumNodes() > 0) {
               detectCommunities(current_hypergraph, current_context);
             } else if (verbose_output) {
               LOG << "Reusing community structure computed in first bisection";
