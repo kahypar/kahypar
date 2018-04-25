@@ -50,16 +50,26 @@ namespace kahypar {
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
-                              private FMRefinerBase<HypernodeID>{
+                              private FMRefinerBase<HypernodeID,
+                                                    TwoWayFMRefiner<StoppingPolicy,
+                                                                    FMImprovementPolicy> >{
  private:
   static constexpr bool debug = false;
 
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
-  using Base = FMRefinerBase<HypernodeID>;
+  using Base = FMRefinerBase<HypernodeID, TwoWayFMRefiner<StoppingPolicy,
+                                                          FMImprovementPolicy> >;
+
+  friend class FMRefinerBase<HypernodeID, TwoWayFMRefiner<StoppingPolicy,
+                                                          FMImprovementPolicy> >;
+
+  using HEState = typename Base::HEState;
+  using Base::kInvalidGain;
+  using Base::kInvalidHN;
 
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Context& context) :
-    FMRefinerBase(hypergraph, context),
+    Base(hypergraph, context),
     _he_fully_active(_hg.initialNumEdges()),
     _hns_in_activation_vector(_hg.initialNumNodes()),
     _non_border_hns_to_remove(),
@@ -192,7 +202,7 @@ class TwoWayFMRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
-    reset();
+    Base::reset();
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
 
@@ -213,17 +223,7 @@ class TwoWayFMRefiner final : public IRefiner,
     }
 
     // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
-    for (const HypernodeID& hn : refinement_nodes) {
-      if (_hg.isFixedVertex(hn)) {
-        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
-          for (const HypernodeID& pin : _hg.pins(he)) {
-            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
-              activate(pin, max_allowed_part_weights);
-            }
-          }
-        }
-      }
-    }
+    Base::activateAdjacentFreeVertices(refinement_nodes, max_allowed_part_weights);
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;

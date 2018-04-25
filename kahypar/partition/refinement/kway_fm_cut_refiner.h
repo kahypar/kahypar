@@ -48,17 +48,26 @@ namespace kahypar {
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayFMRefiner final : public IRefiner,
-                            private FMRefinerBase<RollbackInfo>{
+                            private FMRefinerBase<RollbackInfo, KWayFMRefiner<StoppingPolicy,
+                                                                              FMImprovementPolicy> >{
  private:
   static constexpr bool debug = false;
   static constexpr HypernodeID hn_to_debug = 4242;
 
   using GainCache = KwayGainCache<Gain>;
-  using Base = FMRefinerBase<RollbackInfo>;
+  using Base = FMRefinerBase<RollbackInfo, KWayFMRefiner<StoppingPolicy,
+                                                         FMImprovementPolicy> >;
+
+  friend class FMRefinerBase<RollbackInfo, KWayFMRefiner<StoppingPolicy,
+                                                         FMImprovementPolicy> >;
+
+  using HEState = typename Base::HEState;
+  using Base::kInvalidGain;
+  using Base::kInvalidHN;
 
  public:
   KWayFMRefiner(Hypergraph& hypergraph, const Context& context) :
-    FMRefinerBase(hypergraph, context),
+    Base(hypergraph, context),
     _he_fully_active(_hg.initialNumEdges()),
     _tmp_gains(_context.partition.k, 0),
     _already_processed_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
@@ -111,7 +120,7 @@ class KWayFMRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
-    reset();
+    Base::reset();
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
 
@@ -121,18 +130,7 @@ class KWayFMRefiner final : public IRefiner,
       activate<true>(hn);
     }
 
-    // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
-    for (const HypernodeID& hn : refinement_nodes) {
-      if (_hg.isFixedVertex(hn)) {
-        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
-          for (const HypernodeID& pin : _hg.pins(he)) {
-            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
-              activate(pin);
-            }
-          }
-        }
-      }
-    }
+    Base::activateAdjacentFreeVertices(refinement_nodes);
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;
@@ -140,7 +138,7 @@ class KWayFMRefiner final : public IRefiner,
     HyperedgeWeight current_cut = best_metrics.cut;
     double current_imbalance = best_metrics.imbalance;
 
-    PartitionID heaviest_part = heaviestPart();
+    PartitionID heaviest_part = Base::heaviestPart();
     HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     int min_cut_index = -1;
@@ -173,7 +171,7 @@ class KWayFMRefiner final : public IRefiner,
 
       // Staleness assertion: The move should be to a part that is in the connectivity superset of
       // the max_gain_node.
-      ASSERT(hypernodeIsConnectedToPart(max_gain_node, to_part),
+      ASSERT(Base::hypernodeIsConnectedToPart(max_gain_node, to_part),
              V(max_gain_node) << V(from_part) << V(to_part));
 
       // remove all other possible moves of the current max_gain_node
@@ -195,8 +193,8 @@ class KWayFMRefiner final : public IRefiner,
       _hg.mark(max_gain_node);
       ++touched_hns_since_last_improvement;
 
-      if (moveIsFeasible(max_gain_node, from_part, to_part)) {
-        moveHypernode(max_gain_node, from_part, to_part);
+      if (Base::moveIsFeasible(max_gain_node, from_part, to_part)) {
+        Base::moveHypernode(max_gain_node, from_part, to_part);
 
         if (_hg.partWeight(to_part) >= _context.partition.max_part_weights[0]) {
           _pq.disablePart(to_part);
@@ -205,8 +203,8 @@ class KWayFMRefiner final : public IRefiner,
           _pq.enablePart(from_part);
         }
 
-        reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
-                                            from_part, to_part);
+        Base::reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
+                                                  from_part, to_part);
 
         current_imbalance = static_cast<double>(heaviest_part_weight) /
                             ceil(static_cast<double>(_context.partition.total_graph_weight) /
@@ -252,7 +250,7 @@ class KWayFMRefiner final : public IRefiner,
                                           best_metrics.cut, current_cut)
         == true ? "policy" : "empty queue");
 
-    rollback(_performed_moves.size() - 1, min_cut_index);
+    Base::rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
@@ -262,24 +260,6 @@ class KWayFMRefiner final : public IRefiner,
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
                                                  initial_imbalance, _context.partition.epsilon);
-  }
-
-  void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
-    if (_hg.active(hn)) {
-      _hg.deactivate(hn);
-      for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
-        ASSERT(_pq.contains(hn, part), V(hn) << V(part));
-        _pq.remove(hn, part);
-      }
-      ASSERT([&]() {
-          for (PartitionID part = 0; part < _context.partition.k; ++part) {
-            if (_pq.contains(hn, part)) {
-              return false;
-            }
-          }
-          return true;
-        } (), V(hn));
-    }
   }
 
   bool moveAffectsGainOrConnectivityUpdate(const HypernodeID pin_count_target_part_before_move,
@@ -388,7 +368,7 @@ class KWayFMRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
-        !hypernodeIsConnectedToPart(pin, from_part)) {
+        !Base::hypernodeIsConnectedToPart(pin, from_part)) {
       if (!_hg.isFixedVertex(pin)) {
         _pq.remove(pin, from_part);
       }
@@ -434,7 +414,7 @@ class KWayFMRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
     ONLYDEBUG(he);
     if (move_decreased_connectivity && _gain_cache.entryExists(pin, from_part) &&
-        !hypernodeIsConnectedToPart(pin, from_part)) {
+        !Base::hypernodeIsConnectedToPart(pin, from_part)) {
       DBGC(hn_to_debug == pin) << "removing cache entry for HN" << pin << "part=" << from_part;
       _gain_cache.removeEntryDueToConnectivityDecrease(pin, from_part);
     }
@@ -481,7 +461,7 @@ class KWayFMRefiner final : public IRefiner,
             ++num_active_pins;
           } else {
             if (!_hg.isBorderNode(pin)) {
-              removeHypernodeMovementsFromPQ(pin);
+              Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
             } else {
               connectivityUpdate(pin, from_part, to_part, he,
                                  move_decreased_connectivity,
@@ -529,7 +509,7 @@ class KWayFMRefiner final : public IRefiner,
         if (!_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
           if (!_hg.isBorderNode(pin)) {
-            removeHypernodeMovementsFromPQ(pin);
+            Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
           } else {
             connectivityUpdate(pin, from_part, to_part, he,
                                move_decreased_connectivity,
@@ -694,8 +674,8 @@ class KWayFMRefiner final : public IRefiner,
         // happen because it not has to be a cut HE, except the pin is a fixed vertex
         for (const HypernodeID& pin : _hg.pins(he)) {
           if (!_hg.isFixedVertex(pin) && (!_hg.active(pin) && !_hg.marked(pin) &&
-              std::find(_hns_to_activate.cbegin(), _hns_to_activate.cend(), pin) ==
-              _hns_to_activate.cend())) {
+                                          std::find(_hns_to_activate.cbegin(), _hns_to_activate.cend(), pin) ==
+                                          _hns_to_activate.cend())) {
             return false;
           }
         }
@@ -843,7 +823,7 @@ class KWayFMRefiner final : public IRefiner,
                     LOG << "gain=" << gainInducedByHypergraph(pin, part);
                     LOG << "from_part=" << _hg.partID(pin);
                     LOG << "to_part=" << part;
-                    LOG << "would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part);
+                    LOG << "would be feasible=" << Base::moveIsFeasible(pin, _hg.partID(pin), part);
                     LOG << "_locked_hes[" << he << "]=" << _locked_hes.get(he);
                     return false;
                   }
@@ -878,7 +858,7 @@ class KWayFMRefiner final : public IRefiner,
                 LOG << "gain in PQ=" << _pq.key(pin, part);
                 LOG << "from_part=" << _hg.partID(pin);
                 LOG << "to_part=" << part;
-                LOG << "would be feasible=" << moveIsFeasible(pin, _hg.partID(pin), part);
+                LOG << "would be feasible=" << Base::moveIsFeasible(pin, _hg.partID(pin), part);
                 LOG << "current HN" << moved_hn << "was moved from" << from_part
                     << "to" << to_part;
                 return false;
@@ -1041,9 +1021,9 @@ class KWayFMRefiner final : public IRefiner,
       for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
-              V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
-              V(gainInducedByHypergraph(hn, part)));
-        ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+               V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
+               V(gainInducedByHypergraph(hn, part)));
+        ASSERT(Base::hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
         DBGC(hn == hn_to_debug) << "inserting" << V(hn) << V(part)
                                 << V(_gain_cache.entry(hn, part));
         _pq.insert(hn, part, _gain_cache.entry(hn, part));
@@ -1069,7 +1049,7 @@ class KWayFMRefiner final : public IRefiner,
     if (_gain_cache.entryExists(hn)) {
       std::vector<bool> adjacent_parts(_context.partition.k, false);
       for (PartitionID part = 0; part < _context.partition.k; ++part) {
-        if (hypernodeIsConnectedToPart(hn, part)) {
+        if (Base::hypernodeIsConnectedToPart(hn, part)) {
           adjacent_parts[part] = true;
         }
         if (_gain_cache.entry(hn, part) != GainCache::kNotCached) {
@@ -1077,8 +1057,8 @@ class KWayFMRefiner final : public IRefiner,
           ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                  V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
                  V(gainInducedByHypergraph(hn, part)));
-          ASSERT(hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
-        } else if (_hg.partID(hn) != part && !hypernodeIsConnectedToPart(hn, part)) {
+          ASSERT(Base::hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        } else if (_hg.partID(hn) != part && !Base::hypernodeIsConnectedToPart(hn, part)) {
           ASSERT(!_gain_cache.entryExists(hn, part), V(hn) << V(part));
           ASSERT(_gain_cache.entry(hn, part) == GainCache::kNotCached, V(hn) << V(part));
         }
