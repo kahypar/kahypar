@@ -42,8 +42,8 @@ using AdjacencyMatrix = std::vector<std::vector<HyperedgeWeight> >;
 using Matching = std::vector<std::pair<PartitionID, PartitionID> >;
 using VertexCover = std::vector<NodeID>;
 
-static constexpr auto verify =   // Verify, that the matching found is an valid matching.
-                               [](const Matching& matching, const PartitionID k) {
+  // Verify, that the matching found is an valid matching.
+static constexpr auto verify = [](const Matching& matching, const PartitionID k) {
                                  std::vector<bool> matched_left(k, false);
                                  std::vector<bool> matched_right(k, false);
                                  for (auto matched_edge : matching) {
