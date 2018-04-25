@@ -2146,8 +2146,8 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                     typename Hypergraph::PartitionID part,
-                                                                                                                     const Objective& objective);
+                                                                                                                    typename Hypergraph::PartitionID part,
+                                                                                                                    const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2164,6 +2164,15 @@ class GenericHypergraph {
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,
                    std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
+
+  template <typename Hypergraph>
+  friend  void setupInternalStructure(const Hypergraph& reference,
+                                      const std::vector<typename Hypergraph::HypernodeID>& mapping,
+                                      Hypergraph& subhypergraph,
+                                      const typename Hypergraph::PartitionID new_k,
+                                      const typename Hypergraph::HypernodeID num_hypernodes,
+                                      const typename Hypergraph::HypernodeID num_pins,
+                                      const typename Hypergraph::HyperedgeID num_hyperedges);
 };
 
 template <typename Hypergraph>
@@ -2380,19 +2389,6 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
     subhypergraph->_hypernodes.resize(num_hypernodes);
     subhypergraph->_num_hypernodes = num_hypernodes;
 
-    if (!hypergraph._communities.empty()) {
-      subhypergraph->_communities.resize(num_hypernodes, -1);
-      for (const HypernodeID& subhypergraph_hn : subhypergraph->nodes()) {
-        const HypernodeID original_hn = subhypergraph_to_hypergraph[subhypergraph_hn];
-        subhypergraph->_communities[subhypergraph_hn] = hypergraph._communities[original_hn];
-      }
-      ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
-                          subhypergraph->_communities.cend(),
-                          [](typename Hypergraph::PartitionID i) {
-            return i == -1;
-          }));
-    }
-
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
     if (objective == Objective::km1) {
@@ -2449,41 +2445,76 @@ extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
       }
     }
 
-
-    const HypernodeID num_pins = pin_index;
-    subhypergraph->_num_pins = num_pins;
-    subhypergraph->_current_num_hypernodes = num_hypernodes;
-    subhypergraph->_current_num_hyperedges = num_hyperedges;
-    subhypergraph->_current_num_pins = num_pins;
-    subhypergraph->_type = hypergraph.type();
-
-    subhypergraph->_incidence_array.resize(static_cast<size_t>(num_pins) * 2);
-    subhypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) * 2);
-    subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
-
-    subhypergraph->_connectivity_sets.initialize(num_hyperedges, 2);
-
-    subhypergraph->hypernode(0).setFirstEntry(num_pins);
-    for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
-      subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
-      subhypergraph->hypernode(i).setSize(0);
-      subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
-      subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
-    }
-    subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
-    subhypergraph->hypernode(num_hypernodes - 1).setWeight(
-      hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
-    subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
-
-    for (const HyperedgeID& he : subhypergraph->edges()) {
-      for (const HypernodeID& pin : subhypergraph->pins(he)) {
-        subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
-        subhypergraph->hypernode(pin).incrementSize();
-      }
-    }
+    setupInternalStructure(hypergraph, subhypergraph_to_hypergraph, *subhypergraph,
+                           2, num_hypernodes, pin_index, num_hyperedges);
   }
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
+}
+
+template <typename Hypergraph>
+static void setupInternalStructure(const Hypergraph& reference,
+                                   const std::vector<typename Hypergraph::HypernodeID>& mapping,
+                                   Hypergraph& subhypergraph,
+                                   const typename Hypergraph::PartitionID new_k,
+                                   const typename Hypergraph::HypernodeID num_hypernodes,
+                                   const typename Hypergraph::HypernodeID num_pins,
+                                   const typename Hypergraph::HyperedgeID num_hyperedges) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  subhypergraph._k = new_k;
+  subhypergraph._num_pins = num_pins;
+  subhypergraph._current_num_hypernodes = num_hypernodes;
+  subhypergraph._current_num_hyperedges = num_hyperedges;
+  subhypergraph._current_num_pins = num_pins;
+  subhypergraph._type = reference.type();
+
+  subhypergraph._incidence_array.resize(static_cast<size_t>(num_pins) *
+                                        static_cast<size_t>(new_k));
+  subhypergraph._pins_in_part.resize(static_cast<size_t>(num_hyperedges) *
+                                     static_cast<size_t>(new_k));
+  subhypergraph._hes_not_containing_u.setSize(num_hyperedges);
+
+  subhypergraph._connectivity_sets.initialize(num_hyperedges, new_k);
+
+  subhypergraph._part_info.resize(new_k);
+
+  subhypergraph.hypernode(0).setFirstEntry(num_pins);
+
+  subhypergraph._hypernodes.resize(num_hypernodes);
+  subhypergraph._num_hypernodes = num_hypernodes;
+
+  if (!reference._communities.empty()) {
+    subhypergraph._communities.resize(num_hypernodes, -1);
+    for (const HypernodeID& subhypergraph_hn : subhypergraph.nodes()) {
+      const HypernodeID original_hn = mapping[subhypergraph_hn];
+      subhypergraph._communities[subhypergraph_hn] = reference._communities[original_hn];
+    }
+    ASSERT(std::none_of(subhypergraph._communities.cbegin(),
+                        subhypergraph._communities.cend(),
+                        [](typename Hypergraph::PartitionID i) {
+          return i == -1;
+        }));
+  }
+
+  for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
+    subhypergraph.hypernode(i + 1).setFirstEntry(subhypergraph.hypernode(i).firstInvalidEntry());
+    subhypergraph.hypernode(i).setSize(0);
+    subhypergraph.hypernode(i).setWeight(reference.nodeWeight(mapping[i]));
+    subhypergraph._total_weight += subhypergraph.hypernode(i).weight();
+  }
+  subhypergraph.hypernode(num_hypernodes - 1).setSize(0);
+  subhypergraph.hypernode(num_hypernodes - 1).setWeight(
+    reference.nodeWeight(mapping[num_hypernodes - 1]));
+  subhypergraph._total_weight += subhypergraph.hypernode(num_hypernodes - 1).weight();
+
+  for (const HyperedgeID& he : subhypergraph.edges()) {
+    for (const HypernodeID& pin : subhypergraph.pins(he)) {
+      subhypergraph._incidence_array[subhypergraph.hypernode(pin).firstInvalidEntry()] = he;
+      subhypergraph.hypernode(pin).incrementSize();
+    }
+  }
 }
 
 
@@ -2498,8 +2529,6 @@ removeFixedVertices(const Hypergraph& hypergraph) {
   std::vector<HypernodeID> subhypergraph_to_hypergraph;
   std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
 
-  subhypergraph->_k = hypergraph._k;
-
   HypernodeID num_hypernodes = 0;
   for (const HypernodeID& hn : hypergraph.nodes()) {
     if (!hypergraph.isFixedVertex(hn)) {
@@ -2508,23 +2537,9 @@ removeFixedVertices(const Hypergraph& hypergraph) {
       ++num_hypernodes;
     }
   }
-
   if (num_hypernodes > 0) {
     subhypergraph->_hypernodes.resize(num_hypernodes);
     subhypergraph->_num_hypernodes = num_hypernodes;
-
-    if (!hypergraph._communities.empty()) {
-      subhypergraph->_communities.resize(num_hypernodes, -1);
-      for (const HypernodeID& subhypergraph_hn : subhypergraph->nodes()) {
-        const HypernodeID original_hn = subhypergraph_to_hypergraph[subhypergraph_hn];
-        subhypergraph->_communities[subhypergraph_hn] = hypergraph._communities[original_hn];
-      }
-      ASSERT(std::none_of(subhypergraph->_communities.cbegin(),
-                          subhypergraph->_communities.cend(),
-                          [](typename Hypergraph::PartitionID i) {
-            return i == -1;
-          }));
-    }
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
@@ -2554,42 +2569,8 @@ removeFixedVertices(const Hypergraph& hypergraph) {
         ++num_hyperedges;
       }
     }
-
-    const HypernodeID num_pins = pin_index;
-    subhypergraph->_num_pins = num_pins;
-    subhypergraph->_current_num_hypernodes = num_hypernodes;
-    subhypergraph->_current_num_hyperedges = num_hyperedges;
-    subhypergraph->_current_num_pins = num_pins;
-    subhypergraph->_type = hypergraph.type();
-
-    subhypergraph->_incidence_array.resize(static_cast<size_t>(num_pins) *
-                                           static_cast<size_t>(hypergraph._k));
-    subhypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) *
-                                        static_cast<size_t>(hypergraph._k));
-    subhypergraph->_hes_not_containing_u.setSize(num_hyperedges);
-
-    subhypergraph->_connectivity_sets.initialize(num_hyperedges, hypergraph._k);
-
-    subhypergraph->_part_info.resize(hypergraph._k);
-
-    subhypergraph->hypernode(0).setFirstEntry(num_pins);
-    for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
-      subhypergraph->hypernode(i + 1).setFirstEntry(subhypergraph->hypernode(i).firstInvalidEntry());
-      subhypergraph->hypernode(i).setSize(0);
-      subhypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(subhypergraph_to_hypergraph[i]));
-      subhypergraph->_total_weight += subhypergraph->hypernode(i).weight();
-    }
-    subhypergraph->hypernode(num_hypernodes - 1).setSize(0);
-    subhypergraph->hypernode(num_hypernodes - 1).setWeight(
-      hypergraph.nodeWeight(subhypergraph_to_hypergraph[num_hypernodes - 1]));
-    subhypergraph->_total_weight += subhypergraph->hypernode(num_hypernodes - 1).weight();
-
-    for (const HyperedgeID& he : subhypergraph->edges()) {
-      for (const HypernodeID& pin : subhypergraph->pins(he)) {
-        subhypergraph->_incidence_array[subhypergraph->hypernode(pin).firstInvalidEntry()] = he;
-        subhypergraph->hypernode(pin).incrementSize();
-      }
-    }
+    setupInternalStructure(hypergraph, subhypergraph_to_hypergraph, *subhypergraph,
+                           hypergraph._k, num_hypernodes, pin_index, num_hyperedges);
   }
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
