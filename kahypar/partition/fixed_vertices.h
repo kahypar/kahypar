@@ -435,12 +435,12 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
 static inline void printAdjacencyMatrix(const AdjacencyMatrix& graph, bool weighted = false) {
   if (debug) {
     const PartitionID k = graph.size();
-    std::cout << (weighted ? "WEIGHTED" : "UNWEIGHTED") << " MATCHING GRAPH:" << std::endl;
+    LOG << (weighted ? "WEIGHTED" : "UNWEIGHTED") << " MATCHING GRAPH:" << std::endl;
     for (PartitionID i = 0; i < k; ++i) {
       for (PartitionID j = 0; j < k; ++j) {
-        std::cout << graph[i][j] << " ";
+        LLOG << graph[i][j] << " ";
       }
-      std::cout << std::endl;
+      LLOG << std::endl;
     }
   }
 }
