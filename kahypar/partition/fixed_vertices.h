@@ -429,45 +429,6 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     }
   }
 
-  if (debug || original_context.initial_partitioning.verbose_output) {
-    // In this DEBUG code, we compute the best and worst quality
-    // achievable with a matching. Matchings are computed hyperedge-wise.
-    HyperedgeWeight lower_bound = 0;
-    HyperedgeWeight upper_bound = 0;
-    std::vector<PartitionID> min_connectivity(input_hypergraph.initialNumEdges(), 0);
-    std::vector<PartitionID> max_connectivity(input_hypergraph.initialNumEdges(), 0);
-    ds::FastResetFlagArray<> k_visited(k);
-    for (const HyperedgeID& he : input_hypergraph.edges()) {
-      k_visited.reset();
-      ALWAYS_ASSERT(input_hypergraph.connectivity(he) >= 0,
-                    V(he) << V(input_hypergraph.connectivity(he)));
-      min_connectivity[he] = input_hypergraph.connectivity(he);
-      for (const HypernodeID& pin : input_hypergraph.pins(he)) {
-        if (input_hypergraph.isFixedVertex(pin)) {
-          const PartitionID part = input_hypergraph.fixedVertexPartID(pin);
-          if (!k_visited[part]) {
-            max_connectivity[he]++;
-            k_visited.set(part, true);
-          }
-        }
-      }
-
-      // If min_connectivity[he] == 0, this means that the hyperedge only contains fixed vertices.
-      max_connectivity[he] += min_connectivity[he];
-      min_connectivity[he] = std::max(min_connectivity[he], 1);
-
-      if (original_context.partition.objective == Objective::cut) {
-        lower_bound += (min_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
-        upper_bound += (max_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
-      } else if (original_context.partition.objective == Objective::km1) {
-        lower_bound += (min_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
-        upper_bound += (max_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
-      }
-    }
-    LOG << "Lower Bound (" << original_context.partition.objective << ") :" << lower_bound;
-    LOG << "Upper Bound (" << original_context.partition.objective << ") :" << upper_bound;
-  }
-
   return graph;
 }
 
@@ -728,8 +689,47 @@ static inline void partition(Hypergraph& input_hypergraph,
       matching_weight += graph[to][from];
     }
   }
-  if (original_context.initial_partitioning.verbose_output) {
+  if (debug || original_context.initial_partitioning.verbose_output) {
     LOG << "Weight of matching  :" << matching_weight;
+
+    // In this DEBUG code, we compute the best and worst quality
+    // achievable with a matching. Matchings are computed hyperedge-wise.
+    HyperedgeWeight lower_bound = 0;
+    HyperedgeWeight upper_bound = 0;
+    std::vector<PartitionID> min_connectivity(input_hypergraph.initialNumEdges(), 0);
+    std::vector<PartitionID> max_connectivity(input_hypergraph.initialNumEdges(), 0);
+    ds::FastResetFlagArray<> k_visited(original_context.partition.k);
+    for (const HyperedgeID& he : input_hypergraph.edges()) {
+      k_visited.reset();
+      ALWAYS_ASSERT(input_hypergraph.connectivity(he) >= 0,
+                    V(he) << V(input_hypergraph.connectivity(he)));
+      min_connectivity[he] = input_hypergraph.connectivity(he);
+      for (const HypernodeID& pin : input_hypergraph.pins(he)) {
+        if (input_hypergraph.isFixedVertex(pin)) {
+          const PartitionID part = input_hypergraph.fixedVertexPartID(pin);
+          if (!k_visited[part]) {
+            max_connectivity[he]++;
+            k_visited.set(part, true);
+          }
+        }
+      }
+
+      // If min_connectivity[he] == 0, this means that the hyperedge only contains fixed vertices.
+      max_connectivity[he] += min_connectivity[he];
+      min_connectivity[he] = std::max(min_connectivity[he], 1);
+
+      if (original_context.partition.objective == Objective::cut) {
+        lower_bound += (min_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
+        upper_bound += (max_connectivity[he] > 1 ? input_hypergraph.edgeWeight(he) : 0);
+      } else if (original_context.partition.objective == Objective::km1) {
+        lower_bound += (min_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
+        upper_bound += (max_connectivity[he] - 1) * input_hypergraph.edgeWeight(he);
+      }
+    }
+    LOG << "Lower Bound (" << original_context.partition.objective << ") :" << lower_bound;
+    LOG << "Upper Bound (" << original_context.partition.objective << ") :" << upper_bound;
+    LOG << "Final" << original_context.partition.objective << "=" << upper_bound << "-"
+        << matching_weight << "=" << (upper_bound - matching_weight);
   }
 
   std::vector<PartitionID> original_partition;
