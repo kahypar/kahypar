@@ -155,11 +155,11 @@ po::options_description createCoarseningOptionsDescription(Context& context,
       [&](const std::string& crit) {
       context.coarsening.rating.fixed_vertex_acceptance_policy =
         kahypar::fixedVertexAcceptanceCriterionFromString(crit);
-    }),
-    "Acceptance criterion for fixed vertex contraction:\n"
-    "free_vertex_only "
-    "fixed_vertex_allowed "
-    "equivalent_vertices");
+      }),
+    "Acceptance criterion for fixed vertex contractions:\n"
+    "- free_vertex_only     : Allows (free, free) and (fixed, free)\n"
+    "- fixed_vertex_allowed : Allows (free, free), (fixed, free), and (fixed, fixed) \n"
+    "- equivalent_vertices  : Allows (free, free), (fixed, fixed)");
   return options;
 }
 
@@ -255,9 +255,10 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
         kahypar::fixedVertexAcceptanceCriterionFromString(crit);
     }),
     "Acceptance criterion for fixed vertex contraction:\n"
-    "free_vertex_only "
-    "fixed_vertex_allowed"
-    "equivalent_vertices")
+      "Acceptance criterion for fixed vertex contractions:\n"
+    "- free_vertex_only     : Allows (free, free) and (fixed, free)\n"
+    "- fixed_vertex_allowed : Allows (free, free), (fixed, free), and (fixed, fixed) \n"
+    "- equivalent_vertices  : Allows (free, free), (fixed, fixed)")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials")
