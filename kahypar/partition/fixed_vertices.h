@@ -683,7 +683,7 @@ static inline void partition(Hypergraph& input_hypergraph,
     const PartitionID from = matched_edge.second;
     const PartitionID to = matched_edge.first;
     partition_permutation[from] = to;
-    if (original_context.initial_partitioning.verbose_output) {
+    if (debug || original_context.initial_partitioning.verbose_output) {
       LOG << "Block" << from << "assigned to fixed vertices with id"
           << to << "with weight" << graph[to][from];
       matching_weight += graph[to][from];
