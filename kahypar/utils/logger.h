@@ -49,6 +49,13 @@ class Logger {
     return *this;
   }
 
+  template <typename T>
+  Logger& operator<< (const T* output) {
+    _oss << output << ' ';
+    return *this;
+  }
+
+
   Logger& operator<< (decltype(std::left)& output) {
     _oss << output;
     return *this;
