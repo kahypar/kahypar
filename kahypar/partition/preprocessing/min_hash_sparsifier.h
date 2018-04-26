@@ -102,6 +102,15 @@ class MinHashSparsifier {
 
     _clusters = sparsifier.build();
 
+    ASSERT([&]() {
+        // Fixed vertices are not allowed to be sparsified
+        for (const HypernodeID hn : hypergraph.fixedVertices()) {
+          ASSERT(_clusters[hn] == hn);
+          ASSERT(std::count(_clusters.begin(), _clusters.end(), hn) == 1);
+        }
+        return true;
+      } ());
+
     HyperedgeID num_edges = hypergraph.currentNumEdges();
 
     // 0 : reenumerate
@@ -185,8 +194,16 @@ class MinHashSparsifier {
       edge_weights[value.second.first] = value.second.second;
     }
 
-    return Hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
-                      context.partition.k, &edge_weights, &vertex_weights);
+    Hypergraph sparse_hypergraph(num_vertices, num_edges, indices_of_edges, pins_of_edges,
+                                 context.partition.k, &edge_weights, &vertex_weights);
+
+    // update fixed vertex IDs
+    for (const HypernodeID hn : hypergraph.fixedVertices()) {
+      sparse_hypergraph.setFixedVertex(_clusters[hn], hypergraph.fixedVertexPartID(hn));
+    }
+    ASSERT(sparse_hypergraph.numFixedVertices() == hypergraph.numFixedVertices());
+
+    return sparse_hypergraph;
   }
 
   void applyPartition(const Hypergraph& coarsaned_graph, Hypergraph& original_graph) {

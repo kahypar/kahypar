@@ -261,6 +261,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
+    ASSERT(sparseHypergraph.numFixedVertices() == hypergraph.numFixedVertices());
     partition::partition(sparseHypergraph, context);
     postprocess(hypergraph, sparseHypergraph, context);
   } else {
@@ -272,9 +273,9 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   ASSERT([&]() {
       for (const HypernodeID& hn : hypergraph.fixedVertices()) {
         if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
-            LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
-                << "but actually is in" << hypergraph.partID(hn);
-            return false;
+          LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
+              << "but actually is in" << hypergraph.partID(hn);
+          return false;
         }
       }
       return true;
