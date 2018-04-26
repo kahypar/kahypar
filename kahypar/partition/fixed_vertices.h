@@ -43,9 +43,10 @@ using Matching = std::vector<std::pair<PartitionID, PartitionID> >;
 using VertexCover = std::vector<NodeID>;
 
 static constexpr bool debug = false;
+static constexpr bool debug_permutations = false;
 
- // Verify, that the matching found is an valid matching.
-static bool verify (const Matching& matching, const PartitionID k) {
+// Verify, that the matching found is an valid matching.
+static bool verify(const Matching& matching, const PartitionID k) {
   std::vector<bool> matched_left(k, false);
   std::vector<bool> matched_right(k, false);
   for (auto matched_edge : matching) {
@@ -647,6 +648,20 @@ static inline Matching findMaximumWeightedBipartiteMatching(const AdjacencyMatri
   return matching;
 }
 
+static inline void applyPermutation(const std::vector<PartitionID>& permutation,
+                                    const std::vector<PartitionID>& original_partition,
+                                    Hypergraph& hypergraph) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    if (!hypergraph.isFixedVertex(hn)) {
+      const PartitionID from = hypergraph.partID(hn);
+      const PartitionID to = permutation[original_partition[hn]];
+      if (from != to) {
+        hypergraph.changeNodePart(hn, from, to);
+      }
+    }
+  }
+}
+
 static inline void partition(Hypergraph& input_hypergraph,
                              const Context& original_context) {
   ASSERT([&]() {
@@ -702,6 +717,15 @@ static inline void partition(Hypergraph& input_hypergraph,
     LOG << "Weight of matching  :" << matching_weight;
   }
 
+  std::vector<PartitionID> original_partition;
+  if (debug_permutations) {
+    original_partition.resize(input_hypergraph.initialNumNodes(), 0);
+    for (const HypernodeID& hn : input_hypergraph.nodes()) {
+      if (!input_hypergraph.isFixedVertex(hn)) {
+        original_partition[hn] = input_hypergraph.partID(hn);
+      }
+    }
+  }
 
   for (const HypernodeID& hn : input_hypergraph.nodes()) {
     if (input_hypergraph.isFixedVertex(hn)) {
@@ -716,10 +740,29 @@ static inline void partition(Hypergraph& input_hypergraph,
       }
     }
   }
-
-  DBG << original_context.partition.objective << "="
+  DBG << "OPT:" << original_context.partition.objective << "="
       << metrics::objective(input_hypergraph, original_context.partition.objective)
       << V(metrics::imbalance(input_hypergraph, original_context));
+
+  if (debug_permutations) {
+    std::vector<PartitionID> permutations(original_context.partition.k, 0);
+    std::iota(permutations.begin(), permutations.end(), 0);
+    do {
+      for (PartitionID i = 0; i < original_context.partition.k; ++i) {
+        LOG << V(i) << V(partition_permutation[i]);
+      }
+
+      applyPermutation(permutations, original_partition, input_hypergraph);
+
+      DBG1 << original_context.partition.objective << "="
+           << (original_context.partition.objective == Objective::cut ?
+          metrics::hyperedgeCut(input_hypergraph) :
+          metrics::km1(input_hypergraph))
+           << V(metrics::imbalance(input_hypergraph, original_context));
+    } while (std::next_permutation(permutations.begin(), permutations.end()));
+
+    applyPermutation(partition_permutation, original_partition, input_hypergraph);
+  }
 }
 }  // namespace fixed_vertices
 }  // namespace kahypar
