@@ -361,6 +361,21 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     fixed_vertices[input_hypergraph.fixedVertexPartID(hn)].push_back(hn);
   }
 
+  std::vector<PartitionID> fixed_connectivity(input_hypergraph.initialNumEdges(), 0);
+  ds::FastResetFlagArray<> k_visited(k);
+  for (const HyperedgeID& he : input_hypergraph.edges()) {
+    k_visited.reset();
+    for (const HypernodeID& pin : input_hypergraph.pins(he)) {
+      if (input_hypergraph.isFixedVertex(pin)) {
+        const PartitionID part = input_hypergraph.fixedVertexPartID(pin);
+        if (!k_visited[part]) {
+          fixed_connectivity[he]++;
+          k_visited.set(part, true);
+        }
+      }
+    }
+  }
+
   ds::FastResetFlagArray<> visited(input_hypergraph.initialNumEdges());
   for (PartitionID i = 0; i < k; ++i) {
     visited.reset();
@@ -394,7 +409,7 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
             // vertices of block i to block j, we would make that hyperedge
             // cut. Therefore, maximum weighted bipartite matching optimizes
             // the cut metric.
-            if (input_hypergraph.connectivity(he) == 1) {
+            if (input_hypergraph.connectivity(he) == 1 && fixed_connectivity[he] == 1) {
               for (PartitionID j : input_hypergraph.connectivitySet(he)) {
                 graph[i][j] += input_hypergraph.edgeWeight(he);
               }
