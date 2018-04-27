@@ -132,10 +132,6 @@ class EvoPartitioner {
 
 
   inline EvoDecision decideNextMove(const Context& context) {
-    if (context.evolutionary.diversify_interval != -1 &&
-        context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
-      return EvoDecision::diversify;
-    }
     if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
     }
