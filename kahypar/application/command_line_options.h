@@ -106,10 +106,8 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
       LOG << V(initial_partitioning);
       if (initial_partitioning) {
         context.initial_partitioning.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
-        LOG << context.initial_partitioning.local_search.flow.algorithm;
       } else {
         context.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
-        LOG << context.local_search.flow.algorithm;
       }
     }),
     "Flow Algorithms:\n"
@@ -275,6 +273,72 @@ po::options_description createCoarseningOptionsDescription(Context& context,
   return options;
 }
 
+po::options_description createRefinementOptionsDescription(Context& context,
+                                                           const int num_columns,
+                                                           const bool initial_partitioning) {
+  po::options_description options((initial_partitioning ? "Initial Partitioning Refinement Options" :
+                                   "Refinement Options"), num_columns);
+  options.add_options()
+    ((initial_partitioning ? "i-r-type" : "r-type"),
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&context, initial_partitioning](const std::string& rtype) {
+      if (initial_partitioning) {
+        context.initial_partitioning.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
+      } else {
+        context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
+      }
+    }),
+    "Local Search Algorithm:\n"
+    " - twoway_fm      : 2-way FM algorithm\n"
+    " - kway_fm        : k-way FM algorithm (cut) \n"
+    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
+    " - sclap          : Size-constrained Label Propagation\n"
+    " - twoway_flow    : 2-way Flow algorithm\n"
+    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
+    " - kway_flow      : k-way Flow algorithm\n"
+    " - kway_fm_flow   : k-way FM + Flow algorithm")
+    ((initial_partitioning ? "i-r-runs" : "r-runs"),
+    po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.iterations_per_level : &context.local_search.iterations_per_level))->value_name("<int>")->notifier(
+      [&context, initial_partitioning](const int) {
+      if (initial_partitioning) {
+        if (context.initial_partitioning.local_search.iterations_per_level == -1) {
+          context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
+        }
+      } else {
+        if (context.local_search.iterations_per_level == -1) {
+          context.local_search.iterations_per_level = std::numeric_limits<int>::max();
+        }
+      }
+    }),
+    "Max. # local search repetitions on each level\n"
+    "(no limit:-1)")
+    ((initial_partitioning ? "i-r-sclap-runs" : "r-sclap-runs"),
+    po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.sclap.max_number_iterations : &context.local_search.sclap.max_number_iterations))->value_name("<int>"),
+    "Maximum # iterations for ScLaP-based refinement \n"
+    "(no limit: -1)")
+    ((initial_partitioning ? "i-r-fm-stop" : "r-fm-stop"),
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&context, initial_partitioning](const std::string& stopfm) {
+      if (initial_partitioning) {
+        context.initial_partitioning.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
+      } else {
+        context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
+      }
+    }),
+    "Stopping Rule for Local Search: \n"
+    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
+    " - simple:       ALENEX'16 threshold based on r-fm-stop-i")
+    ((initial_partitioning ? "i-r-fm-stop-i" : "r-fm-stop-i"),
+    po::value<uint32_t>((initial_partitioning ? &context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves : &context.local_search.fm.max_number_of_fruitless_moves))->value_name("<uint32_t>"),
+    "Max. # fruitless moves before stopping local search using simple stopping rule")
+    ((initial_partitioning ? "i-r-fm-stop-alpha" : "r-fm-stop-alpha"),
+    po::value<double>((initial_partitioning ? &context.initial_partitioning.local_search.fm.adaptive_stopping_alpha : &context.local_search.fm.adaptive_stopping_alpha))->value_name("<double>"),
+    "Parameter alpha for adaptive stopping rule \n"
+    "(infinity: -1)");
+  options.add(createFlowRefinementOptionsDescription(context, num_columns, initial_partitioning));
+  return options;
+}
+
 po::options_description createInitialPartitioningOptionsDescription(Context& context,
                                                                     const int num_columns) {
   po::options_description options("Initial Partitioning Options", num_columns);
@@ -305,50 +369,9 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     "Algorithm used to create initial partition: pool ")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
-    "# initial partition trials")
-    ("i-r-type",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ip_rtype) {
-      context.initial_partitioning.local_search.algorithm =
-        kahypar::refinementAlgorithmFromString(ip_rtype);
-    }),
-    "Local Search Algorithm:\n"
-    " - twoway_fm      : 2-way FM algorithm\n"
-    " - kway_fm        : k-way FM algorithm (cut) \n"
-    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
-    " - sclap          : Size-constrained Label Propagation\n"
-    " - twoway_flow    : 2-way Flow algorithm\n"
-    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
-    " - kway_flow      : k-way Flow algorithm\n"
-    " - kway_fm_flow   : k-way FM + Flow algorithm")
-    ("i-r-fm-stop",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ip_stopfm) {
-      context.initial_partitioning.local_search.fm.stopping_rule =
-        kahypar::stoppingRuleFromString(ip_stopfm);
-    }),
-    "Stopping Rule for IP Local Search: \n"
-    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-    " - simple:       ALENEX'16 threshold based on i-r-i")
-    ("i-r-fm-stop-i",
-    po::value<uint32_t>(&context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-    "Max. # fruitless moves before stopping local search")
-    ("i-r-fm-stop-alpha",
-    po::value<double>(&context.initial_partitioning.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
-    "Parameter alpha for adaptive stopping rule \n"
-    "(infinity: -1)")
-    ("i-r-runs",
-    po::value<int>(&context.initial_partitioning.local_search.iterations_per_level)->value_name("<int>")->notifier(
-      [&](const int) {
-      if (context.initial_partitioning.local_search.iterations_per_level == -1) {
-        context.initial_partitioning.local_search.iterations_per_level =
-          std::numeric_limits<int>::max();
-      }
-    }),
-    "Max. # local search repetitions on each level \n"
-    "(no limit:-1)");
+    "# initial partition trials");
   options.add(createCoarseningOptionsDescription(context, num_columns, true));
-  options.add(createFlowRefinementOptionsDescription(context, num_columns, true));
+  options.add(createRefinementOptionsDescription(context, num_columns, true));
   return options;
 }
 
@@ -403,56 +426,6 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
     ("p-reuse-communities",
     po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
     "Reuse the community structure identified in the first bisection for all other bisections.");
-  return options;
-}
-
-po::options_description createRefinementOptionsDescription(Context& context,
-                                                           const int num_columns) {
-  po::options_description options("Refinement Options", num_columns);
-  options.add_options()
-    ("r-type",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& rtype) {
-      context.local_search.algorithm = kahypar::refinementAlgorithmFromString(rtype);
-    }),
-    "Local Search Algorithm:\n"
-    " - twoway_fm      : 2-way FM algorithm\n"
-    " - kway_fm        : k-way FM algorithm (cut) \n"
-    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
-    " - sclap          : Size-constrained Label Propagation\n"
-    " - twoway_flow    : 2-way Flow algorithm\n"
-    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
-    " - kway_flow      : k-way Flow algorithm\n"
-    " - kway_fm_flow   : k-way FM + Flow algorithm")
-    ("r-runs",
-    po::value<int>(&context.local_search.iterations_per_level)->value_name("<int>")->notifier(
-      [&](const int) {
-      if (context.local_search.iterations_per_level == -1) {
-        context.local_search.iterations_per_level = std::numeric_limits<int>::max();
-      }
-    }),
-    "Max. # local search repetitions on each level\n"
-    "(no limit:-1)")
-    ("r-sclap-runs",
-    po::value<int>(&context.local_search.sclap.max_number_iterations)->value_name("<int>"),
-    "Maximum # iterations for ScLaP-based refinement \n"
-    "(no limit: -1)")
-    ("r-fm-stop",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& stopfm) {
-      context.local_search.fm.stopping_rule = kahypar::stoppingRuleFromString(stopfm);
-    }),
-    "Stopping Rule for Local Search: \n"
-    " - adaptive_opt: ALENEX'17 adaptive stopping rule \n"
-    " - simple:       ALENEX'16 threshold based on r-fm-stop-i")
-    ("r-fm-stop-i",
-    po::value<uint32_t>(&context.local_search.fm.max_number_of_fruitless_moves)->value_name("<uint32_t>"),
-    "Max. # fruitless moves before stopping local search using simple stopping rule")
-    ("r-fm-stop-alpha",
-    po::value<double>(&context.local_search.fm.adaptive_stopping_alpha)->value_name("<double>"),
-    "Parameter alpha for adaptive stopping rule \n"
-    "(infinity: -1)");
-  options.add(createFlowRefinementOptionsDescription(context, num_columns, false));
   return options;
 }
 
@@ -534,7 +507,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
 
   po::options_description refinement_options =
-    createRefinementOptionsDescription(context, num_columns);
+    createRefinementOptionsDescription(context, num_columns, false);
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
@@ -592,9 +565,6 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   if (context.partition.use_individual_part_weights) {
     context.partition.epsilon = 0;
   }
-
-  LOG << ">>>>>>>>>>>>>>>>>>" << context.initial_partitioning.local_search.flow.algorithm;
-  LOG << ">>>>>>>>>>>>>>>>>>!!" << context.local_search.flow.algorithm;
 }
 
 
@@ -612,7 +582,7 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   .add(createPreprocessingOptionsDescription(context, num_columns))
   .add(createCoarseningOptionsDescription(context, num_columns, false))
   .add(createInitialPartitioningOptionsDescription(context, num_columns))
-  .add(createRefinementOptionsDescription(context, num_columns));
+  .add(createRefinementOptionsDescription(context, num_columns, false));
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
