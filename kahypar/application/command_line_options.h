@@ -93,7 +93,6 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
   return options;
 }
 
-
 po::options_description createFlowRefinementOptionsDescription(Context& context,
                                                                const int num_columns,
                                                                const bool initial_partitioning) {
@@ -176,68 +175,98 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
 }
 
 po::options_description createCoarseningOptionsDescription(Context& context,
-                                                           const int num_columns) {
-  po::options_description options("Coarsening Options", num_columns);
+                                                           const int num_columns,
+                                                           const bool initial_partitioning) {
+  po::options_description options((initial_partitioning ? "Initial Partitioning Coarsening Options" :
+                                   "Coarsening Options"), num_columns);
   options.add_options()
-    ("c-type",
+    ((initial_partitioning ? "i-c-type" : "c-type"),
     po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ctype) {
-      context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+      [&context, initial_partitioning](const std::string& ctype) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+      } else {
+        context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
+      }
     }),
     "Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
     " - heavy_lazy")
-    ("c-s",
-    po::value<double>(&context.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
+    ((initial_partitioning ? "i-c-s" : "c-s"),
+    po::value<double>((initial_partitioning ? &context.initial_partitioning.coarsening.max_allowed_weight_multiplier : &context.coarsening.max_allowed_weight_multiplier))->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
     "(s * w(H)) / (t * k)\n")
-    ("c-t",
-    po::value<HypernodeID>(&context.coarsening.contraction_limit_multiplier)->value_name("<int>"),
+    ((initial_partitioning ? "i-c-t" : "c-t"),
+    po::value<HypernodeID>((initial_partitioning ? &context.initial_partitioning.coarsening.contraction_limit_multiplier : &context.coarsening.contraction_limit_multiplier))->value_name("<int>"),
     "Coarsening stops when there are no more than t * k hypernodes left")
-    ("c-rating-score",
+    ((initial_partitioning ? "i-c-rating-score" : "c-rating-score"),
     po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& rating_score) {
-      context.coarsening.rating.rating_function =
-        kahypar::ratingFunctionFromString(rating_score);
+      [&context, initial_partitioning](const std::string& rating_score) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.rating.rating_function =
+          kahypar::ratingFunctionFromString(rating_score);
+      } else {
+        context.coarsening.rating.rating_function =
+          kahypar::ratingFunctionFromString(rating_score);
+      }
     }),
     "Rating function used to calculate scores for vertex pairs:\n"
     "heavy_edge "
     "edge_frequency")
-    ("c-rating-use-communities",
+    ((initial_partitioning ? "i-c-rating-use-communities" : "c-rating-use-communities"),
     po::value<bool>()->value_name("<bool>")->notifier(
-      [&](bool use_communities) {
-      if (use_communities) {
-        context.coarsening.rating.community_policy = CommunityPolicy::use_communities;
+      [&context, initial_partitioning](bool use_communities) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.rating.community_policy =
+          (use_communities ? CommunityPolicy::use_communities :
+           CommunityPolicy::ignore_communities);
       } else {
-        context.coarsening.rating.community_policy = CommunityPolicy::ignore_communities;
+        context.coarsening.rating.community_policy =
+          (use_communities ? CommunityPolicy::use_communities :
+           CommunityPolicy::ignore_communities);
       }
     }),
     "Use community information during rating. If c-rating-use-communities=true ,\n"
     "only neighbors belonging to the same community will be considered as contraction partner.")
-    ("c-rating-heavy_node_penalty",
+    ((initial_partitioning ? "i-c-rating-heavy_node_penalty" : "c-rating-heavy_node_penalty"),
     po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& penalty) {
-      context.coarsening.rating.heavy_node_penalty_policy =
-        kahypar::heavyNodePenaltyFromString(penalty);
+      [&context, initial_partitioning](const std::string& penalty) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy =
+          kahypar::heavyNodePenaltyFromString(penalty);
+      } else {
+        context.coarsening.rating.heavy_node_penalty_policy =
+          kahypar::heavyNodePenaltyFromString(penalty);
+      }
     }),
     "Penalty function to discourage heavy vertices:\n"
     "multiplicative "
     "no_penalty")
-    ("c-rating-acceptance-criterion",
+    ((initial_partitioning ? "i-c-rating-acceptance-criterion" : "c-rating-acceptance-criterion"),
     po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& crit) {
-      context.coarsening.rating.acceptance_policy =
-        kahypar::acceptanceCriterionFromString(crit);
+      [&context, initial_partitioning](const std::string& crit) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.rating.acceptance_policy =
+          kahypar::acceptanceCriterionFromString(crit);
+      } else {
+        context.coarsening.rating.acceptance_policy =
+          kahypar::acceptanceCriterionFromString(crit);
+      }
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
     "random "
     "prefer_unmatched")
-    ("c-fixed-vertex-acceptance-criterion",
+    ((initial_partitioning ? "i-c-fixed-vertex-acceptance-criterion" : "c-fixed-vertex-acceptance-criterion"),
     po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& crit) {
-      context.coarsening.rating.fixed_vertex_acceptance_policy =
-        kahypar::fixedVertexAcceptanceCriterionFromString(crit);
+      [&context, initial_partitioning](const std::string& crit) {
+      if (initial_partitioning) {
+        context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy =
+          kahypar::fixedVertexAcceptanceCriterionFromString(crit);
+      } else {
+        context.coarsening.rating.fixed_vertex_acceptance_policy =
+          kahypar::fixedVertexAcceptanceCriterionFromString(crit);
+      }
     }),
     "Acceptance criterion for fixed vertex contractions:\n"
     "- free_vertex_only     : Allows (free, free) and (fixed, free)\n"
@@ -274,74 +303,6 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
         kahypar::initialPartitioningAlgorithmFromString(ip_algo);
     }),
     "Algorithm used to create initial partition: pool ")
-    ("i-c-type",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& ip_ctype) {
-      context.initial_partitioning.coarsening.algorithm =
-        kahypar::coarseningAlgorithmFromString(ip_ctype);
-    }),
-    "IP Coarsening Algorithm:\n"
-    " - ml_style\n"
-    " - heavy_full\n"
-    " - heavy_lazy")
-    ("i-c-s",
-    po::value<double>(&context.initial_partitioning.coarsening.max_allowed_weight_multiplier)->value_name("<double>"),
-    "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
-    "(i-c-s * w(H)) / (i-c-t * k)")
-    ("i-c-t",
-    po::value<HypernodeID>(&context.initial_partitioning.coarsening.contraction_limit_multiplier)->value_name("<int>"),
-    "IP coarsening stops when there are no more than i-c-t * k hypernodes left")
-    ("i-c-rating-score",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& rating_score) {
-      context.initial_partitioning.coarsening.rating.rating_function =
-        kahypar::ratingFunctionFromString(rating_score);
-    }),
-    "Rating function used to calculate scores for vertex pairs:\n"
-    "heavy_edge "
-    "edge_frequency")
-    ("i-c-rating-use-communities",
-    po::value<bool>()->value_name("<bool>")->notifier(
-      [&](bool use_communities) {
-      if (use_communities) {
-        context.initial_partitioning.coarsening.rating.community_policy =
-          CommunityPolicy::use_communities;
-      } else {
-        context.initial_partitioning.coarsening.rating.community_policy =
-          CommunityPolicy::ignore_communities;
-      }
-    }),
-    "Use community information during rating. If c-rating-use-communities=true ,\n"
-    "only neighbors belonging to the same community will be considered as contraction partner.")
-    ("i-c-rating-heavy_node_penalty",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& penalty) {
-      context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy =
-        kahypar::heavyNodePenaltyFromString(penalty);
-    }),
-    "Penalty function to discourage heavy vertices:\n"
-    "multiplicative "
-    "no_penalty")
-    ("i-c-rating-acceptance-criterion",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& crit) {
-      context.initial_partitioning.coarsening.rating.acceptance_policy =
-        kahypar::acceptanceCriterionFromString(crit);
-    }),
-    "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-    "random"
-    "prefer_unmatched")
-    ("i-c-fixed-vertex-acceptance-criterion",
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&](const std::string& crit) {
-      context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy =
-        kahypar::fixedVertexAcceptanceCriterionFromString(crit);
-    }),
-    "Acceptance criterion for fixed vertex contraction:\n"
-    "Acceptance criterion for fixed vertex contractions:\n"
-    "- free_vertex_only     : Allows (free, free) and (fixed, free)\n"
-    "- fixed_vertex_allowed : Allows (free, free), (fixed, free), and (fixed, fixed) \n"
-    "- equivalent_vertices  : Allows (free, free), (fixed, fixed)")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials")
@@ -386,6 +347,7 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     }),
     "Max. # local search repetitions on each level \n"
     "(no limit:-1)");
+  options.add(createCoarseningOptionsDescription(context, num_columns, true));
   options.add(createFlowRefinementOptionsDescription(context, num_columns, true));
   return options;
 }
@@ -563,7 +525,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     createPreprocessingOptionsDescription(context, num_columns);
 
   po::options_description coarsening_options = createCoarseningOptionsDescription(context,
-                                                                                  num_columns);
+                                                                                  num_columns,
+                                                                                  false);
 
 
   po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
@@ -647,7 +610,7 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   po::options_description ini_line_options;
   ini_line_options.add(createGeneralOptionsDescription(context, num_columns))
   .add(createPreprocessingOptionsDescription(context, num_columns))
-  .add(createCoarseningOptionsDescription(context, num_columns))
+  .add(createCoarseningOptionsDescription(context, num_columns, false))
   .add(createInitialPartitioningOptionsDescription(context, num_columns))
   .add(createRefinementOptionsDescription(context, num_columns));
 
