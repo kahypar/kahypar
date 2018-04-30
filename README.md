@@ -5,6 +5,24 @@ License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarCloud
 :--:|:--:|:--:|:--:|:--:|:--:|:--:
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/badges/gate?key=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)
 
+Table of Contents
+-----------
+
+   * [What is a Hypergraph? What is Hypergraph Partitioning?](#what-is-a-hypergraph-what-is-hypergraph-partitioning)
+   * [What is KaHyPar?](#what-is-kahypar)
+      * [Additional Features](#additional-features)
+      * [Experimental Results](#experimental-results)
+      * [Additional Resources](#additional-resources)
+   * [Requirements](#requirements)
+   * [Building KaHyPar](#building-kahypar)
+   * [Testing and Profiling](#testing-and-profiling)
+   * [Running KaHyPar](#running-kahypar)
+   * [Bug Reports](#bug-reports)
+   * [Licensing](#licensing)
+   * [Contributing](#contributing)
+
+
+
 What is a Hypergraph? What is Hypergraph Partitioning?
 -----------
 [Hypergraphs][HYPERGRAPHWIKI] are a generalization of graphs, where each (hyper)edge (also called net) can
@@ -36,6 +54,24 @@ By using this very fine grained *n*-level approach combined with strong local se
 it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
+#### Additional Features
+ - Hypergraph Partitioning with Variable Block Weights:
+ 
+ 	KaHyPar has support for variable block weights. If command line option `--use-individual-part-weights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--part-weights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
+
+ - Evolutionary Framework (KaHyPar-E) (soon available, see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)):
+   
+   KaHyPar-E enhances KaHyPar with an evolutionary framework as described in our [GECCO'18 publication][GECCO'18]. Given a fairly large amount of running time, this memetic multilevel algorithm performs better than repeated executions of KaHyPar-MF/-CA, hMetis, and PaToH. The configuration [/config/km1_direct_kway_sea18.ini](/config/km1_direct_kway_sea18.ini) uses KaHyPar-CA to exploit the local solution space and was used in the [GECCO'18 experiments][GECCO'18bench]. The command line parameter `--time-limit=xxx` can be used to set the maximum running time (in seconds).
+ 
+ - Hypergraph Partitioning with Fixed Vertices
+ 
+    Hypergraph partitioning with fixed vertices is a variation of standard hypergraph partitioning. In this problem, there is an additional constraint on the block assignment of some vertices, i.e., some vertices are preassigned to specific blocks prior to partitioning with the condition that, after partitioning the remaining “free” vertices, the fixed vertices are still in the block that they were assigned to. The command line parameter `--fixed / -f` can be used to specify a fix file in [hMetis fix file format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf). For a hypergraph with V vertices, the fix file consists of |V| lines - one for each vertex. The *i*th line either contains `-1` to indicate that the vertex is free to move or `<part id>` to indicate that this vertex should be preassigned to block `<part id>`. Note that part ids start from 0. 
+    
+    KaHyPar currently supports three different contraction policies for partitioning with fixed vertices:
+    1. `free_vertex_only` allows all contractions in which the contraction partner is a *free* vertex, i.e., it allows contractions of vertex pairs where either both vertices are free, or one vertex is fixed and the other vertex is free.
+    2. `fixed_vertex_allowed` additionaly allows contractions of two fixed vertices provided that both are preassigned to the *same* block. Based on preliminary experiments, this is currently the default policy.
+    3. `equivalent_vertices` only allows contractions of vertex pairs that consist of either two free vertices or two fixed vertices preassigned to the same block.
+   
 #### Experimental Results
  We use the performance plots introduced in [ALENEX'16][ALENEX'16] to compare KaHyPar to other partitioning algorithms in terms of solution quality:
 For each algorithm, these plots relate the smallest minimum cut of all algorithms to the
@@ -51,17 +87,18 @@ that violated the balance constraint. Thus an algorithm is considered to outperf
 algorithm if its corresponding ratio values are below those of the other algorithm.
 
 
-**Interactive** visualizations of the performance plots and detailed per-instance results can be found on
+Performance plots and detailed per-instance results can be found on
 the website accompanying each publication.
 
 #### Additional Resources
-|KaHyPar-MF (latest version of KaHyPar)| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
-|:--|:--:|:--:|:--:|
-|KaHyPar-CA|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
-|KaHyPar-K|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
-|KaHyPar-R|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
-
-Requirements:
+|KaHyPar-MF (latest version of KaHyPar)|SEA'18| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
+|:--|:--|:--:|:--:|:--:|
+|KaHyPar-E / EvoHGP|GECCO'18|[TR](https://arxiv.org/abs/1710.01968)|-|[Experimental Results][GECCO'18bench]|
+|KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
+|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+ 
+Requirements
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
@@ -71,7 +108,7 @@ The Karlsruhe Hypergraph Partitioning Framework requires:
  - The [Boost.Program_options][Boost.Program_options] library.
 
 
-Building KaHyPar:
+Building KaHyPar
 -----------
 
 1. Clone the repository including submodules: 
@@ -81,13 +118,13 @@ Building KaHyPar:
 3. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
 4. Run make: `make`
 
-Testing and Profiling:
+Testing and Profiling
 -----------
 
 Tests are automatically executed while project is built. Additionally a `test` target is provided.
 End-to-end integration tests can be started with: `make integration_tests`. Profiling can be enabled via cmake flag: `-DENABLE_PROFILE=ON`.  
 
-Running KaHyPar:
+Running KaHyPar
 -----------
 
 The binary is located at: `build/kahypar/application/`.
@@ -96,7 +133,11 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
 Currently we provide four different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], and in the [technical report](https://arxiv.org/abs/1802.03587) about KaHyPar-MF.
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18](https://arxiv.org/abs/1802.03587), and [GECCO'18][GECCO'18].
+
+To start EvoHGP/KaHyPar-E (see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)) optimizing the (connectivity - 1) objective using direct k-way mode run
+   
+     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
@@ -117,13 +158,13 @@ To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net 
 All preset parameters can be overwritten by using the corresponding command line options.
 
 
-Bug Reports:
+Bug Reports
 -----------
 
 We encourage you to report any problems with KaHyPar via the [github issue tracking system](https://github.com/SebastianSchlag/kahypar/issues) of the project.
 
 
-Licensing:
+Licensing
 ---------
 
 KaHyPar is free software provided under the GNU General Public License (GPLv3).
@@ -168,12 +209,20 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      year      = {2017},
     }
     
-    // KaHyPar-MF
+    // KaHyPar-MF  - accepted at SEA'18
     @misc{1802.03587,
      author = {{Heuer, T. and Sanders, P. and Schlag, S.}},
      title = {{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
      year = {2018},
      Eprint = {1802.03587},
+    }
+    
+    // KaHyPar-E (EvoHGP) - accepted at GECCO'18
+    @misc{1802.03587,
+     author = {{Andre, R. and Schlag, S. and Schulz, C.}},
+     title = {{Memetic Multilevel Hypergraph Partitioning}},
+     year = {2018},
+     Eprint = {1710.01968},
     }
 
 A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
@@ -194,7 +243,7 @@ The IBFS algorithm **can be used for research purposes only** and is described i
 	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Robert E. Tarjan, and Renato F. Werneck.
 	    In Proceedings of the 19th European conference on Algorithms, ESA'11, 2011.
 
-Contributing:
+Contributing
 ------------
 If you are interested in contributing to the KaHyPar framework
 feel free to contact me or create an issue on the
@@ -214,4 +263,6 @@ feel free to contact me or create an issue on the
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
 [SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
+[GECCO'18bench]: http://algo2.iti.kit.edu/schlag/gecco2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
+[GECCO'18]: https://arxiv.org/abs/1710.01968

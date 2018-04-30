@@ -205,9 +205,6 @@ inline void printEvolutionaryInformation(const Context& context) {
     case EvoDecision::mutation:
       LOG << "Action Subtype:" << context.evolutionary.mutate_strategy;
       break;
-    case EvoDecision::diversify:
-      LOG << "Action Subtype:" << " Diversification";
-      break;
   }
   LOG << "Requirements:";
   LOG << "  initial partitioning            :" << std::boolalpha
@@ -332,6 +329,13 @@ static inline void printInputInformation(const Context& context, const Hypergrap
       io::printHypergraphInfo(hypergraph, context.partition.graph_filename.substr(
                                 context.partition.graph_filename.find_last_of('/') + 1));
     }
+  }
+}
+
+static inline void printMaximumWeightedBipartiteMatchingBanner(const Context& context) {
+  if (context.initial_partitioning.verbose_output) {
+    LOG << "Maximum-Weighted Bipartite Matching";
+    LOG << "================================================================================";
   }
 }
 

@@ -23,6 +23,7 @@
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/registrar.h"
 
+#include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -73,6 +74,16 @@ REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
                 BestWithTieBreaking);
 REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
                 BestPreferringUnmatched);
+
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::free_vertex_only,
+                AllowFreeOnFixedFreeOnFree);
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::fixed_vertex_allowed,
+                AllowFreeOnFixedFreeOnFreeFixedOnFixed);
+REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+                FixVertexContractionAcceptancePolicy::equivalent_vertices,
+                AllowFreeOnFreeFixedOnFixed);
 
 // //////////////////////////////////////////////////////////////////////////////
 //                       Local Search Algorithm Policies

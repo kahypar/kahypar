@@ -65,10 +65,19 @@ enum class AcceptancePolicy : uint8_t {
   best_prefer_unmatched,
   UNDEFINED
 };
+
 enum class RatingPartitionPolicy : uint8_t {
   normal,
   evolutionary
 };
+
+enum class FixVertexContractionAcceptancePolicy : uint8_t {
+  free_vertex_only,
+  fixed_vertex_allowed,
+  equivalent_vertices,
+  UNDEFINED
+};
+
 enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
@@ -188,7 +197,6 @@ std::ostream& operator<< (std::ostream& os, const EvoDecision& decision) {
     case EvoDecision::normal:  return os << "normal";
     case EvoDecision::mutation:  return os << "mutation";
     case EvoDecision::combine:  return os << "combine";
-    case EvoDecision::diversify: return os << "diversify";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(decision);
@@ -270,6 +278,17 @@ std::ostream& operator<< (std::ostream& os, const AcceptancePolicy& acceptance_p
     case AcceptancePolicy::best: return os << "best";
     case AcceptancePolicy::best_prefer_unmatched: return os << "best_prefer_unmatched";
     case AcceptancePolicy::UNDEFINED: return os << "UNDEFINED";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(acceptance_policy);
+}
+
+std::ostream& operator<< (std::ostream& os, const FixVertexContractionAcceptancePolicy& acceptance_policy) {
+  switch (acceptance_policy) {
+    case FixVertexContractionAcceptancePolicy::free_vertex_only: return os << "free_vertex_only";
+    case FixVertexContractionAcceptancePolicy::fixed_vertex_allowed: return os << "fixed_vertex_allowed";
+    case FixVertexContractionAcceptancePolicy::equivalent_vertices: return os << "equivalent_vertices";
+    case FixVertexContractionAcceptancePolicy::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(acceptance_policy);
@@ -462,6 +481,19 @@ static RatingPartitionPolicy ratingPartitionPolicyFromString(const std::string& 
   exit(0);
   return RatingPartitionPolicy::normal;
 }
+
+static FixVertexContractionAcceptancePolicy fixedVertexAcceptanceCriterionFromString(const std::string& crit) {
+  if (crit == "free_vertex_only") {
+    return FixVertexContractionAcceptancePolicy::free_vertex_only;
+  } else if (crit == "fixed_vertex_allowed") {
+    return FixVertexContractionAcceptancePolicy::fixed_vertex_allowed;
+  } else if (crit == "equivalent_vertices") {
+    return FixVertexContractionAcceptancePolicy::equivalent_vertices;
+  }
+  std::cout << "No valid fixed vertex acceptance criterion for rating." << std::endl;
+  exit(0);
+}
+
 static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& penalty) {
   if (penalty == "multiplicative") {
     return HeavyNodePenaltyPolicy::multiplicative_penalty;

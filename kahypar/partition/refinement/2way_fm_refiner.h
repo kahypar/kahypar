@@ -50,16 +50,26 @@ namespace kahypar {
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class TwoWayFMRefiner final : public IRefiner,
-                              private FMRefinerBase<HypernodeID>{
+                              private FMRefinerBase<HypernodeID,
+                                                    TwoWayFMRefiner<StoppingPolicy,
+                                                                    FMImprovementPolicy> >{
  private:
   static constexpr bool debug = false;
 
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
-  using Base = FMRefinerBase<HypernodeID>;
+  using Base = FMRefinerBase<HypernodeID, TwoWayFMRefiner<StoppingPolicy,
+                                                          FMImprovementPolicy> >;
+
+  friend class FMRefinerBase<HypernodeID, TwoWayFMRefiner<StoppingPolicy,
+                                                          FMImprovementPolicy> >;
+
+  using HEState = typename Base::HEState;
+  using Base::kInvalidGain;
+  using Base::kInvalidHN;
 
  public:
   TwoWayFMRefiner(Hypergraph& hypergraph, const Context& context) :
-    FMRefinerBase(hypergraph, context),
+    Base(hypergraph, context),
     _he_fully_active(_hg.initialNumEdges()),
     _hns_in_activation_vector(_hg.initialNumNodes()),
     _non_border_hns_to_remove(),
@@ -80,7 +90,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void activate(const HypernodeID hn,
                 const HypernodeWeightArray& max_allowed_part_weights) {
-    if (_hg.isBorderNode(hn)) {
+    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
@@ -148,7 +158,7 @@ class TwoWayFMRefiner final : public IRefiner,
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
                                       std::vector<HypernodeID>& refinement_nodes,
                                       const UncontractionGainChanges& uncontraction_changes,
-                                      Hypergraph& hypergraph) {
+                                      Hypergraph& hypergraph) override final {
     updateGainCacheAfterUncontraction(refinement_nodes, uncontraction_changes);
     for (const auto& move : moves) {
       hypergraph.changeNodePart(move.hn, move.from, move.to);
@@ -164,7 +174,7 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
 
-  std::vector<Move> rollbackImpl() {
+  std::vector<Move> rollbackImpl() override final {
     return std::vector<Move>();
   }
 
@@ -192,7 +202,7 @@ class TwoWayFMRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
-    reset();
+    Base::reset();
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
 
@@ -205,11 +215,15 @@ class TwoWayFMRefiner final : public IRefiner,
       // If Lmax0==Lmax1, then all border nodes should be active. However, if Lmax0 != Lmax1,
       // because k!=2^x or we intend to further partition the hypergraph into unequal number of
       // blocks, then it might not be possible to activate all refinement nodes, because a
-      // part could be overweight regarding Lmax.
+      // part could be overweight regarding Lmax. Additionaly, if hypernode hn is a fixed
+      // vertex, it should not be activated.
       ASSERT((_context.partition.max_part_weights[0] != _context.partition.max_part_weights[1]) ||
+             _hg.isFixedVertex(hn) ||
              (!_hg.isBorderNode(hn) || _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
+    // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
+    Base::activateAdjacentFreeVertices(refinement_nodes, max_allowed_part_weights);
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;
@@ -413,7 +427,7 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
                               << V(_hg.partID(pin)) << V(other_part));
-              } else if (!_hg.marked(pin)) {
+              } else if (!_hg.marked(pin) && !_hg.isFixedVertex(pin)) {
                 ASSERT(true == false, "HN" << pin << "not in PQ, but also not marked!");
               }
             }
@@ -612,18 +626,21 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
-    const PartitionID target_part = 1 - _hg.partID(pin);
+    if (!_hg.isFixedVertex(pin)) {
+      const PartitionID target_part = 1 - _hg.partID(pin);
+      ASSERT(_hg.active(pin), V(pin) << V(target_part));
+      ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
+      ASSERT(!_hg.marked(pin));
+
+      DBG << "TwoWayFM updating gain of HN" << pin
+          << "from gain" << _pq.key(pin, target_part) << "to "
+          << _pq.key(pin, target_part) + gain_delta << "in PQ" << target_part;
+
+      _pq.updateKeyBy(pin, target_part, gain_delta);
+    }
+
     ASSERT(_gain_cache.isCached(pin), V(pin));
     ASSERT(gain_delta != 0, V(gain_delta));
-    ASSERT(_hg.active(pin), V(pin) << V(target_part));
-    ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
-    ASSERT(!_hg.marked(pin));
-
-    DBG << "TwoWayFM updating gain of HN" << pin
-        << "from gain" << _pq.key(pin, target_part) << "to "
-        << _pq.key(pin, target_part) + gain_delta << "in PQ" << target_part;
-
-    _pq.updateKeyBy(pin, target_part, gain_delta);
     _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 

@@ -72,6 +72,18 @@ void initializeContext(Hypergraph& hg, Context& context,
   Randomize::instance().setSeed(context.partition.seed);
 }
 
+void generateRandomFixedVertices(Hypergraph& hypergraph,
+                                 const double fixed_vertices_percentage,
+                                 const PartitionID k) {
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    int p = Randomize::instance().getRandomInt(0, 100);
+    if (p < fixed_vertices_percentage * 100) {
+      PartitionID part = Randomize::instance().getRandomInt(0, k - 1);
+      hypergraph.setFixedVertex(hn, part);
+    }
+  }
+}
+
 template <typename StartNodeSelection, typename GainComputation,
           typename QueueSelection>
 struct GreedyTemplateStruct {
@@ -140,12 +152,12 @@ TYPED_TEST_CASE(AKWayGreedyHypergraphGrowingPartitionerTest,
                 GreedyTestTemplates);
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasValidImbalance) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
   ASSERT_LE(metrics::imbalance(*(this->hypergraph), this->context), this->context.partition.epsilon);
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowPartitionWeights) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
 
   // Upper bounds of maximum partition weight should not be exceeded.
   HypernodeWeight heaviest_part = 0;
@@ -164,7 +176,7 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, HasNoSignificantLowParti
 }
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassigned) {
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
 
   for (const HypernodeID& hn : this->hypergraph->nodes()) {
     ASSERT_NE(this->hypergraph->partID(hn), -1);
@@ -173,6 +185,17 @@ TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, LeavesNoHypernodeUnassig
 
 TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, MultipleRun) {
   this->context.initial_partitioning.nruns = 3;
-  this->ghg->partition(*(this->hypergraph), this->context);
+  this->ghg->partition();
+}
+
+TYPED_TEST(AKWayGreedyHypergraphGrowingPartitionerTest, SetCorrectFixedVertexPart) {
+  generateRandomFixedVertices(*(this->hypergraph), 0.1, 4);
+  ASSERT_GE(this->hypergraph->numFixedVertices(), 0);
+
+  this->ghg->partition();
+
+  for (const HypernodeID& hn : this->hypergraph->fixedVertices()) {
+    ASSERT_EQ(this->hypergraph->partID(hn), this->hypergraph->fixedVertexPartID(hn));
+  }
 }
 }  // namespace kahypar

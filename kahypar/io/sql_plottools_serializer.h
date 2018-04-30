@@ -44,8 +44,15 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     context.partition.graph_filename.find_last_of('/') + 1)
       << " numHNs=" << hypergraph.initialNumNodes()
       << " numHEs=" << hypergraph.initialNumEdges()
-      << " " << hypergraph.typeAsString()
-      << " mode=" << context.partition.mode
+      << " " << hypergraph.typeAsString();
+  if (!context.partition.fixed_vertex_filename.empty()) {
+    oss << " fixed_vertex_file=" << context.partition.fixed_vertex_filename.substr(
+      context.partition.fixed_vertex_filename.find_last_of('/') + 1)
+        << " num_fixed_vertices=" << hypergraph.numFixedVertices()
+        << " fixed_vertices_imbalance=" << metrics::imbalanceFixedVertices(hypergraph,
+                                                                       context.partition.k);
+  }
+  oss << " mode=" << context.partition.mode
       << " objective=" << context.partition.objective
       << " k=" << context.partition.k
       << " epsilon=" << context.partition.epsilon
@@ -99,6 +106,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.coarsening.rating.heavy_node_penalty_policy
       << " coarsening_rating_acceptance_policy="
       << context.coarsening.rating.acceptance_policy
+      << " coarsening_rating_fixed_vertex_acceptance_policy="
+      << context.coarsening.rating.fixed_vertex_acceptance_policy
       << " IP_mode=" << context.initial_partitioning.mode
       << " IP_technique=" << context.initial_partitioning.technique
       << " IP_algorithm=" << context.initial_partitioning.algo
@@ -117,6 +126,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy
       << " IP_coarsening_rating_acceptance_policy="
       << context.initial_partitioning.coarsening.rating.acceptance_policy
+      << " IP_coarsening_rating_fixed_vertex_acceptance_policy="
+      << context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy
       << " IP_local_search_algorithm="
       << context.initial_partitioning.local_search.algorithm
       << " IP_local_search_iterations_per_level="
@@ -240,7 +251,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
 static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
   std::ostringstream oss;
-  if(context.partition.quiet_mode) {
+  if (context.partition.quiet_mode) {
     return;
   }
   EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;

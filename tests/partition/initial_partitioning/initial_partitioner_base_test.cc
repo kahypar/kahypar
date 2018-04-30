@@ -23,6 +23,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
+#include "kahypar/partition/initial_partitioning/random_initial_partitioner.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -42,7 +43,7 @@ class InitialPartitionerBaseTest : public Test {
     }
 
     initializeContext(hypergraph_weight);
-    partitioner = std::make_shared<InitialPartitionerBase>(hypergraph, context);
+    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner> >(hypergraph, context);
     partitioner->recalculateBalanceConstraints(context.partition.epsilon);
   }
 
@@ -60,7 +61,7 @@ class InitialPartitionerBaseTest : public Test {
     }
   }
 
-  std::shared_ptr<InitialPartitionerBase> partitioner;
+  std::shared_ptr<InitialPartitionerBase<RandomInitialPartitioner> > partitioner;
   Hypergraph hypergraph;
   Context context;
 };
@@ -121,5 +122,43 @@ TEST_F(InitialPartitionerBaseTest, ResetPartitionToPartitionOne) {
   for (const HypernodeID& hn : hypergraph.nodes()) {
     ASSERT_EQ(hypergraph.partID(hn), 0);
   }
+}
+
+TEST_F(InitialPartitionerBaseTest, ResetPartitionWithFixedVertices) {
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  hypergraph.setNodePart(2, 1);
+  hypergraph.setNodePart(3, 1);
+  hypergraph.setNodePart(4, 1);
+  hypergraph.setNodePart(5, 1);
+  hypergraph.setNodePart(6, 1);
+
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  context.initial_partitioning.unassigned_part = -1;
+  partitioner->resetPartitioning();
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    if (hn != 0 && hn != 6) {
+      ASSERT_EQ(hypergraph.partID(hn), -1);
+    } else {
+      ASSERT_EQ(hypergraph.partID(hn), (hn == 0 ? 0 : 1));
+    }
+  }
+}
+
+TEST_F(InitialPartitionerBaseTest, ReturnsUnassignedNode) {
+  context.initial_partitioning.unassigned_part = -1;
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  ASSERT_EQ(partitioner->getUnassignedNode(), 6);
+}
+
+TEST_F(InitialPartitionerBaseTest, ReturnsUnassignedNodeWithFixedVertices) {
+  context.initial_partitioning.unassigned_part = -1;
+  hypergraph.setNodePart(0, 1);
+  hypergraph.setNodePart(1, 1);
+  hypergraph.setFixedVertex(6, 1);
+  ASSERT_EQ(partitioner->getUnassignedNode(), 5);
 }
 }  // namespace kahypar

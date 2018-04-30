@@ -55,7 +55,7 @@ class TheEvoPartitioner : public Test {
     context.evolutionary.mutate_strategy = EvoMutateStrategy::vcycle;
     context.evolutionary.mutation_chance = 0.2;
     context.evolutionary.diversify_interval = -1;
-     context.preprocessing.enable_community_detection = false;
+    context.preprocessing.enable_community_detection = false;
     Timer::instance().clear();
   }
   Context context;
@@ -94,32 +94,30 @@ TEST_F(TheEvoPartitioner, RespectsLimitsOfTheInitialPopulation) {
 
 TEST_F(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation) {
   context.partition.quiet_mode = true;
-  context.evolutionary.time_limit_seconds = 1;
+  context.partition.time_limit = 1;
   context.evolutionary.dynamic_population_size = true;
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
-
 
 
   EvoPartitioner evo_part(context);
   evo_part.generateInitialPopulation(hypergraph, context);
   ASSERT_EQ(evo_part._population.size(), std::min(50.0, std::max(3.0, std::round(context.evolutionary.dynamic_population_amount_of_time
-                                                    * context.evolutionary.time_limit_seconds
-                                                    / Timer::instance().evolutionaryResult().evolutionary.at(0)))));
+                                                                                 * context.partition.time_limit
+                                                                                 / Timer::instance().evolutionaryResult().evolutionary.at(0)))));
 }
 TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   context.partition.quiet_mode = true;
-  context.evolutionary.time_limit_seconds = 1;
+  context.partition.time_limit = 1;
   context.evolutionary.dynamic_population_size = true;
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
-
 
 
   EvoPartitioner evo_part(context);
   evo_part.partition(hypergraph, context);
   std::vector<double> times = Timer::instance().evolutionaryResult().evolutionary;
   double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
-  ASSERT_GT(total_time, context.evolutionary.time_limit_seconds);
-  ASSERT_LT(total_time - times.at(times.size() - 1), context.evolutionary.time_limit_seconds);
+  ASSERT_GT(total_time, context.partition.time_limit);
+  ASSERT_LT(total_time - times.at(times.size() - 1), context.partition.time_limit);
 }
 }  // namespace partition
 }  // namespace kahypar

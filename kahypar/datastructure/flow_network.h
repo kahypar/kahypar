@@ -147,6 +147,29 @@ class FlowNetwork {
           return true;
         } (), "Hypernodes not correctly added or removed from flow network!");
 
+    // Add fixed vertices to source and sink
+    for (const HypernodeID& hn : hypernodes()) {
+      if (_hg.isFixedVertex(hn)) {
+        if (containsNode(hn)) {
+          if (_hg.partID(hn) == block_0) {
+            addSource(hn);
+          } else if (_hg.partID(hn) == block_1) {
+            addSink(hn);
+          }
+        } else {
+          for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+            if (_hg.partID(hn) == block_0) {
+              ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
+              addSource(mapToIncommingHyperedgeID(he));
+            } else if (_hg.partID(hn) == block_1) {
+              ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
+              addSink(mapToOutgoingHyperedgeID(he));
+            }
+          }
+        }
+      }
+    }
+
     const HyperedgeWeight cut = buildSourcesAndSinks(block_0, block_1);
     return cut;
   }

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/meta/mandatory.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
@@ -36,10 +37,12 @@
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 namespace kahypar {
+template <typename Derived = Mandatory>
 class InitialPartitionerBase {
  protected:
   static constexpr PartitionID kInvalidPart = std::numeric_limits<PartitionID>::max();
   static constexpr HypernodeID kInvalidNode = std::numeric_limits<HypernodeID>::max();
+  static constexpr bool debug = false;
 
  public:
   InitialPartitionerBase(Hypergraph& hypergraph, Context& context) :
@@ -63,16 +66,15 @@ class InitialPartitionerBase {
   virtual ~InitialPartitionerBase() = default;
 
   void recalculateBalanceConstraints(const double epsilon) {
-
-    if (!_context.partition.use_individual_block_weights){
+    if (!_context.partition.use_individual_part_weights) {
       for (int i = 0; i < _context.initial_partitioning.k; ++i) {
         _context.initial_partitioning.upper_allowed_partition_weight[i] =
-            _context.initial_partitioning.perfect_balance_partition_weight[i]
-            * (1.0 + epsilon);
+          _context.initial_partitioning.perfect_balance_partition_weight[i]
+          * (1.0 + epsilon);
       }
     } else {
       _context.initial_partitioning.upper_allowed_partition_weight =
-          _context.initial_partitioning.perfect_balance_partition_weight;
+        _context.initial_partitioning.perfect_balance_partition_weight;
     }
     _context.partition.max_part_weights[0] =
       _context.initial_partitioning.upper_allowed_partition_weight[0];
@@ -82,13 +84,63 @@ class InitialPartitionerBase {
 
   void resetPartitioning() {
     _hg.resetPartitioning();
+    preassignAllFixedVertices();
     if (_context.initial_partitioning.unassigned_part != -1) {
       for (const HypernodeID& hn : _hg.nodes()) {
-        _hg.setNodePart(hn, _context.initial_partitioning.unassigned_part);
+        if (!_hg.isFixedVertex(hn)) {
+          _hg.setNodePart(hn, _context.initial_partitioning.unassigned_part);
+        }
       }
       _hg.initializeNumCutHyperedges();
     }
     _unassigned_node_bound = _unassigned_nodes.size();
+  }
+
+  void multipleRunsInitialPartitioning() {
+    Objective obj = _context.partition.objective;
+    HyperedgeWeight best_quality = std::numeric_limits<HyperedgeWeight>::max();
+    double best_imbalance = std::numeric_limits<double>::max();
+    std::vector<PartitionID> best_partition(_hg.initialNumNodes(), 0);
+    for (uint32_t i = 0; i < _context.initial_partitioning.nruns; ++i) {
+      // hg.resetPartitioning() is called in initial_partition
+      static_cast<Derived*>(this)->initialPartition();
+
+      const HyperedgeWeight current_quality = obj == Objective::cut ?
+                                              metrics::hyperedgeCut(_hg) : metrics::km1(_hg);
+      const double current_imbalance = metrics::imbalance(_hg, _context);
+      DBG << V(obj) << V(current_quality) << V(current_imbalance);
+
+      const bool equal_metric = current_quality == best_quality;
+      const bool improved_metric = current_quality < best_quality;
+      const bool improved_imbalance = current_imbalance < best_imbalance;
+      const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
+      const bool is_best_cut_feasible_paritition = best_imbalance <= _context.partition.epsilon;
+
+      if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
+          (equal_metric && improved_imbalance) ||
+          (is_feasible_partition && !is_best_cut_feasible_paritition)) {
+        best_quality = current_quality;
+        best_imbalance = current_imbalance;
+        for (const HypernodeID& hn : _hg.nodes()) {
+          best_partition[hn] = _hg.partID(hn);
+        }
+      }
+    }
+
+    _hg.resetPartitioning();
+    for (const HypernodeID& hn : _hg.nodes()) {
+      _hg.setNodePart(hn, best_partition[hn]);
+    }
+
+    ASSERT([&]() {
+        for (const HypernodeID& hn : _hg.fixedVertices()) {
+          if (_hg.partID(hn) != _hg.fixedVertexPartID(hn)) {
+            LOG << V(hn) << V(_hg.partID(hn)) << V(_hg.fixedVertexPartID(hn));
+            return false;
+          }
+        }
+        return true;
+      } (), "Fixed Vertices are not correctly assigned!");
   }
 
   void performFMRefinement() {
@@ -96,10 +148,27 @@ class InitialPartitionerBase {
       std::unique_ptr<IRefiner> refiner;
       if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm &&
           _context.initial_partitioning.k > 2) {
-        refiner = (RefinerFactory::getInstance().createObject(
-                     RefinementAlgorithm::kway_fm,
-                     _hg, _context));
-        LOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to kway_fm.";
+        LLOG << "WARNING: Trying to use twoway_fm for k > 2! Refiner is set to:";
+        switch (_context.partition.objective) {
+          case Objective::cut:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::kway_fm,
+                         _hg, _context));
+            LOG << "kway_fm.";
+            break;
+          case Objective::km1:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::kway_fm_km1,
+                         _hg, _context));
+            LOG << "kway_fm_km1.";
+            break;
+          case Objective::UNDEFINED:
+            refiner = (RefinerFactory::getInstance().createObject(
+                         RefinementAlgorithm::do_nothing,
+                         _hg, _context));
+            LOG << "do_nothing.";
+            // omit default case to trigger compiler warning for missing cases
+        }
       } else {
         refiner = (RefinerFactory::getInstance().createObject(
                      _context.local_search.algorithm,
@@ -141,7 +210,7 @@ class InitialPartitionerBase {
       do {
         refinement_nodes.clear();
         for (const HypernodeID& hn : _hg.nodes()) {
-          if (_hg.isBorderNode(hn)) {
+          if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
             refinement_nodes.push_back(hn);
           }
         }
@@ -193,7 +262,8 @@ class InitialPartitionerBase {
     HypernodeID unassigned_node = kInvalidNode;
     for (size_t i = 0; i < _unassigned_node_bound; ++i) {
       HypernodeID hn = _unassigned_nodes[i];
-      if (_hg.partID(hn) == _context.initial_partitioning.unassigned_part) {
+      if (_hg.partID(hn) == _context.initial_partitioning.unassigned_part &&
+          !_hg.isFixedVertex(hn)) {
         unassigned_node = hn;
         break;
       } else {
@@ -212,6 +282,13 @@ class InitialPartitionerBase {
   Context& _context;
 
  private:
+  void preassignAllFixedVertices() {
+    for (const HypernodeID& hn : _hg.fixedVertices()) {
+      ASSERT(_hg.partID(hn) == -1, "Fixed vertex already assigned to part");
+      _hg.setNodePart(hn, _hg.fixedVertexPartID(hn));
+    }
+  }
+
   std::vector<HypernodeID> _unassigned_nodes;
   unsigned int _unassigned_node_bound;
   HypernodeWeight _max_hypernode_weight;

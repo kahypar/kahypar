@@ -28,6 +28,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
+#include "kahypar/partition/fixed_vertices.h"
 #include "kahypar/partition/multilevel.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -73,6 +74,9 @@ static inline double calculateRelaxedEpsilon(const HypernodeWeight original_hype
                                              const HypernodeWeight current_hypergraph_weight,
                                              const PartitionID k,
                                              const Context& original_context) {
+  if (current_hypergraph_weight == 0) {
+    return 0.0;
+  }
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_context.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_context.partition.epsilon);
@@ -91,11 +95,13 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
                                                               current_hypergraph.totalWeight(),
                                                               current_k, original_context);
-  ASSERT(current_context.partition.epsilon > 0.0, "start partition already too imbalanced");
+  ASSERT(original_context.partition.use_individual_part_weights ||
+         current_context.partition.epsilon > 0.0, "start partition already too imbalanced");
+
   current_context.partition.total_graph_weight =
     current_hypergraph.totalWeight();
 
-  if (original_context.partition.use_individual_block_weights) {
+  if (original_context.partition.use_individual_part_weights) {
     current_context.partition.epsilon = 0;
     current_context.partition.perfect_balance_part_weights[0] = 0;
     for (PartitionID i = 0; i < k0; ++i) {
@@ -103,7 +109,7 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
       current_context.partition.perfect_balance_part_weights[0] += original_context.partition.perfect_balance_part_weights[block];
     }
     current_context.partition.perfect_balance_part_weights[1] = 0;
-    for (PartitionID i = 0 ; i < k1; ++i) {
+    for (PartitionID i = 0; i < k1; ++i) {
       const PartitionID block = kl + k0 + i;
       current_context.partition.perfect_balance_part_weights[1] += original_context.partition.perfect_balance_part_weights[block];
     }
@@ -111,18 +117,18 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
     current_context.partition.max_part_weights[1] = current_context.partition.perfect_balance_part_weights[1];
   } else {
     current_context.partition.perfect_balance_part_weights[0] =
-        ceil((k0 / static_cast<double>(current_k))
-             * static_cast<double>(current_context.partition.total_graph_weight));
+      ceil((k0 / static_cast<double>(current_k))
+           * static_cast<double>(current_context.partition.total_graph_weight));
 
     current_context.partition.perfect_balance_part_weights[1] =
-        ceil((k1 / static_cast<double>(current_k))
-             * static_cast<double>(current_context.partition.total_graph_weight));
+      ceil((k1 / static_cast<double>(current_k))
+           * static_cast<double>(current_context.partition.total_graph_weight));
 
     current_context.partition.max_part_weights[0] =
-        (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0];
+      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0];
 
     current_context.partition.max_part_weights[1] =
-        (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1];
+      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1];
   }
 
   current_context.coarsening.contraction_limit =
@@ -150,9 +156,28 @@ static inline void partition(Hypergraph& input_hypergraph,
                              delete h;
                            };
 
+  HypergraphPtr input_hypergraph_without_fixed_vertices = HypergraphPtr(nullptr, no_delete);
+  std::vector<HypernodeID> fixed_vertex_free_to_input;
+  if (input_hypergraph.containsFixedVertices()) {
+    // Remove fixed vertices from input hypergraph. Fixed vertices are
+    // added in a postprocessing step to the hypergraph after recursive
+    // bisection finished.
+    auto hg_without_fixed_vertices = ds::removeFixedVertices(input_hypergraph);
+    // The 'new' hypergraph without fixed vertices should be deleted.
+    input_hypergraph_without_fixed_vertices =
+      HypergraphPtr(hg_without_fixed_vertices.first.release(),
+                    delete_hypergraph);
+    fixed_vertex_free_to_input = hg_without_fixed_vertices.second;
+  } else {
+    // The original input hypergraph that did not contain any fixed vertices should not
+    // be deleted.
+    input_hypergraph_without_fixed_vertices = HypergraphPtr(&input_hypergraph, no_delete);
+  }
+
   std::vector<RBState> hypergraph_stack;
   MappingStack mapping_stack;
-  hypergraph_stack.emplace_back(HypergraphPtr(&input_hypergraph, no_delete),
+
+  hypergraph_stack.emplace_back(HypergraphPtr(input_hypergraph_without_fixed_vertices.get(), no_delete),
                                 RBHypergraphState::unpartitioned, 0,
                                 (original_context.partition.k - 1));
 
@@ -170,11 +195,11 @@ static inline void partition(Hypergraph& input_hypergraph,
     if (hypergraph_stack.back().lower_k == hypergraph_stack.back().upper_k) {
       for (const HypernodeID& hn : current_hypergraph.nodes()) {
         const HypernodeID original_hn = originalHypernode(hn, mapping_stack);
-        const PartitionID current_part = input_hypergraph.partID(original_hn);
+        const PartitionID current_part = input_hypergraph_without_fixed_vertices->partID(original_hn);
         ASSERT(current_part != Hypergraph::kInvalidPartition, V(current_part));
         if (current_part != hypergraph_stack.back().lower_k) {
-          input_hypergraph.changeNodePart(original_hn, current_part,
-                                          hypergraph_stack.back().lower_k);
+          input_hypergraph_without_fixed_vertices->changeNodePart(original_hn, current_part,
+                                                                  hypergraph_stack.back().lower_k);
         }
       }
       hypergraph_stack.pop_back();
@@ -197,8 +222,9 @@ static inline void partition(Hypergraph& input_hypergraph,
         break;
       case RBHypergraphState::unpartitioned: {
           Context current_context =
-            createCurrentBisectionContext(original_context, input_hypergraph,
-                                          current_hypergraph, k, km, k - km,k1);
+            createCurrentBisectionContext(original_context,
+                                          *input_hypergraph_without_fixed_vertices,
+                                          current_hypergraph, k, km, k - km, k1);
           current_context.partition.rb_lower_k = k1;
           current_context.partition.rb_upper_k = k2;
           ++bisection_counter;
@@ -242,7 +268,7 @@ static inline void partition(Hypergraph& input_hypergraph,
             const bool detect_communities =
               !current_context.preprocessing.community_detection.reuse_communities ||
               bisection_counter == 1;
-            if (detect_communities) {
+            if (detect_communities && current_hypergraph.initialNumNodes() > 0) {
               detectCommunities(current_hypergraph, current_context);
             } else if (verbose_output) {
               LOG << "Reusing community structure computed in first bisection";
@@ -264,7 +290,9 @@ static inline void partition(Hypergraph& input_hypergraph,
           ASSERT(coarsener.get() != nullptr, "coarsener not found");
           ASSERT(refiner.get() != nullptr, "refiner not found");
 
-          multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
+          if (current_hypergraph.initialNumNodes() > 0) {
+            multilevel::partition(current_hypergraph, *coarsener, *refiner, current_context);
+          }
 
           auto extractedHypergraph_1 = ds::extractPartAsUnpartitionedHypergraphForBisection(
             current_hypergraph, 1, current_context.partition.objective);
@@ -296,6 +324,30 @@ static inline void partition(Hypergraph& input_hypergraph,
       default:
         LOG << "Illegal recursive bisection state";
         break;
+    }
+  }
+
+  if (input_hypergraph.containsFixedVertices()) {
+    io::printMaximumWeightedBipartiteMatchingBanner(original_context);
+    if (original_context.initial_partitioning.verbose_output) {
+      LOG << "Partitioning objective of hypergraph without fixed vertices: "
+          << original_context.partition.objective << "="
+          << metrics::objective(*input_hypergraph_without_fixed_vertices,
+                            original_context.partition.objective);
+    }
+
+    for (const HypernodeID& hn : input_hypergraph_without_fixed_vertices->nodes()) {
+      const HypernodeID original_hn = fixed_vertex_free_to_input[hn];
+      ASSERT(input_hypergraph.partID(original_hn) == Hypergraph::kInvalidPartition,
+             "Hypernode" << original_hn << "already assigned");
+      input_hypergraph.setNodePart(original_hn, input_hypergraph_without_fixed_vertices->partID(hn));
+    }
+
+    // Postprocessing: Add fixed vertices to input hypergraph after recursive bisection
+    fixed_vertices::partition(input_hypergraph, original_context);
+
+    if (original_context.initial_partitioning.verbose_output) {
+      LOG << "================================================================================";
     }
   }
 }

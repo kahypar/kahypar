@@ -34,27 +34,9 @@ class IInitialPartitioner {
   IInitialPartitioner& operator= (const IInitialPartitioner&) = delete;
   IInitialPartitioner& operator= (IInitialPartitioner&&) = delete;
 
-
-  void partition(Hypergraph& hg, const Context& context) {
-    HyperedgeWeight best_cut = std::numeric_limits<HyperedgeWeight>::max();
-    std::vector<PartitionID> best_partition(hg.initialNumNodes(), 0);
-    for (uint32_t i = 0; i < context.initial_partitioning.nruns; ++i) {
-      // hg.resetPartitioning() is called in partitionImpl
-      partitionImpl();
-      const HyperedgeWeight current_cut = metrics::hyperedgeCut(hg);
-      if (current_cut < best_cut) {
-        best_cut = current_cut;
-        for (const HypernodeID& hn : hg.nodes()) {
-          best_partition[hn] = hg.partID(hn);
-        }
-      }
-    }
-    hg.resetPartitioning();
-    for (const HypernodeID& hn : hg.nodes()) {
-      hg.setNodePart(hn, best_partition[hn]);
-    }
+  void partition() {
+    partitionImpl();
   }
-
 
   virtual ~IInitialPartitioner() = default;
 

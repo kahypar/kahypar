@@ -274,6 +274,7 @@ TEST_F(AGreedyQueueSelectionTest, ChecksSequentialNextQueueIDWithUnassignedPartP
   context.initial_partitioning.unassigned_part = 1;
   std::vector<HypernodeID> nodes = { 0, 1, 2, 3, 4, 5, 6 };
   pushHypernodesIntoQueue<FMGainComputationPolicy>(nodes, false);
+  pq.disablePart(context.initial_partitioning.unassigned_part);
   context.initial_partitioning.upper_allowed_partition_weight[0] = 2;
   context.initial_partitioning.upper_allowed_partition_weight[1] = 2;
 

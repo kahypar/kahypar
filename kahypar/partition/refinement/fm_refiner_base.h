@@ -35,7 +35,8 @@ struct RollbackInfo {
   PartitionID to_part;
 };
 
-template <typename RollbackElement = Mandatory>
+template <typename RollbackElement = Mandatory,
+          typename Derived = Mandatory>
 class FMRefinerBase {
  private:
   static constexpr bool debug = false;
@@ -117,6 +118,55 @@ class FMRefinerBase {
     }
     return heaviest_part;
   }
+
+  void activateAdjacentFreeVertices(const std::vector<HypernodeID>& refinement_nodes) {
+    for (const HypernodeID& hn : refinement_nodes) {
+      if (_hg.isFixedVertex(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
+            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
+              static_cast<Derived*>(this)->activate(pin);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void activateAdjacentFreeVertices(const std::vector<HypernodeID>& refinement_nodes,
+                                    const std::array<HypernodeWeight, 2>& max_allowed_part_weights) {
+    for (const HypernodeID& hn : refinement_nodes) {
+      if (_hg.isFixedVertex(hn)) {
+        for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+          for (const HypernodeID& pin : _hg.pins(he)) {
+            if (!_hg.isFixedVertex(pin) && !_hg.active(pin)) {
+              static_cast<Derived*>(this)->activate(pin, max_allowed_part_weights);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  template <typename GainCache>
+  void removeHypernodeMovementsFromPQ(const HypernodeID hn, const GainCache& gain_cache) {
+    if (_hg.active(hn)) {
+      _hg.deactivate(hn);
+      for (const PartitionID& part : gain_cache.adjacentParts(hn)) {
+        ASSERT(_pq.contains(hn, part), V(hn) << V(part));
+        _pq.remove(hn, part);
+      }
+      ASSERT([&]() {
+          for (PartitionID part = 0; part < _context.partition.k; ++part) {
+            if (_pq.contains(hn, part)) {
+              return false;
+            }
+          }
+          return true;
+        } (), V(hn));
+    }
+  }
+
 
   void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
                                            HypernodeWeight& heaviest_part_weight,

@@ -28,6 +28,7 @@
 #include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -42,6 +43,7 @@ template <class ScorePolicy = HeavyEdgeScore,
           class CommunityPolicy = UseCommunityStructure,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
+          class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
@@ -115,7 +117,8 @@ class VertexPairRater {
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
-                                         target, tmp_target, _already_matched)) {
+                                         target, tmp_target, _already_matched) &&
+          FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)) {
         max_rating = tmp_rating;
         target = tmp_target;
       }

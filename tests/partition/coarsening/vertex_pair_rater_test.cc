@@ -23,6 +23,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -41,18 +42,21 @@ using FirstWinsRater = VertexPairRater<HeavyEdgeScore,
                                        UseCommunityStructure,
                                        NormalPartitionPolicy,
                                        BestRatingWithTieBreaking<FirstRatingWins>,
+                                       AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                        RatingType>;
 using LastWinsRater = VertexPairRater<HeavyEdgeScore,
                                       MultiplicativePenalty,
                                       UseCommunityStructure,
                                       NormalPartitionPolicy,
                                       BestRatingWithTieBreaking<LastRatingWins>,
+                                      AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                       RatingType>;
 using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
                                         MultiplicativePenalty,
                                         UseCommunityStructure,
                                         NormalPartitionPolicy,
                                         BestRatingWithTieBreaking<RandomRatingWins>,
+                                        AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                         RatingType>;
 
 class ARater : public Test {

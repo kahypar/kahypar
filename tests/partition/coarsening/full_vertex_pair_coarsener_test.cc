@@ -23,6 +23,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
+#include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "tests/partition/coarsening/vertex_pair_coarsener_test_fixtures.h"
 
@@ -35,6 +36,7 @@ using CoarsenerType = FullVertexPairCoarsener<HeavyEdgeScore,
                                               UseCommunityStructure,
                                               NormalPartitionPolicy,
                                               BestRatingWithTieBreaking<FirstRatingWins>,
+                                              AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                               RatingType>;
 
 class ACoarsener : public ACoarsenerBase<CoarsenerType>{

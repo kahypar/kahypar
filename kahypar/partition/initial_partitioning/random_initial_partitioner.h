@@ -30,10 +30,13 @@
 
 namespace kahypar {
 class RandomInitialPartitioner : public IInitialPartitioner,
-                                 private InitialPartitionerBase {
+                                 private InitialPartitionerBase<RandomInitialPartitioner>{
+  using Base = InitialPartitionerBase<RandomInitialPartitioner>;
+  friend Base;
+
  public:
   RandomInitialPartitioner(Hypergraph& hypergraph, Context& context) :
-    InitialPartitionerBase(hypergraph, context),
+    Base(hypergraph, context),
     _already_tried_to_assign_hn_to_part(context.initial_partitioning.k) { }
 
   ~RandomInitialPartitioner() override = default;
@@ -46,10 +49,17 @@ class RandomInitialPartitioner : public IInitialPartitioner,
 
  private:
   void partitionImpl() override final {
+    Base::multipleRunsInitialPartitioning();
+  }
+
+  void initialPartition() {
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
-    InitialPartitionerBase::resetPartitioning();
+    Base::resetPartitioning();
     for (const HypernodeID& hn : _hg.nodes()) {
+      if (_hg.isFixedVertex(hn)) {
+        continue;
+      }
       PartitionID p = -1;
       _already_tried_to_assign_hn_to_part.reset();
       int partition_sum = 0;
@@ -60,16 +70,14 @@ class RandomInitialPartitioner : public IInitialPartitioner,
           // If the current hypernode fits in no part of the partition
           // (partition_sum = sum of 1 to k = k*(k+1)/2) we have to assign
           // him to a part which violates the imbalance definition
-          if (partition_sum
-              == (_context.initial_partitioning.k
-                  * (_context.initial_partitioning.k + 1))
-              / 2) {
+          if (partition_sum ==
+              (_context.initial_partitioning.k * (_context.initial_partitioning.k + 1)) / 2) {
             _hg.setNodePart(hn, p);
             break;
           }
         }
         p = Randomize::instance().getRandomInt(0, _context.initial_partitioning.k - 1);
-      } while (!assignHypernodeToPartition(hn, p));
+      } while (!Base::assignHypernodeToPartition(hn, p));
 
       ASSERT(_hg.partID(hn) == p, "Hypernode" << hn << "should be in part" << p
                                               << ", but is actually in" << _hg.partID(hn) << ".");
@@ -86,11 +94,11 @@ class RandomInitialPartitioner : public IInitialPartitioner,
         return true;
       } (), "There are unassigned hypernodes!");
 
-    InitialPartitionerBase::performFMRefinement();
+    Base::performFMRefinement();
   }
 
-  using InitialPartitionerBase::_hg;
-  using InitialPartitionerBase::_context;
+  using Base::_hg;
+  using Base::_context;
   ds::FastResetFlagArray<> _already_tried_to_assign_hn_to_part;
 };
 }  // namespace kahypar

@@ -32,25 +32,32 @@ namespace kahypar {
 template <bool UseRandomStartHypernode = true>
 class BFSStartNodeSelectionPolicy {
  public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& start_nodes, const Context& context,
-                                         const Hypergraph& hg, const PartitionID k) {
-    HypernodeID start_hn = 0;
-    if (UseRandomStartHypernode) {
-      start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-    }
-    start_nodes.push_back(start_hn);
+  static inline void calculateStartNodes(std::vector<std::vector<HypernodeID> >& start_nodes,
+                                         const Context& context, const Hypergraph& hg,
+                                         const PartitionID k) {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
     ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
-    while (start_nodes.size() != static_cast<size_t>(k)) {
+    bool start_nodes_empty = true;
+    for (PartitionID i = 0; i < k; ++i) {
+      start_nodes_empty = start_nodes_empty && start_nodes[i].size() == 0;
+    }
+
+    if (start_nodes_empty) {
+      if (UseRandomStartHypernode) {
+        const HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+        start_nodes[0].push_back(start_hn);
+      } else {
+        start_nodes[0].push_back(0);
+      }
+    }
+
+    PartitionID cur_part = nextPartID(start_nodes, k);
+    while (cur_part != k) {
       std::queue<HypernodeID> bfs;
       HypernodeID lastHypernode = -1;
       size_t visited_nodes = 0;
-      for (const HypernodeID& start_node : start_nodes) {
-        bfs.push(start_node);
-        in_queue.set(start_node, true);
-      }
-
+      initializeQueue(start_nodes, bfs, in_queue, k);
 
       while (!bfs.empty()) {
         lastHypernode = bfs.front();
@@ -78,32 +85,36 @@ class BFSStartNodeSelectionPolicy {
           }
         }
       }
-      start_nodes.push_back(lastHypernode);
+      start_nodes[cur_part].push_back(lastHypernode);
+      cur_part = nextPartID(start_nodes, k);
       in_queue.reset();
       hyperedge_in_queue.reset();
     }
   }
-};
 
-class RandomStartNodeSelectionPolicy {
- public:
-  static inline void calculateStartNodes(std::vector<HypernodeID>& startNodes, const Context&,
-                                         const Hypergraph& hg, const PartitionID k) {
-    if (k == 2) {
-      startNodes.push_back(Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1));
-      return;
-    }
+  static inline void initializeQueue(std::vector<std::vector<HypernodeID> >& start_nodes,
+                                     std::queue<HypernodeID>& q,
+                                     ds::FastResetFlagArray<>& in_queue,
+                                     const PartitionID k) {
+    ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
 
     for (PartitionID i = 0; i < k; ++i) {
-      while (true) {
-        HypernodeID hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
-        auto node = std::find(startNodes.begin(), startNodes.end(), hn);
-        if (node == startNodes.end()) {
-          startNodes.push_back(hn);
-          break;
-        }
+      for (const HypernodeID& hn : start_nodes[i]) {
+        q.push(hn);
+        in_queue.set(hn, true);
       }
     }
+  }
+
+  static inline PartitionID nextPartID(std::vector<std::vector<HypernodeID> >& start_nodes,
+                                       const PartitionID k) {
+    ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
+    for (PartitionID i = 0; i < k; ++i) {
+      if (start_nodes[i].size() == 0) {
+        return i;
+      }
+    }
+    return k;
   }
 };
 }  // namespace kahypar

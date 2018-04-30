@@ -80,7 +80,10 @@ class AdaptiveLSHWithConnectedComponents {
     std::vector<uint32_t> cluster_size(_hypergraph.currentNumNodes(), 1);
 
     std::vector<uint8_t> active_clusters_bool_set(_hypergraph.currentNumNodes(), true);
-    uint32_t num_active_vertices = _hypergraph.currentNumNodes();
+
+    const HypernodeID num_free_vertices = _hypergraph.currentNumNodes() -
+                                          _hypergraph.numFixedVertices();
+    HypernodeID num_active_vertices = num_free_vertices;
 
     for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
       clusters.push_back(vertex_id);
@@ -98,9 +101,13 @@ class AdaptiveLSHWithConnectedComponents {
       active_vertices_set.clear();
 
       for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
-        HypernodeID cluster = clusters[vertex_id];
-        if (active_clusters_bool_set[cluster]) {
-          active_vertices_set.push_back(vertex_id);
+        if (!_hypergraph.isFixedVertex(vertex_id)) {
+          const HypernodeID cluster = clusters[vertex_id];
+          if (active_clusters_bool_set[cluster]) {
+            active_vertices_set.push_back(vertex_id);
+          }
+        } else {
+          active_clusters_bool_set[clusters[vertex_id]] = false;
         }
       }
 
@@ -138,7 +145,7 @@ class AdaptiveLSHWithConnectedComponents {
       }
       inactive_clusters.clear();
 
-      if (num_cl <= _hypergraph.currentNumNodes() / 2) {
+      if (num_cl <= num_free_vertices / 2) {
         if (!_context.partition.quiet_mode) {
           LOG << "Adaptively chosen number of hash functions:" << main_hash_set.getHashNum();
         }

@@ -340,5 +340,32 @@ static inline void writePartitionFile(const Hypergraph& hypergraph, const std::s
   }
   out_stream.close();
 }
+
+static inline void readFixedVertexFile(Hypergraph& hypergraph, const std::string& filename) {
+  ASSERT(!filename.empty(), "No filename for partition file specified");
+  std::ifstream file(filename);
+  if (file) {
+    PartitionID part;
+    HypernodeID hn = 0;
+    while (file >> part) {
+      if (part != -1) {
+        hypergraph.setFixedVertex(hn, part);
+      }
+      hn++;
+    }
+    file.close();
+  } else {
+    std::cerr << "Error: File not found: " << filename << std::endl;
+  }
+}
+
+static inline void writeFixedVertexFile(const Hypergraph& hypergraph, const std::string& filename) {
+  ASSERT(!filename.empty(), "No filename for partition file specified");
+  std::ofstream out_stream(filename.c_str());
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    out_stream << hypergraph.fixedVertexPartID(hn) << std::endl;
+  }
+  out_stream.close();
+}
 }  // namespace io
 }  // namespace kahypar

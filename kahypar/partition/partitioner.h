@@ -185,18 +185,18 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
                                                     * context.partition.total_graph_weight);
 
-  if (context.partition.use_individual_block_weights) {
-        context.partition.perfect_balance_part_weights = context.partition.max_part_weights;
+  if (context.partition.use_individual_part_weights) {
+    context.partition.perfect_balance_part_weights = context.partition.max_part_weights;
   } else {
-      context.partition.perfect_balance_part_weights[0] = ceil(
-    context.partition.total_graph_weight
-    / static_cast<double>(context.partition.k));
-  context.partition.perfect_balance_part_weights[1] =
-    context.partition.perfect_balance_part_weights[0];
+    context.partition.perfect_balance_part_weights[0] = ceil(
+      context.partition.total_graph_weight
+      / static_cast<double>(context.partition.k));
+    context.partition.perfect_balance_part_weights[1] =
+      context.partition.perfect_balance_part_weights[0];
 
-  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[0];
-  context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
+                                            * context.partition.perfect_balance_part_weights[0];
+    context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
   }
 }
 
@@ -283,6 +283,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
                   "and while filling the initial population of KaHyParE.");
     Hypergraph sparseHypergraph;
     preprocess(hypergraph, sparseHypergraph, context);
+    ASSERT(sparseHypergraph.numFixedVertices() == hypergraph.numFixedVertices());
     partition::partition(sparseHypergraph, context);
     hypergraph.reset();
     postprocess(hypergraph, sparseHypergraph, context);
@@ -297,5 +298,16 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
   }
+
+  ASSERT([&]() {
+      for (const HypernodeID& hn : hypergraph.fixedVertices()) {
+        if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
+          LOG << "Hypernode" << hn << "should be in part" << hypergraph.fixedVertexPartID(hn)
+              << "but actually is in" << hypergraph.partID(hn);
+          return false;
+        }
+      }
+      return true;
+    } (), "Fixed Vertices are assigned incorrectly!");
 }
 }  // namespace kahypar
