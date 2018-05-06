@@ -153,6 +153,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
   // calculation should give the same result as the old one.
   ASSERT(context.partition.perfect_balance_part_weights[0]
          != context.partition.perfect_balance_part_weights[1] ||
+         context.partition.use_individual_part_weights ||
          max_balance - 1.0 == internal::imbalance(hypergraph, context.partition.k),
          "Incorrect Imbalance:" << (max_balance - 1.0) << "!="
                                 << V(internal::imbalance(hypergraph, context.partition.k)));
