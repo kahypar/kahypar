@@ -58,12 +58,24 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " seed=" << context.partition.seed
       << " num_v_cycles=" << context.partition.global_search_iterations
       << " he_size_threshold=" << context.partition.hyperedge_size_threshold
-      << " total_graph_weight=" << hypergraph.totalWeight()
-      << " L_opt0=" << context.partition.perfect_balance_part_weights[0]
-      << " L_opt1=" << context.partition.perfect_balance_part_weights[1]
-      << " L_max0=" << context.partition.max_part_weights[0]
-      << " L_max1=" << context.partition.max_part_weights[1]
-      << " pre_enable_min_hash_sparsifier=" << std::boolalpha
+      << " total_graph_weight=" << hypergraph.totalWeight();
+  if (context.partition.use_individual_part_weights) {
+    for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+      oss << " L_opt" << i << "=" << context.partition.perfect_balance_part_weights[i];
+    }
+  } else {
+    oss << " L_opt" << "=" << context.partition.perfect_balance_part_weights[0];
+  }
+
+  if (context.partition.use_individual_part_weights) {
+    for (PartitionID i = 0; i != hypergraph.k(); ++i) {
+      oss << " L_max" << i << "=" << context.partition.max_part_weights[i];
+    }
+  } else {
+    oss << " L_max" << "=" << context.partition.max_part_weights[0];
+  }
+
+  oss << " pre_enable_min_hash_sparsifier=" << std::boolalpha
       << context.preprocessing.enable_min_hash_sparsifier
       << " pre_min_hash_max_hyperedge_size="
       << context.preprocessing.min_hash_sparsifier.max_hyperedge_size

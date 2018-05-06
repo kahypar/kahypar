@@ -52,12 +52,12 @@ class ACoarsenerBase : public Test {
     context.partition.k = 2;
     context.partition.objective = Objective::cut;
     context.partition.epsilon = 0.3;
-    context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-    context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[0];
-    context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[1];
+    context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[0]);
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[1]);
     kahypar::Randomize::instance().setSeed(context.partition.seed);
     context.coarsening.max_allowed_node_weight = 5;
   }
@@ -191,12 +191,12 @@ void restoresParallelHyperedgesInReverseOrder() {
   context.partition.epsilon = 1.0;
   context.partition.k = 2;
   context.partition.objective = Objective::cut;
-  context.partition.perfect_balance_part_weights[0] = ceil(52.0 / 2);
-  context.partition.perfect_balance_part_weights[1] = ceil(52.0 / 2);
-  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[0];
-  context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[1];
+  context.partition.perfect_balance_part_weights.push_back(ceil(52.0 / 2));
+  context.partition.perfect_balance_part_weights.push_back(ceil(52.0 / 2));
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[0]);
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[1]);
 
   context.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
@@ -235,12 +235,12 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   context.partition.epsilon = 1.0;
   context.partition.k = 2;
   context.partition.objective = Objective::cut;
-  context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-  context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[0];
-  context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[1];
+  context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+  context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[0]);
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[1]);
   context.coarsening.max_allowed_node_weight = 4;
   CoarsenerType coarsener(hypergraph, context,  /* heaviest_node_weight */ 1);
   std::unique_ptr<IRefiner> refiner(new DoNothingRefiner());

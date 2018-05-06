@@ -77,12 +77,12 @@ class APartitionedHypergraph : public Test {
     context.partition.graph_filename = "Test";
     context.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
     context.partition.epsilon = 0.15;
-    context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-    context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[0];
-    context.partition.max_part_weights[1] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[1];
+    context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[0]);
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[1]);
     context.coarsening.max_allowed_node_weight = 5;
     context.initial_partitioning.mode = Mode::recursive_bisection;
     context.initial_partitioning.technique = InitialPartitioningTechnique::flat;

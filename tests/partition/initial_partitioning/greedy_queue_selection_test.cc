@@ -97,15 +97,15 @@ class AGreedyQueueSelectionTest : public Test {
     context.initial_partitioning.upper_allowed_partition_weight.resize(k);
     context.initial_partitioning.perfect_balance_partition_weight.resize(k);
     for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
-      context.initial_partitioning.perfect_balance_partition_weight[i] =
+      context.initial_partitioning.perfect_balance_partition_weight.push_back(
         ceil(
           hypergraph.totalWeight()
-          / static_cast<double>(context.initial_partitioning.k));
-      context.initial_partitioning.upper_allowed_partition_weight[i] =
+          / static_cast<double>(context.initial_partitioning.k)));
+      context.initial_partitioning.upper_allowed_partition_weight.push_back(
         ceil(
           hypergraph.totalWeight()
           / static_cast<double>(context.initial_partitioning.k))
-        * (1.0 + context.partition.epsilon);
+        * (1.0 + context.partition.epsilon));
     }
   }
 

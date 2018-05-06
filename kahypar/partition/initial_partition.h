@@ -58,9 +58,7 @@ static inline Context createContext(const Hypergraph& hg,
   context.initial_partitioning.upper_allowed_partition_weight.clear();
 
   if (context.partition.use_individual_part_weights) {
-    for (int i = context.partition.rb_lower_k; i <= context.partition.rb_upper_k; ++i) {
-      ASSERT(context.partition.perfect_balance_part_weights.size() >= context.partition.rb_upper_k,
-             "");
+    for (int i = 0; i < context.initial_partitioning.k; ++i) {
       context.initial_partitioning.perfect_balance_partition_weight.push_back(
         context.partition.perfect_balance_part_weights[i]);
       context.initial_partitioning.upper_allowed_partition_weight.push_back(
@@ -69,7 +67,7 @@ static inline Context createContext(const Hypergraph& hg,
   } else {
     for (int i = 0; i < context.initial_partitioning.k; ++i) {
       context.initial_partitioning.perfect_balance_partition_weight.push_back(
-        context.partition.perfect_balance_part_weights[i % 2]);
+        context.partition.perfect_balance_part_weights[i]);
       context.initial_partitioning.upper_allowed_partition_weight.push_back(
         context.initial_partitioning.perfect_balance_partition_weight[i]
         * (1.0 + context.partition.epsilon));

@@ -100,32 +100,36 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
 
   if (original_context.partition.use_individual_part_weights) {
     current_context.partition.epsilon = 0;
-    current_context.partition.perfect_balance_part_weights[0] = 0;
+    current_context.partition.perfect_balance_part_weights.clear();
+    current_context.partition.perfect_balance_part_weights.push_back(0);
     for (PartitionID i = 0; i < k0; ++i) {
       const PartitionID block = kl + i;
       current_context.partition.perfect_balance_part_weights[0] += original_context.partition.perfect_balance_part_weights[block];
     }
-    current_context.partition.perfect_balance_part_weights[1] = 0;
+    current_context.partition.perfect_balance_part_weights.push_back(0);
     for (PartitionID i = 0; i < k1; ++i) {
       const PartitionID block = kl + k0 + i;
       current_context.partition.perfect_balance_part_weights[1] += original_context.partition.perfect_balance_part_weights[block];
     }
-    current_context.partition.max_part_weights[0] = current_context.partition.perfect_balance_part_weights[0];
-    current_context.partition.max_part_weights[1] = current_context.partition.perfect_balance_part_weights[1];
+    current_context.partition.max_part_weights.clear();
+    current_context.partition.max_part_weights.push_back(current_context.partition.perfect_balance_part_weights[0]);
+    current_context.partition.max_part_weights.push_back(current_context.partition.perfect_balance_part_weights[1]);
   } else {
-    current_context.partition.perfect_balance_part_weights[0] =
+    current_context.partition.perfect_balance_part_weights.clear();
+    current_context.partition.perfect_balance_part_weights.push_back(
       ceil((k0 / static_cast<double>(current_k))
-           * static_cast<double>(current_hypergraph.totalWeight()));
+           * static_cast<double>(current_hypergraph.totalWeight())));
 
-    current_context.partition.perfect_balance_part_weights[1] =
+    current_context.partition.perfect_balance_part_weights.push_back(
       ceil((k1 / static_cast<double>(current_k))
-           * static_cast<double>(current_hypergraph.totalWeight()));
+           * static_cast<double>(current_hypergraph.totalWeight())));
 
-    current_context.partition.max_part_weights[0] =
-      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0];
+    current_context.partition.max_part_weights.clear();
+    current_context.partition.max_part_weights.push_back(
+      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[0]);
 
-    current_context.partition.max_part_weights[1] =
-      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1];
+    current_context.partition.max_part_weights.push_back(
+      (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1]);
   }
 
   current_context.coarsening.contraction_limit =
@@ -238,6 +242,8 @@ static inline void partition(Hypergraph& input_hypergraph,
             LOG << "Recursive Bisection No." << bisection_counter << ": Computing blocks ("
                 << current_context.partition.rb_lower_k << ".."
                 << current_context.partition.rb_upper_k << ")";
+            LOG << "L_max0:" << current_context.partition.max_part_weights[0];
+            LOG << "L_max1:" << current_context.partition.max_part_weights[1];
             LOG << R"(========================================)"
                    R"(========================================)";
           }

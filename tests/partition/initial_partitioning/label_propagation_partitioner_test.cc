@@ -49,6 +49,8 @@ void initializeContext(Hypergraph& hg, Context& context,
     context.initial_partitioning.k);
   context.initial_partitioning.perfect_balance_partition_weight.resize(
     context.initial_partitioning.k);
+  context.partition.max_part_weights.resize(context.partition.k);
+  context.partition.perfect_balance_part_weights.resize(context.partition.k);
   for (int i = 0; i < context.initial_partitioning.k; i++) {
     context.initial_partitioning.perfect_balance_partition_weight[i] = ceil(
       hg.totalWeight()
@@ -58,14 +60,11 @@ void initializeContext(Hypergraph& hg, Context& context,
       / static_cast<double>(context.initial_partitioning.k))
                                                                      * (1.0 + context.partition.epsilon);
   }
-  context.partition.perfect_balance_part_weights[0] =
-    context.initial_partitioning.perfect_balance_partition_weight[0];
-  context.partition.perfect_balance_part_weights[1] =
-    context.initial_partitioning.perfect_balance_partition_weight[1];
-  context.partition.max_part_weights[0] =
-    context.initial_partitioning.upper_allowed_partition_weight[0];
-  context.partition.max_part_weights[1] =
-    context.initial_partitioning.upper_allowed_partition_weight[1];
+  for (int i = 0; i < context.initial_partitioning.k; ++i) {
+    context.partition.perfect_balance_part_weights[i] =
+      context.initial_partitioning.perfect_balance_partition_weight[i];
+    context.partition.max_part_weights[i] = context.initial_partitioning.upper_allowed_partition_weight[i];
+  }
   Randomize::instance().setSeed(context.partition.seed);
 }
 
@@ -75,7 +74,7 @@ void generateRandomFixedVertices(Hypergraph& hypergraph,
   for (const HypernodeID& hn : hypergraph.nodes()) {
     int p = Randomize::instance().getRandomInt(0, 100);
     if (p < fixed_vertices_percentage * 100) {
-      PartitionID part = Randomize::instance().getRandomInt(0, k-1);
+      PartitionID part = Randomize::instance().getRandomInt(0, k - 1);
       hypergraph.setFixedVertex(hn, part);
     }
   }

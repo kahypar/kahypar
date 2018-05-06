@@ -178,16 +178,23 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
   if (context.partition.use_individual_part_weights) {
     context.partition.perfect_balance_part_weights = context.partition.max_part_weights;
   } else {
-    context.partition.perfect_balance_part_weights[0] = ceil(
-      hypergraph.totalWeight()
-      / static_cast<double>(context.partition.k));
-    context.partition.perfect_balance_part_weights[1] =
-      context.partition.perfect_balance_part_weights[0];
-
-    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[0];
-    context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+    context.partition.perfect_balance_part_weights.clear();
+    context.partition.perfect_balance_part_weights.push_back(ceil(
+                                                               hypergraph.totalWeight()
+                                                               / static_cast<double>(context.partition.k)));
+    for (PartitionID part = 1; part != context.partition.k; ++part) {
+      context.partition.perfect_balance_part_weights.push_back(
+        context.partition.perfect_balance_part_weights[0]);
+    }
+    context.partition.max_part_weights.clear();
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[0]);
+    for (PartitionID part = 1; part != context.partition.k; ++part) {
+      context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
+    }
   }
+  ASSERT(context.partition.perfect_balance_part_weights.size() == context.partition.k);
+  ASSERT(context.partition.max_part_weights.size() == context.partition.k);
 }
 
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {

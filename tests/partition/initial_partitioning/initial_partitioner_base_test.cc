@@ -43,7 +43,7 @@ class InitialPartitionerBaseTest : public Test {
     }
 
     initializeContext(hypergraph_weight);
-    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner>>(hypergraph, context);
+    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner> >(hypergraph, context);
     partitioner->recalculateBalanceConstraints(context.partition.epsilon);
   }
 
@@ -53,15 +53,22 @@ class InitialPartitionerBaseTest : public Test {
     context.partition.epsilon = 0.05;
     context.initial_partitioning.upper_allowed_partition_weight.resize(2);
     context.initial_partitioning.perfect_balance_partition_weight.resize(2);
+    context.partition.max_part_weights.resize(context.partition.k);
+    context.partition.perfect_balance_part_weights.resize(context.partition.k);
     for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
       context.initial_partitioning.perfect_balance_partition_weight[i] =
         ceil(
           hypergraph_weight
           / static_cast<double>(context.initial_partitioning.k));
     }
+    for (int i = 0; i < context.initial_partitioning.k; ++i) {
+      context.partition.perfect_balance_part_weights[i] =
+        context.initial_partitioning.perfect_balance_partition_weight[i];
+      context.partition.max_part_weights[i] = context.initial_partitioning.upper_allowed_partition_weight[i];
+    }
   }
 
-  std::shared_ptr<InitialPartitionerBase<RandomInitialPartitioner>> partitioner;
+  std::shared_ptr<InitialPartitionerBase<RandomInitialPartitioner> > partitioner;
   Hypergraph hypergraph;
   Context context;
 };
