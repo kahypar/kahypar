@@ -179,7 +179,7 @@ static inline void partition(Hypergraph& hg, const Context& context) {
 
     if (context.initial_partitioning.verbose_output) {
       LOG << "Calling Initial Partitioner:" << context.initial_partitioning.technique
-          << "" << context.initial_partitioning.mode << ""
+          << context.initial_partitioning.mode
           << context.initial_partitioning.algo
           << "(k=" << init_context.initial_partitioning.k << ", epsilon="
           << init_context.partition.epsilon << ")";
