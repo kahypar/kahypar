@@ -130,7 +130,7 @@ inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
 }  // namespace internal
 
 static inline double imbalance(const Hypergraph& hypergraph, const Context& context) {
-  ASSERT(context.partition.k == 2 ||
+  ASSERT(context.partition.k == 2 || context.partition.use_individual_part_weights ||
          context.partition.perfect_balance_part_weights[0]
          == context.partition.perfect_balance_part_weights[1],
          "Imbalance cannot be calculated correctly");
