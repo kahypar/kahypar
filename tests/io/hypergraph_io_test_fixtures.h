@@ -233,7 +233,6 @@ class APartitionOfAHypergraph : public Test {
     _context.partition.objective = Objective::cut;
     _context.partition.rb_lower_k = 0;
     _context.partition.rb_upper_k = _context.partition.k - 1;
-    _context.partition.total_graph_weight = 7;
     _context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     _context.coarsening.contraction_limit = 2;
     _context.coarsening.max_allowed_node_weight = 5;

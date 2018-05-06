@@ -61,10 +61,9 @@ class ATwoWayFMRefiner : public Test {
     context.partition.epsilon = 0.15;
     context.partition.k = 2;
     context.partition.objective = Objective::cut;
-    context.partition.total_graph_weight = 7;
-    context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
+    context.partition.perfect_balance_part_weights[0] = ceil(hypergraph->totalWeight() /
                                                              static_cast<double>(context.partition.k));
-    context.partition.perfect_balance_part_weights[1] = ceil(context.partition.total_graph_weight /
+    context.partition.perfect_balance_part_weights[1] = ceil(hypergraph->totalWeight() /
                                                              static_cast<double>(context.partition.k));
 
     context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
@@ -529,14 +528,13 @@ TEST_F(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputa
                                   HyperedgeVector { 0, 1, 0 }, 2));
 
   context.local_search.fm.max_number_of_fruitless_moves = 50;
-  context.partition.total_graph_weight = 2;
   context.partition.k = 2;
   context.partition.rb_lower_k = 0;
   context.partition.rb_upper_k = context.partition.k - 1;
   context.partition.epsilon = 1.0;
-  context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
+  context.partition.perfect_balance_part_weights[0] = ceil(hypergraph->totalWeight() /
                                                            static_cast<double>(context.partition.k));
-  context.partition.perfect_balance_part_weights[1] = ceil(context.partition.total_graph_weight /
+  context.partition.perfect_balance_part_weights[1] = ceil(hypergraph->totalWeight() /
                                                            static_cast<double>(context.partition.k));
 
   context.partition.max_part_weights[0] = (1 + context.partition.epsilon)

@@ -83,13 +83,12 @@ static inline Context createContext(const Hypergraph& hg,
   context.local_search = context.initial_partitioning.local_search;
 
   // Hypergraph depending parameters
-  context.partition.total_graph_weight = hg.totalWeight();
   context.coarsening.contraction_limit = context.coarsening.contraction_limit_multiplier
                                          * context.initial_partitioning.k;
   context.coarsening.hypernode_weight_fraction = context.coarsening.max_allowed_weight_multiplier
                                                  / context.coarsening.contraction_limit;
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
-                                                    * context.partition.total_graph_weight);
+                                                    * hg.totalWeight());
 
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration

@@ -165,8 +165,6 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
 }
 
 inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& context) {
-  context.partition.total_graph_weight = hypergraph.totalWeight();
-
   context.coarsening.contraction_limit =
     context.coarsening.contraction_limit_multiplier * context.partition.k;
 
@@ -175,13 +173,13 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
     / context.coarsening.contraction_limit;
 
   context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
-                                                    * context.partition.total_graph_weight);
+                                                    * hypergraph.totalWeight());
 
   if (context.partition.use_individual_part_weights) {
     context.partition.perfect_balance_part_weights = context.partition.max_part_weights;
   } else {
     context.partition.perfect_balance_part_weights[0] = ceil(
-      context.partition.total_graph_weight
+      hypergraph.totalWeight()
       / static_cast<double>(context.partition.k));
     context.partition.perfect_balance_part_weights[1] =
       context.partition.perfect_balance_part_weights[0];

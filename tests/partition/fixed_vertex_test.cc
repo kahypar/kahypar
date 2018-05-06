@@ -17,8 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
- ******************************************************************************/
-
+******************************************************************************/
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
@@ -32,7 +31,6 @@ using ::testing::AnyOf;
 using ::testing::AllOf;
 
 namespace kahypar {
-
 class FixedVertex : public Test {
  public:
   static constexpr bool debug = false;
@@ -49,7 +47,6 @@ class FixedVertex : public Test {
     context.partition.k = 2;
     context.partition.rb_lower_k = 0;
     context.partition.rb_upper_k = context.partition.k - 1;
-    context.partition.total_graph_weight = 7;
     context.partition.perfect_balance_part_weights[0] = ceil(
       7 / static_cast<double>(context.partition.k));
     context.partition.perfect_balance_part_weights[1] = ceil(

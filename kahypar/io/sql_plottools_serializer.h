@@ -40,16 +40,16 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   std::ostringstream oss;
   oss << "RESULT"
       << " graph=" << context.partition.graph_filename.substr(
-         context.partition.graph_filename.find_last_of('/') + 1)
+    context.partition.graph_filename.find_last_of('/') + 1)
       << " numHNs=" << hypergraph.initialNumNodes()
       << " numHEs=" << hypergraph.initialNumEdges()
       << " " << hypergraph.typeAsString();
   if (!context.partition.fixed_vertex_filename.empty()) {
     oss << " fixed_vertex_file=" << context.partition.fixed_vertex_filename.substr(
-    context.partition.fixed_vertex_filename.find_last_of('/') + 1)
+      context.partition.fixed_vertex_filename.find_last_of('/') + 1)
         << " num_fixed_vertices=" << hypergraph.numFixedVertices()
         << " fixed_vertices_imbalance=" << metrics::imbalanceFixedVertices(hypergraph,
-                                           context.partition.k);
+                                                                       context.partition.k);
   }
   oss << " mode=" << context.partition.mode
       << " objective=" << context.partition.objective
@@ -58,7 +58,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " seed=" << context.partition.seed
       << " num_v_cycles=" << context.partition.global_search_iterations
       << " he_size_threshold=" << context.partition.hyperedge_size_threshold
-      << " total_graph_weight=" << context.partition.total_graph_weight
+      << " total_graph_weight=" << hypergraph.totalWeight()
       << " L_opt0=" << context.partition.perfect_balance_part_weights[0]
       << " L_opt1=" << context.partition.perfect_balance_part_weights[1]
       << " L_max0=" << context.partition.max_part_weights[0]

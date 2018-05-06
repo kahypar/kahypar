@@ -119,7 +119,7 @@ struct RatingParameters {
   HeavyNodePenaltyPolicy heavy_node_penalty_policy = HeavyNodePenaltyPolicy::UNDEFINED;
   AcceptancePolicy acceptance_policy = AcceptancePolicy::UNDEFINED;
   FixVertexContractionAcceptancePolicy fixed_vertex_acceptance_policy =
-                                       FixVertexContractionAcceptancePolicy::UNDEFINED;
+    FixVertexContractionAcceptancePolicy::UNDEFINED;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const RatingParameters& params) {
@@ -311,7 +311,6 @@ struct PartitioningParameters {
                                                               } };
   std::vector<HypernodeWeight> max_part_weights { { std::numeric_limits<HypernodeWeight>::max(),
                                                     std::numeric_limits<HypernodeWeight>::max() } };
-  HypernodeWeight total_graph_weight = std::numeric_limits<HypernodeWeight>::max();
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
 
   bool verbose_output = false;
@@ -338,7 +337,6 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  seed:                               " << params.seed << std::endl;
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
-  str << "  total hypergraph weight:            " << params.total_graph_weight << std::endl;
   str << "  use individual block weights:       " << std::boolalpha
       << params.use_individual_part_weights << std::endl;
   if (params.use_individual_part_weights) {

@@ -90,10 +90,9 @@ class TwoWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
     context.partition.k = 2;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
-    context.partition.total_graph_weight = hypergraph->totalWeight();
 
     context.partition.perfect_balance_part_weights[0] = ceil(
-      context.partition.total_graph_weight
+      hypergraph->totalWeight()
       / static_cast<double>(context.partition.k));
     context.partition.perfect_balance_part_weights[1] =
       context.partition.perfect_balance_part_weights[0];

@@ -73,7 +73,6 @@ class APartitionedHypergraph : public Test {
     context.partition.objective = Objective::cut;
     context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.coarsening.contraction_limit = 2;
-    context.partition.total_graph_weight = 7;
     context.coarsening.max_allowed_node_weight = 5;
     context.partition.graph_filename = "Test";
     context.partition.graph_partition_filename = "Test.hgr.part.2.KaHyPar";
