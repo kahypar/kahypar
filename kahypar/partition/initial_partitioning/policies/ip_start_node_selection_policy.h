@@ -32,9 +32,9 @@ namespace kahypar {
 template <bool UseRandomStartHypernode = true>
 class BFSStartNodeSelectionPolicy {
  public:
-  static inline void calculateStartNodes(std::vector<std::vector<HypernodeID>>& start_nodes,
-                                          const Context& context, const Hypergraph& hg,
-                                          const PartitionID k) {
+  static inline void calculateStartNodes(std::vector<std::vector<HypernodeID> >& start_nodes,
+                                         const Context& context, const Hypergraph& hg,
+                                         const PartitionID k) {
     ds::FastResetFlagArray<> in_queue(hg.initialNumNodes());
     ds::FastResetFlagArray<> hyperedge_in_queue(hg.initialNumEdges());
 
@@ -92,8 +92,8 @@ class BFSStartNodeSelectionPolicy {
     }
   }
 
-  static inline void initializeQueue(std::vector<std::vector<HypernodeID>>& start_nodes,
-                                     std::queue<HypernodeID>& q, 
+  static inline void initializeQueue(std::vector<std::vector<HypernodeID> >& start_nodes,
+                                     std::queue<HypernodeID>& q,
                                      ds::FastResetFlagArray<>& in_queue,
                                      const PartitionID k) {
     ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
@@ -106,7 +106,7 @@ class BFSStartNodeSelectionPolicy {
     }
   }
 
-  static inline PartitionID nextPartID(std::vector<std::vector<HypernodeID>>& start_nodes,
+  static inline PartitionID nextPartID(std::vector<std::vector<HypernodeID> >& start_nodes,
                                        const PartitionID k) {
     ASSERT(static_cast<PartitionID>(start_nodes.size()) == k, "Size of start nodes are not equal to" << k);
     for (PartitionID i = 0; i < k; ++i) {

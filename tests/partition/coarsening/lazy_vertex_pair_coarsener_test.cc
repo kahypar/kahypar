@@ -31,6 +31,7 @@ namespace kahypar {
 using CoarsenerType = LazyVertexPairCoarsener<HeavyEdgeScore,
                                               MultiplicativePenalty,
                                               UseCommunityStructure,
+                                              NormalPartitionPolicy,
                                               BestRatingWithTieBreaking<FirstRatingWins>,
                                               AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                               RatingType>;

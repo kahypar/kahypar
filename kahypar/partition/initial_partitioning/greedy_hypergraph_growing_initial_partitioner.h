@@ -49,7 +49,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                                  std::numeric_limits<Gain>, true>;
   using Base = InitialPartitionerBase<GreedyHypergraphGrowingInitialPartitioner<StartNodeSelection,
                                                                                 GainComputation,
-                                                                                QueueSelection>>;
+                                                                                QueueSelection> >;
   friend Base;
   static constexpr Gain InvalidGain = std::numeric_limits<Gain>::max() - 1;
 
@@ -124,7 +124,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     // Occurs, if many fixed vertices are present
     for (PartitionID part = 0; part < _context.initial_partitioning.k; ++part) {
       if (_pq.isEnabled(part) && _hg.partWeight(part) >=
-         _context.initial_partitioning.upper_allowed_partition_weight[part]) {
+          _context.initial_partitioning.upper_allowed_partition_weight[part]) {
         _pq.disablePart(part);
       }
     }
@@ -302,8 +302,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
                                      const bool insert = true, const bool delete_nodes = true) {
     if (!_hg.isFixedVertex(hn)) {
       GainComputation::deltaGainUpdate(_hg, _context, _pq, hn,
-                                      _context.initial_partitioning.unassigned_part, target_part,
-                                      _visit);
+                                       _context.initial_partitioning.unassigned_part, target_part,
+                                       _visit);
     }
     // Pushing incident hypernode into bucket queue or update gain value
     // TODO(heuer): Shouldn't it be possible to do this within the deltaGainUpdate function?
@@ -342,7 +342,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
               for (PartitionID i = 0; i < _context.initial_partitioning.k; ++i) {
                 if (_pq.isEnabled(i) && _pq.contains(pin, i)) {
                   const Gain gain = _hg.isFixedVertex(pin) ? InvalidGain :
-                                     GainComputation::calculateGain(_hg, pin, i, _visit);
+                                    GainComputation::calculateGain(_hg, pin, i, _visit);
                   if (gain != _pq.key(pin, i)) {
                     LOG << V(pin) << V(gain) << V(_pq.key(pin, i)) << V(_hg.isFixedVertex(pin));
                     return false;
@@ -379,8 +379,8 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
 
 
   void calculateStartNodes() {
-    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
-                                                     std::vector<HypernodeID>());
+    std::vector<std::vector<HypernodeID> > startNodes(_context.initial_partitioning.k,
+                                                      std::vector<HypernodeID>());
     for (const HypernodeID& hn : _hg.fixedVertices()) {
       startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
     }

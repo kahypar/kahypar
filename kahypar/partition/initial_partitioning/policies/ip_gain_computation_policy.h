@@ -379,7 +379,7 @@ class MaxNetGainComputationPolicy {
 
       if (pins_in_source_part == 0 || pins_in_target_part == 1) {
         for (const HypernodeID& pin : hg.pins(he)) {
-          if(!hg.isFixedVertex(pin)) {
+          if (!hg.isFixedVertex(pin)) {
             if (from != -1 &&
                 pins_in_source_part == 0 &&
                 pq.contains(pin, from)) {

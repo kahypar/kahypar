@@ -141,8 +141,8 @@ class BFSInitialPartitioner : public IInitialPartitioner,
     _hyperedge_in_queue.reset();
 
     // Calculate Startnodes and push them into the queues.
-    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
-                                                     std::vector<HypernodeID>());
+    std::vector<std::vector<HypernodeID> > startNodes(_context.initial_partitioning.k,
+                                                      std::vector<HypernodeID>());
     for (const HypernodeID& hn : _hg.fixedVertices()) {
       startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
     }

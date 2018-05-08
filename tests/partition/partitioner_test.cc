@@ -40,6 +40,7 @@ namespace kahypar {
 using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    MultiplicativePenalty,
                                                    UseCommunityStructure,
+                                                   NormalPartitionPolicy,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
                                                    AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                                    RatingType>;

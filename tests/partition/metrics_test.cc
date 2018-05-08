@@ -41,6 +41,7 @@ namespace metrics {
 using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    MultiplicativePenalty,
                                                    UseCommunityStructure,
+                                                   NormalPartitionPolicy,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
                                                    AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                                    RatingType>;

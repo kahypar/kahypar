@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <Windows.h>
 #include <process.h>
+#include <Windows.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -59,7 +59,7 @@ int getProcessID() {
   return _getpid();
 #else
   return getpid();
-  #endif
+#endif
 }
 }  // namespace platform
 
@@ -429,10 +429,117 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
   return options;
 }
 
+po::options_description createEvolutionaryOptionsDescription(Context& context,
+                                                             const int num_columns) {
+  po::options_description evolutionary_options("Evolutionary Options", num_columns);
+  evolutionary_options.add_options()
+    ("partition-evolutionary",
+    po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
+    "Use memetic algorithm for partitioning")
+    ("population-size",
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t& pop_size) {
+      context.evolutionary.population_size = pop_size;
+    }),
+    "Population Size for Evolutionary Partitioning\n"
+    "(default 10)")
+    ("gamma",
+    po::value<double>()->value_name("<double>")->notifier(
+      [&](const double gamma) {
+      context.evolutionary.gamma = gamma;
+    }),
+    "The dampening factor for edge frequency\n"
+    "(default 0.5)")
+    ("replace-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& replace_strat) {
+      context.evolutionary.replace_strategy = kahypar::replaceStrategyFromString(replace_strat);
+    }),
+    "Replacement Strategy for Population Management\n"
+    "- worst: new partitions replace the current worst partition in the population\n"
+    "- diverse: new partitions replace the most similar partition based on cut difference\n"
+    "- strong-diverse: new partitions replace the most similar partition based on connectivity difference\n"
+    "(for diverse/strong-diverse better partitions are not considered for replacement)\n"
+    "(default: strong-diverse)")
+    ("combine-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& combine_strat) {
+      context.evolutionary.combine_strategy = kahypar::combineStrategyFromString(combine_strat);
+    }),
+    "Combine Strategy to be used for a regular combine operation\n"
+    "- basic: takes two partitions and contracts nodes u & v only if they are in the same block for both partitions \n"
+    "- with-edge-frequency: similar to basic, but the edge frequency information of the best \"edge_frequency_amount\" partitions is added top the rating\n"
+    "- edge-frequency: creating a new partition under consideration of the \"edge_frequency_amount\" best partitions for edge frequency\n"
+    "(default: basic)")
+    ("mutate-strategy",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& mutate_strat) {
+      context.evolutionary.mutate_strategy = kahypar::mutateStrategyFromString(mutate_strat);
+    }),
+    "Mutation Strategy for the mutation operation \n"
+    "- new-initial-partitioning-vcycle: coarsening of a partition with completely new initial partitioning\n"
+    "- vcycle: a regular vcycle on an existing partition\n"
+    "(default: new-initial-partitioning-vcycle)")
+    ("diversify-interval",
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& div_interval) {
+      context.evolutionary.diversify_interval = div_interval;
+    }),
+    "The Frequency in which diversfication should be performed\n"
+    "(default: -1)(-1 disables)")
+    ("random-vcycles",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_vcycle) {
+      context.evolutionary.random_vcycles = random_vcycle;
+    }),
+    "Whether vcycle mutations should be randomized")
+    ("dynamic-population-size",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& dynamic_pop) {
+      context.evolutionary.dynamic_population_size = dynamic_pop;
+    }),
+    "Whether the population size should be determined by runtime\n"
+    "default: on)")
+    ("dynamic-population-time",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& dynamic_pop_time) {
+      context.evolutionary.dynamic_population_amount_of_time = dynamic_pop_time;
+    }),
+    "The amount of total runtime allocated for initial population\n"
+    "default: 0.15)")
+    ("random-combine",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& random_combine) {
+      context.evolutionary.random_combine_strategy = random_combine;
+    }),
+    "Whether random combines should be picked\n"
+    "default: off)")
+    ("unlimited-coarsening",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& unlimited_c) {
+      context.evolutionary.unlimited_coarsening_contraction = unlimited_c;
+    }),
+    "Whether combine operations should not be limited in contraction\n"
+    "default: on)")
+    ("mutate-chance",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& mutate_chance) {
+      context.evolutionary.mutation_chance = mutate_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.5)")
+    ("edge-frequency-chance",
+    po::value<float>()->value_name("<float>")->notifier(
+      [&](const float& edge_chance) {
+      context.evolutionary.edge_frequency_chance = edge_chance;
+    }),
+    "The Chance of a mutation being selected as operation\n"
+    "default: 0.5)");
+  return evolutionary_options;
+}
 
-void processCommandLineInput(Context& context, int argc, char* argv[]) {
-  const int num_columns = platform::getTerminalWidth();
-
+po::options_description createGenericOptionsDescription(Context& context,
+                                                        const int num_columns) {
   po::options_description generic_options("Generic Options", num_columns);
   generic_options.add_options()
     ("help", "show help message")
@@ -442,9 +549,19 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Verbose initial partitioning output")
     ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
     "Quiet Mode: Completely suppress console output")
+    ("time-limit", po::value<int>(&context.partition.time_limit)->value_name("<int>"),
+    "Time limit in seconds")
     ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)");
+  return generic_options;
+}
+
+void processCommandLineInput(Context& context, int argc, char* argv[]) {
+  const int num_columns = platform::getTerminalWidth();
+
+  po::options_description generic_options = createGenericOptionsDescription(context,
+                                                                            num_columns);
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
@@ -509,6 +626,9 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   po::options_description refinement_options =
     createRefinementOptionsDescription(context, num_columns, false);
 
+  po::options_description evolutionary_options =
+    createEvolutionaryOptionsDescription(context, num_columns);
+
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
   .add(required_options)
@@ -517,7 +637,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   .add(preprocessing_options)
   .add(coarsening_options)
   .add(ip_options)
-  .add(refinement_options);
+  .add(refinement_options)
+  .add(evolutionary_options);
 
   po::variables_map cmd_vm;
   po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
@@ -543,7 +664,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   .add(preprocessing_options)
   .add(coarsening_options)
   .add(ip_options)
-  .add(refinement_options);
+  .add(refinement_options)
+  .add(evolutionary_options);
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
@@ -579,10 +701,12 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   po::variables_map cmd_vm;
   po::options_description ini_line_options;
   ini_line_options.add(createGeneralOptionsDescription(context, num_columns))
+  .add(createGenericOptionsDescription(context, num_columns))
   .add(createPreprocessingOptionsDescription(context, num_columns))
   .add(createCoarseningOptionsDescription(context, num_columns, false))
   .add(createInitialPartitioningOptionsDescription(context, num_columns))
-  .add(createRefinementOptionsDescription(context, num_columns, false));
+  .add(createRefinementOptionsDescription(context, num_columns, false))
+  .add(createEvolutionaryOptionsDescription(context, num_columns));
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);

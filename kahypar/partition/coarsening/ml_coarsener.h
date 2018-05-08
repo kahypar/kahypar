@@ -31,6 +31,7 @@
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
+#include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
@@ -39,6 +40,7 @@ namespace kahypar {
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = NoWeightPenalty,
           class CommunityPolicy = UseCommunityStructure,
+          class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
           typename RatingType = RatingType>
@@ -53,6 +55,7 @@ class MLCoarsener final : public ICoarsener,
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
+                                RatingPartitionPolicy,
                                 AcceptancePolicy,
                                 FixedVertexPolicy,
                                 RatingType>;
@@ -76,20 +79,18 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
-
     while (_hg.currentNumNodes() > limit) {
       DBG << V(pass_nr);
       DBG << V(_hg.currentNumNodes());
       DBG << V(_hg.currentNumEdges());
-
       _rater.resetMatches();
       current_hns.clear();
-
       const HypernodeID num_hns_before_pass = _hg.currentNumNodes();
       for (const HypernodeID& hn : _hg.nodes()) {
         current_hns.push_back(hn);
       }
       Randomize::instance().shuffleVector(current_hns, current_hns.size());
+
       // std::sort(std::begin(current_hns), std::end(current_hns),
       //           [&](const HypernodeID l, const HypernodeID r) {
       //             return _hg.nodeDegree(l) < _hg.nodeDegree(r);

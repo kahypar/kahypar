@@ -19,7 +19,6 @@
  ******************************************************************************/
 
 #pragma once
-
 #include <array>
 #include <chrono>
 #include <fstream>
@@ -28,6 +27,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/git_revision.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
 
@@ -35,7 +35,8 @@ namespace kahypar {
 namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
-                             const std::chrono::duration<double>& elapsed_seconds) {
+                             const std::chrono::duration<double>& elapsed_seconds,
+                             const size_t iteration = 0) {
   const auto& timings = Timer::instance().result();
   std::ostringstream oss;
   oss << "RESULT"
@@ -222,6 +223,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " flow_use_improvement_history="
         << std::boolalpha << context.local_search.flow.use_improvement_history;
   }
+  oss << " iteration=" << iteration;
   for (PartitionID i = 0; i != hypergraph.k(); ++i) {
     oss << " partSize" << i << "=" << hypergraph.partSize(i);
   }
@@ -254,6 +256,53 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 
   oss << " " << context.stats.serialize().str()
       << " git=" << STR(KaHyPar_BUILD_VERSION)
+      << std::endl;
+
+  std::cout << oss.str() << std::endl;
+}
+
+static inline void serializeEvolutionary(const Context& context, const Hypergraph& hg) {
+  std::ostringstream oss;
+  if (context.partition.quiet_mode) {
+    return;
+  }
+  EvoCombineStrategy combine_strat = EvoCombineStrategy::UNDEFINED;
+  EvoMutateStrategy mutate_strat = EvoMutateStrategy::UNDEFINED;
+  switch (context.evolutionary.action.decision()) {
+    case EvoDecision::combine:
+      combine_strat = context.evolutionary.combine_strategy;
+      break;
+    case EvoDecision::mutation:
+      mutate_strat = context.evolutionary.mutate_strategy;
+      break;
+    case EvoDecision::normal:
+      break;
+    default:
+      LOG << "Trying to print a nonintentional action:" << context.evolutionary.action.decision();
+  }
+
+  std::string graph_name = context.partition.graph_filename;
+  std::string truncated_graph_name = graph_name.substr(graph_name.find_last_of("/") + 1);
+  oss << "RESULT "
+      << "connectivity=" << metrics::km1(hg)
+      << " action=" << context.evolutionary.action.decision()
+      << " time-total=" << Timer::instance().evolutionaryResult().total_evolutionary
+      << " iteration=" << context.evolutionary.iteration
+      << " replace-strategy=" << context.evolutionary.replace_strategy
+      << " combine-strategy=" << combine_strat
+      << " mutate-strategy=" << mutate_strat
+      << " population-size=" << context.evolutionary.population_size
+      << " mutation-chance=" << context.evolutionary.mutation_chance
+      << " diversify-interval=" << context.evolutionary.diversify_interval
+      << " dynamic-pop-size=" << context.evolutionary.dynamic_population_size
+      << " dynamic-pop-percentile=" << context.evolutionary.dynamic_population_amount_of_time
+      << " seed=" << context.partition.seed
+      << " graph-name=" << truncated_graph_name
+      << " SOED=" << metrics::soed(hg)
+      << " cut=" << metrics::hyperedgeCut(hg)
+      << " absorption=" << metrics::absorption(hg)
+      << " imbalance=" << metrics::imbalance(hg, context)
+      << " k=" << context.partition.k
       << std::endl;
 
   std::cout << oss.str() << std::endl;

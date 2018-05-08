@@ -63,6 +63,8 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_lazy,
                                 context.coarsening.rating.heavy_node_penalty_policy),
                               meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<RatingPartitionPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.partition_policy),
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
@@ -76,6 +78,8 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_full,
                                 context.coarsening.rating.heavy_node_penalty_policy),
                               meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<RatingPartitionPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.partition_policy),
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
@@ -89,6 +93,8 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                                 context.coarsening.rating.heavy_node_penalty_policy),
                               meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<RatingPartitionPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.partition_policy),
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(

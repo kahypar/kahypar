@@ -23,20 +23,26 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/policy_registry.h"
 #include "kahypar/meta/typelist.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 class HeavyEdgeScore final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph,
+                                                                 const HyperedgeID he,
+                                                                 const Context&) {
     return static_cast<RatingType>(hypergraph.edgeWeight(he)) / (hypergraph.edgeSize(he) - 1);
   }
 };
 
 class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
-  // TODO(andre): implement edge frequency rating here
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph, const HyperedgeID he) {
-    return 1;
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph,
+                                                                 const HyperedgeID he,
+                                                                 const Context& context) {
+    return static_cast<RatingType>(exp(-context.evolutionary.gamma *
+                                       context.evolutionary.edge_frequency[he]) /
+                                   hypergraph.edgeSize(he));
   }
 };
 

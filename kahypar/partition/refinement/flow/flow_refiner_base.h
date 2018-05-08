@@ -27,16 +27,14 @@
 #include "kahypar/partition/refinement/move.h"
 
 namespace kahypar {
-
-template < class FlowExecutionPolicy>
+template <class FlowExecutionPolicy>
 class FlowRefinerBase {
-
  public:
   FlowRefinerBase(Hypergraph& hypergraph, const Context& context) :
-      _hg(hypergraph),
-      _context(context),
-      _flow_execution_policy(),
-      _original_part_id(_hg.initialNumNodes(), -1) { }
+    _hg(hypergraph),
+    _context(context),
+    _flow_execution_policy(),
+    _original_part_id(_hg.initialNumNodes(), -1) { }
 
   virtual ~FlowRefinerBase() = default;
 
@@ -47,7 +45,6 @@ class FlowRefinerBase {
   FlowRefinerBase& operator= (FlowRefinerBase&&) = delete;
 
  protected:
-
   std::vector<Move> rollback() {
     std::vector<Move> tmp_moves;
     for (const HypernodeID& hn : _hg.nodes()) {
@@ -72,5 +69,4 @@ class FlowRefinerBase {
   FlowExecutionPolicy _flow_execution_policy;
   std::vector<PartitionID> _original_part_id;
 };
-
-} // namespace kahypar
+}  // namespace kahypar

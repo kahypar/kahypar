@@ -212,6 +212,10 @@ class MinHashSparsifier {
     }
   }
 
+  const std::vector<HypernodeID> & hnToSparsifiedHnMapping() const {
+    return _clusters;
+  }
+
  private:
   HypernodeID reenumerateClusters() {
     if (_clusters.empty()) {

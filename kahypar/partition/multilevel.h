@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
@@ -48,34 +50,75 @@ static inline void partition(Hypergraph& hypergraph,
   if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
-  io::printInitialPartitioningBanner(context);
-  start = std::chrono::high_resolution_clock::now();
-  initial::partition(hypergraph, context);
-  end = std::chrono::high_resolution_clock::now();
-  Timer::instance().add(context, Timepoint::initial_partitioning,
-                        std::chrono::duration<double>(end - start).count());
 
-  hypergraph.initializeNumCutHyperedges();
-  if (context.partition.verbose_output && context.type == ContextType::main) {
-    LOG << "Initial Partitioning Result:";
-    LOG << "Initial" << context.partition.objective << "      ="
-        << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
-        metrics::km1(hypergraph));
-    LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
-    LOG << "Initial part sizes and weights:";
-    io::printPartSizesAndWeights(hypergraph);
-    LLOG << "Target weights:";
-    if (context.partition.mode == Mode::direct_kway) {
-      LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
-    } else {
-      LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
-           << "w(1)=" << context.partition.max_part_weights[1] << "\n";
+  if (!context.partition_evolutionary || context.evolutionary.action.requires().initial_partitioning) {
+    if (context.partition_evolutionary && context.evolutionary.action.requires().initial_partitioning) {
+      hypergraph.reset();
     }
+    io::printInitialPartitioningBanner(context);
+
+    start = std::chrono::high_resolution_clock::now();
+    initial::partition(hypergraph, context);
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(context, Timepoint::initial_partitioning,
+                          std::chrono::duration<double>(end - start).count());
+
+    hypergraph.initializeNumCutHyperedges();
+    if (context.partition.verbose_output && context.type == ContextType::main) {
+      LOG << "Initial Partitioning Result:";
+      LOG << "Initial" << context.partition.objective << "      ="
+          << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
+          metrics::km1(hypergraph));
+      LOG << "Initial imbalance =" << metrics::imbalance(hypergraph, context);
+      LOG << "Initial part sizes and weights:";
+      io::printPartSizesAndWeights(hypergraph);
+      LLOG << "Target weights:";
+      if (context.partition.mode == Mode::direct_kway) {
+        LLOG << "w(*) =" << context.partition.max_part_weights[0] << "\n";
+      } else {
+        LLOG << "(RB): w(0)=" << context.partition.max_part_weights[0]
+             << "w(1)=" << context.partition.max_part_weights[1] << "\n";
+      }
+    }
+  }
+
+  if (context.partition_evolutionary &&
+      context.evolutionary.action.requires().evolutionary_parent_contraction) {
+    hypergraph.reset();
+    ASSERT(!context.evolutionary.action.requires().initial_partitioning);
+
+    // There is currently no reason why an evolutionary contraction should be used
+    // in conjunction with initial partitioning ... Yet
+
+
+    hypergraph.setPartition(*context.evolutionary.parent1);
+
+
+    const HyperedgeWeight parent_1_objective = metrics::correctMetric(hypergraph, context);
+
+    hypergraph.setPartition(*context.evolutionary.parent2);
+    const HyperedgeWeight parent_2_objective = metrics::correctMetric(hypergraph, context);
+
+    if (parent_1_objective < parent_2_objective) {
+      hypergraph.setPartition(*context.evolutionary.parent1);
+    }
+  }
+
+
+  if (context.partition_evolutionary) {
+    hypergraph.initializeNumCutHyperedges();
+  }
+  DBG << V(metrics::km1(hypergraph));
+  DBG << V(metrics::imbalance(hypergraph, context));
+
+  if (context.partition.verbose_output && context.type == ContextType::main) {
     io::printLocalSearchBanner(context);
   }
+
   start = std::chrono::high_resolution_clock::now();
   coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
+
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
 

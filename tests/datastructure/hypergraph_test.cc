@@ -944,7 +944,7 @@ TEST_F(AHypergraph, IteratesOverCorrectFixedVertices) {
   hypergraph.setFixedVertex(6, 1);
 
   ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
-  std::vector<HypernodeID> fixed_vertices = {0, 1, 6};
+  std::vector<HypernodeID> fixed_vertices = { 0, 1, 6 };
   size_t i = 0;
   for (const HypernodeID& hn : hypergraph.fixedVertices()) {
     ASSERT_EQ(hn, fixed_vertices[i++]);
@@ -957,7 +957,7 @@ TEST_F(AHypergraph, StoresCorrectFixedVertexPartIDs) {
   hypergraph.setFixedVertex(6, 1);
 
   ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
-  std::vector<HypernodeID> fixed_vertices_part_id = {0, 0, 1};
+  std::vector<HypernodeID> fixed_vertices_part_id = { 0, 0, 1 };
   size_t i = 0;
   for (const HypernodeID& hn : hypergraph.fixedVertices()) {
     ASSERT_EQ(hypergraph.fixedVertexPartID(hn), fixed_vertices_part_id[i++]);

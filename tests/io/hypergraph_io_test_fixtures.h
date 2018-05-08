@@ -215,6 +215,7 @@ class AHypergraphWithHypernodeAndHyperedgeWeights : public AnUnweightedHypergrap
 using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    MultiplicativePenalty,
                                                    UseCommunityStructure,
+                                                   NormalPartitionPolicy,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
                                                    AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                                    RatingType>;

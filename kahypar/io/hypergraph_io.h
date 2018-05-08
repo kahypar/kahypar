@@ -367,6 +367,5 @@ static inline void writeFixedVertexFile(const Hypergraph& hypergraph, const std:
   }
   out_stream.close();
 }
-
 }  // namespace io
 }  // namespace kahypar

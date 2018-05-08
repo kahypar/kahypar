@@ -90,8 +90,8 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
                                             static_cast<int>(_hg.initialNumNodes()
                                                              / _context.initial_partitioning.k)), 1);
 
-    std::vector<std::vector<HypernodeID>> startNodes(_context.initial_partitioning.k,
-                                                     std::vector<HypernodeID>());
+    std::vector<std::vector<HypernodeID> > startNodes(_context.initial_partitioning.k,
+                                                      std::vector<HypernodeID>());
     for (const HypernodeID& hn : _hg.fixedVertices()) {
       startNodes[_hg.fixedVertexPartID(hn)].push_back(hn);
     }

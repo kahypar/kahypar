@@ -1,4 +1,5 @@
 file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY configs DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_gmock_test(integration_tests kahypar_integration_tests.cc)
 target_link_libraries(integration_tests ${Boost_LIBRARIES})

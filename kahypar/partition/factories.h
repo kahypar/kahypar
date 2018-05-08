@@ -52,7 +52,7 @@ using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
                                                  IInitialPartitioner* (*)(Hypergraph&, Context&)>;
 
 using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
-                                      CommunityPolicies, AcceptancePolicies,
+                                      CommunityPolicies, PartitionPolicies, AcceptancePolicies,
                                       FixedVertexAcceptancePolicies>;
 
 using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
