@@ -571,14 +571,13 @@ static inline void sanityCheck(Context& context) {
       // should never happen, because initial partitioning is either done via RB or directly
       break;
   }
-  if (context.partition.use_individual_part_weights &&
-      context.partition.max_part_weights[0] == std::numeric_limits<HypernodeWeight>::max()) {
+  if (context.partition.use_individual_part_weights && context.partition.max_part_weights.empty()) {
     LOG << "Individual block weights not specified. Please use --blockweights to specify the weight of each block";
     std::exit(0);
   }
 
   if (!context.partition.use_individual_part_weights &&
-      context.partition.max_part_weights[0] != std::numeric_limits<HypernodeWeight>::max()) {
+      !context.partition.max_part_weights.empty()) {
     LOG << "Individual block weights specified, but --use-individual-blockweights=false.";
     LOG << "Do you want to use the block weights you specified (Y/N)?";
     char answer = 'N';
