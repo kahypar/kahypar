@@ -78,7 +78,6 @@ Individual partitions(Hypergraph& hg,
   DBG << "Offspring" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   ASSERT(metrics::km1(hg) <= std::min(parents.first.fitness(), parents.second.fitness()));
   io::serializer::serializeEvolutionary(context, hg);
-  io::printEvolutionaryInformation(context);
   return Individual(hg, context);
 }
 
@@ -128,7 +127,6 @@ Individual edgeFrequency(Hypergraph& hg, const Context& context, const Populatio
 
   DBG << "final result" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
-  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg, context);
 }
 }  // namespace combine

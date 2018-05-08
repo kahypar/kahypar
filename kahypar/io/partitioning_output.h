@@ -193,25 +193,6 @@ inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
   }
 }
 
-inline void printEvolutionaryInformation(const Context& context) {
-  return;
-  LOG << "Action Type:" << context.evolutionary.action.decision();
-  switch (context.evolutionary.action.decision()) {
-    case EvoDecision::normal:
-      break;
-    case EvoDecision::combine:
-      LOG << "Action Subtype:" << context.evolutionary.combine_strategy;
-      break;
-    case EvoDecision::mutation:
-      LOG << "Action Subtype:" << context.evolutionary.mutate_strategy;
-      break;
-  }
-  LOG << "Requirements:";
-  LOG << "  initial partitioning            :" << std::boolalpha
-      << context.evolutionary.action.requires().initial_partitioning;
-  LOG << "  evolutionary parent contraction :" << std::boolalpha
-      << context.evolutionary.action.requires().evolutionary_parent_contraction;
-}
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Context& context,
                                      const std::chrono::duration<double>& elapsed_seconds) {

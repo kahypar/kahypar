@@ -55,7 +55,6 @@ Individual vCycleWithNewInitialPartitioning(Hypergraph& hg, const Individual& in
 
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
-  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg, context);
 }
 
@@ -82,7 +81,6 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
 
   DBG << "after mutate" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
   io::serializer::serializeEvolutionary(temporary_context, hg);
-  io::printEvolutionaryInformation(temporary_context);
   return Individual(hg, context);
 }
 }  // namespace mutate
