@@ -38,11 +38,6 @@ matrix:
       os: linux
       addons: *gcc6
 
-      # gcc 6 - RelWithDebInfo Build - end to end tests
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="RelWithDebInfo" COMPILER_FLAGS="" COV="OFF"
-      os: linux
-      addons: *gcc6
-
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COMPILER_FLAGS="" COV="OFF"
       os: osx
