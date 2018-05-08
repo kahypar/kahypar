@@ -130,7 +130,7 @@ inline double imbalance(const Hypergraph& hypergraph, const PartitionID k) {
 }  // namespace internal
 
 static inline double imbalance(const Hypergraph& hypergraph, const Context& context) {
-  ASSERT(context.partition.k == 2 ||
+  ASSERT(context.partition.k == 2 || context.partition.use_individual_part_weights ||
          context.partition.perfect_balance_part_weights[0]
          == context.partition.perfect_balance_part_weights[1],
          "Imbalance cannot be calculated correctly");
@@ -144,8 +144,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
     // to direct k-way partitioning and each part has the same perfect_balance weight and Lmax
     const double balance_i =
       (hypergraph.partWeight(i) /
-       static_cast<double>(context.partition.perfect_balance_part_weights[
-                             context.partition.use_individual_part_weights ? i : 1]));
+       static_cast<double>(context.partition.perfect_balance_part_weights[i]));
     max_balance = std::max(max_balance, balance_i);
   }
 
@@ -155,6 +154,7 @@ static inline double imbalance(const Hypergraph& hypergraph, const Context& cont
   // calculation should give the same result as the old one.
   ASSERT(context.partition.perfect_balance_part_weights[0]
          != context.partition.perfect_balance_part_weights[1] ||
+         context.partition.use_individual_part_weights ||
          max_balance - 1.0 == internal::imbalance(hypergraph, context.partition.k),
          "Incorrect Imbalance:" << (max_balance - 1.0) << "!="
                                 << V(internal::imbalance(hypergraph, context.partition.k)));

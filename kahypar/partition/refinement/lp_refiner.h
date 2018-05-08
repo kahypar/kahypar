@@ -93,8 +93,6 @@ class LPRefiner final : public IRefiner {
     const double initial_imbalance = best_metrics.imbalance;
     HyperedgeWeight current_cut = best_metrics.cut;
     double current_imbalance = best_metrics.imbalance;
-    PartitionID heaviest_part = heaviestPart();
-    HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
 
     for (const HypernodeID& cur_node : refinement_nodes) {
       _gain_cache.clear(cur_node);
@@ -129,13 +127,8 @@ class LPRefiner final : public IRefiner {
 
         const bool move_successful = moveHypernode(hn, from_part, gain_pair.second);
         if (move_successful) {
-          reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
-                                              from_part, to_part);
-
           best_metrics.cut -= gain_pair.first;
-          best_metrics.imbalance = static_cast<double>(heaviest_part_weight) /
-                                   ceil(static_cast<double>(_context.partition.total_graph_weight) /
-                                        _context.partition.k) - 1.0;
+          best_metrics.imbalance = metrics::imbalance(_hg, _context);
 
           ASSERT(_hg.partWeight(gain_pair.second)
                  <= _context.partition.max_part_weights[gain_pair.second % 2],
@@ -207,44 +200,6 @@ class LPRefiner final : public IRefiner {
   }
 
  private:
-  PartitionID heaviestPart() const {
-    PartitionID heaviest_part = 0;
-    for (PartitionID part = 1; part < _context.partition.k; ++part) {
-      if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
-        heaviest_part = part;
-      }
-    }
-    return heaviest_part;
-  }
-
-  void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
-                                           HypernodeWeight& heaviest_part_weight,
-                                           const PartitionID from_part,
-                                           const PartitionID to_part) const {
-    if (heaviest_part == from_part) {
-      heaviest_part = heaviestPart();
-      heaviest_part_weight = _hg.partWeight(heaviest_part);
-    } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
-      heaviest_part = to_part;
-      heaviest_part_weight = _hg.partWeight(to_part);
-    }
-    ASSERT([&]() {
-        PartitionID heaviest = 0;
-        HypernodeWeight max_weight = _hg.partWeight(heaviest);
-        for (PartitionID part = 1; part < _context.partition.k; ++part) {
-          if (_hg.partWeight(part) > max_weight) {
-            heaviest = part;
-            max_weight = _hg.partWeight(heaviest);
-          }
-        }
-        if (max_weight != heaviest_part_weight) {
-          return false;
-        }
-        return true;
-      } (), "");
-  }
-
-
   void connectivityUpdate(const HypernodeID pin, const PartitionID from_part,
                           const PartitionID to_part,
                           const bool move_decreased_connectivity,

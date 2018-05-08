@@ -61,15 +61,14 @@ class ATwoWayFMRefiner : public Test {
     context.partition.epsilon = 0.15;
     context.partition.k = 2;
     context.partition.objective = Objective::cut;
-    context.partition.total_graph_weight = 7;
-    context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
-                                                             static_cast<double>(context.partition.k));
-    context.partition.perfect_balance_part_weights[1] = ceil(context.partition.total_graph_weight /
-                                                             static_cast<double>(context.partition.k));
+    context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph->totalWeight() /
+                                                                  static_cast<double>(context.partition.k)));
+    context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph->totalWeight() /
+                                                                  static_cast<double>(context.partition.k)));
 
-    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[0];
-    context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[0]);
+    context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
     context.local_search.fm.max_number_of_fruitless_moves = 50;
     refiner = std::make_unique<TwoWayFMRefinerSimpleStopping>(*hypergraph, context);
     changes.representative.push_back(0);
@@ -509,14 +508,14 @@ TEST(ARefiner, ChecksIfMovePreservesBalanceConstraint) {
   // This test is actcually legacy, since the current implementation does not
   // use the moveIsFeasible method anymore.
   context.partition.mode = Mode::direct_kway;
-  context.partition.perfect_balance_part_weights[0] = ceil(hypergraph.initialNumNodes() /
-                                                           static_cast<double>(context.partition.k));
-  context.partition.perfect_balance_part_weights[1] = ceil(hypergraph.initialNumNodes() /
-                                                           static_cast<double>(context.partition.k));
+  context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph.initialNumNodes() /
+                                                                static_cast<double>(context.partition.k)));
+  context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph.initialNumNodes() /
+                                                                static_cast<double>(context.partition.k)));
 
-  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[0];
-  context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[0]);
+  context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
 
   TwoWayFMRefinerSimpleStopping refiner(hypergraph, context);
   refiner.initialize(100);
@@ -529,19 +528,18 @@ TEST_F(ATwoWayFMRefinerDeathTest, ConsidersSingleNodeHEsDuringInitialGainComputa
                                   HyperedgeVector { 0, 1, 0 }, 2));
 
   context.local_search.fm.max_number_of_fruitless_moves = 50;
-  context.partition.total_graph_weight = 2;
   context.partition.k = 2;
   context.partition.rb_lower_k = 0;
   context.partition.rb_upper_k = context.partition.k - 1;
   context.partition.epsilon = 1.0;
-  context.partition.perfect_balance_part_weights[0] = ceil(context.partition.total_graph_weight /
-                                                           static_cast<double>(context.partition.k));
-  context.partition.perfect_balance_part_weights[1] = ceil(context.partition.total_graph_weight /
-                                                           static_cast<double>(context.partition.k));
+  context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph->totalWeight() /
+                                                                static_cast<double>(context.partition.k)));
+  context.partition.perfect_balance_part_weights.push_back(ceil(hypergraph->totalWeight() /
+                                                                static_cast<double>(context.partition.k)));
 
-  context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                          * context.partition.perfect_balance_part_weights[0];
-  context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+  context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                               * context.partition.perfect_balance_part_weights[0]);
+  context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
 
   hypergraph->setNodePart(0, 0);
   hypergraph->setNodePart(1, 1);

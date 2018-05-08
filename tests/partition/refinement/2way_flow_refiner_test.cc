@@ -90,17 +90,16 @@ class TwoWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
     context.partition.k = 2;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
-    context.partition.total_graph_weight = hypergraph->totalWeight();
 
-    context.partition.perfect_balance_part_weights[0] = ceil(
-      context.partition.total_graph_weight
-      / static_cast<double>(context.partition.k));
-    context.partition.perfect_balance_part_weights[1] =
-      context.partition.perfect_balance_part_weights[0];
+    context.partition.perfect_balance_part_weights.push_back(ceil(
+                                                               hypergraph->totalWeight()
+                                                               / static_cast<double>(context.partition.k)));
+    context.partition.perfect_balance_part_weights.push_back(
+      context.partition.perfect_balance_part_weights[0]);
 
-    context.partition.max_part_weights[0] = (1 + context.partition.epsilon)
-                                            * context.partition.perfect_balance_part_weights[0];
-    context.partition.max_part_weights[1] = context.partition.max_part_weights[0];
+    context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
+                                                 * context.partition.perfect_balance_part_weights[0]);
+    context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
 
     context.local_search.flow.use_most_balanced_minimum_cut = true;
     context.local_search.flow.alpha = 4;

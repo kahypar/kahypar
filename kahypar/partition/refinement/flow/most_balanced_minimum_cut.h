@@ -452,7 +452,7 @@ class MostBalancedMinimumCut {
       for (PartitionID i = 1; i < _context.partition.k; ++i) {
         const double balance_i =
           (part_weight[i] /
-           static_cast<double>(_context.partition.perfect_balance_part_weights[1]));
+           static_cast<double>(_context.partition.perfect_balance_part_weights[i]));
         max_balance = std::max(max_balance, balance_i);
       }
       return max_balance - 1.0;

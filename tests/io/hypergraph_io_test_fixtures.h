@@ -234,7 +234,6 @@ class APartitionOfAHypergraph : public Test {
     _context.partition.objective = Objective::cut;
     _context.partition.rb_lower_k = 0;
     _context.partition.rb_upper_k = _context.partition.k - 1;
-    _context.partition.total_graph_weight = 7;
     _context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     _context.coarsening.contraction_limit = 2;
     _context.coarsening.max_allowed_node_weight = 5;
@@ -248,12 +247,12 @@ class APartitionOfAHypergraph : public Test {
     _context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
     _context.partition.graph_filename = "APartitionOfAHypergraphTest";
     _context.partition.graph_partition_filename = "APartitionOfAHypergraphTest.hgr.part.2.KaHyPar";
-    _context.partition.perfect_balance_part_weights[0] = ceil(7.0 / 2);
-    _context.partition.perfect_balance_part_weights[1] = ceil(7.0 / 2);
-    _context.partition.max_part_weights[0] = (1 + _context.partition.epsilon)
-                                             * _context.partition.perfect_balance_part_weights[0];
-    _context.partition.max_part_weights[1] = (1 + _context.partition.epsilon) *
-                                             _context.partition.perfect_balance_part_weights[1];
+    _context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    _context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
+    _context.partition.max_part_weights.push_back((1 + _context.partition.epsilon)
+                                                  * _context.partition.perfect_balance_part_weights[0]);
+    _context.partition.max_part_weights.push_back((1 + _context.partition.epsilon) *
+                                                  _context.partition.perfect_balance_part_weights[1]);
     _coarsener.reset(new FirstWinsCoarsener(_hypergraph, _context,  /* heaviest_node_weight */ 1));
     _refiner.reset(new Refiner(_hypergraph, _context));
   }

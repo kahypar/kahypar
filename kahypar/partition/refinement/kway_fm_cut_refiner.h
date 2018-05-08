@@ -138,9 +138,6 @@ class KWayFMRefiner final : public IRefiner,
     HyperedgeWeight current_cut = best_metrics.cut;
     double current_imbalance = best_metrics.imbalance;
 
-    PartitionID heaviest_part = Base::heaviestPart();
-    HypernodeWeight heaviest_part_weight = _hg.partWeight(heaviest_part);
-
     int min_cut_index = -1;
     int touched_hns_since_last_improvement = 0;
     _stopping_policy.resetStatistics();
@@ -203,12 +200,7 @@ class KWayFMRefiner final : public IRefiner,
           _pq.enablePart(from_part);
         }
 
-        Base::reCalculateHeaviestPartAndItsWeight(heaviest_part, heaviest_part_weight,
-                                                  from_part, to_part);
-
-        current_imbalance = static_cast<double>(heaviest_part_weight) /
-                            ceil(static_cast<double>(_context.partition.total_graph_weight) /
-                                 _context.partition.k) - 1.0;
+        current_imbalance = metrics::imbalance(_hg, _context);
 
         current_cut -= max_gain;
         _stopping_policy.updateStatistics(max_gain);

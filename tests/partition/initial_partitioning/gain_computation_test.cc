@@ -83,10 +83,10 @@ class AGainComputationPolicy : public Test {
     context.initial_partitioning.upper_allowed_partition_weight.resize(2);
     context.initial_partitioning.perfect_balance_partition_weight.resize(2);
     for (PartitionID i = 0; i < context.initial_partitioning.k; i++) {
-      context.initial_partitioning.perfect_balance_partition_weight[i] =
+      context.initial_partitioning.perfect_balance_partition_weight.push_back(
         ceil(
           hypergraph_weight
-          / static_cast<double>(context.initial_partitioning.k));
+          / static_cast<double>(context.initial_partitioning.k)));
     }
   }
 

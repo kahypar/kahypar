@@ -98,7 +98,7 @@ class FMRefinerBase {
     ASSERT(_context.partition.mode == Mode::direct_kway,
            "Method should only be called in direct partitioning");
     return (_hg.partWeight(to_part) + _hg.nodeWeight(max_gain_node)
-            <= _context.partition.max_part_weights[0]) && (_hg.partSize(from_part) - 1 != 0);
+            <= _context.partition.max_part_weights[to_part]) && (_hg.partSize(from_part) - 1 != 0);
   }
 
   void moveHypernode(const HypernodeID hn, const PartitionID from_part,
@@ -107,16 +107,6 @@ class FMRefinerBase {
     DBG << "moving HN" << hn << "from" << from_part
         << "to" << to_part << "(weight=" << _hg.nodeWeight(hn) << ")";
     _hg.changeNodePart(hn, from_part, to_part);
-  }
-
-  PartitionID heaviestPart() const {
-    PartitionID heaviest_part = 0;
-    for (PartitionID part = 1; part < _context.partition.k; ++part) {
-      if (_hg.partWeight(part) > _hg.partWeight(heaviest_part)) {
-        heaviest_part = part;
-      }
-    }
-    return heaviest_part;
   }
 
   void activateAdjacentFreeVertices(const std::vector<HypernodeID>& refinement_nodes) {
@@ -165,22 +155,6 @@ class FMRefinerBase {
           return true;
         } (), V(hn));
     }
-  }
-
-
-  void reCalculateHeaviestPartAndItsWeight(PartitionID& heaviest_part,
-                                           HypernodeWeight& heaviest_part_weight,
-                                           const PartitionID from_part,
-                                           const PartitionID to_part) const {
-    if (heaviest_part == from_part) {
-      heaviest_part = heaviestPart();
-      heaviest_part_weight = _hg.partWeight(heaviest_part);
-    } else if (_hg.partWeight(to_part) > heaviest_part_weight) {
-      heaviest_part = to_part;
-      heaviest_part_weight = _hg.partWeight(to_part);
-    }
-    ASSERT(heaviest_part_weight == _hg.partWeight(heaviestPart()),
-           V(heaviest_part) << V(heaviestPart()));
   }
 
   void reset() {

@@ -218,7 +218,7 @@ class TwoWayFMRefiner final : public IRefiner,
       // part could be overweight regarding Lmax. Additionaly, if hypernode hn is a fixed
       // vertex, it should not be activated.
       ASSERT((_context.partition.max_part_weights[0] != _context.partition.max_part_weights[1]) ||
-             _hg.isFixedVertex(hn) ||
+             _hg.isFixedVertex(hn) || _context.partition.use_individual_part_weights ||
              (!_hg.isBorderNode(hn) || _pq.isEnabled(1 - _hg.partID(hn))), V(hn));
     }
 
