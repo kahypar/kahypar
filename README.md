@@ -135,9 +135,11 @@ We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manu
 Currently we provide four different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18](https://arxiv.org/abs/1802.03587), and [GECCO'18][GECCO'18].
 
-To start EvoHGP/KaHyPar-E (see pull request [#23](https://github.com/SebastianSchlag/kahypar/pull/23)) optimizing the (connectivity - 1) objective using direct k-way mode run
+To start EvoHGP/KaHyPar-E optimizing the (connectivity - 1) objective using direct k-way mode run
    
      ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
+     
+Note that the configuration `km1_direct_kway_gecco18.ini` is based on KaHyPar-CA. However, KaHyPar-E also works with flow-based local improvements if the configration is adjusted according to the refinement parameters used in `km1_direct_kway_sea18.ini`.
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
