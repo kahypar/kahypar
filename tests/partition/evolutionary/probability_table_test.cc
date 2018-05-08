@@ -39,8 +39,8 @@ class TheProbabilityTable : public Test {
 };
 
 TEST_F(TheProbabilityTable, PicksTheCorrectCombineOperation) {
-  for (float j = 0; j < 1; j = j + 0.1) {
-    float edge_frequency_chance = j;
+  for (int j = 0; j < 10; ++j) {
+    float edge_frequency_chance = static_cast<float>(j)/10;
 
     context.evolutionary.edge_frequency_chance = edge_frequency_chance;
     context.evolutionary.random_combine_strategy = true;
