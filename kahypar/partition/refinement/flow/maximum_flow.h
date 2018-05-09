@@ -172,11 +172,11 @@ class MaximumFlow {
           _flow_network.increaseFlow(*e, f);
           Flow residual_forward_after = _flow_network.residualCapacity(*e);
           Flow residual_backward_after = _flow_network.residualCapacity(_flow_network.reverseEdge(*e));
-          if (residual_forward_before != INFTY && residual_forward_before != residual_forward_after + f) {
+          if (residual_forward_before != Network::kInfty && residual_forward_before != residual_forward_after + f) {
             LOG << "Residual capacity should be " << (residual_forward_before - f) << "!";
             return false;
           }
-          if (residual_backward_before != INFTY && residual_backward_before != residual_backward_after - f) {
+          if (residual_backward_before != Network::kInfty && residual_backward_before != residual_backward_after - f) {
             LOG << "Residual capacity should be " << (residual_backward_before + f) << "!";
             return false;
           }
