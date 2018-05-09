@@ -377,7 +377,6 @@ struct EvolutionaryParameters {
   float dynamic_population_amount_of_time;
   bool random_combine_strategy;
   mutable int iteration;
-  mutable std::chrono::duration<double> elapsed_seconds_total;
   mutable Action action;
   const std::vector<PartitionID>* parent1 = nullptr;
   const std::vector<PartitionID>* parent2 = nullptr;
