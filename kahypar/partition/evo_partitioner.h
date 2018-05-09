@@ -155,7 +155,8 @@ class EvoPartitioner {
         }
       case EvoCombineStrategy::UNDEFINED:
         LOG << "Partitioner called without combine strategy";
-        break;
+        std::exit(-1);
+        // omit default case to trigger compiler warning for missing cases
     }
     context.evolutionary.combine_strategy = original_strategy;
   }
@@ -185,7 +186,8 @@ class EvoPartitioner {
         break;
       case EvoMutateStrategy::UNDEFINED:
         LOG << "Partitioner called without mutation strategy";
-        break;
+        std::exit(-1);
+        // omit default case to trigger compiler warning for missing cases
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
