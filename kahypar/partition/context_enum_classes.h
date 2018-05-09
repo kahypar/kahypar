@@ -437,7 +437,7 @@ static EvoMutateStrategy mutateStrategyFromString(const std::string& strat) {
   } else if (strat == "vcycle") {
     return EvoMutateStrategy::vcycle;
   }
-  std::cout << "No valid mutate strategy. " << std::endl;
+  LOG << "No valid mutate strategy. ";
   exit(0);
 }
 static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
@@ -446,7 +446,7 @@ static EvoCombineStrategy combineStrategyFromString(const std::string& strat) {
   } else if (strat == "edge-frequency") {
     return EvoCombineStrategy::edge_frequency;
   }
-  std::cout << "No valid combine strategy. " << std::endl;
+  LOG << "No valid combine strategy. ";
   exit(0);
 }
 static EvoReplaceStrategy replaceStrategyFromString(const std::string& strat) {
@@ -457,7 +457,7 @@ static EvoReplaceStrategy replaceStrategyFromString(const std::string& strat) {
   } else if (strat == "strong-diverse") {
     return EvoReplaceStrategy::strong_diverse;
   }
-  std::cout << "No valid replace strategy. " << std::endl;
+  LOG << "No valid replace strategy. ";
   exit(0);
 }
 
@@ -467,7 +467,7 @@ static AcceptancePolicy acceptanceCriterionFromString(const std::string& crit) {
   } else if (crit == "best_prefer_unmatched") {
     return AcceptancePolicy::best_prefer_unmatched;
   }
-  std::cout << "No valid acceptance criterion for rating." << std::endl;
+  LOG << "No valid acceptance criterion for rating.";
   exit(0);
 }
 
@@ -477,7 +477,7 @@ static RatingPartitionPolicy ratingPartitionPolicyFromString(const std::string& 
   } else if (partition == "evolutionary") {
     return RatingPartitionPolicy::evolutionary;
   }
-  std::cout << "No valid partition policy for rating." << std::endl;
+  LOG << "No valid partition policy for rating.";
   exit(0);
   return RatingPartitionPolicy::normal;
 }
@@ -490,7 +490,7 @@ static FixVertexContractionAcceptancePolicy fixedVertexAcceptanceCriterionFromSt
   } else if (crit == "equivalent_vertices") {
     return FixVertexContractionAcceptancePolicy::equivalent_vertices;
   }
-  std::cout << "No valid fixed vertex acceptance criterion for rating." << std::endl;
+  LOG << "No valid fixed vertex acceptance criterion for rating.";
   exit(0);
 }
 
@@ -503,7 +503,7 @@ static HeavyNodePenaltyPolicy heavyNodePenaltyFromString(const std::string& pena
     return HeavyNodePenaltyPolicy::edge_frequency_penalty;
     // omit default case to trigger compiler warning for missing cases
   }
-  std::cout << "No valid edge penalty policy for rating." << std::endl;
+  LOG << "No valid edge penalty policy for rating.";
   exit(0);
   return HeavyNodePenaltyPolicy::multiplicative_penalty;
 }
@@ -514,7 +514,7 @@ static RatingFunction ratingFunctionFromString(const std::string& function) {
   } else if (function == "edge_frequency") {
     return RatingFunction::edge_frequency;
   }
-  std::cout << "No valid rating function for rating." << std::endl;
+  LOG << "No valid rating function for rating.";
   exit(0);
   return RatingFunction::heavy_edge;
 }
@@ -525,7 +525,7 @@ static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
   } else if (rule == "adaptive_opt") {
     return RefinementStoppingRule::adaptive_opt;
   }
-  std::cout << "No valid stopping rule for FM." << std::endl;
+  LOG << "No valid stopping rule for FM.";
   exit(0);
   return RefinementStoppingRule::simple;
 }
@@ -538,7 +538,7 @@ static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type
   } else if (type == "ml_style") {
     return CoarseningAlgorithm::ml_style;
   }
-  std::cout << "Illegal option:" << type << std::endl;
+  LOG << "Illegal option:" << type;
   exit(0);
   return CoarseningAlgorithm::heavy_lazy;
 }
@@ -563,7 +563,7 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
   } else if (type == "do_nothing") {
     return RefinementAlgorithm::do_nothing;
   }
-  std::cout << "Illegal option:" << type << std::endl;
+  LOG << "Illegal option:" << type;
   exit(0);
   return RefinementAlgorithm::kway_fm;
 }
@@ -596,7 +596,7 @@ static InitialPartitionerAlgorithm initialPartitioningAlgorithmFromString(const 
   } else if (mode == "pool") {
     return InitialPartitionerAlgorithm::pool;
   }
-  std::cout << "Illegal option:" << mode << std::endl;
+  LOG << "Illegal option:" << mode;
   exit(0);
   return InitialPartitionerAlgorithm::greedy_global;
 }
@@ -607,7 +607,7 @@ static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(cons
   } else if (technique == "multi") {
     return InitialPartitioningTechnique::multilevel;
   }
-  std::cout << "Illegal option:" << technique << std::endl;
+  LOG << "Illegal option:" << technique;
   exit(0);
   return InitialPartitioningTechnique::multilevel;
 }
@@ -622,7 +622,7 @@ static LouvainEdgeWeight edgeWeightFromString(const std::string& type) {
   } else if (type == "degree") {
     return LouvainEdgeWeight::degree;
   }
-  std::cout << "Illegal option:" << type << std::endl;
+  LOG << "Illegal option:" << type;
   exit(0);
   return LouvainEdgeWeight::uniform;
 }
@@ -633,7 +633,7 @@ static Mode modeFromString(const std::string& mode) {
   } else if (mode == "direct") {
     return Mode::direct_kway;
   }
-  std::cout << "Illegal option:" << mode << std::endl;
+  LOG << "Illegal option:" << mode;
   exit(0);
   return Mode::direct_kway;
 }
@@ -648,7 +648,7 @@ static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
   } else if (type == "ibfs") {
     return FlowAlgorithm::ibfs;
   }
-  std::cout << "Illegal option:" << type << std::endl;
+  LOG << "Illegal option:" << type;
   exit(0);
   return FlowAlgorithm::ibfs;
 }
@@ -663,7 +663,7 @@ static FlowNetworkType flowNetworkFromString(const std::string& type) {
   } else if (type == "hybrid") {
     return FlowNetworkType::hybrid;
   }
-  std::cout << "No valid flow network type." << std::endl;
+  LOG << "No valid flow network type.";
   exit(0);
   return FlowNetworkType::hybrid;
 }
@@ -676,7 +676,7 @@ static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) 
   } else if (mode == "exponential") {
     return FlowExecutionMode::exponential;
   }
-  std::cout << "No valid flow execution mode." << std::endl;
+  LOG << "No valid flow execution mode.";
   exit(0);
   return FlowExecutionMode::exponential;
 }
