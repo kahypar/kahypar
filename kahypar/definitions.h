@@ -57,6 +57,8 @@ using NodeID = HypernodeID;
 using EdgeID = HyperedgeID;
 using EdgeWeight = long double;
 using ClusterID = PartitionID;
+using Flow = int32_t;
+using Capacity = int32_t;
 
 using HighResClockTimepoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 }  // namespace kahypar

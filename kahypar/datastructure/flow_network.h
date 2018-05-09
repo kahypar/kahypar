@@ -37,18 +37,6 @@
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
-using ds::begin;
-using ds::end;
-using ds::FastResetFlagArray;
-using ds::FastResetArray;
-using ds::SparseSet;
-using NodeID = uint32_t;
-using Flow = int32_t;
-using Capacity = int32_t;
-
-#define INFTY std::numeric_limits<Flow>::max() / 2
-#define INVALID_NODE std::numeric_limits<NodeID>::max() / 2
-
 namespace ds {
 struct FlowEdge {
   NodeID source;
@@ -72,6 +60,9 @@ class FlowNetwork {
   using HypernodeIterator = std::pair<const HypernodeID*, const HypernodeID*>;
 
  public:
+  static constexpr Flow kInfty = std::numeric_limits<Flow>::max() / 2;
+  static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max() / 2;
+
   FlowNetwork(Hypergraph& hypergraph, const Context& context, const size_t size) :
     _hg(hypergraph),
     _context(context),
@@ -444,7 +435,7 @@ class FlowNetwork {
     _flow_graph[v][e2_idx].reverseEdge = e1_idx;
     _num_edges += (undirected ? 2 : 1);
     _num_undirected_edges += (undirected ? 1 : 0);
-    _total_weight_hyperedges += (capacity < INFTY ? capacity : 0);
+    _total_weight_hyperedges += (capacity < kInfty ? capacity : 0);
   }
 
   /*
@@ -497,10 +488,10 @@ class FlowNetwork {
   void addGraphEdge(const HyperedgeID he) {
     ASSERT(_hg.edgeSize(he) == 2, "Hyperedge " << he << " is not a graph edge!");
 
-    NodeID u = INVALID_NODE;
-    NodeID v = INVALID_NODE;
+    NodeID u = kInvalidNode;
+    NodeID v = kInvalidNode;
     for (const HypernodeID& pin : _hg.pins(he)) {
-      if (u == INVALID_NODE) {
+      if (u == kInvalidNode) {
         u = pin;
       } else {
         v = pin;
@@ -527,8 +518,8 @@ class FlowNetwork {
     const NodeID u = mapToIncommingHyperedgeID(he);
     const NodeID v = mapToOutgoingHyperedgeID(he);
     if (containsNode(u) && containsNode(v)) {
-      addEdge(pin, u, INFTY);
-      addEdge(v, pin, INFTY);
+      addEdge(pin, u, kInfty);
+      addEdge(v, pin, kInfty);
     } else {
       if (containsNode(u)) {
         ASSERT(_flow_graph[u].size() == 0, "Pin of size 1 hyperedge already added in flow graph!");
@@ -553,7 +544,7 @@ class FlowNetwork {
     _he_visited.set(he, true);
     for (const HyperedgeID& target : _hg.incidentEdges(hn)) {
       if (!_he_visited[target]) {
-        addEdge(mapToOutgoingHyperedgeID(he), mapToIncommingHyperedgeID(target), INFTY);
+        addEdge(mapToOutgoingHyperedgeID(he), mapToIncommingHyperedgeID(target), kInfty);
         _he_visited.set(target, true);
       }
     }

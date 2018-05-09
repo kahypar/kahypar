@@ -177,7 +177,7 @@ class TwoWayFlowRefiner final : public IRefiner,
       // Maximum Flow algorithm returns infinity, if all
       // hypernodes contained in the flow problem are either
       // sources or sinks
-      if (cut_flow_network_after == INFTY) {
+      if (cut_flow_network_after == Network::kInfty) {
         DBG << "Trivial Cut";
         break;
       }

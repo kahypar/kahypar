@@ -68,7 +68,7 @@ class MaximumFlow {
 
   HyperedgeWeight minimumSTCut(const PartitionID block_0, const PartitionID block_1) {
     if (_flow_network.isTrivialFlow()) {
-      return INFTY;
+      return Network::kInfty;
     }
 
     const PartitionID default_part =
@@ -159,7 +159,7 @@ class MaximumFlow {
   template <typename T>
   FRIEND_TEST(AMaximumFlow, AugmentAlongPath);
 
-  Flow augment(const NodeID cur, const Flow min_flow = INFTY) {
+  Flow augment(const NodeID cur, const Flow min_flow = Network::kInfty) {
     if (_flow_network.isSource(cur) || min_flow == 0) {
       return min_flow;
     } else {
@@ -446,7 +446,7 @@ class GoldbergTarjan : public MaximumFlow<Network>{
     if (_flow_network.isSink(u)) {
       updateDistance(u, 1);
     } else {
-      NodeID label = _flow_network.isSource(u) ? _num_nodes : INVALID_NODE;
+      NodeID label = _flow_network.isSource(u) ? _num_nodes : Network::kInvalidNode;
       for (FlowEdge& e : _flow_network.incidentEdges(u)) {
         const NodeID v = e.target;
         ASSERT(!_visited[v], "Node " << v << " should not be visited!");

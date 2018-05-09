@@ -51,8 +51,8 @@ class MostBalancedMinimumCut {
     _context(context),
     _flow_network(flowNetwork),
     _visited(_hg.initialNumNodes() + 2 * _hg.initialNumEdges()),
-    _graph_to_flow_network(flowNetwork.initialSize(), INVALID_NODE),
-    _flow_network_to_graph(flowNetwork.initialSize(), INVALID_NODE),
+    _graph_to_flow_network(flowNetwork.initialSize(), Network::kInvalidNode),
+    _flow_network_to_graph(flowNetwork.initialSize(), Network::kInvalidNode),
     _scc_node_weight(flowNetwork.initialSize(), 0),
     _Q(),
     _S(),
@@ -327,13 +327,13 @@ class MostBalancedMinimumCut {
         for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
           const NodeID in_he = _flow_network_to_graph.get(_flow_network.mapToIncommingHyperedgeID(he));
           const NodeID out_he = _flow_network_to_graph.get(_flow_network.mapToOutgoingHyperedgeID(he));
-          if (in_he != INVALID_NODE) {
+          if (in_he != Network::kInvalidNode) {
             Edge e;
             e.target_node = in_he;
             e.weight = 1.0;
             adj_list[hn_node].push_back(e);
           }
-          if (out_he != INVALID_NODE) {
+          if (out_he != Network::kInvalidNode) {
             Edge e;
             e.target_node = hn_node;
             e.weight = 1.0;
@@ -393,7 +393,7 @@ class MostBalancedMinimumCut {
         const NodeID v = _S.back();
         _S.pop_back();
         g.setClusterID(v, cid);
-        _dfs_low.set(v, INVALID_NODE);
+        _dfs_low.set(v, Network::kInvalidNode);
         if (u == v) {
           break;
         }
