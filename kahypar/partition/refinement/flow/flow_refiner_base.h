@@ -61,6 +61,7 @@ class FlowRefinerBase {
 
   void storeOriginalPartitionIDs() {
     for (const HypernodeID& hn : _hg.nodes()) {
+      ASSERT(_hg.partID(hn) != Hypergraph::kInvalidPartition, V(hn));
       _original_part_id[hn] = _hg.partID(hn);
     }
   }

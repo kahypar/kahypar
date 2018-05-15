@@ -82,7 +82,8 @@ class KWayFlowRefiner final : public IRefiner,
 
     // Store original partition for rollback, because we have to update
     // gain cache of kway fm refiner
-    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
+        _context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow) {
       Base::storeOriginalPartitionIDs();
     }
 
