@@ -157,15 +157,14 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
                                       std::vector<HypernodeID>& refinement_nodes,
-                                      const UncontractionGainChanges& uncontraction_changes,
-                                      Hypergraph& hypergraph) override final {
+                                      const UncontractionGainChanges& uncontraction_changes) override final {
     updateGainCacheAfterUncontraction(refinement_nodes, uncontraction_changes);
     for (const auto& move : moves) {
-      hypergraph.changeNodePart(move.hn, move.from, move.to);
+      _hg.changeNodePart(move.hn, move.from, move.to);
       const Gain temp = _gain_cache.value(move.hn);
       ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
       _gain_cache.setNotCached(move.hn);
-      for (const HyperedgeID& he : hypergraph.incidentEdges(move.hn)) {
+      for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
         deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
       }
       _gain_cache.setValue(move.hn, -temp);

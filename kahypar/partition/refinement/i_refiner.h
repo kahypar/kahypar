@@ -58,10 +58,8 @@ class IRefiner {
 
   void performMovesAndUpdateCache(const std::vector<Move>& moves,
                                   std::vector<HypernodeID>& refinement_nodes,
-                                  const UncontractionGainChanges& uncontraction_changes,
-                                  Hypergraph& hypergraph) {
-    performMovesAndUpdateCacheImpl(moves, refinement_nodes,
-                                   uncontraction_changes, hypergraph);
+                                  const UncontractionGainChanges& uncontraction_changes) {
+    performMovesAndUpdateCacheImpl(moves, refinement_nodes, uncontraction_changes);
   }
 
   std::vector<Move> rollbackPartition() {
@@ -82,8 +80,7 @@ class IRefiner {
 
   virtual void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
                                               std::vector<HypernodeID>&,
-                                              const UncontractionGainChanges&,
-                                              Hypergraph&) { }
+                                              const UncontractionGainChanges&) { }
 
   virtual std::vector<Move> rollbackImpl() { return std::vector<Move>(); }
 };
