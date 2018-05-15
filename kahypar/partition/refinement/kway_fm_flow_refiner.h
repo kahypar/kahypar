@@ -43,7 +43,9 @@ class KWayFMFlowRefiner final : public IRefiner,
   KWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
-                  RefinementAlgorithm::kway_fm_km1, hypergraph, context)),
+                  context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ?
+                  RefinementAlgorithm::kway_fm_km1 :
+                  RefinementAlgorithm::kway_fm, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
                     RefinementAlgorithm::kway_flow, hypergraph, context)) { }
 
@@ -71,7 +73,7 @@ class KWayFMFlowRefiner final : public IRefiner,
 
     if (flow_improvement) {
       const std::vector<Move> moves = _flow_refiner->rollbackPartition();
-      _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
+      _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes);
     }
 
     const bool fm_improvement = _fm_refiner->refine(refinement_nodes, max_allowed_part_weights,

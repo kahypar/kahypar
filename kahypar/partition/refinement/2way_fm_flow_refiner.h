@@ -65,8 +65,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
  private:
   void performMovesAndUpdateCacheImpl(const std::vector<Move>&,
                                       std::vector<HypernodeID>&,
-                                      const UncontractionGainChanges&,
-                                      Hypergraph&) override final { }
+                                      const UncontractionGainChanges&) override final { }
 
   std::vector<Move> rollbackImpl() override final {
     return std::vector<Move>();
@@ -94,7 +93,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
     modified_changes.contraction_partner.push_back(changes.contraction_partner[0]);
     if (flow_improvement) {
       const std::vector<Move> moves = _flow_refiner->rollbackPartition();
-      _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes, _hg);
+      _fm_refiner->performMovesAndUpdateCache(moves, refinement_nodes, changes);
       modified_changes.representative[0] = 0;
       modified_changes.contraction_partner[0] = 0;
     }

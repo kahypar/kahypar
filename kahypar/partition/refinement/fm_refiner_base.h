@@ -27,6 +27,8 @@
 #include "kahypar/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/refinement/move.h"
+#include "kahypar/partition/refinement/uncontraction_gain_changes.h"
 
 namespace kahypar {
 struct RollbackInfo {
@@ -137,6 +139,33 @@ class FMRefinerBase {
       }
     }
   }
+
+  void performMovesAndUpdateCache(const std::vector<Move>& moves,
+                                  std::vector<HypernodeID>& refinement_nodes,
+                                  const UncontractionGainChanges&) {
+    reset();
+    Derived* derived = static_cast<Derived*>(this);
+    for (const HypernodeID& hn : refinement_nodes) {
+      derived->_gain_cache.clear(hn);
+      derived->initializeGainCacheFor(hn);
+    }
+    for (const auto& move : moves) {
+      DBG << V(move.hn) << V(move.from) << V(move.to);
+      if (!derived->_gain_cache.entryExists(move.hn, move.to)) {
+        derived->_gain_cache.initializeEntry(move.hn,
+                                             move.to,
+                                             derived->gainInducedByHypergraph(move.hn,
+                                                                              move.to));
+      }
+      _hg.changeNodePart(move.hn, move.from, move.to);
+      _hg.activate(move.hn);
+      _hg.mark(move.hn);
+      derived->updateNeighboursGainCacheOnly(move.hn, move.from, move.to);
+    }
+    derived->_gain_cache.resetDelta();
+    derived->ASSERT_THAT_GAIN_CACHE_IS_VALID();
+  }
+
 
   template <typename GainCache>
   void removeHypernodeMovementsFromPQ(const HypernodeID hn, const GainCache& gain_cache) {
