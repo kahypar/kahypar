@@ -201,8 +201,10 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
       context.partition.max_part_weights.push_back(context.partition.max_part_weights[0]);
     }
   }
-  ASSERT(context.partition.perfect_balance_part_weights.size() == context.partition.k);
-  ASSERT(context.partition.max_part_weights.size() == context.partition.k);
+  ASSERT(context.partition.perfect_balance_part_weights.size() ==
+         static_cast<size_t>(context.partition.k));
+  ASSERT(context.partition.max_part_weights.size() ==
+         static_cast<size_t>(context.partition.k));
 }
 
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
