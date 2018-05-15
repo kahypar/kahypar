@@ -46,12 +46,14 @@
       );                                                          \
   })
 
-#define REGISTER_REFINER(id, refiner)                                 \
-  static meta::Registrar<RefinerFactory> register_ ## refiner(        \
+#define REREGISTER_REFINER(id, refiner, t)                            \
+  static meta::Registrar<RefinerFactory> register_ ## refiner ## t(   \
     id,                                                               \
     [](Hypergraph& hypergraph, const Context& context) -> IRefiner* { \
     return new refiner(hypergraph, context);                          \
   })
+
+#define REGISTER_REFINER(id, refiner)  REREGISTER_REFINER(id, refiner, 1)
 
 
 namespace kahypar {
@@ -81,6 +83,7 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
                               context.local_search.flow.execution_policy));
 REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);
 REGISTER_REFINER(RefinementAlgorithm::kway_fm_flow_km1, KWayFMFlowRefiner);
+REREGISTER_REFINER(RefinementAlgorithm::kway_fm_flow, KWayFMFlowRefiner, 2);
 REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar
