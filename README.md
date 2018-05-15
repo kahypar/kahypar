@@ -261,7 +261,7 @@ feel free to contact me or create an issue on the
 [ALENEX'16]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5
 [ALENEX'17]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3
 [SEA'17]: https://nms.kcl.ac.uk/informatics/events/SEA2017/accepted.html
-[ALENEX'16bench]: http://dx.doi.org/10.5281/zenodo.30176
+[ALENEX'16bench]: https://doi.org/10.5281/zenodo.30176
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
 [SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
