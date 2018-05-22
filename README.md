@@ -182,7 +182,7 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
                   Henning Meyerhenke and
                   Peter Sanders and
                   Christian Schulz},
-     title     = {\emph{k}-way Hypergraph Partitioning via \emph{n}-Level Recursive
+     title     = {k-way Hypergraph Partitioning via \emph{n}-Level Recursive
                   Bisection},
      booktitle = {18th Workshop on Algorithm Engineering and Experiments, (ALENEX 2016)},
      pages     = {53--67},
