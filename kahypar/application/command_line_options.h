@@ -103,7 +103,6 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
     ((initial_partitioning ? "i-r-flow-algorithm" : "r-flow-algorithm"),
     po::value<std::string>()->value_name("<string>")->notifier(
       [&context, initial_partitioning](const std::string& ftype) {
-      LOG << V(initial_partitioning);
       if (initial_partitioning) {
         context.initial_partitioning.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
       } else {
