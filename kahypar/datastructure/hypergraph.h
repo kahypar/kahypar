@@ -1521,6 +1521,8 @@ class GenericHypergraph {
 
   void setNodeWeight(const HypernodeID u, const HypernodeWeight weight) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
+    _total_weight -= hypernode(u).weight();
+    _total_weight += weight;
     hypernode(u).setWeight(weight);
   }
 
