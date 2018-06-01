@@ -2589,5 +2589,45 @@ removeFixedVertices(const Hypergraph& hypergraph) {
   return std::make_pair(std::move(subhypergraph),
                         subhypergraph_to_hypergraph);
 }
+
+template <typename Hypergraph>
+static Hypergraph constructDualHypergraph(const Hypergraph& hypergraph) {
+  const typename Hypergraph::HypernodeID num_nodes = hypergraph.initialNumEdges();
+  const typename Hypergraph::HyperedgeID num_edges = hypergraph.initialNumNodes();
+
+  typename Hypergraph::HyperedgeIndexVector index_vector;
+  typename Hypergraph::HyperedgeVector edge_vector;
+
+  index_vector.push_back(edge_vector.size());
+  for (const auto hn : hypergraph.nodes()) {
+    // nodes -> edges
+    for (const auto he : hypergraph.incidentEdges(hn)) {
+      // edges --> nodes
+      edge_vector.push_back(he);
+    }
+    index_vector.push_back(edge_vector.size());
+  }
+
+  typename Hypergraph::HyperedgeWeightVector* hyperedge_weights_ptr = nullptr;
+  typename Hypergraph::HypernodeWeightVector* hypernode_weights_ptr = nullptr;
+
+  typename Hypergraph::HyperedgeWeightVector hyperedge_weights;
+  typename Hypergraph::HypernodeWeightVector hypernode_weights;
+
+  if (hypergraph.type() != Hypergraph::Type::Unweighted) {
+    for (const auto hn : hypergraph.nodes()) {
+      hyperedge_weights.push_back(hypergraph.nodeWeight(hn));
+    }
+
+    for (const auto he : hypergraph.edges()) {
+      hypernode_weights.push_back(hypergraph.edgeWeight(he));
+    }
+    hyperedge_weights_ptr = &hyperedge_weights;
+    hypernode_weights_ptr = &hypernode_weights;
+  }
+
+  return Hypergraph(num_nodes, num_edges, index_vector, edge_vector, hypergraph.k(),
+                    hyperedge_weights_ptr, hypernode_weights_ptr);
+}
 }  // namespace ds
 }  // namespace kahypar

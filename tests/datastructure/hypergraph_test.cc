@@ -1069,5 +1069,60 @@ TEST_F(AHypergraph, UpdatesFixedVertexPartWeightsAfterFixedVertexUncontraction) 
   ASSERT_EQ(hypergraph.numFixedVertices(), 4);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
 }
+
+
+static std::vector<HyperedgeID> getIncidentEdges(const Hypergraph& hypergraph,
+                                                 const HypernodeID hn) {
+  std::vector<HyperedgeID> temp;
+  std::copy(hypergraph.incidentEdges(hn).first,
+            hypergraph.incidentEdges(hn).second,
+            std::back_inserter(temp));
+  return temp;
+}
+
+
+static std::vector<HypernodeID> getPins(const Hypergraph& hypergraph,
+                                        const HypernodeID he) {
+  std::vector<HyperedgeID> temp;
+  std::copy(hypergraph.pins(he).first,
+            hypergraph.pins(he).second,
+            std::back_inserter(temp));
+  return temp;
+}
+
+TEST_F(AHypergraph, CanBeConvertedToDualHypergraph) {
+  hypergraph.setNodeWeight(2, 42);
+  hypergraph.setEdgeWeight(3, 23);
+  hypergraph.setType(Hypergraph::Type::EdgeAndNodeWeights);
+
+  Hypergraph dual_hypergraph = constructDualHypergraph(hypergraph);
+
+  ASSERT_EQ(dual_hypergraph.edgeWeight(2), 42);
+  ASSERT_EQ(dual_hypergraph.nodeWeight(3), 23);
+
+  ASSERT_THAT(getIncidentEdges(dual_hypergraph, 0),
+              ContainerEq(getPins(hypergraph, 0)));
+  ASSERT_THAT(getIncidentEdges(dual_hypergraph, 1),
+              ContainerEq(getPins(hypergraph, 1)));
+  ASSERT_THAT(getIncidentEdges(dual_hypergraph, 2),
+              ContainerEq(getPins(hypergraph, 2)));
+  ASSERT_THAT(getIncidentEdges(dual_hypergraph, 3),
+              ContainerEq(getPins(hypergraph, 3)));
+
+  ASSERT_THAT(getPins(dual_hypergraph, 0),
+              ContainerEq(getIncidentEdges(hypergraph, 0)));
+  ASSERT_THAT(getPins(dual_hypergraph, 1),
+              ContainerEq(getIncidentEdges(hypergraph, 1)));
+  ASSERT_THAT(getPins(dual_hypergraph, 2),
+              ContainerEq(getIncidentEdges(hypergraph, 2)));
+  ASSERT_THAT(getPins(dual_hypergraph, 3),
+              ContainerEq(getIncidentEdges(hypergraph, 3)));
+  ASSERT_THAT(getPins(dual_hypergraph, 4),
+              ContainerEq(getIncidentEdges(hypergraph, 4)));
+  ASSERT_THAT(getPins(dual_hypergraph, 5),
+              ContainerEq(getIncidentEdges(hypergraph, 5)));
+  ASSERT_THAT(getPins(dual_hypergraph, 6),
+              ContainerEq(getIncidentEdges(hypergraph, 6)));
+}
 }  // namespace ds
 }  // namespace kahypar
