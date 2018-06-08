@@ -225,7 +225,10 @@ class InitialPartitionerBase {
                             _context.initial_partitioning.upper_allowed_partition_weight[1]
                             + _max_hypernode_weight }, changes, current_metrics);
         ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
-        ASSERT(current_metrics.cut == metrics::hyperedgeCut(_hg), "Inconsistent cut values");
+        ASSERT((_context.partition.objective == Objective::cut) ?
+               (current_metrics.cut == metrics::hyperedgeCut(_hg)) :
+               (current_metrics.km1 == metrics::km1(_hg)),
+               "Inconsistent cut/km1 values");
 #ifndef NDEBUG
         old_cut = current_metrics.cut;
 #endif
