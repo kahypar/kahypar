@@ -154,11 +154,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " IP_local_search_fm_adaptive_stopping_alpha="
         << context.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
-  if (context.initial_partitioning.local_search.algorithm ==
-      RefinementAlgorithm::label_propagation) {
-    oss << " IP_local_search_sclap_max_number_iterations="
-        << context.initial_partitioning.local_search.sclap.max_number_iterations;
-  }
   if (context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_flow ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::kway_flow ||
       context.initial_partitioning.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
@@ -194,10 +189,6 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << context.local_search.fm.max_number_of_fruitless_moves
         << " local_search_fm_adaptive_stopping_alpha="
         << context.local_search.fm.adaptive_stopping_alpha;
-  }
-  if (context.local_search.algorithm == RefinementAlgorithm::label_propagation) {
-    oss << " local_search_sclap_max_number_iterations="
-        << context.local_search.sclap.max_number_iterations;
   }
   if (context.local_search.algorithm == RefinementAlgorithm::twoway_flow ||
       context.local_search.algorithm == RefinementAlgorithm::kway_flow ||

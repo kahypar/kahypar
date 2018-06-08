@@ -291,7 +291,6 @@ po::options_description createRefinementOptionsDescription(Context& context,
     " - twoway_fm      : 2-way FM algorithm\n"
     " - kway_fm        : k-way FM algorithm (cut) \n"
     " - kway_fm_km1    : k-way FM algorithm (km1)\n"
-    " - sclap          : Size-constrained Label Propagation\n"
     " - twoway_flow    : 2-way Flow algorithm\n"
     " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
     " - kway_flow      : k-way Flow algorithm\n"
@@ -311,10 +310,6 @@ po::options_description createRefinementOptionsDescription(Context& context,
     }),
     "Max. # local search repetitions on each level\n"
     "(no limit:-1)")
-    ((initial_partitioning ? "i-r-sclap-runs" : "r-sclap-runs"),
-    po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.sclap.max_number_iterations : &context.local_search.sclap.max_number_iterations))->value_name("<int>"),
-    "Maximum # iterations for ScLaP-based refinement \n"
-    "(no limit: -1)")
     ((initial_partitioning ? "i-r-fm-stop" : "r-fm-stop"),
     po::value<std::string>()->value_name("<string>")->notifier(
       [&context, initial_partitioning](const std::string& stopfm) {

@@ -90,7 +90,6 @@ enum class RefinementAlgorithm : uint8_t {
   twoway_fm,
   kway_fm,
   kway_fm_km1,
-  label_propagation,
   twoway_flow,
   twoway_fm_flow,
   kway_flow,
@@ -342,7 +341,6 @@ std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
     case RefinementAlgorithm::twoway_fm: return os << "twoway_fm";
     case RefinementAlgorithm::kway_fm: return os << "kway_fm";
     case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
-    case RefinementAlgorithm::label_propagation: return os << "label_propagation";
     case RefinementAlgorithm::twoway_flow: return os << "twoway_flow";
     case RefinementAlgorithm::twoway_fm_flow: return os << "twoway_fm_flow";
     case RefinementAlgorithm::kway_flow: return os << "kway_flow";
@@ -552,8 +550,6 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm;
   } else if (type == "kway_fm_km1") {
     return RefinementAlgorithm::kway_fm_km1;
-  } else if (type == "sclap") {
-    return RefinementAlgorithm::label_propagation;
   } else if (type == "twoway_flow") {
     return RefinementAlgorithm::twoway_flow;
   } else if (type == "twoway_fm_flow") {

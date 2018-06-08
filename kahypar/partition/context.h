@@ -187,10 +187,6 @@ struct LocalSearchParameters {
     RefinementStoppingRule stopping_rule = RefinementStoppingRule::UNDEFINED;
   };
 
-  struct Sclap {
-    int max_number_iterations = std::numeric_limits<int>::max();
-  };
-
   struct Flow {
     FlowAlgorithm algorithm = FlowAlgorithm::UNDEFINED;
     FlowNetworkType network = FlowNetworkType::UNDEFINED;
@@ -204,7 +200,6 @@ struct LocalSearchParameters {
   };
 
   FM fm { };
-  Sclap sclap { };
   Flow flow { };
   RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
   int iterations_per_level = std::numeric_limits<int>::max();
@@ -226,8 +221,6 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
     } else {
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
-  } else if (params.algorithm == RefinementAlgorithm::label_propagation) {
-    str << "  max. # iterations:                  " << params.sclap.max_number_iterations << std::endl;
   }
   if (params.algorithm == RefinementAlgorithm::twoway_flow ||
       params.algorithm == RefinementAlgorithm::kway_flow ||

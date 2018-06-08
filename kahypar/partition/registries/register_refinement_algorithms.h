@@ -33,7 +33,6 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_flow_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
-#include "kahypar/partition/refinement/lp_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
@@ -84,6 +83,5 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
 REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);
 REGISTER_REFINER(RefinementAlgorithm::kway_fm_flow_km1, KWayFMFlowRefiner);
 REREGISTER_REFINER(RefinementAlgorithm::kway_fm_flow, KWayFMFlowRefiner, 2);
-REGISTER_REFINER(RefinementAlgorithm::label_propagation, LPRefiner);
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar
