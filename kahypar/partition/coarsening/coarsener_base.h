@@ -150,15 +150,10 @@ class CoarsenerBase {
                                             current_changes,
                                             current_metrics);
 
-    // ASSERT(_context.partition.objective != Objective::cut ||
-    //        (current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)),
-    //        V(current_metrics.cut) << V(old_cut));
-    // Km1 is optimized indirectly in recursive bisection mode via cut-net splitting and optimizing
-    // cut. In this case current_metrics.km1 is not used.
-    ASSERT((_context.partition.mode != Mode::direct_kway ||
-            _context.partition.objective != Objective::km1) ||
+    ASSERT((current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)) ||
            (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::km1(_hg)),
-           V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
+           V(current_metrics.cut) << V(old_cut) << V(metrics::hyperedgeCut(_hg))
+                                  << V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
 
     DBGC(_context.partition.objective == Objective::cut) << old_cut << "-->" << current_metrics.cut;
     DBGC(_context.partition.objective == Objective::km1) << old_km1 << "-->" << current_metrics.km1;

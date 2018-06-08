@@ -198,6 +198,7 @@ class InitialPartitionerBase {
 
 #ifndef NDEBUG
       HyperedgeWeight old_cut = current_metrics.cut;
+      HyperedgeWeight old_km1 = current_metrics.km1;
 #endif
 
       bool improvement_found = false;
@@ -224,13 +225,14 @@ class InitialPartitionerBase {
                             + _max_hypernode_weight,
                             _context.initial_partitioning.upper_allowed_partition_weight[1]
                             + _max_hypernode_weight }, changes, current_metrics);
-        ASSERT(current_metrics.cut <= old_cut, "Cut increased during uncontraction");
-        // ASSERT((_context.partition.objective == Objective::cut) ?
-        //        (current_metrics.cut == metrics::hyperedgeCut(_hg)) :
-        //        (current_metrics.km1 == metrics::km1(_hg)),
-        //        "Inconsistent cut/km1 values");
+        ASSERT((current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)) ||
+               (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::km1(_hg)),
+               V(current_metrics.cut) << V(old_cut) << V(metrics::hyperedgeCut(_hg))
+                                      << V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
+
 #ifndef NDEBUG
         old_cut = current_metrics.cut;
+        old_km1 = current_metrics.km1;
 #endif
         ++iteration;
       } while (iteration < _context.initial_partitioning.local_search.iterations_per_level &&
