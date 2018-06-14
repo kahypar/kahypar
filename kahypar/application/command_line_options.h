@@ -73,7 +73,7 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("fixed-vertices,f",
     po::value<std::string>(&context.partition.fixed_vertex_filename)->value_name("<string>"),
     "Fixed vertex filename")
-    ("part-file,",
+    ("part-file",
     po::value<std::string>(&context.partition.input_partition_filename)->value_name("<string>"),
     "Input Partition filename. The input partition is then refined using direct k-way V-cycles.")
     ("cmaxnet",
