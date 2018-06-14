@@ -428,6 +428,27 @@ class Context {
   std::vector<ClusterID> getCommunities() const {
     return evolutionary.communities;
   }
+
+  void setupPartWeights(const HypernodeWeight total_hypergraph_weight) {
+    if (partition.use_individual_part_weights) {
+      partition.perfect_balance_part_weights = partition.max_part_weights;
+    } else {
+      partition.perfect_balance_part_weights.clear();
+      partition.perfect_balance_part_weights.push_back(ceil(
+                                                         total_hypergraph_weight
+                                                         / static_cast<double>(partition.k)));
+      for (PartitionID part = 1; part != partition.k; ++part) {
+        partition.perfect_balance_part_weights.push_back(
+          partition.perfect_balance_part_weights[0]);
+      }
+      partition.max_part_weights.clear();
+      partition.max_part_weights.push_back((1 + partition.epsilon)
+                                           * partition.perfect_balance_part_weights[0]);
+      for (PartitionID part = 1; part != partition.k; ++part) {
+        partition.max_part_weights.push_back(partition.max_part_weights[0]);
+      }
+    }
+  }
 };
 
 inline std::ostream& operator<< (std::ostream& str, const Context& context) {
