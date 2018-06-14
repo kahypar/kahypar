@@ -313,10 +313,12 @@ struct PartitioningParameters {
   bool quiet_mode = false;
   bool sp_process_output = false;
   bool use_individual_part_weights = false;
+  bool vcycle_refinement_for_input_partition = false;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
   std::string fixed_vertex_filename { };
+  std::string input_partition_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
@@ -325,6 +327,9 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  Partition File:                     " << params.graph_partition_filename << std::endl;
   if (!params.fixed_vertex_filename.empty()) {
     str << "  Fixed Vertex File:                  " << params.fixed_vertex_filename << std::endl;
+  }
+  if (!params.input_partition_filename.empty()) {
+    str << "  Input Partition File:                  " << params.input_partition_filename << std::endl;
   }
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Objective:                          " << params.objective << std::endl;

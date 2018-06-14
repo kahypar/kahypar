@@ -193,18 +193,34 @@ inline void printPartSizesAndWeights(const Hypergraph& hypergraph) {
   }
 }
 
-inline void printPartitioningResults(const Hypergraph& hypergraph,
-                                     const Context& context,
-                                     const std::chrono::duration<double>& elapsed_seconds) {
-  LOG << "********************************************************************************";
-  LOG << "*                             Partitioning Result                              *";
-  LOG << "********************************************************************************";
+
+inline void printObjectives(const Hypergraph& hypergraph, const Context& context) {
   LOG << "Objectives:";
   LOG << "Hyperedge Cut  (minimize) =" << metrics::hyperedgeCut(hypergraph);
   LOG << "SOED           (minimize) =" << metrics::soed(hypergraph);
   LOG << "(k-1)          (minimize) =" << metrics::km1(hypergraph);
   LOG << "Absorption     (maximize) =" << metrics::absorption(hypergraph);
   LOG << "Imbalance                 =" << metrics::imbalance(hypergraph, context);
+}
+
+
+inline void printQualityOfInitialSolution(const Hypergraph& hypergraph, const Context& context) {
+  LOG << "********************************************************************************";
+  LOG << "*                              Initial Partition                               *";
+  LOG << "********************************************************************************";
+  printObjectives(hypergraph, context);
+
+  LOG << "\nPartition sizes and weights: ";
+  printPartSizesAndWeights(hypergraph);
+}
+
+inline void printPartitioningResults(const Hypergraph& hypergraph,
+                                     const Context& context,
+                                     const std::chrono::duration<double>& elapsed_seconds) {
+  LOG << "********************************************************************************";
+  LOG << "*                             Partitioning Result                              *";
+  LOG << "********************************************************************************";
+  printObjectives(hypergraph, context);
 
   LOG << "\nPartition sizes and weights: ";
   printPartSizesAndWeights(hypergraph);

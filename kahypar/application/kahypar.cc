@@ -22,6 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
@@ -67,6 +68,51 @@ int main(int argc, char* argv[]) {
 
   if (!context.partition.fixed_vertex_filename.empty()) {
     kahypar::io::readFixedVertexFile(hypergraph, context.partition.fixed_vertex_filename);
+  }
+
+
+  if (!context.partition.input_partition_filename.empty()) {
+    // In this case we perform direct k-way V-cycle refinements.
+    context.partition.vcycle_refinement_for_input_partition = true;
+
+    std::vector<PartitionID> input_partition;
+    kahypar::io::readPartitionFile(context.partition.input_partition_filename,
+                                   input_partition);
+    ASSERT(*std::max_element(input_partition.begin(), input_partition.end()) ==
+           context.partition.k - 1);
+    ASSERT(input_partition.size() == hypergraph.initialNumNodes());
+    ASSERT([&]() {
+      std::unordered_set<PartitionID> set;
+      for (const PartitionID part : input_partition) {
+        set.insert(part);
+      }
+      for (PartitionID i = 0; i < context.partition.k; ++i) {
+        if (set.find(i) == set.end()) {
+          return false;
+        }
+      }
+      return true;
+    } (), "Partition file is corrupted.");
+
+    for (kahypar::HypernodeID hn = 0; hn != hypergraph.initialNumNodes(); ++hn) {
+      hypergraph.setNodePart(hn, input_partition[hn]);
+    }
+
+    // Preconditions for direct k-way V-cycle refinement:
+    if (context.partition.mode != kahypar::Mode::direct_kway) {
+      LOG << "V-cycle refinement of input partitions is only possible in direct k-way mode";
+      std::exit(0);
+    }
+    if (context.preprocessing.enable_min_hash_sparsifier == true) {
+      LOG << "Disabling sparsifier for refinement of input partitions.";
+      context.preprocessing.enable_min_hash_sparsifier = false;
+    }
+    if (context.partition.global_search_iterations == 0) {
+      LOG << "V-cycle refinement of input partitions needs parameter --vcycles to be >= 1";
+      std::exit(0);
+    }
+    context.setupPartWeights(hypergraph.totalWeight());
+    kahypar::io::printQualityOfInitialSolution(hypergraph, context);
   }
 
   if (context.partition.use_individual_part_weights) {

@@ -79,7 +79,9 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
     RefinerFactory::getInstance().createObject(
       context.local_search.algorithm, hypergraph, context));
 
-  multilevel::partition(hypergraph, *coarsener, *refiner, context);
+  if (!context.partition.vcycle_refinement_for_input_partition) {
+    multilevel::partition(hypergraph, *coarsener, *refiner, context);
+  }
 
 #ifndef NDEBUG
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
