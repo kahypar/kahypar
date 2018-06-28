@@ -142,7 +142,7 @@ Currently we provide four different presets that correspond to the configuration
 
 To start EvoHGP/KaHyPar-E optimizing the (connectivity - 1) objective using direct k-way mode run
    
-     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini --time-limit=<time in seconds>
+     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
      
 Note that the configuration `km1_direct_kway_gecco18.ini` is based on KaHyPar-CA. However, KaHyPar-E also works with flow-based local improvements if the configration is adjusted according to the refinement parameters used in `km1_direct_kway_sea18.ini`.
 
