@@ -74,7 +74,7 @@ Its algorithms and detailed experimental results are presented in several [resea
    
 - Improve Existing Partitions:
 
-   KaHyPar uses direct k-way V-cycles to try improve an existing partition specified via parameter `--part-file=</path/to/file>`. The maximum number of V-cycles can be controlled via parameter `--vcycles=`. 
+   KaHyPar uses direct k-way V-cycles to try to improve an existing partition specified via parameter `--part-file=</path/to/file>`. The maximum number of V-cycles can be controlled via parameter `--vcycles=`. 
 
    
 #### Experimental Results
