@@ -96,12 +96,12 @@ Performance plots and detailed per-instance results can be found on
 the website accompanying each publication.
 
 #### Additional Resources
-|KaHyPar-MF (latest version of KaHyPar)|SEA'18| [TR](https://arxiv.org/abs/1802.03587)|-|[Experimentel Results][SEA'18bench]|
-|:--|:--|:--:|:--:|:--:|
-|KaHyPar-E / EvoHGP|GECCO'18|[TR](https://arxiv.org/abs/1710.01968)|-|[Experimental Results][GECCO'18bench]|
-|KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
-|KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
-|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+|KaHyPar-MF (latest version of KaHyPar)|SEA'18|[Paper](http://drops.dagstuhl.de/opus/volltexte/2018/8936/pdf/LIPIcs-SEA-2018-1.pdf)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|[Experimentel Results][SEA'18bench]|
+|:--|:--|:--:|:--:|:--:|--:|
+|KaHyPar-E / EvoHGP|GECCO'18|-|[TR](https://arxiv.org/abs/1710.01968)|-|[Experimental Results][GECCO'18bench]|
+|KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
+|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/pdf/1511.03137.pdf)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
  
 Requirements
 -----------
