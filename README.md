@@ -84,7 +84,7 @@ corresponding cut produced by the algorithm on a per-instance basis. For each al
 these ratios are sorted in increasing order. The plots use a cube root scale for both axes
 to reduce right skewness and show 1 − (best/algorithm) on the y-axis to highlight the
 instances were each partitioner performs badly. A point close to one indicates that the
-<img src="https://user-images.githubusercontent.com/484403/36319808-6a679886-1344-11e8-86da-d69e53902a6b.png" alt="alt text" width="60%" height="60%" align="right">
+<img src="https://user-images.githubusercontent.com/484403/42313487-338cb2d0-8043-11e8-98e1-9068a232d352.png" alt="alt text" width="60%" height="60%" align="right">
 partition produced by the corresponding algorithm was considerably worse than the partition
 produced by the best algorithm. A value of zero therefore indicates that the corresponding
 algorithm produced the best solution. Points above one correspond to infeasible solutions
