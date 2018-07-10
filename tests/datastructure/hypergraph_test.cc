@@ -1124,5 +1124,22 @@ TEST_F(AHypergraph, CanBeConvertedToDualHypergraph) {
   ASSERT_THAT(getPins(dual_hypergraph, 6),
               ContainerEq(getIncidentEdges(hypergraph, 6)));
 }
+
+TEST(Hypergraphs, CanBeStrippedOfAllParallelHyperedges) {
+  Hypergraph hypergraph(5, 7, HyperedgeIndexVector { 0, 1, 4, 6, 10, 13, 14, 17 },
+                        HyperedgeVector { 0, 1, 2, 3, 0, 1, 1, 2, 3, 4, 1, 2, 3, 0, 1, 2, 3 });
+
+  //hypergraph.printGraphState();
+
+  auto removed_parallel_hes = removeParallelHyperedges(hypergraph);
+
+  //hypergraph.printGraphState();
+
+  ASSERT_EQ(hypergraph.currentNumEdges(), 4);
+  ASSERT_EQ(hypergraph.edgeWeight(0), 2);
+  ASSERT_EQ(hypergraph.edgeWeight(1), 3);
+  ASSERT_EQ(hypergraph.edgeWeight(2), 1);
+  ASSERT_EQ(hypergraph.edgeWeight(3), 1);
+}
 }  // namespace ds
 }  // namespace kahypar

@@ -2629,5 +2629,96 @@ static Hypergraph constructDualHypergraph(const Hypergraph& hypergraph) {
   return Hypergraph(num_nodes, num_edges, index_vector, edge_vector, hypergraph.k(),
                     hyperedge_weights_ptr, hypernode_weights_ptr);
 }
+
+// Implemets a variant of the INRMEM algorithm described in
+// Deveci, Mehmet, Kamer Kaya, and Umit V. Catalyurek. "Hypergraph sparsification and
+// its application to partitioning." Parallel Processing (ICPP),
+// 2013 42nd International Conference on. IEEE, 2013.
+template <typename Hypergraph>
+static std::vector<std::pair<typename Hypergraph::HyperedgeID,
+                             typename Hypergraph::HyperedgeID> >
+removeParallelHyperedges(Hypergraph& hypergraph) {
+  typedef typename Hypergraph::HyperedgeID HyperedgeID;
+
+  const size_t next_prime = math::nextPrime(hypergraph.initialNumEdges());
+
+  std::vector<size_t> first(next_prime, std::numeric_limits<size_t>::max());
+  std::vector<size_t> next(hypergraph.initialNumEdges(), std::numeric_limits<size_t>::max());
+
+  std::vector<size_t> checksums(hypergraph.initialNumEdges(), -1);
+  std::vector<HyperedgeID> representatives(hypergraph.initialNumEdges(),
+                                           std::numeric_limits<HyperedgeID>::max());
+
+  for (const auto he : hypergraph.edges()) {
+    for (const auto pin : hypergraph.pins(he)) {
+      checksums[he] += math::cs2(pin);
+    }
+    checksums[he] = checksums[he] % next_prime;
+  }
+
+  size_t r = 0;
+
+  ds::FastResetFlagArray<uint64_t> contained_hypernodes(hypergraph.initialNumNodes());
+
+  for (const auto he : hypergraph.edges()) {
+    size_t c = first[checksums[he]];
+    if (c == std::numeric_limits<size_t>::max()) {
+      first[checksums[he]] = he;
+      c = he;
+    }
+
+    while (c != he) {
+      ASSERT(c < he);
+      const size_t representative = representatives[c];
+      ASSERT(representative != std::numeric_limits<size_t>::max());
+
+      contained_hypernodes.reset();
+      // check if pins of HE l == pins of HE he
+      bool is_parallel = false;
+      if (hypergraph.edgeSize(representative) ==
+          hypergraph.edgeSize(he)) {
+        for (const auto pin : hypergraph.pins(representative)) {
+          contained_hypernodes.set(pin, true);
+        }
+
+        is_parallel = true;
+        for (const auto pin : hypergraph.pins(he)) {
+          if (!contained_hypernodes[pin]) {
+            is_parallel = false;
+            break;
+          }
+        }
+      }
+
+      if (is_parallel) {
+        representatives[he] = c;
+        break;
+      } else if (next[c] == std::numeric_limits<size_t>::max()) {
+        next[c] = he;
+      }
+
+      c = next[c];
+    }
+
+    if (representatives[he] == std::numeric_limits<HyperedgeID>::max()) {
+      representatives[he] = r;
+    }
+    ++r;
+  }
+
+  std::vector<std::pair<HyperedgeID, HyperedgeID> > removed_parallel_hes;
+
+  for (const auto he : hypergraph.edges()) {
+    if (representatives[he] != he) {
+      removed_parallel_hes.emplace_back(he, representatives[he]);
+      hypergraph.setEdgeWeight(representatives[he],
+                               hypergraph.edgeWeight(representatives[he])
+                               + hypergraph.edgeWeight(he));
+      hypergraph.removeEdge(he);
+    }
+  }
+
+  return removed_parallel_hes;
+}
 }  // namespace ds
 }  // namespace kahypar

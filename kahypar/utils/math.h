@@ -27,12 +27,15 @@
 #include <x86intrin.h>
 #endif
 
+#include <algorithm>
 #include <cstddef>
 #include <random>
+#include <type_traits>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
+#include "external_tools/primes/next_prime.h"
 #include "kahypar/macros.h"
 
 namespace kahypar {
@@ -237,5 +240,7 @@ static inline uint8_t digits(const uint64_t x) {
   uint64_t t = (64 - __builtin_clzll(x | 1)) * 1233 >> 12;
   return static_cast<uint8_t>(t - (x < powers_of_10[t]) + 1);
 }
+
+using primes::nextPrime;
 }  // namespace math
 }  // namespace kahypar
