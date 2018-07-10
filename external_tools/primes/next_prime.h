@@ -11,6 +11,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <type_traits>
+
+#include "kahypar/macros.h"
+
 namespace {
 // handle all next_prime(i) for i in [1, 210), special case 0
 const unsigned small_primes[] = {
