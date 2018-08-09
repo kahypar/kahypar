@@ -214,7 +214,8 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       params.algorithm == RefinementAlgorithm::kway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
       params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_flow) {
     str << "  stopping rule:                      " << params.fm.stopping_rule << std::endl;
     if (params.fm.stopping_rule == RefinementStoppingRule::simple) {
       str << "  max. # fruitless moves:             " << params.fm.max_number_of_fruitless_moves << std::endl;
@@ -225,7 +226,8 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   if (params.algorithm == RefinementAlgorithm::twoway_flow ||
       params.algorithm == RefinementAlgorithm::kway_flow ||
       params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_flow) {
     str << "  Flow Refinement Parameters:" << std::endl;
     str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
     str << "    flow network:                     " << params.flow.network << std::endl;
