@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <queue>
+#include <stack>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,6 +37,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/partition/refinement/flow/strongly_connected_components.h"
 
 namespace kahypar {
 using ds::Graph;
@@ -55,8 +57,7 @@ class MostBalancedMinimumCut {
     _flow_network_to_graph(flowNetwork.initialSize(), Network::kInvalidNode),
     _scc_node_weight(flowNetwork.initialSize(), 0),
     _Q(),
-    _S(),
-    _dfs_low(flowNetwork.initialSize(), 0) { }
+    _sccs(flowNetwork.initialSize()) { }
 
   MostBalancedMinimumCut(const MostBalancedMinimumCut&) = delete;
   MostBalancedMinimumCut(MostBalancedMinimumCut&&) = delete;
@@ -226,7 +227,6 @@ class MostBalancedMinimumCut {
     _graph_to_flow_network.resetUsedEntries();
     _flow_network_to_graph.resetUsedEntries();
     _scc_node_weight.resetUsedEntries();
-    _dfs_low.resetUsedEntries();
   }
 
 
@@ -356,51 +356,9 @@ class MostBalancedMinimumCut {
   }
 
   void findStronglyConnectedComponents(Graph& g) {
-    _visited.reset();
-    _S.clear();
-    NodeID dfs_num = 0;
-    ClusterID cid = 0;
-
-    for (const NodeID& u : g.nodes()) {
-      if (!_visited[u]) {
-        tarjanSCC(u, g, dfs_num, cid);
-      }
-    }
+    _sccs.compute(g);
   }
 
-  void tarjanSCC(const NodeID u, Graph& g, NodeID& dfs_num, ClusterID& cid) {
-    _dfs_low.set(u, dfs_num++);
-    _visited.set(u, true);
-    _S.push_back(u);
-    bool is_component_parent = true;
-
-    NodeID u_low = _dfs_low.get(u);
-    for (const Edge& e : g.incidentEdges(u)) {
-      const NodeID v = e.target_node;
-      if (!_visited[v]) {
-        tarjanSCC(v, g, dfs_num, cid);
-      }
-      const NodeID v_low = _dfs_low.get(v);
-      if (u_low > v_low) {
-        _dfs_low.set(u, v_low);
-        u_low = v_low;
-        is_component_parent = false;
-      }
-    }
-
-    if (is_component_parent) {
-      while (true) {
-        const NodeID v = _S.back();
-        _S.pop_back();
-        g.setClusterID(v, cid);
-        _dfs_low.set(v, Network::kInvalidNode);
-        if (u == v) {
-          break;
-        }
-      }
-      cid++;
-    }
-  }
 
   void topologicalSort(const Graph& g,
                        std::vector<size_t> in_degree,
@@ -470,7 +428,6 @@ class MostBalancedMinimumCut {
   FastResetArray<HypernodeWeight> _scc_node_weight;
 
   std::queue<NodeID> _Q;  // BFS queue
-  std::vector<NodeID> _S;  // DFS stack
-  FastResetArray<NodeID> _dfs_low;
+  StronglyConnectedComponents _sccs;
 };
 }  // namespace kahypar

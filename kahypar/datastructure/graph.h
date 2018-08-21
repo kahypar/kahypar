@@ -58,8 +58,6 @@ struct IncidentClusterWeight {
 
 class Graph {
  private:
-  static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max();
-
   class NodeIDIterator : public std::iterator<
                            std::forward_iterator_tag,  // iterator_category
                            NodeID,  // value_type
@@ -91,6 +89,7 @@ class Graph {
   };
 
  public:
+  static constexpr NodeID kInvalidNode = std::numeric_limits<NodeID>::max();
   static constexpr long double kEpsilon = 1e-5;
   using NodeIterator = std::vector<NodeID>::const_iterator;
   using EdgeIterator = std::vector<Edge>::const_iterator;
@@ -191,6 +190,17 @@ class Graph {
                           _edges.cbegin() + _adj_array[static_cast<size_t>(node) + 1]);
   }
 
+  EdgeIterator firstEdge(const NodeID node) const {
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
+    return _edges.cbegin() + _adj_array[node];
+  }
+
+  EdgeIterator firstInvalidEdge(const NodeID node) const {
+    ASSERT(node < numNodes(), "NodeID" << node << "doesn't exist!");
+    return _edges.cbegin() + _adj_array[static_cast<size_t>(node) + 1];
+  }
+
+
   size_t numNodes() const {
     return static_cast<size_t>(_num_nodes);
   }
@@ -235,7 +245,7 @@ class Graph {
   }
 
   ClusterID clusterID(const NodeID node) const {
-    ASSERT(node < numNodes());
+    ASSERT(node < numNodes(), V(node));
     return _cluster_id[node];
   }
 
