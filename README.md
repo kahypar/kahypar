@@ -217,7 +217,7 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
     }
     
     // KaHyPar-MF
-    @InProceedings{heuer_et_al:LIPIcs:2018:8936,
+    @inproceedings{heuer_et_al:LIPIcs:2018:8936,
      author ={Tobias Heuer and Peter Sanders and Sebastian Schlag},
      title ={{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
      booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
