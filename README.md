@@ -216,21 +216,25 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      year      = {2017},
     }
     
-    // KaHyPar-MF  - accepted at SEA'18
-    @misc{1802.03587,
-     author = {{Heuer, T. and Sanders, P. and Schlag, S.}},
-     title = {{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
-     year = {2018},
-     Eprint = {1802.03587},
+    // KaHyPar-MF
+    @InProceedings{heuer_et_al:LIPIcs:2018:8936,
+    author ={Tobias Heuer and Peter Sanders and Sebastian Schlag},
+    title ={{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
+    booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
+    pages ={1:1--1:19},
+    year ={2018}
     }
     
-    // KaHyPar-E (EvoHGP) - accepted at GECCO'18
-    @misc{1802.03587,
-     author = {{Andre, R. and Schlag, S. and Schulz, C.}},
-     title = {{Memetic Multilevel Hypergraph Partitioning}},
-     year = {2018},
-     Eprint = {1710.01968},
-    }
+    // KaHyPar-E (EvoHGP)
+    @inproceedings{Andre:2018:MMH:3205455.3205475,
+    author = {Andre, Robin and Schlag, Sebastian and Schulz, Christian},
+    title = {Memetic Multilevel Hypergraph Partitioning},
+    booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference},
+    series = {GECCO '18},
+    year = {2018},
+    pages = {347--354},
+    numpages = {8}
+    } 
 
 A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
 
