@@ -101,7 +101,7 @@ the website accompanying each publication.
 |KaHyPar-E (EvoHGP)|GECCO'18|[Paper](https://dl.acm.org/citation.cfm?id=3205475)|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
 |KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|\-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
-|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/pdf/1511.03137.pdf)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+|KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/abs/1511.03137)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
  
 Requirements
 -----------
@@ -236,8 +236,6 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
     numpages = {8}
     } 
 
-A preliminary version our ALENEX'16 paper is available [here on arxiv][ALENEX16PAPER].
-
 KaHyPar-MF integrates implementations of the BK and incremental breadth first search (IBFS) maximum flow algorithm into the framework (see [/external_tools/maximum_flow/](/external_tools/maximum_flow/)). The BK algorithm has been described in
 
   	"An Experimental Comparison of Min-Cut/Max-Flow Algorithms for Energy Minimization in Vision."
@@ -263,7 +261,6 @@ feel free to contact me or create an issue on the
 
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
-[ALENEX16PAPER]: https://arxiv.org/abs/1511.03137
 [CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
 [KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Literature "KaHyPar Publications"
 [HYPERGRAPHWIKI]: https://en.wikipedia.org/wiki/Hypergraph "Hypergraphs"
