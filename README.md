@@ -218,22 +218,22 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
     
     // KaHyPar-MF
     @InProceedings{heuer_et_al:LIPIcs:2018:8936,
-    author ={Tobias Heuer and Peter Sanders and Sebastian Schlag},
-    title ={{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
-    booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
-    pages ={1:1--1:19},
-    year ={2018}
+     author ={Tobias Heuer and Peter Sanders and Sebastian Schlag},
+     title ={{Network Flow-Based Refinement for Multilevel Hypergraph Partitioning}},
+     booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
+     pages ={1:1--1:19},
+     year ={2018}
     }
     
     // KaHyPar-E (EvoHGP)
     @inproceedings{Andre:2018:MMH:3205455.3205475,
-    author = {Andre, Robin and Schlag, Sebastian and Schulz, Christian},
-    title = {Memetic Multilevel Hypergraph Partitioning},
-    booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference},
-    series = {GECCO '18},
-    year = {2018},
-    pages = {347--354},
-    numpages = {8}
+     author = {Robin Andre and Sebastian Schlag and Christian Schulz},
+     title = {Memetic Multilevel Hypergraph Partitioning},
+     booktitle = {Proceedings of the Genetic and Evolutionary Computation Conference},
+     series = {GECCO '18},
+     year = {2018},
+     pages = {347--354},
+     numpages = {8}
     } 
 
 KaHyPar-MF integrates implementations of the BK and incremental breadth first search (IBFS) maximum flow algorithm into the framework (see [/external_tools/maximum_flow/](/external_tools/maximum_flow/)). The BK algorithm has been described in
