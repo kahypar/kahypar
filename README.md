@@ -96,10 +96,10 @@ Performance plots and detailed per-instance results can be found on
 the website accompanying each publication.
 
 #### Additional Resources
-|KaHyPar-MF (latest version of KaHyPar)|SEA'18|[Paper](http://drops.dagstuhl.de/opus/volltexte/2018/8936/pdf/LIPIcs-SEA-2018-1.pdf)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|[Experimentel Results][SEA'18bench]|
+|KaHyPar-MF (latest version of KaHyPar)|SEA'18|[Paper](SEA'18)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|[Experimentel Results][SEA'18bench]|
 |:--|:--|:--:|:--:|:--:|--:|
-|KaHyPar-E (EvoHGP)|GECCO'18|[Paper](https://dl.acm.org/citation.cfm?id=3205475)|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
-|KaHyPar-CA|SEA'17|[Paper](http://drops.dagstuhl.de/opus/volltexte/2017/7622/)|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
+|KaHyPar-E (EvoHGP)|GECCO'18|[Paper][GECCO'18]|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
+|KaHyPar-CA|SEA'17|[Paper][SEA'17]|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimentel Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|\-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/abs/1511.03137)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
  
@@ -138,7 +138,7 @@ KaHyPar has several configuration parameters. For a list of all possible paramet
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
     
 Currently we provide four different presets that correspond to the configurations used in the publications at
-[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18](https://arxiv.org/abs/1802.03587), and [GECCO'18][GECCO'18].
+[ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], and [GECCO'18][GECCO'18].
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
@@ -266,11 +266,12 @@ feel free to contact me or create an issue on the
 [HYPERGRAPHWIKI]: https://en.wikipedia.org/wiki/Hypergraph "Hypergraphs"
 [ALENEX'16]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5
 [ALENEX'17]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3
-[SEA'17]: https://nms.kcl.ac.uk/informatics/events/SEA2017/accepted.html
+[SEA'17]: http://drops.dagstuhl.de/opus/volltexte/2017/7622/
+[SEA'18]: http://drops.dagstuhl.de/opus/volltexte/2018/8936/
 [ALENEX'16bench]: https://doi.org/10.5281/zenodo.30176
 [ALENEX'17bench]: https://algo2.iti.kit.edu/schlag/alenex2017/
 [SEA'17bench]: https://algo2.iti.kit.edu/schlag/sea2017/
 [SEA'18bench]: https://algo2.iti.kit.edu/schlag/sea2018/
 [GECCO'18bench]: http://algo2.iti.kit.edu/schlag/gecco2018/
 [GraphPartition]: https://en.wikipedia.org/wiki/Graph_partition
-[GECCO'18]: https://arxiv.org/abs/1710.01968
+[GECCO'18]: https://dl.acm.org/citation.cfm?id=3205475
