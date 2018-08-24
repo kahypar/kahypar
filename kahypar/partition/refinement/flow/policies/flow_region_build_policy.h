@@ -35,12 +35,12 @@ namespace kahypar {
 class FlowRegionBuildPolicy : public meta::PolicyBase {
  public:
   template <class Network = Mandatory>
-  static inline void bfs(const Hypergraph& hg,
-                         Network& flow_network,
-                         std::vector<HypernodeID>& start_nodes,
-                         const PartitionID part,
-                         const HypernodeWeight max_part_weight,
-                         FastResetFlagArray<>& visited) {
+  static inline HypernodeID bfs(const Hypergraph& hg,
+                                Network& flow_network,
+                                std::vector<HypernodeID>& start_nodes,
+                                const PartitionID part,
+                                const HypernodeWeight max_part_weight,
+                                FastResetFlagArray<>& visited) {
     visited.reset();
     std::random_shuffle(start_nodes.begin(), start_nodes.end());
     std::queue<HypernodeID> Q;
@@ -53,12 +53,14 @@ class FlowRegionBuildPolicy : public meta::PolicyBase {
       }
     }
 
+    HypernodeID num_hypernodes_added = 0;
     const size_t num_hypernodes = hg.initialNumNodes();
     while (!Q.empty()) {
       const HypernodeID hn = Q.front();
       Q.pop();
 
       flow_network.addHypernode(hn);
+      ++num_hypernodes_added;
 
       for (const HyperedgeID& he : hg.incidentEdges(hn)) {
         if (!visited[num_hypernodes + he]) {
@@ -74,6 +76,7 @@ class FlowRegionBuildPolicy : public meta::PolicyBase {
         }
       }
     }
+    return num_hypernodes_added;
   }
 };
 
@@ -116,10 +119,28 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
                 * context.partition.perfect_balance_part_weights[0]
                 - hg.partWeight(block_0)), 0.0);
 
-    FlowRegionBuildPolicy::bfs<Network>(hg, flow_network, start_nodes_block_0,
-                                        block_0, max_part_weight_0, visited);
-    FlowRegionBuildPolicy::bfs<Network>(hg, flow_network, start_nodes_block_1,
-                                        block_1, max_part_weight_1, visited);
+    const HypernodeID num_nodes_block_0 = FlowRegionBuildPolicy::bfs(hg, flow_network,
+                                                                     start_nodes_block_0,
+                                                                     block_0,
+                                                                     max_part_weight_0,
+                                                                     visited);
+    if (num_nodes_block_0 == hg.partSize(block_0)) {
+      // prevent blocks from becoming empty
+      const HypernodeID last_hn_block_0 = *(flow_network.hypernodes().second - 1);
+      flow_network.removeHypernode(last_hn_block_0);
+    }
+
+    const HypernodeID num_nodes_block_1 = FlowRegionBuildPolicy::bfs(hg,
+                                                                     flow_network,
+                                                                     start_nodes_block_1,
+                                                                     block_1,
+                                                                     max_part_weight_1,
+                                                                     visited);
+    if (num_nodes_block_1 == hg.partSize(block_1)) {
+      // prevent blocks from becoming empty
+      const HypernodeID last_hn_block_1 = *(flow_network.hypernodes().second - 1);
+      flow_network.removeHypernode(last_hn_block_1);
+    }
 
     ASSERT([&]() {
         HypernodeWeight weight_block_0 = 0;

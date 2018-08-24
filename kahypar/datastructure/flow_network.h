@@ -22,6 +22,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <queue>
 #include <unordered_map>
 #include <utility>
@@ -176,6 +177,21 @@ class FlowNetwork {
         _pins_block0.update(he, 1);
       } else if (_hg.partID(hn) == _cur_block1) {
         _pins_block1.update(he, 1);
+      }
+    }
+  }
+
+  void removeHypernode(const HypernodeID hn) {
+    ASSERT(containsHypernode(hn));
+    _hypernodes.remove(hn);
+    for (const HyperedgeID& he : _hg.incidentEdges(hn)) {
+      if (_hg.edgeSize(he) == 2) {
+        _contains_graph_hyperedges.set(hn, false);
+      }
+      if (_hg.partID(hn) == _cur_block0) {
+        _pins_block0.update(he, -1);
+      } else if (_hg.partID(hn) == _cur_block1) {
+        _pins_block1.update(he, -1);
       }
     }
   }
