@@ -286,10 +286,12 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
-  str << "IP Coarsening:                        " << std::endl;
-  str << params.coarsening;
-  str << "IP Local Search:                      " << std::endl;
-  str << params.local_search;
+  if (params.technique == InitialPartitioningTechnique::multilevel) {
+    str << "IP Coarsening:                        " << std::endl;
+    str << params.coarsening;
+    str << "IP Local Search:                      " << std::endl;
+    str << params.local_search;
+  }
   str << "-------------------------------------------------------------------------------"
       << std::endl;
   return str;
