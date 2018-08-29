@@ -2338,7 +2338,8 @@ reindex(const Hypergraph& hypergraph) {
   reindexed_hypergraph->_current_num_pins = num_pins;
   reindexed_hypergraph->_type = hypergraph.type();
 
-  reindexed_hypergraph->_incidence_array.resize(static_cast<size_t>(hypergraph._k) * num_pins);
+  ASSERT(reindexed_hypergraph->_incidence_array.size() == num_pins);
+  reindexed_hypergraph->_incidence_array.resize(2 * num_pins);
   reindexed_hypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) * hypergraph._k);
   reindexed_hypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
@@ -2484,8 +2485,8 @@ static void setupInternalStructure(const Hypergraph& reference,
   subhypergraph._current_num_pins = num_pins;
   subhypergraph._type = reference.type();
 
-  subhypergraph._incidence_array.resize(static_cast<size_t>(num_pins) *
-                                        static_cast<size_t>(new_k));
+  ASSERT(subhypergraph._incidence_array.size() == num_pins);
+  subhypergraph._incidence_array.resize(2 * static_cast<size_t>(num_pins));
   subhypergraph._pins_in_part.resize(static_cast<size_t>(num_hyperedges) *
                                      static_cast<size_t>(new_k));
   subhypergraph._hes_not_containing_u.setSize(num_hyperedges);
