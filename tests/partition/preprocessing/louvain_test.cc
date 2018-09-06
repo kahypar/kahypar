@@ -27,6 +27,7 @@
 
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/modularity.h"
@@ -174,7 +175,7 @@ TEST_F(ALouvainAlgorithm, AssingsMappingToNextLevelFinerGraph) {
 
 namespace  ds {
 TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
-  std::string karate_club_file = "test_instances/karate_club.graph";
+  std::string karate_club_file = "test_instances/karate_club.internal_graph";
   std::ifstream in(karate_club_file);
   NodeID num_nodes = 0;
   NodeID num_edges = 0;
@@ -210,8 +211,35 @@ TEST(ALouvainKarateClub, DoesLouvainAlgorithm) {
   louvain.run();
   std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,
                                            2, 0, 2, 0, 2, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2, 2 };
-  for (const NodeID& node : graph.nodes())
+  for (const NodeID& node : graph.nodes()) {
     ASSERT_EQ(louvain.clusterID(node), expected_comm[node]);
+  }
+}
+
+TEST(Louvain, WorksOnGraphDSThatChangesHypergraphIntoGraph) {
+  Context context;
+
+  context.partition.k = 2;
+  context.type = ContextType::main;
+  context.partition.verbose_output = true;
+  context.partition.graph_filename = "test_instances/karate_club.graph.hgr";
+  context.preprocessing.community_detection.max_pass_iterations = 100;
+  context.preprocessing.community_detection.min_eps_improvement = 0.0001;
+  context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::uniform;
+
+  Hypergraph hypergraph(
+    io::createHypergraphFromFile(context.partition.graph_filename,
+                                 context.partition.k));
+
+  Louvain<Modularity, false> louvain(hypergraph, context);
+
+  louvain.run();
+
+  std::vector<ClusterID> expected_comm = { 0, 0, 0, 0, 1, 1, 1, 0, 2, 0, 1, 0, 0, 0, 2, 2, 1, 0,
+                                           2, 0, 2, 0, 2, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2, 2 };
+  for (const NodeID& node : hypergraph.nodes()) {
+    ASSERT_EQ(louvain.clusterID(node), expected_comm[node]);
+  }
 }
 }  // namespace ds
 }  // namespace kahypar

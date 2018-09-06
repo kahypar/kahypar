@@ -96,52 +96,93 @@ class Graph {
   using IncidentClusterWeightIterator = std::vector<IncidentClusterWeight>::const_iterator;
 
   Graph(const Hypergraph& hypergraph, const Context& context) :
-    _num_nodes(hypergraph.currentNumNodes() + hypergraph.currentNumEdges()),
-    _num_communities(_num_nodes),
+    _num_nodes(0),
+    _num_communities(0),
     _total_weight(0.0L),
-    _adj_array(_num_nodes + 1),
+    _is_graph(true),
+    _adj_array(),
     _edges(),
-    _selfloop_weight(_num_nodes, 0.0L),
-    _weighted_degree(_num_nodes, 0.0L),
-    _cluster_id(_num_nodes),
-    _cluster_size(_num_nodes, 1),
-    _incident_cluster_weight(_num_nodes, IncidentClusterWeight(0, 0.0L)),
-    _incident_cluster_weight_position(_num_nodes),
-    _hypernode_mapping(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), kInvalidNode) {
-    std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
-    switch (context.preprocessing.community_detection.edge_weight) {
-      case LouvainEdgeWeight::degree:
-        constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
-                                                const HyperedgeID he,
-                                                const HypernodeID hn) {
-            return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
-                    static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
-            static_cast<EdgeWeight>(hg.edgeSize(he));
-          });
+    _selfloop_weight(),
+    _weighted_degree(),
+    _cluster_id(),
+    _cluster_size(),
+    _incident_cluster_weight(),
+    _incident_cluster_weight_position(hypergraph.initialNumNodes() + hypergraph.initialNumEdges()),
+    _hypernode_mapping() {
+    for (const HyperedgeID he : hypergraph.edges()) {
+      if (hypergraph.edgeSize(he) > 2) {
+        _is_graph = false;
         break;
-      case LouvainEdgeWeight::non_uniform:
-        constructBipartiteGraph(hypergraph,
-                                [&](const Hypergraph& hg,
-                                    const HyperedgeID he,
-                                    const HypernodeID) {
-            return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
-            static_cast<EdgeWeight>(hg.edgeSize(he));
-          });
+      }
+    }
 
-        break;
-      case LouvainEdgeWeight::uniform:
-        constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
-                                                const HyperedgeID he,
-                                                const HypernodeID) {
+    const bool verbose_output = (context.type == ContextType::main &&
+                                 context.partition.verbose_output) ||
+                                (context.type == ContextType::initial_partitioning &&
+                                 context.initial_partitioning.verbose_output);
+    if (verbose_output) {
+      LOG << "  hypergraph is a graph =" << std::boolalpha << _is_graph;
+    }
+
+    if (_is_graph) {
+      _num_nodes = hypergraph.currentNumNodes();
+      _hypernode_mapping.resize(hypergraph.initialNumNodes(), kInvalidNode);
+    } else {
+      _num_nodes = hypergraph.currentNumNodes() + hypergraph.currentNumEdges();
+      _hypernode_mapping.resize(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(),
+                                kInvalidNode);
+    }
+
+    _num_communities = _num_nodes;
+    _adj_array.resize(_num_nodes + 1);
+    _selfloop_weight.resize(_num_nodes, 0.0L);
+    _weighted_degree.resize(_num_nodes, 0.0L);
+    _cluster_id.resize(_num_nodes);
+    _cluster_size.resize(_num_nodes, 1);
+    _incident_cluster_weight.resize(_num_nodes, IncidentClusterWeight(0, 0.0L));
+    std::iota(_cluster_id.begin(), _cluster_id.end(), 0);
+
+    if (_is_graph) {
+      constructGraph(hypergraph, [&](const Hypergraph& hg,
+                                     const HyperedgeID he,
+                                     const HypernodeID) {
             return static_cast<EdgeWeight>(hg.edgeWeight(he));
           });
-        break;
-      case LouvainEdgeWeight::hybrid:
-        LOG << "Only uniform/non-uniform/degree edge weight is allowed at graph construction.";
-        std::exit(-1);
-      default:
-        LOG << "Unknown edge weight for bipartite graph.";
-        std::exit(-1);
+    } else {
+      switch (context.preprocessing.community_detection.edge_weight) {
+        case LouvainEdgeWeight::degree:
+          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                  const HyperedgeID he,
+                                                  const HypernodeID hn) {
+              return (static_cast<EdgeWeight>(hg.edgeWeight(he)) *
+                      static_cast<EdgeWeight>(hg.nodeDegree(hn))) /
+              static_cast<EdgeWeight>(hg.edgeSize(he));
+            });
+          break;
+        case LouvainEdgeWeight::non_uniform:
+          constructBipartiteGraph(hypergraph,
+                                  [&](const Hypergraph& hg,
+                                      const HyperedgeID he,
+                                      const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he)) /
+              static_cast<EdgeWeight>(hg.edgeSize(he));
+            });
+
+          break;
+        case LouvainEdgeWeight::uniform:
+          constructBipartiteGraph(hypergraph, [&](const Hypergraph& hg,
+                                                  const HyperedgeID he,
+                                                  const HypernodeID) {
+              return static_cast<EdgeWeight>(hg.edgeWeight(he));
+            });
+          break;
+        case LouvainEdgeWeight::hybrid:
+          LOG << "Only uniform/non-uniform/degree edge weight is allowed at graph construction.";
+          std::exit(-1);
+        default:
+          LOG << "Unknown edge weight for bipartite graph.";
+          std::exit(-1);
+      }
     }
   }
 
@@ -149,6 +190,7 @@ class Graph {
     _num_nodes(adj_array.size() - 1),
     _num_communities(_num_nodes),
     _total_weight(0.0L),
+    _is_graph(true),
     _adj_array(adj_array),
     _edges(edges),
     _selfloop_weight(_num_nodes, 0.0L),
@@ -232,12 +274,6 @@ class Graph {
   ClusterID hypernodeClusterID(const HypernodeID hn) const {
     ASSERT(_hypernode_mapping[hn] != kInvalidNode);
     return _cluster_id[_hypernode_mapping[hn]];
-  }
-
-
-  ClusterID hyperedgeClusterID(const HyperedgeID he, const size_t num_hypernodes) const {
-    ASSERT(_hypernode_mapping[num_hypernodes + he] != kInvalidNode);
-    return _cluster_id[_hypernode_mapping[num_hypernodes + he]];
   }
 
   size_t numCommunities() const {
@@ -500,6 +536,7 @@ class Graph {
     _num_nodes(adj_array.size() - 1),
     _num_communities(0),
     _total_weight(0.0L),
+    _is_graph(true),
     _adj_array(adj_array),
     _edges(edges),
     _selfloop_weight(_num_nodes, 0.0L),
@@ -600,6 +637,68 @@ class Graph {
         } (), "Incident cluster weight calculation failed!");
 
     return incident_cluster_weight_range;
+  }
+
+  template <typename EdgeWeightFunction>
+  void constructGraph(const Hypergraph& hg, const EdgeWeightFunction& edgeWeight) {
+    NodeID sum_edges = 0;
+    NodeID cur_node_id = 0;
+
+    // Construct adj. array for all hypernodes.
+    // Number of edges is equal to the degree of the corresponding hypernode.
+    for (const HypernodeID& hn : hg.nodes()) {
+      _hypernode_mapping[hn] = cur_node_id;
+      _adj_array[cur_node_id++] = sum_edges;
+      sum_edges += hg.nodeDegree(hn);
+    }
+
+    _adj_array[_num_nodes] = sum_edges;
+    _edges.resize(sum_edges);
+
+    for (const HypernodeID& hn : hg.nodes()) {
+      size_t pos = 0;
+      const NodeID graph_node = _hypernode_mapping[hn];
+      for (const HyperedgeID& he : hg.incidentEdges(hn)) {
+        for (const HypernodeID& pin : hg.pins(he)) {
+          if (pin != hn) {
+            Edge e;
+            e.target_node = _hypernode_mapping[pin];
+            e.weight = edgeWeight(hg, he, hn);
+            _total_weight += e.weight;
+            _weighted_degree[graph_node] += e.weight;
+            _edges[_adj_array[graph_node] + pos++] = e;
+          }
+        }
+      }
+    }
+
+    ASSERT([&]() {
+          // Check Hypernodes in Graph
+          for (const HypernodeID& hn : hg.nodes()) {
+            if (hg.nodeDegree(hn) != degree(_hypernode_mapping[hn])) {
+              LOG << V(hg.nodeDegree(hn));
+              LOG << V(degree(_hypernode_mapping[hn]));
+              return false;
+            }
+            std::set<HypernodeID> pins;
+            for (const HyperedgeID& he : hg.incidentEdges(hn)) {
+              for (const HypernodeID& pin : hg.pins(he)) {
+                if (pin != hn) {
+                  pins.insert(_hypernode_mapping[pin]);
+                }
+              }
+            }
+            for (const Edge& e : incidentEdges(_hypernode_mapping[hn])) {
+              if (pins.find(e.target_node) == pins.end()) {
+                LOG << V(hn);
+                LOG << V(_hypernode_mapping[hn]);
+                LOG << V(e.target_node);
+                return false;
+              }
+            }
+          }
+          return true;
+        } (), "Graph is not equivalent with hypergraph");
   }
 
 
@@ -705,6 +804,7 @@ class Graph {
   NodeID _num_nodes;
   size_t _num_communities;
   EdgeWeight _total_weight;
+  bool _is_graph;
   std::vector<NodeID> _adj_array;
   std::vector<Edge> _edges;
   std::vector<EdgeWeight> _selfloop_weight;

@@ -151,10 +151,6 @@ class Louvain {
     return _graph_hierarchy[0].hypernodeClusterID(hn);
   }
 
-  ClusterID hyperedgeClusterID(const HyperedgeID he, const HypernodeID num_hns) const {
-    return _graph_hierarchy[0].hyperedgeClusterID(he, num_hns);
-  }
-
   size_t numCommunities() const {
     return _graph_hierarchy[0].numCommunities();
   }
@@ -280,8 +276,8 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   context.stats.set(StatTag::Preprocessing, "Modularity", quality);
 
   if (verbose_output) {
-    LOG << "  # communities =" << louvain.numCommunities();
-    LOG << "  modularity    =" << quality;
+    LOG << "  # communities         =" << louvain.numCommunities();
+    LOG << "  modularity            =" << quality;
   }
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
