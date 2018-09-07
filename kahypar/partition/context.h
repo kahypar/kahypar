@@ -618,5 +618,27 @@ static inline void sanityCheck(Context& context) {
       }
     }
   }
+
+  if (context.partition.mode == Mode::direct_kway &&
+      context.partition.objective == Objective::cut) {
+    if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_km1 ||
+        context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+      LOG << "\nRefinement algorithm" << context.local_search.algorithm
+          << "currently only works for connectivity (km1) optimization.";
+      LOG << "Please use the corresponding cut algorithm.";
+      std::exit(0);
+    }
+  } else if (context.partition.mode == Mode::direct_kway &&
+             context.partition.objective == Objective::km1) {
+    if (context.local_search.algorithm == RefinementAlgorithm::kway_fm ||
+        context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow) {
+      LOG << "\nRefinement algorithm" << context.local_search.algorithm
+          << "currently only works for cut optimization.";
+      LOG << "Please use the corresponding connectivity (km1) algorithm.";
+      std::exit(0);
+    }
+  }
+
+
 }
 }  // namespace kahypar

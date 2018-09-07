@@ -291,13 +291,14 @@ po::options_description createRefinementOptionsDescription(Context& context,
       }
     }),
     "Local Search Algorithm:\n"
-    " - twoway_fm      : 2-way FM algorithm\n"
-    " - kway_fm        : k-way FM algorithm (cut) \n"
-    " - kway_fm_km1    : k-way FM algorithm (km1)\n"
-    " - twoway_flow    : 2-way Flow algorithm\n"
-    " - twoway_fm_flow : 2-way FM + Flow algorithm\n"
-    " - kway_flow      : k-way Flow algorithm\n"
-    " - kway_fm_flow   : k-way FM + Flow algorithm")
+    " - twoway_fm        : 2-way FM algorithm        (recursive bisection: cut & km1)\n"
+    " - twoway_flow      : 2-way Flow algorithm      (recursive bisection: cut & km1)\n"
+    " - twoway_fm_flow   : 2-way FM + Flow algorithm (recursive bisection: cut & km1)\n"
+    " - kway_fm          : k-way FM algorithm        (direct k-way       : cut)\n"
+    " - kway_fm_flow     : k-way FM + Flow algorithm (direct k-way       : cut)\n"
+    " - kway_fm_km1      : k-way FM algorithm        (direct k-way       : km1)\n"
+    " - kway_fm_flow_km1 : k-way FM + Flow algorithm (direct k-way       : km1)\n"
+    " - kway_flow        : k-way Flow algorithm      (direct k-way       : cut & km1)")
     ((initial_partitioning ? "i-r-runs" : "r-runs"),
     po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.iterations_per_level : &context.local_search.iterations_per_level))->value_name("<int>")->notifier(
       [&context, initial_partitioning](const int) {
