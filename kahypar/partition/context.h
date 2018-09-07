@@ -530,7 +530,7 @@ void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
       } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::km1) {
         algo = RefinementAlgorithm::kway_fm_flow_km1;
       } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::cut) {
-        algo = RefinementAlgorithm::kway_flow;
+        algo = RefinementAlgorithm::kway_fm_flow;
       }
       LOG << "Changing local search algorithm to"
           << algo;
