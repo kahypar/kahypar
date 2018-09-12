@@ -374,33 +374,82 @@ class FlowNetwork {
           const size_t pins_not_u_block1 = _hg.pinCountInPart(he, block_1) - pins_u_block1;
           const size_t connectivity = (pins_u_block0 + pins_not_u_block0 > 0) + (pins_u_block1 + pins_not_u_block1 > 0);
 
-          if (_context.partition.objective == Objective::cut &&
-              !isRemovableFromCut(he, block_0, block_1)) {
-            // Case 1: Hyperedge he cannot be removed from cut
-            //         of k-way partition.
-            //         E.g., if he contains a block not equal to
-            //         block_0 and block_1
-            //         => add incoming hyperedge node as source
-            //            and outgoing hyperedge node as sink
-            ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
-            ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
-            addSource(mapToIncommingHyperedgeID(he));
-            addSink(mapToOutgoingHyperedgeID(he));
-          } else {
-            // Hyperedge he is a cut hyperedge of the hypergraph.
-            // => if he contains pins from block_0 not contained
-            //   in the flow problem, we add the incoming hyperedge
-            //   node as source
-            // => if he contains pins from block_1 not contained
-            //   in the flow problem, we add the outgoing hyperedge
-            //   node as sink
-            if (pins_not_u_block0 > 0) {
+
+          if (_context.local_search.flow.use_optimized_modeling) {
+            if (_context.partition.objective == Objective::cut &&
+                !isRemovableFromCut(he, block_0, block_1)) {
+              // Case 1: Hyperedge he cannot be removed from cut
+              //         of k-way partition.
+              //         E.g., if he contains a block not equal to
+              //         block_0 and block_1
+              //         => add incoming hyperedge node as source
+              //            and outgoing hyperedge node as sink
               ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
-              addSource(mapToIncommingHyperedgeID(he));
-            }
-            if (pins_not_u_block1 > 0) {
               ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
+              addSource(mapToIncommingHyperedgeID(he));
               addSink(mapToOutgoingHyperedgeID(he));
+            } else {
+              // Hyperedge he is a cut hyperedge of the hypergraph.
+              // => if he contains pins from block_0 not contained
+              //   in the flow problem, we add the incoming hyperedge
+              //   node as source
+              // => if he contains pins from block_1 not contained
+              //   in the flow problem, we add the outgoing hyperedge
+              //   node as sink
+              if (pins_not_u_block0 > 0) {
+                ASSERT(containsNode(mapToIncommingHyperedgeID(he)), "Source is not contained in flow problem!");
+                addSource(mapToIncommingHyperedgeID(he));
+              }
+              if (pins_not_u_block1 > 0) {
+                ASSERT(containsNode(mapToOutgoingHyperedgeID(he)), "Sink is not contained in flow problem!");
+                addSink(mapToOutgoingHyperedgeID(he));
+              }
+            }
+          } else {
+            if (connectivity == 1) {
+              // Case 1: Hyperedge he is non-cut hyperedge of the hypergraph
+              //         and a non-cut hyperedge of the flow problem.
+              //         => add all pins contained in the flow problem
+              //            as source resp. sink
+              if (pins_u_block0 > 0 && pins_not_u_block0 > 0) {
+                for (const HypernodeID& pin : _hg.pins(he)) {
+                  if (containsHypernode(pin)) {
+                    if (_nodes.contains(pin)) {
+                      addSource(pin);
+                    } else {
+                      for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
+                        addSource(mapToIncommingHyperedgeID(he));
+                      }
+                    }
+                  }
+                }
+              } else if (pins_u_block1 > 0 && pins_not_u_block1 > 0) {
+                for (const HypernodeID& pin : _hg.pins(he)) {
+                  if (containsHypernode(pin)) {
+                    if (_nodes.contains(pin)) {
+                      addSink(pin);
+                    } else {
+                      for (const HyperedgeID& he : _hg.incidentEdges(pin)) {
+                        addSink(mapToOutgoingHyperedgeID(he));
+                      }
+                    }
+                  }
+                }
+              }
+            } else {
+              // Case 2: Hyperedge he is a cut hyperedge of the hypergraph.
+              //         => if he contains pins from block_0 not contained
+              //            in the flow problem, we add the incoming hyperedge
+              //            node as source
+              //         => if he contains pins from block_1 not contained
+              //            in the flow problem, we add the outgoing hyperedge
+              //            node as sink
+              if (pins_not_u_block0 > 0) {
+                addSource(mapToIncommingHyperedgeID(he));
+              }
+              if (pins_not_u_block1 > 0) {
+                addSink(mapToOutgoingHyperedgeID(he));
+              }
             }
           }
 

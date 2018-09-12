@@ -197,6 +197,7 @@ struct LocalSearchParameters {
     bool use_adaptive_alpha_stopping_rule = false;
     bool ignore_small_hyperedge_cut = false;
     bool use_improvement_history = false;
+    bool use_optimized_modeling = false;
   };
 
   FM fm { };
@@ -638,7 +639,5 @@ static inline void sanityCheck(Context& context) {
       std::exit(0);
     }
   }
-
-
 }
 }  // namespace kahypar

@@ -159,6 +159,11 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
     po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_most_balanced_minimum_cut : &context.local_search.flow.use_most_balanced_minimum_cut))->value_name("<bool>"),
     "Heuristic to balance a min-cut bipartition after a maximum flow computation \n"
     "(default: true)")
+
+    ((initial_partitioning ? "i-r-flow-use-optimized-mode" : "r-flow-use-optimized-model"),
+    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_optimized_modeling : &context.local_search.flow.use_optimized_modeling))->value_name("<bool>"),
+    "Use KaHyPars flow model. If false, KaHIPs flow model is used. \n"
+    "(default: true)")
     ((initial_partitioning ? "i-r-flow-use-adaptive-alpha-stopping-rule" : "r-flow-use-adaptive-alpha-stopping-rule"),
     po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_adaptive_alpha_stopping_rule : &context.local_search.flow.use_adaptive_alpha_stopping_rule))->value_name("<bool>"),
     "Stop adaptive flow iterations, when cut equal to old cut \n"
