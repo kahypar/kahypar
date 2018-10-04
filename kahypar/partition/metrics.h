@@ -34,28 +34,38 @@ struct Metrics {
   HyperedgeWeight km1;
   double imbalance;
 
-  void updateMetric(const HyperedgeWeight value, const Objective objective) {
-    switch (objective) {
-      case Objective::cut:
-        cut = value;
-        break;
-      case Objective::km1:
-        km1 = value;
-        break;
-      default:
-        LOG << "Unknown Objective";
-        exit(-1);
+  void updateMetric(const HyperedgeWeight value, const Mode mode, const Objective objective) {
+    if (mode == Mode::direct_kway) {
+      switch (objective) {
+        case Objective::cut:
+          cut = value;
+          break;
+        case Objective::km1:
+          km1 = value;
+          break;
+        default:
+          LOG << "Unknown Objective";
+          exit(-1);
+      }
+    } else if (mode == Mode::recursive_bisection) {
+      // in recursive bisection, km1 is also optimized via the cut net metric
+      cut = value;
     }
   }
 
-  HyperedgeWeight getMetric(const Objective objective) {
-    switch (objective) {
-      case Objective::cut: return cut;
-      case Objective::km1: return km1;
-      default:
-        LOG << "Unknown Objective";
-        exit(-1);
+  HyperedgeWeight getMetric(const Mode mode, const Objective objective) {
+    if (mode == Mode::direct_kway) {
+      switch (objective) {
+        case Objective::cut: return cut;
+        case Objective::km1: return km1;
+        default:
+          LOG << "Unknown Objective";
+          exit(-1);
+      }
     }
+    ASSERT(mode == Mode::recursive_bisection);
+    // in recursive bisection, km1 is also optimized via the cut net metric
+    return cut;
   }
 };
 

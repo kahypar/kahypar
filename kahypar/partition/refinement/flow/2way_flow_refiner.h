@@ -186,16 +186,16 @@ class TwoWayFlowRefiner final : public IRefiner,
       ASSERT(cut_flow_network_before >= cut_flow_network_after,
              "Flow calculation should not increase cut!"
              << V(cut_flow_network_before) << V(cut_flow_network_after));
-      ASSERT(best_metrics.getMetric(_context.partition.objective) - delta
+      ASSERT(best_metrics.getMetric(_context.partition.mode, _context.partition.objective) - delta
              == metrics::objective(_hg, _context.partition.objective),
              "Maximum Flow is not the minimum cut!"
              << V(_context.partition.objective)
-             << V(best_metrics.getMetric(_context.partition.objective))
+             << V(best_metrics.getMetric(_context.partition.mode, _context.partition.objective))
              << V(delta)
              << V(metrics::objective(_hg, _context.partition.objective)));
 
       const double current_imbalance = metrics::imbalance(_hg, _context);
-      const HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.objective);
+      const HyperedgeWeight old_metric = best_metrics.getMetric(_context.partition.mode, _context.partition.objective);
       const HyperedgeWeight current_metric = old_metric - delta;
 
       DBG << V(cut_flow_network_before)
@@ -206,15 +206,15 @@ class TwoWayFlowRefiner final : public IRefiner,
 
       printMetric();
 
-      const bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.objective);
-      const bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.objective);
+      const bool equal_metric = current_metric == best_metrics.getMetric(_context.partition.mode, _context.partition.objective);
+      const bool improved_metric = current_metric < best_metrics.getMetric(_context.partition.mode, _context.partition.objective);
       const bool improved_imbalance = current_imbalance < best_metrics.imbalance;
       const bool is_feasible_partition = current_imbalance <= _context.partition.epsilon;
 
       bool current_improvement = false;
       if ((improved_metric && (is_feasible_partition || improved_imbalance)) ||
           (equal_metric && improved_imbalance)) {
-        best_metrics.updateMetric(current_metric, _context.partition.objective);
+        best_metrics.updateMetric(current_metric, _context.partition.mode, _context.partition.objective);
         best_metrics.imbalance = current_imbalance;
         improvement = true;
         current_improvement = true;

@@ -80,7 +80,7 @@ class KWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
                             *changes, best_metrics);
 
     // kway flow refiner should update metrics correctly
-    ASSERT_EQ(best_metrics.getMetric(context.partition.objective),
+    ASSERT_EQ(best_metrics.getMetric(context.partition.mode, context.partition.objective),
               metrics::objective(*hypergraph, context.partition.objective));
     ASSERT_EQ(best_metrics.imbalance, metrics::imbalance(*hypergraph, context));
   }
@@ -90,6 +90,7 @@ class KWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
     context.partition.k = 4;
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::km1;
+    context.partition.mode = Mode::direct_kway;
 
     context.partition.perfect_balance_part_weights.push_back(ceil(
                                                                hypergraph->totalWeight()
