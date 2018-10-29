@@ -82,7 +82,7 @@ Its algorithms and detailed experimental results are presented in several [resea
 For each algorithm, these plots relate the smallest minimum connectivity of all algorithms to the
 corresponding connectivity produced by the algorithm on a per-instance basis. For each algorithm,
 these ratios are sorted in decreasing order. The plots show 1-(best/algorithm) on the y-axis to highlight the instances were
-each partitioner performs badly and use a cube root scale on the y-axis to reduce right skewness. AA point close to one indicates that the
+each partitioner performs badly and use a cube root scale on the y-axis to reduce right skewness. A point close to one indicates that the
 <img src="https://user-images.githubusercontent.com/484403/47638727-a9af1580-db5f-11e8-9f6e-1db1a5246fab.png" alt="Comparison" width="60%" height="60%" align="right">
  partition produced by the corresponding algorithm was considerably worse than the
 partition produced by the best algorithm. A value of zero therefore indicates that the corresponding algorithm produced the best solution.
