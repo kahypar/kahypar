@@ -79,17 +79,15 @@ Its algorithms and detailed experimental results are presented in several [resea
    
 #### Experimental Results
  We use the performance plots introduced in [ALENEX'16][ALENEX'16] to compare KaHyPar to other partitioning algorithms in terms of solution quality:
-For each algorithm, these plots relate the smallest minimum cut of all algorithms to the
-corresponding cut produced by the algorithm on a per-instance basis. For each algorithm,
-these ratios are sorted in increasing order. The plots use a cube root scale for both axes
-to reduce right skewness and show 1 − (best/algorithm) on the y-axis to highlight the
-instances were each partitioner performs badly. A point close to one indicates that the
-<img src="https://user-images.githubusercontent.com/484403/42313487-338cb2d0-8043-11e8-98e1-9068a232d352.png" alt="alt text" width="60%" height="60%" align="right">
-partition produced by the corresponding algorithm was considerably worse than the partition
-produced by the best algorithm. A value of zero therefore indicates that the corresponding
-algorithm produced the best solution. Points above one correspond to infeasible solutions
-that violated the balance constraint. Thus an algorithm is considered to outperform another
-algorithm if its corresponding ratio values are below those of the other algorithm.
+For each algorithm, these plots relate the smallest minimum connectivity of all algorithms to the
+corresponding connectivity produced by the algorithm on a per-instance basis. For each algorithm,
+these ratios are sorted in decreasing order. The plots show 1-(best/algorithm) on the y-axis to highlight the instances were
+each partitioner performs badly and use a cube root scale on the y-axis to reduce right skewness. AA point close to one indicates that the
+<img src="https://user-images.githubusercontent.com/484403/47638727-a9af1580-db5f-11e8-9f6e-1db1a5246fab.png" alt="Comparison" width="60%" height="60%" align="right">
+ partition produced by the corresponding algorithm was considerably worse than the
+partition produced by the best algorithm. A value of zero therefore indicates that the corresponding algorithm produced the best solution.
+Thus an algorithm is considered to outperform another algorithm if its corresponding ratio values are below those of the other algorithm. Points above one correspond to infeasible solutions that violate the balance constraint.
+In the figure, we compare KaHyPar with PaToH, the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), and the recently published [HYPE](https://arxiv.org/abs/1810.11319) algorithm.
 
 
 Performance plots and detailed per-instance results can be found on
