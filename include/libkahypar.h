@@ -21,7 +21,7 @@
 #ifndef LIBKAHYPAR_H
 #define LIBKAHYPAR_H
 
-#include "stddef.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

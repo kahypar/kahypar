@@ -18,7 +18,7 @@
  *
  ******************************************************************************/
 
-#include "include/libkahypar.h"
+#include "libkahypar.h"
 
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/macros.h"
