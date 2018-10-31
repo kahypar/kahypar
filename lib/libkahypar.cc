@@ -23,6 +23,7 @@
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partitioner_facade.h"
 #include "kahypar/utils/randomize.h"
 
 
@@ -45,20 +46,18 @@ void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
 }
 
 
-void kahypar_partition(kahypar_hypernode_id_t num_vertices,
-                       kahypar_hyperedge_id_t num_hyperedges,
-                       double epsilon,
-                       kahypar_partition_id_t num_blocks,
+void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
+                       const kahypar_hyperedge_id_t num_hyperedges,
+                       const double epsilon,
+                       const kahypar_partition_id_t num_blocks,
                        const kahypar_hypernode_weight_t* vertex_weights,
                        const kahypar_hyperedge_weight_t* hyperedge_weights,
-                       const size_t* hyperedge_index_vector,
-                       const kahypar_hyperedge_id_t* hyperedge_vector,
+                       const size_t* hyperedge_indices,
+                       const kahypar_hyperedge_id_t* hyperedges,
                        kahypar_hyperedge_weight_t* objective,
                        kahypar_context_t* kahypar_context,
                        kahypar_partition_id_t* partition) {
   kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
-  kahypar::sanityCheck(context);
-  kahypar::Randomize::instance().setSeed(context.partition.seed);
 
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
@@ -66,13 +65,13 @@ void kahypar_partition(kahypar_hypernode_id_t num_vertices,
 
   kahypar::Hypergraph hypergraph(num_vertices,
                                  num_hyperedges,
-                                 hyperedge_index_vector,
-                                 hyperedge_vector,
+                                 hyperedge_indices,
+                                 hyperedges,
                                  context.partition.k,
                                  hyperedge_weights,
                                  vertex_weights);
 
-  kahypar::Partitioner partitioner;
+  kahypar::PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
 
   *objective = kahypar::metrics::correctMetric(hypergraph, context);

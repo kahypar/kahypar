@@ -538,7 +538,7 @@ void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
   }
 }
 
-static inline void sanityCheck(Context& context) {
+static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
   switch (context.partition.mode) {
     case Mode::recursive_bisection:
       // Prevent contexturations that currently don't make sense.
@@ -619,6 +619,22 @@ static inline void sanityCheck(Context& context) {
     }
   }
 
+  if (context.partition.use_individual_part_weights) {
+    if (context.partition.max_part_weights.size() != static_cast<size_t>(context.partition.k)) {
+      LOG << "k=" << context.partition.k << ",but # part weights ="
+          << context.partition.max_part_weights.size();
+      std::exit(-1);
+    }
+    const HypernodeWeight sum_part_weights =
+      std::accumulate(context.partition.max_part_weights.begin(),
+                      context.partition.max_part_weights.end(),
+                      0);
+    if (sum_part_weights < hypergraph.totalWeight()) {
+      LOG << "Sum of individual part weights is less than sum of vertex weights";
+      std::exit(-1);
+    }
+  }
+
   if (context.partition.mode == Mode::direct_kway &&
       context.partition.objective == Objective::cut) {
     if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_km1 ||
@@ -639,6 +655,10 @@ static inline void sanityCheck(Context& context) {
     }
   }
 
-
+  if (context.partition.global_search_iterations != 0 &&
+      context.partition.mode == kahypar::Mode::recursive_bisection) {
+    std::cerr << "V-Cycles are not supported in recursive bisection mode." << std::endl;
+    std::exit(-1);
+  }
 }
 }  // namespace kahypar

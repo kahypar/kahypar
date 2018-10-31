@@ -644,7 +644,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   // placing vm.count("help") here prevents required attributes raising an
   // error if only help was supplied
   if (cmd_vm.count("help") != 0 || argc == 1) {
-    kahypar::io::printBanner();
+    kahypar::io::printBanner(context);
     LOG << cmd_line_options;
     exit(0);
   }

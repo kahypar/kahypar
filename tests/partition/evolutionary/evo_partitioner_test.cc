@@ -35,7 +35,6 @@
 using ::testing::Eq;
 using ::testing::Test;
 namespace kahypar {
-namespace partition {
 class TheEvoPartitioner : public Test {
  public:
   TheEvoPartitioner() :
@@ -119,5 +118,4 @@ TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   ASSERT_GT(total_time, context.partition.time_limit);
   ASSERT_LT(total_time - times.at(times.size() - 1), context.partition.time_limit);
 }
-}  // namespace partition
 }  // namespace kahypar

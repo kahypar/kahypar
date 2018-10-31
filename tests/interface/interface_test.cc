@@ -44,31 +44,31 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   hyperedge_weights[2] = 1;
   hyperedge_weights[3] = 1000;
 
-  std::unique_ptr<size_t[]> hyperedge_index_vector =
+  std::unique_ptr<size_t[]> hyperedge_indices =
     std::make_unique<size_t[]>(5);
 
-  hyperedge_index_vector[0] = 0;
-  hyperedge_index_vector[1] = 2;
-  hyperedge_index_vector[2] = 6;
-  hyperedge_index_vector[3] = 9;
-  hyperedge_index_vector[4] = 12;
+  hyperedge_indices[0] = 0;
+  hyperedge_indices[1] = 2;
+  hyperedge_indices[2] = 6;
+  hyperedge_indices[3] = 9;
+  hyperedge_indices[4] = 12;
 
-  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedge_vector =
+  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedges =
     std::make_unique<kahypar_hyperedge_id_t[]>(12);
 
   // hypergraph from hMetis manual page 14
-  hyperedge_vector[0] = 0;
-  hyperedge_vector[1] = 2;
-  hyperedge_vector[2] = 0;
-  hyperedge_vector[3] = 1;
-  hyperedge_vector[4] = 3;
-  hyperedge_vector[5] = 4;
-  hyperedge_vector[6] = 3;
-  hyperedge_vector[7] = 4;
-  hyperedge_vector[8] = 6;
-  hyperedge_vector[9] = 2;
-  hyperedge_vector[10] = 5;
-  hyperedge_vector[11] = 6;
+  hyperedges[0] = 0;
+  hyperedges[1] = 2;
+  hyperedges[2] = 0;
+  hyperedges[3] = 1;
+  hyperedges[4] = 3;
+  hyperedges[5] = 4;
+  hyperedges[6] = 3;
+  hyperedges[7] = 4;
+  hyperedges[8] = 6;
+  hyperedges[9] = 2;
+  hyperedges[10] = 5;
+  hyperedges[11] = 6;
 
   const double imbalance = 0.03;
   const kahypar_partition_id_t k = 2;
@@ -79,13 +79,13 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_partition(num_vertices, num_hyperedges,
                     imbalance, k,
                     /*vertex_weights */ nullptr, hyperedge_weights.get(),
-                    hyperedge_index_vector.get(), hyperedge_vector.get(),
+                    hyperedge_indices.get(), hyperedges.get(),
                     &objective, context, partition.data());
 
 
   std::vector<kahypar_partition_id_t> correct_solution({ 0, 0, 1, 0, 0, 1, 1 });
   ASSERT_THAT(partition, ::testing::ContainerEq(correct_solution));
-  ASSERT_TRUE(objective == 2);
+  ASSERT_EQ(objective, 2);
 
   kahypar_context_free(context);
 }

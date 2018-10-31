@@ -217,75 +217,78 @@ inline void printQualityOfInitialSolution(const Hypergraph& hypergraph, const Co
 inline void printPartitioningResults(const Hypergraph& hypergraph,
                                      const Context& context,
                                      const std::chrono::duration<double>& elapsed_seconds) {
-  LOG << "********************************************************************************";
-  LOG << "*                             Partitioning Result                              *";
-  LOG << "********************************************************************************";
-  printObjectives(hypergraph, context);
+  if (!context.partition.quiet_mode) {
+    LOG << "********************************************************************************";
+    LOG << "*                             Partitioning Result                              *";
+    LOG << "********************************************************************************";
+    printObjectives(hypergraph, context);
 
-  LOG << "\nPartition sizes and weights: ";
-  printPartSizesAndWeights(hypergraph);
+    LOG << "\nPartition sizes and weights: ";
+    printPartSizesAndWeights(hypergraph);
 
-  const auto& timings = Timer::instance().result();
+    const auto& timings = Timer::instance().result();
 
-  LOG << "\nTimings:";
-  LOG << "Partition time                     =" << elapsed_seconds.count() << "s";
-  LOG << "  + Preprocessing                  =" << timings.total_preprocessing << "s";
-  LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";
-  LOG << "    | community detection          =" << timings.pre_community_detection << "s";
-  LOG << "  + Coarsening                     =" << timings.total_coarsening << "s";
-  if (context.partition.mode == Mode::recursive_bisection) {
-    for (const auto& timing : timings.bisection_coarsening) {
-      LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
+    LOG << "\nTimings:";
+    LOG << "Partition time                     =" << elapsed_seconds.count() << "s";
+    LOG << "  + Preprocessing                  =" << timings.total_preprocessing << "s";
+    LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";
+    LOG << "    | community detection          =" << timings.pre_community_detection << "s";
+    LOG << "  + Coarsening                     =" << timings.total_coarsening << "s";
+    if (context.partition.mode == Mode::recursive_bisection) {
+      for (const auto& timing : timings.bisection_coarsening) {
+        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
     }
-  }
-  LOG << "  + Initial Partitioning           =" << timings.total_initial_partitioning << "s";
-  if (context.partition.mode == Mode::direct_kway) {
-    LOG << "    + Coarsening                   =" << timings.total_ip_coarsening << "s";
-    for (const auto& timing : timings.bisection_coarsening) {
-      LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
+    LOG << "  + Initial Partitioning           =" << timings.total_initial_partitioning << "s";
+    if (context.partition.mode == Mode::direct_kway) {
+      LOG << "    + Coarsening                   =" << timings.total_ip_coarsening << "s";
+      for (const auto& timing : timings.bisection_coarsening) {
+        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
+      LOG << "    + Initial Partitioning         =" << timings.total_ip_initial_partitioning << "s";
+      for (const auto& timing : timings.bisection_initial_partitioning) {
+        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
+      LOG << "    + Local Search                 =" << timings.total_ip_local_search << "s";
+      for (const auto& timing : timings.bisection_local_search) {
+        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
+    } else {
+      for (const auto& timing : timings.bisection_initial_partitioning) {
+        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
     }
-    LOG << "    + Initial Partitioning         =" << timings.total_ip_initial_partitioning << "s";
-    for (const auto& timing : timings.bisection_initial_partitioning) {
-      LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
+    LOG << "  + Local Search                   =" << timings.total_local_search << "s";
+    if (context.partition.mode == Mode::recursive_bisection) {
+      for (const auto& timing : timings.bisection_local_search) {
+        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+            << ")        =" << timing.time << "s";
+      }
     }
-    LOG << "    + Local Search                 =" << timings.total_ip_local_search << "s";
-    for (const auto& timing : timings.bisection_local_search) {
-      LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
-    }
-  } else {
-    for (const auto& timing : timings.bisection_initial_partitioning) {
-      LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
-    }
-  }
-  LOG << "  + Local Search                   =" << timings.total_local_search << "s";
-  if (context.partition.mode == Mode::recursive_bisection) {
-    for (const auto& timing : timings.bisection_local_search) {
-      LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-          << ")        =" << timing.time << "s";
-    }
-  }
 
-  if (context.partition.global_search_iterations > 0) {
-    LOG << "  + V-Cycle Coarsening             =" << timings.total_v_cycle_coarsening << "s";
-    int i = 1;
-    for (const auto& timing : timings.v_cycle_coarsening) {
-      LOG << "    | v-cycle" << i << "                   =" << timing << "s";
-      ++i;
+    if (context.partition.global_search_iterations > 0) {
+      LOG << "  + V-Cycle Coarsening             =" << timings.total_v_cycle_coarsening << "s";
+      int i = 1;
+      for (const auto& timing : timings.v_cycle_coarsening) {
+        LOG << "    | v-cycle" << i << "                   =" << timing << "s";
+        ++i;
+      }
+      LOG << "  + V-Cycle Local Search           =" << timings.total_v_cycle_local_search << "s";
+      i = 0;
+      for (const auto& timing : timings.v_cycle_local_search) {
+        LOG << "    | v-cycle" << i << "                   =" << timing << "s";
+        ++i;
+      }
     }
-    LOG << "  + V-Cycle Local Search           =" << timings.total_v_cycle_local_search << "s";
-    i = 0;
-    for (const auto& timing : timings.v_cycle_local_search) {
-      LOG << "    | v-cycle" << i << "                   =" << timing << "s";
-      ++i;
-    }
+    LOG << "  + Postprocessing                 =" << timings.total_postprocessing << "s";
+    LOG << "    | undo sparsifier              =" << timings.post_sparsifier_restore << "s";
   }
-  LOG << "  + Postprocessing                 =" << timings.total_postprocessing << "s";
-  LOG << "    | undo sparsifier              =" << timings.post_sparsifier_restore << "s";
+  LOG << "";
 }
 
 inline void printPartitioningStatistics() {
@@ -303,16 +306,18 @@ inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_
   }
 }
 
-static inline void printBanner() {
-  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
-  LOG << R"(+                    _  __     _   _       ____                               +)";
-  LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
-  LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
-  LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
-  LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
-  LOG << R"(+                                    |___/                                    +)";
-  LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
-  LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+static inline void printBanner(const Context& context) {
+  if (!context.partition.quiet_mode) {
+    LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+    LOG << R"(+                    _  __     _   _       ____                               +)";
+    LOG << R"(+                   | |/ /__ _| | | |_   _|  _ \ __ _ _ __                    +)";
+    LOG << R"(+                   | ' // _` | |_| | | | | |_) / _` | '__|                   +)";
+    LOG << R"(+                   | . \ (_| |  _  | |_| |  __/ (_| | |                      +)";
+    LOG << R"(+                   |_|\_\__,_|_| |_|\__, |_|   \__,_|_|                      +)";
+    LOG << R"(+                                    |___/                                    +)";
+    LOG << R"(+                 Karlsruhe Hypergraph Partitioning Framework                 +)";
+    LOG << R"(+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++)";
+  }
 }
 
 
@@ -382,6 +387,30 @@ static inline void printVcycleBanner(const Context& context) {
       LOG << "V-Cycle No. " << context.partition.current_v_cycle;
       LOG << "================================================================================";
     }
+  }
+}
+
+static inline void printResultBanner(const Context& context) {
+  if (context.partition.time_limit != 0) {
+    LOG << "********************************************************************************";
+    LOG << "*                          FINAL Partitioning Result                           *";
+    LOG << "********************************************************************************";
+  }
+}
+
+static inline void printStatsBanner() {
+  LOG << "*******************************";
+  LOG << "***** GATHER_STATS ACTIVE *****";
+  LOG << "*******************************";
+}
+
+static inline void printFinalPartitioningResults(const Hypergraph& hypergraph,
+                                                 const Context& context,
+                                                 const std::chrono::duration<double>& elapsed_seconds) {
+  if (!context.partition.quiet_mode) {
+    printResultBanner(context);
+    printPartitioningResults(hypergraph, context, elapsed_seconds);
+    LOG << "";
   }
 }
 
