@@ -219,7 +219,7 @@ TEST_F(KaHyParE, ComputesDirectKwayKm1Partitioning) {
   context.partition.mode = Mode::direct_kway;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
-  context.partition.quiet_mode = false;
+  context.partition.quiet_mode = true;
   context.partition_evolutionary = true;
   context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
