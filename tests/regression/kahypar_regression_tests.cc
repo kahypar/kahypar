@@ -28,6 +28,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/kahypar.h"
+#include "kahypar/partitioner_facade.h"
 #include "tests/end_to_end/kahypar_test_fixtures.h"
 
 namespace kahypar {
@@ -65,7 +66,7 @@ TEST_F(KaHyParK, ComputesDirectKwayCutPartitioning) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
@@ -83,7 +84,7 @@ TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
@@ -102,7 +103,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionCutPartitioning) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
@@ -120,7 +121,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
@@ -138,7 +139,7 @@ TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
@@ -167,7 +168,7 @@ TEST_F(KaHyParCA, UsesSparsificationAndCommunityDetection) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
-  Partitioner partitioner;
+  PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
   kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
 
