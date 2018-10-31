@@ -16,4 +16,6 @@ install(TARGETS kahypar
 install(FILES ${CMAKE_BINARY_DIR}/lib/libkahypar.pc
        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
+configure_file(cmake_uninstall.cmake.in cmake_uninstall.cmake IMMEDIATE @ONLY)
 
+add_custom_target(uninstall-kahypar "${CMAKE_COMMAND}" -P cmake_uninstall.cmake)
