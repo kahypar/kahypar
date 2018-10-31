@@ -76,7 +76,7 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
 
   *objective = kahypar::metrics::correctMetric(hypergraph, context);
 
-  ASSERT(partitiion != nullptr);
+  ASSERT(partition != nullptr);
   for (const auto hn : hypergraph.nodes()) {
     partition[hn] = hypergraph.partID(hn);
   }
