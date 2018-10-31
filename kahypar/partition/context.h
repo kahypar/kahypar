@@ -318,6 +318,7 @@ struct PartitioningParameters {
   bool sp_process_output = false;
   bool use_individual_part_weights = false;
   bool vcycle_refinement_for_input_partition = false;
+  bool write_partition_file = true;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };

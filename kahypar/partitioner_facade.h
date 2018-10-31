@@ -67,7 +67,9 @@ class PartitionerFacade {
 
 
     io::printFinalPartitioningResults(hypergraph, context, elapsed_seconds);
-    io::writePartitionFile(hypergraph, context.partition.graph_partition_filename);
+    if (context.partition.write_partition_file){
+      io::writePartitionFile(hypergraph, context.partition.graph_partition_filename);
+    }
 
     // In case a time limit is used, the last partitioning step is already serialized
     if (context.partition.sp_process_output && context.partition.time_limit == 0) {
