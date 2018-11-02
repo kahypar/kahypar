@@ -84,7 +84,9 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
 
 
   std::vector<kahypar_partition_id_t> correct_solution({ 0, 0, 1, 0, 0, 1, 1 });
-  ASSERT_THAT(partition, ::testing::ContainerEq(correct_solution));
+  std::vector<kahypar_partition_id_t> correct_solution2({ 1, 1, 0, 1, 1, 0, 0 });
+  ASSERT_THAT(partition, AnyOf(::testing::ContainerEq(correct_solution),
+                               ::testing::ContainerEq(correct_solution2)));
   ASSERT_EQ(objective, 2);
 
   kahypar_context_free(context);
