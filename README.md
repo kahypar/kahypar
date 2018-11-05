@@ -131,7 +131,7 @@ End-to-end integration tests can be started with: `make integration_tests`. Prof
 Running KaHyPar
 -----------
 
-The stanalone program can be built via `make KaHyPar`. The binary will be located at: `build/kahypar/application/`.
+The standalone program can be built via `make KaHyPar`. The binary will be located at: `build/kahypar/application/`.
 
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
