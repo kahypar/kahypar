@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <vector>
 
 #include "gtest/gtest_prod.h"
 
@@ -37,7 +38,6 @@
 
 
 namespace kahypar {
-namespace partition {
 class EvoPartitioner {
  private:
   static constexpr bool debug = false;
@@ -227,5 +227,4 @@ class EvoPartitioner {
   int _timelimit;
   Population _population;
 };
-}  // namespace partition
 }  // namespace kahypar

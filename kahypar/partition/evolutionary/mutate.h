@@ -27,7 +27,6 @@
 #include "kahypar/partition/partitioner.h"
 
 namespace kahypar {
-namespace partition {
 namespace mutate {
 static constexpr bool debug = false;
 
@@ -84,5 +83,4 @@ Individual vCycle(Hypergraph& hg, const Individual& in,
   return Individual(hg, context);
 }
 }  // namespace mutate
-}  // namespace partition
 }  // namespace kahypar

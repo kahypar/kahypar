@@ -333,12 +333,15 @@ static inline void readPartitionFile(const std::string& filename, std::vector<Pa
 }
 
 static inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
-  ASSERT(!filename.empty(), "No filename for partition file specified");
-  std::ofstream out_stream(filename.c_str());
-  for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << hypergraph.partID(hn) << std::endl;
+  if (filename.empty()) {
+    LOG << "No filename for partition file specified";
+  } else {
+    std::ofstream out_stream(filename.c_str());
+    for (const HypernodeID& hn : hypergraph.nodes()) {
+      out_stream << hypergraph.partID(hn) << std::endl;
+    }
+    out_stream.close();
   }
-  out_stream.close();
 }
 
 static inline void readFixedVertexFile(Hypergraph& hypergraph, const std::string& filename) {

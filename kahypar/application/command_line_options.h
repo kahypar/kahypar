@@ -92,7 +92,26 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     "# Use individual part weights specified with --partweights= option")
     ("part-weights",
     po::value<std::vector<HypernodeWeight> >(&context.partition.max_part_weights)->multitoken(),
-    "Individual target part weights");
+    "Individual target part weights")
+    ("objective,o",
+    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
+      if (s == "cut") {
+        context.partition.objective = Objective::cut;
+      } else if (s == "km1") {
+        context.partition.objective = Objective::km1;
+      }
+    }),
+    "Objective: \n"
+    " - cut : cut-net metric \n"
+    " - km1 : (lambda-1) metric")
+    ("mode,m",
+    po::value<std::string>()->value_name("<string>")->required()->notifier(
+      [&](const std::string& mode) {
+      context.partition.mode = kahypar::modeFromString(mode);
+    }),
+    "Partitioning mode: \n"
+    " - (recursive) bisection \n"
+    " - (direct) k-way");
   return options;
 }
 
@@ -575,26 +594,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
     "Number of blocks")
     ("epsilon,e",
     po::value<double>(&context.partition.epsilon)->value_name("<double>")->required(),
-    "Imbalance parameter epsilon")
-    ("objective,o",
-    po::value<std::string>()->value_name("<string>")->required()->notifier([&](const std::string& s) {
-      if (s == "cut") {
-        context.partition.objective = Objective::cut;
-      } else if (s == "km1") {
-        context.partition.objective = Objective::km1;
-      }
-    }),
-    "Objective: \n"
-    " - cut : cut-net metric \n"
-    " - km1 : (lambda-1) metric")
-    ("mode,m",
-    po::value<std::string>()->value_name("<string>")->required()->notifier(
-      [&](const std::string& mode) {
-      context.partition.mode = kahypar::modeFromString(mode);
-    }),
-    "Partitioning mode: \n"
-    " - (recursive) bisection \n"
-    " - (direct) k-way");
+    "Imbalance parameter epsilon");
 
   std::string context_path;
   po::options_description preset_options("Preset Options", num_columns);
@@ -644,7 +644,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   // placing vm.count("help") here prevents required attributes raising an
   // error if only help was supplied
   if (cmd_vm.count("help") != 0 || argc == 1) {
-    kahypar::io::printBanner();
+    kahypar::io::printBanner(context);
     LOG << cmd_line_options;
     exit(0);
   }

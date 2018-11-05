@@ -66,7 +66,7 @@ TEST_F(AMutation, IsPerformingVcyclesCorrectly) {
   hypergraph.setNodePart(4, 1);
   hypergraph.setNodePart(5, 1);
   Individual ind1 = Individual(hypergraph, context);
-  Individual ind2 = partition::mutate::vCycle(hypergraph, ind1, context);
+  Individual ind2 = mutate::vCycle(hypergraph, ind1, context);
 
   ASSERT_EQ(ind2.partition().at(0), ind2.partition().at(2));
   ASSERT_EQ(ind2.partition().at(0), ind2.partition().at(1));
@@ -91,7 +91,7 @@ TEST_F(AMutation, IsPerformingVcyclesNewIPCorrectly) {
   hypergraph.setNodePart(4, 1);
   hypergraph.setNodePart(5, 1);
   Individual ind1 = Individual(hypergraph, context);
-  Individual ind2 = partition::mutate::vCycleWithNewInitialPartitioning(hypergraph, ind1, context);
+  Individual ind2 = mutate::vCycleWithNewInitialPartitioning(hypergraph, ind1, context);
 
   ASSERT_EQ(ind2.partition().at(3), ind2.partition().at(2));
 }

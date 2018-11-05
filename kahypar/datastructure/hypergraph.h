@@ -509,9 +509,26 @@ class GenericHypergraph {
                     const PartitionID k = 2,
                     const HyperedgeWeightVector* hyperedge_weights = nullptr,
                     const HypernodeWeightVector* hypernode_weights = nullptr) :
+    GenericHypergraph(num_hypernodes,
+                      num_hyperedges,
+                      index_vector.data(),
+                      edge_vector.data(),
+                      k,
+                      hyperedge_weights == nullptr ? nullptr : hyperedge_weights->data(),
+                      hypernode_weights == nullptr ? nullptr : hypernode_weights->data()) {
+    ASSERT(edge_vector.size() == index_vector[num_hyperedges]);
+  }
+
+  GenericHypergraph(const HypernodeID num_hypernodes,
+                    const HyperedgeID num_hyperedges,
+                    const size_t* index_vector,
+                    const HypernodeID* edge_vector,
+                    const PartitionID k = 2,
+                    const HyperedgeWeight* hyperedge_weights = nullptr,
+                    const HypernodeWeight* hypernode_weights = nullptr) :
     _num_hypernodes(num_hypernodes),
     _num_hyperedges(num_hyperedges),
-    _num_pins(edge_vector.size()),
+    _num_pins(index_vector[num_hyperedges]),
     _total_weight(0),
     _fixed_vertex_total_weight(0),
     _k(k),
@@ -561,19 +578,19 @@ class GenericHypergraph {
     }
 
     bool has_hyperedge_weights = false;
-    if (hyperedge_weights != nullptr && !hyperedge_weights->empty()) {
+    if (hyperedge_weights != nullptr) {
       has_hyperedge_weights = true;
       for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-        hyperedge(i).setWeight((*hyperedge_weights)[i]);
+        hyperedge(i).setWeight(hyperedge_weights[i]);
       }
     }
 
     bool has_hypernode_weights = false;
-    if (hypernode_weights != nullptr && !hypernode_weights->empty()) {
+    if (hypernode_weights != nullptr) {
       has_hypernode_weights = true;
       for (HypernodeID i = 0; i < _num_hypernodes; ++i) {
-        hypernode(i).setWeight((*hypernode_weights)[i]);
-        _total_weight += (*hypernode_weights)[i];
+        hypernode(i).setWeight(hypernode_weights[i]);
+        _total_weight += hypernode_weights[i];
       }
     } else {
       _total_weight = _num_hypernodes;
