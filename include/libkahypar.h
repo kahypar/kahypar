@@ -29,9 +29,9 @@ extern "C" {
 
 #ifndef KAHYPAR_API
 #  ifdef _WIN32
-#     if defined(YL_BUILD_SHARED)  /* build dll */
+#     if defined(KAHYPAR_BUILD_SHARED)  /* build dll */
 #         define KAHYPAR_API __declspec(dllexport)
-#     elif !defined(YL_BUILD_STATIC)  /* use dll */
+#     elif !defined(KAHYPAR_BUILD_STATIC)  /* use dll */
 #         define KAHYPAR_API __declspec(dllimport)
 #     else  /* static library */
 #         define KAHYPAR_API
