@@ -2,14 +2,8 @@
 ---
 
 @import "{{ site.theme }}";
-
-section {
-  width:1000px;
-  float:right;
-  padding-bottom:50px;
+header, section, footer {
+  float:none;
+  position:static;
+  width:auto;
 }
-
-header {
-    padding-right:0px;
-    float:left;
-  }
