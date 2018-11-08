@@ -9,6 +9,8 @@ section {
   padding-bottom:50px;
 }
 
+@media print, screen and (max-width: 960px) {
   header {
     padding-right:0px;
   }
+}
