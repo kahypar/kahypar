@@ -19,8 +19,6 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - cmake
-            - cmake-data
             - g++-6
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
