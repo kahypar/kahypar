@@ -87,7 +87,7 @@ each partitioner performs badly and use a cube root scale on the y-axis to reduc
 <img src="https://user-images.githubusercontent.com/484403/47638727-a9af1580-db5f-11e8-9f6e-1db1a5246fab.png" alt="Comparison" width="60%" height="60%" align="right">
  partition produced by the corresponding algorithm was considerably worse than the
 partition produced by the best algorithm. A value of zero therefore indicates that the corresponding algorithm produced the best solution.
-Thus an algorithm is considered to outperform another algorithm if its corresponding ratio values are below those of the other algorithm. Points above one correspond to infeasible solutions that violate the balance constraint.
+Thus **an algorithm is considered to outperform another algorithm if its corresponding ratio values are below those of the other algorithm**. Points above one correspond to infeasible solutions that violate the balance constraint.
 In the figure, we compare KaHyPar with PaToH, the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), and the recently published [HYPE](https://arxiv.org/abs/1810.11319) algorithm.
 
 
