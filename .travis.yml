@@ -52,6 +52,7 @@ install:
       CMAKE_URL="https://cmake.org/files/v3.13/cmake-3.13.0-rc3.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+      ls cmake
       echo ${PATH}
     else
       brew install cmake || brew upgrade cmake
