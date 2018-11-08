@@ -136,7 +136,7 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
             } (),
             "Partition" << max_part << "is not an incident label of hypernode" << v << "!");
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
           PartitionID source_part = _hg.partID(v);
 #endif
           if (Base::assignHypernodeToPartition(v, max_part)) {

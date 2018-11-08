@@ -196,7 +196,7 @@ class InitialPartitionerBase {
                                   metrics::km1(_hg),
                                   metrics::imbalance(_hg, _context) };
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
       HyperedgeWeight old_cut = current_metrics.cut;
       HyperedgeWeight old_km1 = current_metrics.km1;
 #endif
@@ -230,7 +230,7 @@ class InitialPartitionerBase {
                V(current_metrics.cut) << V(old_cut) << V(metrics::hyperedgeCut(_hg))
                                       << V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
         old_cut = current_metrics.cut;
         old_km1 = current_metrics.km1;
 #endif

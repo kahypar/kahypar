@@ -83,7 +83,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
     multilevel::partition(hypergraph, *coarsener, *refiner, context);
   }
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
   HyperedgeWeight initial_cut = std::numeric_limits<HyperedgeWeight>::max();
   HyperedgeWeight initial_km1 = std::numeric_limits<HyperedgeWeight>::max();
 #endif
@@ -101,7 +101,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
            metrics::hyperedgeCut(hypergraph) << ">" << initial_cut);
     ASSERT(metrics::km1(hypergraph) <= initial_km1,
            metrics::km1(hypergraph) << ">" << initial_km1);
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
     initial_cut = metrics::hyperedgeCut(hypergraph);
     initial_cut = metrics::km1(hypergraph);
 #endif

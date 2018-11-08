@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 project(KaHyPar CXX C)
@@ -25,6 +25,14 @@ option(KAHYPAR_USE_MINIMAL_BOOST
 
 option(KAHYPAR_USE_GCOV
   "Compile and run tests with gcov for coverage analysis." OFF)
+
+option(KAHYPAR_DISABLE_ASSERTIONS
+  "Disable KaHyPar's internal assertions." OFF)
+
+if(KAHYPAR_DISABLE_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
+endif(KAHYPAR_DISABLE_ASSERTIONS)
+
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)

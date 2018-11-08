@@ -143,7 +143,7 @@ class BinaryHeapBase {
   inline void decreaseKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling decreaseKeyBy for element not contained in Queue:" << id);
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
     const KeyType old_key = _heap[_handles[id]].key;
 #endif
     const size_t handle = _handles[id];
@@ -158,7 +158,7 @@ class BinaryHeapBase {
   inline void increaseKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling increaseKeyBy for element not contained in Queue:" << id);
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
     const KeyType old_key = _heap[_handles[id]].key;
 #endif
     const size_t handle = _handles[id];
@@ -212,7 +212,7 @@ class BinaryHeapBase {
   inline void updateKeyBy(const IDType& id, const KeyType& key_delta) {
     ASSERT(contains(id), "Calling updateKeyBy for element not contained in Queue:" << id);
 
-#ifndef NDEBUG
+#ifdef KAHYPAR_USE_ASSERTIONS
     const KeyType old_key = _heap[_handles[id]].key;
 #endif
     const size_t handle = _handles[id];

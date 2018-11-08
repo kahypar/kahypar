@@ -21,7 +21,9 @@
 #pragma once
 
 #ifndef NDEBUG
-#define USE_ASSERTIONS
+#ifndef KAHYPAR_DISABLE_ASSERTIONS
+#define KAHYPAR_USE_ASSERTIONS
+#endif
 #include <cstdlib>
 #endif
 
@@ -140,7 +142,7 @@ debug output will disappear.
 #define __PRETTY_FUNCTION__ __FUNCTION__
 #endif
 
-#ifdef USE_ASSERTIONS
+#ifdef KAHYPAR_USE_ASSERTIONS
   #define ASSERT_2(cond, msg)                 \
   do {                                        \
     if (!(cond)) {                            \
