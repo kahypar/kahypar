@@ -102,12 +102,13 @@ class BinaryHeapBase {
     ASSERT(_heap[0].key == BinaryHeapTraits<Derived>::sentinel(), "Sentinel element missing");
   }
 
-  inline void push(const IDType& id, const KeyType& key) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void push(const IDType& id, const KeyType& key) {
     ASSERT(!contains(id), "pushing already contained element" << id);
     ASSERT(_next_slot + 1 <= _max_size, "heap size overflow");
 
     const size_t handle = _next_slot++;
-    _heap[handle] = HeapElement(key, id);
+    _heap[handle].key = key;
+    _heap[handle].id = id;
     _handles[id] = handle;
     upHeap(handle);
     ASSERT(_heap[_handles[id]].key == key, "Push failed - wrong key:"
