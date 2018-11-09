@@ -90,11 +90,9 @@ In the figure, we compare KaHyPar with PaToH, the k-way (hMetis-K) and the recur
 
 <img src="https://user-images.githubusercontent.com/484403/47638727-a9af1580-db5f-11e8-9f6e-1db1a5246fab.png" alt="Comparison" width="50%" height="50%"><img src="https://user-images.githubusercontent.com/484403/48254861-63816e00-e40b-11e8-9bf9-cd71c6d923be.png" alt="Comparison" width="50%" height="50%">
 
-
-Performance plots and detailed per-instance results can be found on
-the website accompanying each publication.
-
 #### Additional Resources
+We provide additional resources for all KaHyPar-related publications:
+
 |KaHyPar-MF (latest version of KaHyPar)|SEA'18|[Paper](SEA'18)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|[Experimental Results][SEA'18bench]|
 |:--|:--|:--:|:--:|:--:|--:|
 |KaHyPar-E (EvoHGP)|GECCO'18|[Paper][GECCO'18]|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
