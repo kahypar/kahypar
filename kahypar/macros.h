@@ -32,9 +32,14 @@
 
 #include "kahypar/utils/logger.h"
 
+#if defined(__GNUC__) || defined(__clang__)
 // branch prediction
 #define likely(x)      __builtin_expect(!!(x), 1)
 #define unlikely(x)    __builtin_expect(!!(x), 0)
+#else
+#define likely(x)   x
+#define unlikely(x) x
+#endif
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 

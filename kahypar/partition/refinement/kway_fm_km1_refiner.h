@@ -395,7 +395,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         gain = gainInducedByHypergraph(pin, to_part);
         _gain_cache.addEntryDueToConnectivityIncrease(pin, to_part, gain);
       }
-      if (!_hg.isFixedVertex(pin)) {
+      if (likely(!_hg.isFixedVertex(pin))) {
         _pq.insert(pin, to_part, gain);
         if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
           _pq.enablePart(to_part);
@@ -652,7 +652,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     // remove dups
     // TODO(schlag): fix this!!!
     for (const HypernodeID& hn : _hns_to_activate) {
-      if (!_hg.active(hn) && !_hg.isFixedVertex(hn)) {
+      if (!_hg.active(hn) && likely(!_hg.isFixedVertex(hn))) {
         activate(hn);
       }
     }
@@ -712,7 +712,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                 } else {
                   // if it is not in the PQ then either the HN has already been marked as moved
                   // or we currently look at the source partition of pin or pin is a fixed vertex
-                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin)) || _hg.isFixedVertex(pin);
+                  valid = (_hg.marked(pin) == true) || (part == _hg.partID(pin)) || unlikely(_hg.isFixedVertex(pin));
                   valid = valid || _hg.edgeSize(he) > _context.partition.hyperedge_size_threshold;
                   if (!valid) {
                     LOG << "HN" << pin << "not in PQ but also not marked";
@@ -793,7 +793,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updatePin(const HypernodeID pin, const PartitionID part,
                                                  const HyperedgeID he, const Gain delta) {
     ONLYDEBUG(he);
-    if (!_hg.isFixedVertex(pin)) {
+    if (likely(!_hg.isFixedVertex(pin))) {
       ASSERT(_gain_cache.entryExists(pin, part), V(pin) << V(part));
       ASSERT(_new_adjacent_part.get(pin) != part, V(pin) << V(part));
       ASSERT(!_hg.marked(pin));
@@ -830,7 +830,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       _gain_cache.clear(hn);
       initializeGainCacheFor(hn);
     }
-    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
+    if (_hg.isBorderNode(hn) && likely(!_hg.isFixedVertex(hn))) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), "Hypernode" << hn << "is already marked");
       insertHNintoPQ(hn);
@@ -893,7 +893,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void insertHNintoPQ(const HypernodeID hn) {
     ASSERT(_hg.isBorderNode(hn));
 
-    if (!_hg.isFixedVertex(hn)) {
+    if (likely(!_hg.isFixedVertex(hn))) {
       for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
         ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),

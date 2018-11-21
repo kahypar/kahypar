@@ -90,7 +90,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void activate(const HypernodeID hn,
                 const HypernodeWeightArray& max_allowed_part_weights) {
-    if (_hg.isBorderNode(hn) && !_hg.isFixedVertex(hn)) {
+    if (_hg.isBorderNode(hn) && likely(!_hg.isFixedVertex(hn))) {
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
@@ -426,7 +426,7 @@ class TwoWayFMRefiner final : public IRefiner,
                 ASSERT(_pq.key(pin, other_part) == computeGain(pin),
                        V(pin) << V(computeGain(pin)) << V(_pq.key(pin, other_part))
                               << V(_hg.partID(pin)) << V(other_part));
-              } else if (!_hg.marked(pin) && !_hg.isFixedVertex(pin)) {
+              } else if (!_hg.marked(pin) && likely(!_hg.isFixedVertex(pin))) {
                 ASSERT(true == false, "HN" << pin << "not in PQ, but also not marked!");
               }
             }
@@ -625,7 +625,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void updatePin(const HypernodeID pin, const Gain gain_delta) KAHYPAR_ATTRIBUTE_ALWAYS_INLINE {
-    if (!_hg.isFixedVertex(pin)) {
+    if (likely(!_hg.isFixedVertex(pin))) {
       const PartitionID target_part = 1 - _hg.partID(pin);
       ASSERT(_hg.active(pin), V(pin) << V(target_part));
       ASSERT(_pq.contains(pin, target_part), V(pin) << V(target_part));
