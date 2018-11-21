@@ -543,7 +543,7 @@ class GenericHypergraph {
     _incidence_array(2 * _num_pins, 0),
     _communities(_num_hypernodes, 0),
     _fixed_vertices(nullptr),
-    _fixed_vertex_part_id(nullptr),
+    _fixed_vertex_part_id(),
     _part_info(_k),
     _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
@@ -623,7 +623,7 @@ class GenericHypergraph {
     _incidence_array(),
     _communities(),
     _fixed_vertices(nullptr),
-    _fixed_vertex_part_id(nullptr),
+    _fixed_vertex_part_id(),
     _part_info(_k),
     _pins_in_part(),
     _connectivity_sets(),
@@ -1261,11 +1261,11 @@ class GenericHypergraph {
     ASSERT(id < _k && id != kInvalidPartition, "Invalid part:" << id);
     if (!_fixed_vertices) {
       _fixed_vertices = std::make_unique<SparseSet<HypernodeID> >(initialNumNodes());
-      _fixed_vertex_part_id = std::make_unique<std::vector<PartitionID> >(initialNumNodes(),
-                                                                          kInvalidPartition);
+      _fixed_vertex_part_id.resize(initialNumNodes());
+      std::fill(_fixed_vertex_part_id.begin(),_fixed_vertex_part_id.end(),kInvalidPartition);
     }
     _fixed_vertices->add(hn);
-    (*_fixed_vertex_part_id)[hn] = id;
+    _fixed_vertex_part_id[hn] = id;
     _part_info[id].fixed_vertex_weight += nodeWeight(hn);
     _fixed_vertex_total_weight += nodeWeight(hn);
   }
@@ -1560,7 +1560,7 @@ class GenericHypergraph {
 
   PartitionID fixedVertexPartID(const HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
-    return _fixed_vertex_part_id ? (*_fixed_vertex_part_id)[u] : kInvalidPartition;
+    return _fixed_vertices ? _fixed_vertex_part_id[u] : kInvalidPartition;
   }
 
   bool isFixedVertex(const HypernodeID hn) const {
@@ -2156,7 +2156,7 @@ class GenericHypergraph {
   // ! Stores fixed vertices
   std::unique_ptr<SparseSet<HypernodeID> > _fixed_vertices;
   // ! Stores fixed vertex part ids
-  std::unique_ptr<std::vector<PartitionID> > _fixed_vertex_part_id;
+  std::vector<PartitionID> _fixed_vertex_part_id;
 
   // ! Weight and size information for all blocks.
   std::vector<PartInfo> _part_info;
