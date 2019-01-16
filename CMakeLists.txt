@@ -117,6 +117,11 @@ else()
     message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
     message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
     message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
+    if(WIN32)
+      add_definitions(-DBOOST_ALL_NO_LIB)
+      add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK=1)
+    endif()
+
   endif()
 endif()
 
