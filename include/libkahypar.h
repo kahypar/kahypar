@@ -59,6 +59,14 @@ KAHYPAR_API void kahypar_context_free(kahypar_context_t* kahypar_context);
 KAHYPAR_API void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
                                                      const char* ini_file_name);
 
+KAHYPAR_API void kahypar_read_hypergraph_from_file(const char* file_name,
+                                                   kahypar_hypernode_id_t* num_vertices,
+                                                   kahypar_hyperedge_id_t* num_hyperedges,
+                                                   size_t** hyperedge_indices,
+                                                   kahypar_hyperedge_id_t** hyperedges,
+                                                   kahypar_hyperedge_weight_t** hyperedge_weights,
+                                                   kahypar_hypernode_weight_t** vertex_weights);
+
 KAHYPAR_API void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                                    const kahypar_hyperedge_id_t num_hyperedges,
                                    const double epsilon,

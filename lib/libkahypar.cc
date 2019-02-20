@@ -21,6 +21,7 @@
 #include "libkahypar.h"
 
 #include "kahypar/application/command_line_options.h"
+#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partitioner_facade.h"
@@ -45,6 +46,29 @@ void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
                              ini_file_name);
 }
 
+void kahypar_read_hypergraph_from_file(const char* file_name,
+                                       kahypar_hypernode_id_t* num_vertices,
+                                       kahypar_hyperedge_id_t* num_hyperedges,
+                                       size_t** hyperedge_indices,
+                                       kahypar_hyperedge_id_t** hyperedges,
+                                       kahypar_hyperedge_weight_t** hyperedge_weights,
+                                       kahypar_hypernode_weight_t** vertex_weights) {
+  std::unique_ptr<size_t[]> indices_ptr(nullptr);
+  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedges_ptr(nullptr);
+
+  std::unique_ptr<kahypar_hyperedge_weight_t[]> hyperedge_weights_ptr(nullptr);
+  std::unique_ptr<kahypar_hypernode_weight_t[]> vertex_weights_ptr(nullptr);
+
+  kahypar::io::readHypergraphFile(file_name, *num_vertices, *num_hyperedges,
+                                  indices_ptr, hyperedges_ptr, hyperedge_weights_ptr,
+                                  vertex_weights_ptr);
+
+  *hyperedge_indices = indices_ptr.release();
+  *hyperedges = hyperedges_ptr.release();
+  *hyperedge_weights = hyperedge_weights_ptr.release();
+  *vertex_weights = vertex_weights_ptr.release();
+}
+
 
 void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                        const kahypar_hyperedge_id_t num_hyperedges,
@@ -58,7 +82,7 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                        kahypar_context_t* kahypar_context,
                        kahypar_partition_id_t* partition) {
   kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
-
+  context.partition.verbose_output = true;
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
   context.partition.quiet_mode = true;

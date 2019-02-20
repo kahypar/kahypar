@@ -20,8 +20,10 @@
 
 #pragma once
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -66,12 +68,12 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
            hypergraph_type == HypergraphType::EdgeAndNodeWeights,
            "Hypergraph in file has wrong type");
 
-    bool has_hyperedge_weights = hypergraph_type == HypergraphType::EdgeWeights ||
-                                 hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
-                                 true : false;
-    bool has_hypernode_weights = hypergraph_type == HypergraphType::NodeWeights ||
-                                 hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
-                                 true : false;
+    const bool has_hyperedge_weights = hypergraph_type == HypergraphType::EdgeWeights ||
+                                       hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
+                                       true : false;
+    const bool has_hypernode_weights = hypergraph_type == HypergraphType::NodeWeights ||
+                                       hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
+                                       true : false;
 
     index_vector.reserve(static_cast<size_t>(num_hyperedges) +  /*sentinel*/ 1);
     index_vector.push_back(edge_vector.size());
@@ -124,6 +126,45 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     std::cerr << "Error: File not found: " << std::endl;
   }
 }
+
+static inline void readHypergraphFile(const std::string& filename,
+                                      HypernodeID& num_hypernodes,
+                                      HyperedgeID& num_hyperedges,
+                                      std::unique_ptr<size_t[]>& index_vector,
+                                      std::unique_ptr<HypernodeID[]>& edge_vector,
+                                      std::unique_ptr<HyperedgeWeight[]>& hyperedge_weights,
+                                      std::unique_ptr<HypernodeWeight[]>& hypernode_weights) {
+  HyperedgeIndexVector index_vec;
+  HyperedgeVector edge_vec;
+  HyperedgeWeightVector edge_weights_vec;
+  HypernodeWeightVector node_weights_vec;
+
+  readHypergraphFile(filename, num_hypernodes, num_hyperedges, index_vec,
+                     edge_vec, &edge_weights_vec, &node_weights_vec);
+
+  ASSERT(index_vector == nullptr);
+  ASSERT(edge_vector == nullptr);
+  index_vector = std::make_unique<size_t[]>(index_vec.size());
+  edge_vector = std::make_unique<HypernodeID[]>(edge_vec.size());
+
+  memcpy(index_vector.get(), index_vec.data(), index_vec.size() * sizeof(size_t));
+  memcpy(edge_vector.get(), edge_vec.data(), edge_vec.size() * sizeof(HypernodeID));
+
+  if (!edge_weights_vec.empty()) {
+    ASSERT(hyperedge_weights == nullptr);
+    hyperedge_weights = std::make_unique<HyperedgeWeight[]>(edge_weights_vec.size());
+    memcpy(hyperedge_weights.get(), edge_weights_vec.data(),
+           edge_weights_vec.size() * sizeof(HyperedgeWeight));
+  }
+
+  if (!node_weights_vec.empty()) {
+    ASSERT(hypernode_weights == nullptr);
+    hypernode_weights = std::make_unique<HypernodeWeight[]>(node_weights_vec.size());
+    memcpy(hypernode_weights.get(), node_weights_vec.data(),
+           node_weights_vec.size() * sizeof(HypernodeWeight));
+  }
+}
+
 
 static inline Hypergraph createHypergraphFromFile(const std::string& filename,
                                                   const PartitionID num_parts) {

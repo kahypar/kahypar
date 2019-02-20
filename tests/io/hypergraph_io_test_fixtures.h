@@ -52,6 +52,8 @@ class AnUnweightedHypergraphFile : public Test {
     _num_hyperedges(0),
     _num_hypernodes(0),
     _hypergraph_type(0),
+    _control_num_hyperedges(4),
+    _control_num_hypernodes(7),
     _control_index_vector({ 0, 2, 6, 9, 12 }),
     _control_edge_vector({ 0, 1, 0, 6, 4, 5, 4, 5, 3, 1, 2, 3 }) { }
 
@@ -63,6 +65,8 @@ class AnUnweightedHypergraphFile : public Test {
   HyperedgeID _num_hyperedges;
   HypernodeID _num_hypernodes;
   int _hypergraph_type;
+  HyperedgeID _control_num_hyperedges;
+  HypernodeID _control_num_hypernodes;
   HyperedgeIndexVector _control_index_vector;
   HyperedgeVector _control_edge_vector;
 };

@@ -26,6 +26,11 @@
 
 #include "kahypar/macros.h"
 
+#include "tests/io/hypergraph_io_test_fixtures.h"
+
+using ::testing::Eq;
+using ::testing::ContainerEq;
+
 namespace kahypar {
 TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
@@ -53,8 +58,8 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   hyperedge_indices[3] = 9;
   hyperedge_indices[4] = 12;
 
-  std::unique_ptr<kahypar_hyperedge_id_t[]> hyperedges =
-    std::make_unique<kahypar_hyperedge_id_t[]>(12);
+  std::unique_ptr<kahypar_hypernode_id_t[]> hyperedges =
+    std::make_unique<kahypar_hypernode_id_t[]>(12);
 
   // hypergraph from hMetis manual page 14
   hyperedges[0] = 0;
@@ -91,4 +96,150 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
 
   kahypar_context_free(context);
 }
+
+namespace io {
+TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+
+  size_t* index_ptr = nullptr;
+  kahypar_hypernode_id_t* hyperedges_ptr = nullptr;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+  kahypar_hypernode_weight_t* vertex_weights_ptr = nullptr;
+
+  kahypar_read_hypergraph_from_file(_filename.c_str(),
+                                    &num_hypernodes,
+                                    &num_hyperedges,
+                                    &index_ptr,
+                                    &hyperedges_ptr,
+                                    &hyperedge_weights_ptr,
+                                    &vertex_weights_ptr);
+
+
+  ASSERT_TRUE(verifyEquivalenceWithoutPartitionInfo(Hypergraph(_control_num_hypernodes,
+                                                               _control_num_hyperedges,
+                                                               _control_index_vector,
+                                                               _control_edge_vector),
+                                                    Hypergraph(num_hypernodes,
+                                                               num_hyperedges,
+                                                               index_ptr,
+                                                               hyperedges_ptr)));
+  delete[] index_ptr;
+  delete[] hyperedges_ptr;
+}
+
+TEST_F(AHypergraphFileWithHyperedgeWeights, CanBeParsedIntoAHypergraph) {
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+
+  size_t* index_ptr = nullptr;
+  kahypar_hypernode_id_t* hyperedges_ptr = nullptr;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+  kahypar_hypernode_weight_t* vertex_weights_ptr = nullptr;
+
+  kahypar_read_hypergraph_from_file(_filename.c_str(),
+                                    &num_hypernodes,
+                                    &num_hyperedges,
+                                    &index_ptr,
+                                    &hyperedges_ptr,
+                                    &hyperedge_weights_ptr,
+                                    &vertex_weights_ptr);
+
+
+  ASSERT_TRUE(verifyEquivalenceWithoutPartitionInfo(Hypergraph(_control_num_hypernodes,
+                                                               _control_num_hyperedges,
+                                                               _control_index_vector,
+                                                               _control_edge_vector,
+                                                               2,
+                                                               &_control_hyperedge_weights),
+                                                    Hypergraph(num_hypernodes,
+                                                               num_hyperedges,
+                                                               index_ptr,
+                                                               hyperedges_ptr,
+                                                               2,
+                                                               hyperedge_weights_ptr)));
+  delete[] index_ptr;
+  delete[] hyperedges_ptr;
+  delete[] hyperedge_weights_ptr;
+}
+
+TEST_F(AHypergraphFileWithHypernodeWeights, CanBeParsedIntoAHypergraph) {
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+
+  size_t* index_ptr = nullptr;
+  kahypar_hypernode_id_t* hyperedges_ptr = nullptr;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+  kahypar_hypernode_weight_t* vertex_weights_ptr = nullptr;
+
+  kahypar_read_hypergraph_from_file(_filename.c_str(),
+                                    &num_hypernodes,
+                                    &num_hyperedges,
+                                    &index_ptr,
+                                    &hyperedges_ptr,
+                                    &hyperedge_weights_ptr,
+                                    &vertex_weights_ptr);
+
+
+  ASSERT_TRUE(verifyEquivalenceWithoutPartitionInfo(Hypergraph(_control_num_hypernodes,
+                                                               _control_num_hyperedges,
+                                                               _control_index_vector,
+                                                               _control_edge_vector,
+                                                               2,
+                                                               nullptr,
+                                                               &_control_hypernode_weights),
+                                                    Hypergraph(num_hypernodes,
+                                                               num_hyperedges,
+                                                               index_ptr,
+                                                               hyperedges_ptr,
+                                                               2,
+                                                               nullptr,
+                                                               vertex_weights_ptr)));
+  delete[] index_ptr;
+  delete[] hyperedges_ptr;
+  delete[] vertex_weights_ptr;
+}
+
+TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoAHypergraph) {
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+
+  size_t* index_ptr = nullptr;
+  kahypar_hypernode_id_t* hyperedges_ptr = nullptr;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+  kahypar_hypernode_weight_t* vertex_weights_ptr = nullptr;
+
+  kahypar_read_hypergraph_from_file(_filename.c_str(),
+                                    &num_hypernodes,
+                                    &num_hyperedges,
+                                    &index_ptr,
+                                    &hyperedges_ptr,
+                                    &hyperedge_weights_ptr,
+                                    &vertex_weights_ptr);
+
+
+  ASSERT_TRUE(verifyEquivalenceWithoutPartitionInfo(Hypergraph(_control_num_hypernodes,
+                                                               _control_num_hyperedges,
+                                                               _control_index_vector,
+                                                               _control_edge_vector,
+                                                               2,
+                                                               &_control_hyperedge_weights,
+                                                               &_control_hypernode_weights),
+                                                    Hypergraph(num_hypernodes,
+                                                               num_hyperedges,
+                                                               index_ptr,
+                                                               hyperedges_ptr,
+                                                               2,
+                                                               hyperedge_weights_ptr,
+                                                               vertex_weights_ptr)));
+  delete[] index_ptr;
+  delete[] hyperedges_ptr;
+  delete[] hyperedge_weights_ptr;
+  delete[] vertex_weights_ptr;
+}
+}  // namespace io
 }  // namespace kahypar
