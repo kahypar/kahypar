@@ -109,9 +109,10 @@ class LabelPropagationInitialPartitioner : public IInitialPartitioner,
            iterations < static_cast<size_t>(_context.initial_partitioning.lp_max_iteration)) {
       converged = true;
 
-      int unvisited_pos = nodes.size();
+      const size_t num_nodes = nodes.size();
+      int unvisited_pos = num_nodes;
       while (unvisited_pos != 0) {
-        int pos = std::rand() % unvisited_pos;
+        int pos = Randomize::instance().getRandomInt(0, num_nodes) % unvisited_pos;
         std::swap(nodes[pos], nodes[unvisited_pos - 1]);
         HypernodeID v = nodes[--unvisited_pos];
 
