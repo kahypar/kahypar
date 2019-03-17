@@ -39,6 +39,7 @@
 #include "kahypar/partition/refinement/flow/flow_refiner_base.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/improvement_tracer.h"
 
 namespace kahypar {
 using ds::SparseSet;
@@ -79,6 +80,9 @@ class KWayFlowRefiner final : public IRefiner,
     if (!_flow_execution_policy.executeFlow(_hg)) {
       return false;
     }
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              metrics::objective(_hg, _context.partition.objective),
+                              TraceType::FlowImprovementBegin);
 
     // Store original partition for rollback, because we have to update
     // gain cache of kway fm refiner
@@ -146,7 +150,9 @@ class KWayFlowRefiner final : public IRefiner,
     }
 
     printMetric(true, true);
-
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              metrics::objective(_hg, _context.partition.objective),
+                              TraceType::FlowImprovementEnd);
     return improvement;
   }
 

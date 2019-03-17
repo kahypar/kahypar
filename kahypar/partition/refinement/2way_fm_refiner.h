@@ -44,6 +44,7 @@
 #include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/float_compare.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
@@ -201,6 +202,10 @@ class TwoWayFMRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementBegin);
+
     Base::reset();
     _he_fully_active.reset();
     _locked_hes.resetUsedEntries();
@@ -272,6 +277,10 @@ class TwoWayFMRefiner final : public IRefiner,
       current_cut -= max_gain;
       _stopping_policy.updateStatistics(max_gain);
 
+      KAHYPAR_TRACE_IMPROVEMENT(_context,
+                                current_cut,
+                                TraceType::FMImprovementStep);
+
       ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
       _hg.mark(max_gain_node);
@@ -321,6 +330,10 @@ class TwoWayFMRefiner final : public IRefiner,
     ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
+
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementEnd);
 
     // This currently cannot be guaranteed in case k!=2^x, because initial partitioner might create
     // a bipartition which is balanced regarding epsilon, but not regarding the targeted block

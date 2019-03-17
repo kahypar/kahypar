@@ -132,6 +132,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementBegin);
+
     Base::reset();
     _unremovable_he_parts.reset();
 
@@ -211,6 +215,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
         current_km1 -= max_gain;
         _stopping_policy.updateStatistics(max_gain);
 
+        KAHYPAR_TRACE_IMPROVEMENT(_context,
+                                  current_km1,
+                                  TraceType::FMImprovementStep);
+
         ASSERT(current_km1 == metrics::km1(_hg),
                V(current_km1) << V(metrics::km1(_hg)));
         ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
@@ -265,6 +273,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     Base::rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
+
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementEnd);
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 

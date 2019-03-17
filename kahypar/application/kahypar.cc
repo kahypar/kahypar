@@ -23,6 +23,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partitioner_facade.h"
+#include "kahypar/utils/improvement_tracer.h"
 
 int main(int argc, char* argv[]) {
   kahypar::Context context;
@@ -35,6 +36,7 @@ int main(int argc, char* argv[]) {
 
   kahypar::PartitionerFacade().partition(hypergraph, context);
 
+  KAHYPAR_WRITE_TRACE_TO_FILE(context.partition.trace_filename);
 
   return 0;
 }

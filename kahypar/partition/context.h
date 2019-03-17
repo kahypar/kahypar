@@ -324,6 +324,7 @@ struct PartitioningParameters {
   std::string graph_partition_filename { };
   std::string fixed_vertex_filename { };
   std::string input_partition_filename { };
+  std::string trace_filename { };
 };
 
 inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters& params) {
@@ -335,6 +336,9 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   }
   if (!params.input_partition_filename.empty()) {
     str << "  Input Partition File:                  " << params.input_partition_filename << std::endl;
+  }
+  if (!params.trace_filename.empty()) {
+    str << "  Trace File:                            " << params.trace_filename << std::endl;
   }
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Objective:                          " << params.objective << std::endl;

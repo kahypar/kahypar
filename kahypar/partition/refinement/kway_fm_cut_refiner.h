@@ -42,6 +42,7 @@
 #include "kahypar/partition/refinement/kway_fm_gain_cache.h"
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/float_compare.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
@@ -119,6 +120,10 @@ class KWayFMRefiner final : public IRefiner,
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
+
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementBegin);
 
     Base::reset();
     _he_fully_active.reset();
@@ -205,6 +210,10 @@ class KWayFMRefiner final : public IRefiner,
         current_cut -= max_gain;
         _stopping_policy.updateStatistics(max_gain);
 
+        KAHYPAR_TRACE_IMPROVEMENT(_context,
+                                  current_cut,
+                                  TraceType::FMImprovementStep);
+
         ASSERT(current_cut == metrics::hyperedgeCut(_hg),
                V(current_cut) << V(metrics::hyperedgeCut(_hg)));
         ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
@@ -244,6 +253,10 @@ class KWayFMRefiner final : public IRefiner,
 
     Base::rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
+
+    KAHYPAR_TRACE_IMPROVEMENT(_context,
+                              best_metrics.getMetric(_context.partition.mode, _context.partition.objective),
+                              TraceType::FMImprovementEnd);
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));

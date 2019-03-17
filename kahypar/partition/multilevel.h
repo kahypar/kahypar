@@ -29,6 +29,7 @@
 #include "kahypar/partition/initial_partition.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/utils/timer.h"
 
 namespace kahypar {
@@ -64,6 +65,9 @@ static inline void partition(Hypergraph& hypergraph,
                           std::chrono::duration<double>(end - start).count());
 
     hypergraph.initializeNumCutHyperedges();
+    KAHYPAR_TRACE_IMPROVEMENT(context,
+                              metrics::objective(hypergraph, context.partition.objective),
+                              TraceType::InitialSolution);
     if (context.partition.verbose_output && context.type == ContextType::main) {
       LOG << "Initial Partitioning Result:";
       LOG << "Initial" << context.partition.objective << "      ="

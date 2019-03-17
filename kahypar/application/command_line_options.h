@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2017 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2017-2019 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -76,6 +76,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("part-file",
     po::value<std::string>(&context.partition.input_partition_filename)->value_name("<string>"),
     "Input Partition filename. The input partition is then refined using direct k-way V-cycles.")
+    ("trace-file",
+    po::value<std::string>(&context.partition.trace_filename)->value_name("<string>"),
+    "Filename of improvement trace.")
     ("cmaxnet",
     po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
       [&](const HyperedgeID) {
