@@ -265,7 +265,10 @@ class TwoWayFMRefiner final : public IRefiner,
 
       _hg.changeNodePart(max_gain_node, from_part, to_part, _non_border_hns_to_remove);
 
-      updatePQpartState(from_part, to_part, max_allowed_part_weights);
+      Base::updatePQpartState(from_part,
+                              to_part,
+                              max_allowed_part_weights[from_part],
+                              max_allowed_part_weights[to_part]);
 
       current_imbalance = metrics::imbalance(_hg, _context);
 
@@ -332,15 +335,6 @@ class TwoWayFMRefiner final : public IRefiner,
                                                  initial_imbalance, _context.partition.epsilon);
   }
 
-  void updatePQpartState(const PartitionID from_part, const PartitionID to_part,
-                         const HypernodeWeightArray& max_allowed_part_weights) {
-    if (_hg.partWeight(to_part) >= max_allowed_part_weights[to_part]) {
-      _pq.disablePart(to_part);
-    }
-    if (_hg.partWeight(from_part) < max_allowed_part_weights[from_part]) {
-      _pq.enablePart(from_part);
-    }
-  }
 
   void removeInternalizedHns() {
     for (const HypernodeID& hn : _non_border_hns_to_remove) {
