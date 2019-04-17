@@ -1262,7 +1262,7 @@ class GenericHypergraph {
     if (!_fixed_vertices) {
       _fixed_vertices = std::make_unique<SparseSet<HypernodeID> >(initialNumNodes());
       _fixed_vertex_part_id.resize(initialNumNodes());
-      std::fill(_fixed_vertex_part_id.begin(),_fixed_vertex_part_id.end(),kInvalidPartition);
+      std::fill(_fixed_vertex_part_id.begin(), _fixed_vertex_part_id.end(), kInvalidPartition);
     }
     _fixed_vertices->add(hn);
     _fixed_vertex_part_id[hn] = id;
@@ -2021,8 +2021,9 @@ class GenericHypergraph {
 
     Hypernode& nodeU = hypernode(u);
     if (first_call) {
-      _incidence_array.insert(_incidence_array.cend(), _incidence_array.cbegin() + nodeU.firstEntry(),
-                              _incidence_array.cbegin() + nodeU.firstInvalidEntry());
+      for (size_t i = nodeU.firstEntry(); i != nodeU.firstInvalidEntry(); ++i) {
+        _incidence_array.push_back(_incidence_array[i]);
+      }
       nodeU.setFirstEntry(_incidence_array.size() - nodeU.size());
       first_call = false;
     }
@@ -2189,12 +2190,12 @@ class GenericHypergraph {
                                                  const Hypergraph& actual);
 
   template <typename Hypergraph>
-  friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
+  friend std ::pair<std::unique_ptr<Hypergraph>,
+                    std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
 
   template <typename Hypergraph>
-  friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
+  friend std ::pair<std::unique_ptr<Hypergraph>,
+                    std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
 
   template <typename Hypergraph>
   friend  void setupInternalStructure(const Hypergraph& reference,
