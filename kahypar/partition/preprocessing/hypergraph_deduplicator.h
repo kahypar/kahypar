@@ -58,8 +58,8 @@ class HypergraphDeduplicator {
     removeIdenticalVertices(hypergraph);
     removeParallelHyperedges(hypergraph);
     if (context.partition.verbose_output) {
-      LOG << "  removed " << _removed_parallel_hes.size() << " parallel hyperedges";
-      LOG << "  removed " << _removed_identical_nodes.size() << " identical vertices";
+      LOG << "  # removed parallel hyperedges =" << _removed_parallel_hes.size() << " ";
+      LOG << "  # removed identical vertices  =" << _removed_identical_nodes.size() << " ";
     }
   }
 
