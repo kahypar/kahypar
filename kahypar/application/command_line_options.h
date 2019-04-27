@@ -399,7 +399,7 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
   options.add_options()
     ("p-enable-deduplication",
     po::value<bool>(&context.preprocessing.enable_deduplication)->value_name("<bool>"),
-    "Remove identical vertices and parallel nets")
+    "Remove identical vertices and parallel nets before partitioning")
     ("p-use-sparsifier",
     po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning")
