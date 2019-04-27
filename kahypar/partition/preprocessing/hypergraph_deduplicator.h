@@ -25,6 +25,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/meta/reversed_iterable.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 class HypergraphDeduplicator {
