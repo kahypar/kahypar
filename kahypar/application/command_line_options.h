@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -397,6 +397,9 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
                                                               const int num_columns) {
   po::options_description options("Preprocessing Options", num_columns);
   options.add_options()
+    ("p-enable-deduplication",
+    po::value<bool>(&context.preprocessing.enable_deduplication)->value_name("<bool>"),
+    "Remove identical vertices and parallel nets")
     ("p-use-sparsifier",
     po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning")

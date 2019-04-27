@@ -247,13 +247,6 @@ class HypergraphPruner {
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) {
     _fingerprints.clear();
     for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
-      if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
-        hypergraph.edgeHash(he) -= math::hash(v);
-        hypergraph.edgeHash(he) += math::hash(u);
-      } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
-        hypergraph.edgeHash(he) -= math::hash(v);
-      }
-      hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = Hypergraph::kEdgeHashSeed;
           for (const HypernodeID& pin : hypergraph.pins(he)) {

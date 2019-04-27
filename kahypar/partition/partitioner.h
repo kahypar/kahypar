@@ -34,6 +34,7 @@
 #include "kahypar/partition/direct_kway.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/partition/preprocessing/hypergraph_deduplicator.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
@@ -136,6 +137,7 @@ class Partitioner {
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
   MinHashSparsifier _pin_sparsifier;
+  HypergraphDeduplicator _deduplicator;
 };
 
 inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
@@ -266,6 +268,10 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
 
   sanitize(hypergraph, context);
 
+  if (context.preprocessing.enable_deduplication) {
+    _deduplicator.deduplicate(hypergraph, context);
+  }
+
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     ALWAYS_ASSERT(!context.partition_evolutionary ||
                   context.evolutionary.action.decision() == EvoDecision::normal,
@@ -288,6 +294,8 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
   }
+
+  _deduplicator.restoreRedundancy(hypergraph);
 
   ASSERT([&]() {
       for (const HypernodeID& hn : hypergraph.fixedVertices()) {
