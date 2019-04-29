@@ -2704,7 +2704,6 @@ template <typename Hypergraph>
 static std::vector<typename Hypergraph::ContractionMemento>
 removeIdenticalNodes(Hypergraph& hypergraph) {
   typedef typename Hypergraph::HypernodeID HypernodeID;
-  typedef typename Hypergraph::HyperedgeID HyperedgeID;
 
   const size_t next_prime = math::nextPrime(hypergraph.initialNumNodes());
 
