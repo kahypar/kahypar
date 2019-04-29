@@ -2619,6 +2619,9 @@ static std::vector<std::pair<typename Hypergraph::HyperedgeID,
 removeParallelHyperedges(Hypergraph& hypergraph) {
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
 
+  ASSERT(hypergraph.initialNumEdges() == hypergraph.currentNumEdges(),
+         "Deduplication assumes unmodified hypergraph!");
+
   const size_t next_prime = math::nextPrime(hypergraph.initialNumEdges());
 
   std::vector<size_t> first(next_prime, std::numeric_limits<size_t>::max());
@@ -2704,6 +2707,9 @@ template <typename Hypergraph>
 static std::vector<typename Hypergraph::ContractionMemento>
 removeIdenticalNodes(Hypergraph& hypergraph) {
   typedef typename Hypergraph::HypernodeID HypernodeID;
+
+  ASSERT(hypergraph.initialNumNodes() == hypergraph.currentNumNodes(),
+         "Deduplication assumes unmodified hypergraph!");
 
   const size_t next_prime = math::nextPrime(hypergraph.initialNumNodes());
 
