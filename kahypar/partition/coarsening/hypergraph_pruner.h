@@ -129,7 +129,7 @@ class HypergraphPruner {
                                        CoarseningMemento& memento) {
     memento.parallel_hes_begin = _removed_parallel_hyperedges.size();
 
-    createFingerprints(hypergraph, memento.contraction_memento.u, memento.contraction_memento.v);
+    createFingerprints(hypergraph, memento.contraction_memento.u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
@@ -244,7 +244,7 @@ class HypergraphPruner {
     _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
   }
 
-  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) {
+  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) {
     _fingerprints.clear();
     for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
       ASSERT([&]() {

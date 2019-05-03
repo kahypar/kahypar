@@ -89,7 +89,8 @@ class Partitioner {
  public:
   Partitioner() :
     _single_node_he_remover(),
-    _pin_sparsifier() { }
+    _pin_sparsifier(),
+    _deduplicator() { }
 
   Partitioner(const Partitioner&) = delete;
   Partitioner& operator= (const Partitioner&) = delete;
