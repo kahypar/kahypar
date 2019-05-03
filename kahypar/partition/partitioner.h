@@ -196,10 +196,13 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
-    LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
-        << "hyperedges with |e|=1" << "\033[0m";
-    LOG << "\033[1m\033[31m" << "===>" << result.num_unconnected_hns
+    LOG << "Performing single-node HE removal:";
+    LOG << "\033[1m\033[31m" << " # removed hyperedges with |e|=1 = "
+        << result.num_removed_single_node_hes
+        << "\033[0m";
+    LOG << "\033[1m\033[31m" << " ===>" << result.num_unconnected_hns
         << "unconnected HNs could have been removed" << "\033[0m";
+    io::printStripe();
   }
 }
 
@@ -236,8 +239,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
                         std::chrono::duration<double>(end - start).count());
 
   if (context.partition.verbose_output) {
-    LOG << "After sparsification:";
+    LOG << "Performing sparsification::";
     kahypar::io::printHypergraphInfo(sparse_hypergraph, "sparsified hypergraph");
+    io::printStripe();
   }
   preprocess(sparse_hypergraph, context);
 }

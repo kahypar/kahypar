@@ -61,6 +61,7 @@ class HypergraphDeduplicator {
     if (context.partition.verbose_output) {
       LOG << "  # removed parallel hyperedges =" << _removed_parallel_hes.size() << " ";
       LOG << "  # removed identical vertices  =" << _removed_identical_nodes.size() << " ";
+      io::printStripe();
     }
   }
 
