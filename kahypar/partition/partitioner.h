@@ -193,7 +193,6 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 }
 
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
-  io::printTopLevelPreprocessingBanner(context);
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
     LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
@@ -266,11 +265,15 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   setupContext(hypergraph, context);
   io::printInputInformation(context, hypergraph);
 
-  sanitize(hypergraph, context);
-
+  io::printTopLevelPreprocessingBanner(context);
   if (context.preprocessing.enable_deduplication) {
+    // deduplication needs to be called first, because the code
+    // currently assumes that all HEs and HNs in the hypergraph
+    // exist (i.e., are enabled).
     _deduplicator.deduplicate(hypergraph, context);
   }
+
+  sanitize(hypergraph, context);
 
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     ALWAYS_ASSERT(!context.partition_evolutionary ||

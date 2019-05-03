@@ -22,6 +22,7 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <queue>
 #include <utility>
 #include <vector>
@@ -52,15 +53,15 @@ class AdaptiveLSHWithConnectedComponents {
     _bfs_neighbours(),
     _vertices(),
     _new_hashes(),
-    _hash_set(0, _hypergraph.currentNumNodes()),
-    _hashes(_hypergraph.currentNumNodes()),
+    _hash_set(0, _hypergraph.initialNumNodes()),
+    _hashes(_hypergraph.initialNumNodes()),
     _buckets(),
     _new_buckets(),
     _base_hash_policy(0),
-    _multiset_buckets(_hypergraph.currentNumNodes()),
-    _visited(_hypergraph.currentNumNodes()) {
-    _buckets.reserve(_hypergraph.currentNumNodes());
-    _new_buckets.reserve(_hypergraph.currentNumNodes());
+    _multiset_buckets(_hypergraph.initialNumNodes()),
+    _visited(_hypergraph.initialNumNodes()) {
+    _buckets.reserve(_hypergraph.initialNumNodes());
+    _new_buckets.reserve(_hypergraph.initialNumNodes());
     _bfs_neighbours.reserve(_context.preprocessing.min_hash_sparsifier.max_hyperedge_size);
     _hash_set.reserve(_context.preprocessing.min_hash_sparsifier.combined_num_hash_functions);
     _base_hash_policy.reserveHashFunctions(
@@ -71,26 +72,26 @@ class AdaptiveLSHWithConnectedComponents {
     std::default_random_engine eng(_context.partition.seed);
     std::uniform_int_distribution<uint32_t> rnd;
 
-    MyHashSet main_hash_set(0, _hypergraph.currentNumNodes());
+    MyHashSet main_hash_set(0, _hypergraph.initialNumNodes());
     main_hash_set.reserve(20);
 
-    std::vector<HypernodeID> clusters;
-    clusters.reserve(_hypergraph.currentNumNodes());
+    std::vector<uint32_t> cluster_size(_hypergraph.initialNumNodes(), 1);
 
-    std::vector<uint32_t> cluster_size(_hypergraph.currentNumNodes(), 1);
+    std::vector<uint8_t> active_clusters_bool_set(_hypergraph.initialNumNodes(), true);
 
-    std::vector<uint8_t> active_clusters_bool_set(_hypergraph.currentNumNodes(), true);
-
-    const HypernodeID num_free_vertices = _hypergraph.currentNumNodes() -
+    const HypernodeID num_free_vertices = _hypergraph.initialNumNodes() -
                                           _hypergraph.numFixedVertices();
     HypernodeID num_active_vertices = num_free_vertices;
 
-    for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
-      clusters.push_back(vertex_id);
+
+    std::vector<HypernodeID> clusters(_hypergraph.initialNumNodes(),
+                                      std::numeric_limits<HypernodeID>::max());
+    for (const HypernodeID vertex_id : _hypergraph.nodes()) {
+      clusters[vertex_id] = vertex_id;
     }
 
     std::vector<HypernodeID> inactive_clusters;
-    inactive_clusters.reserve(_hypergraph.currentNumNodes());
+    inactive_clusters.reserve(_hypergraph.initialNumNodes());
 
     std::vector<HypernodeID> active_vertices_set;
     active_vertices_set.reserve(num_active_vertices);
@@ -100,7 +101,7 @@ class AdaptiveLSHWithConnectedComponents {
       main_hash_set.addHashVector();
       active_vertices_set.clear();
 
-      for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+      for (const HypernodeID vertex_id : _hypergraph.nodes()) {
         if (!_hypergraph.isFixedVertex(vertex_id)) {
           const HypernodeID cluster = clusters[vertex_id];
           if (active_clusters_bool_set[cluster]) {
@@ -115,24 +116,18 @@ class AdaptiveLSHWithConnectedComponents {
       incrementalParametersEstimation(active_vertices_set, rnd(eng), main_hash_set, hash_num);
 
       _multiset_buckets.clear();
-      calculateOneDimBucket(_hypergraph.currentNumNodes(),
-                            active_clusters_bool_set, clusters, main_hash_set, hash_num);
+      calculateOneDimBucket(active_clusters_bool_set, clusters, main_hash_set, hash_num);
 
       calculateClustersIncrementally(active_clusters_bool_set,
                                      clusters, cluster_size,
                                      main_hash_set, hash_num, inactive_clusters);
 
-      std::vector<char> bit_map(clusters.size());
-      for (const auto& clst : clusters) {
-        bit_map[clst] = 1;
-      }
 
-      size_t num_cl = 0;
-      for (const auto& bit : bit_map) {
-        if (bit) {
-          ++num_cl;
-        }
-      }
+      const size_t num_cl = std::count_if(clusters.begin(), clusters.end(),
+                                          [](HypernodeID i) {
+          return i != std::numeric_limits<HypernodeID>::max();
+        });
+
       DBG << "Num clusters:" << num_cl;
 
       std::sort(inactive_clusters.begin(), inactive_clusters.end());
@@ -264,17 +259,16 @@ class AdaptiveLSHWithConnectedComponents {
       }
       _buckets.swap(_new_buckets);
     }
-    for (uint32_t vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+    for (const HypernodeID vertex_id : _hypergraph.nodes()) {
       main_hash_set[main_hash_num][vertex_id] = _hashes[vertex_id];
     }
   }
 
   // distributes vertices among bucket according to the new hash values
-  void calculateOneDimBucket(const HypernodeID num_vertex,
-                             const std::vector<uint8_t>& active_clusters_bool_set,
+  void calculateOneDimBucket(const std::vector<uint8_t>& active_clusters_bool_set,
                              const std::vector<HypernodeID>& clusters, const MyHashSet& hash_set,
                              const uint32_t hash_num) {
-    for (HypernodeID vertex_id = 0; vertex_id < num_vertex; ++vertex_id) {
+    for (const HypernodeID vertex_id : _hypergraph.nodes()) {
       const HypernodeID cluster = clusters[vertex_id];
       if (active_clusters_bool_set[cluster]) {
         _multiset_buckets.put(hash_set[hash_num][vertex_id], vertex_id);
@@ -299,7 +293,7 @@ class AdaptiveLSHWithConnectedComponents {
                          std::vector<HypernodeID>& clusters, std::vector<uint32_t>& cluster_size,
                          std::vector<HypernodeID>& inactive_clusters) {
     _visited.reset();
-    for (HypernodeID vertex_id = 0; vertex_id < _hypergraph.currentNumNodes(); ++vertex_id) {
+    for (const HypernodeID vertex_id : _hypergraph.nodes()) {
       const HypernodeID cluster = clusters[vertex_id];
       if (!_visited[vertex_id] && active_clusters_bool_set[cluster]) {
         _visited.set(vertex_id, true);
