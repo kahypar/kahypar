@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
 #include "kahypar/meta/reversed_iterable.h"
 #include "kahypar/partition/context.h"
 
