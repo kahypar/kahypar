@@ -45,8 +45,8 @@ add_executable(RepeatsToHgr repeats_to_hgr_converter.cc)
 set_property(TARGET RepeatsToHgr PROPERTY CXX_STANDARD 14)
 set_property(TARGET RepeatsToHgr PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(DegreePinDistribution calculate_degree_pin_distribution.cc)
-set_property(TARGET DegreePinDistribution PROPERTY CXX_STANDARD 17)
-set_property(TARGET DegreePinDistribution PROPERTY CXX_STANDARD_REQUIRED ON)
+target_compile_features(DegreePinDistribution PUBLIC cxx_std_17)
+set_target_properties(DegreePinDistribution PROPERTIES CXX_EXTENSIONS OFF)
 
 
 # This test needs test instance files, so we copy them to the corresponding build dir
