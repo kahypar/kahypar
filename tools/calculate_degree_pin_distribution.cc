@@ -60,12 +60,12 @@ int main(int argc, char* argv[]) {
   std::ofstream out_stream(output_filename.c_str());
   out_stream << "hypergraph," << "type," << "size," << "count" << std::endl;
 
-  for (const auto& [degree,count] : degree_distribution){
-    out_stream << instance_name <<  "," << "degree," << degree << "," << count << std::endl;
+  for (const auto& degree_count : degree_distribution){
+    out_stream << instance_name <<  "," << "degree," << degree_count.first << "," << degree_count.second << std::endl;
   }
 
-  for (const auto& [size,count] : pin_distribution){
-    out_stream << instance_name <<  "," << "size," << size << "," << count << std::endl;
+  for (const auto& size_count : pin_distribution){
+    out_stream << instance_name <<  "," << "size," << size_count.first << "," << size_count.second << std::endl;
   }
 
   out_stream.close();
