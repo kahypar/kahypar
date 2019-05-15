@@ -34,6 +34,7 @@
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/2way_hyperflowcutter_refiner.h"
 #include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
@@ -87,4 +88,7 @@ using KWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFlowRefin
                                                                    IRefiner,
                                                                    meta::Typelist<FlowNetworkPolicyClasses,
                                                                                   FlowExecutionPolicyClasses> >;
+using TwoWayHyperFlowCutterFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayHyperFlowCutterRefiner,
+                                                                                IRefiner,
+                                                                                meta::Typelist<FlowExecutionPolicyClasses> >;
 }  // namespace kahypar
