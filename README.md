@@ -80,7 +80,7 @@ Its algorithms and detailed experimental results are presented in several [resea
 
    
 #### Experimental Results
-We use the [*performance profiles*](https://link.springer.com/article/10.1007/s101070100263) to compare KaHyPar to other partitioning algorithms in terms of solution quality
+We use the [*performance profiles*](https://link.springer.com/article/10.1007/s101070100263) to compare KaHyPar to other partitioning algorithms in terms of solution quality.
   For a set of <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BP%7D"/> algorithms and a benchmark set <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/> containing |<img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/>| instances, the *performance ratio* <img src="https://latex.codecogs.com/gif.latex?r_%7Bp%2Ci%7D"/> relates the cut computed by
   partitioner *p* for instance *i* to the smallest minimum cut of *all* algorithms, i.e.,
   <p align="center">
@@ -91,14 +91,14 @@ The *performance profile* <img src="https://latex.codecogs.com/gif.latex?%24%5Cr
 <img src="https://latex.codecogs.com/gif.latex?%24%24%5Crho_p%28%5Ctau%29%20%3A%3D%20%5Cfrac%7B%7C%5C%7Bi%20%5Cin%20%5Cmathcal%7BI%7D%20%3A%20r_%7Bp%2Ci%7D%20%5Cleq%20%5Ctau%20%5C%7D%7C%7D%7B%20%7C%5Cmathcal%7BI%7D%20%7C%7D%2C%20%5Ctau%20%5Cgeq%201.%24%24"/></p>
 
 For connectivity optimization, the performance ratios are computed using the connectivity values <img src="https://latex.codecogs.com/gif.latex?%5Clambda%5E%7B-1%7D_%7Bp%2Ci%7D"/> instead of the cut values.
-    The value of <img src="https://latex.codecogs.com/gif.latex?%24%5Crho_p%281%29%24"/> corresponds to the fraction of instances for which partitioner p computed the best solution, while  <img src="https://latex.codecogs.com/gif.latex?%24%5Crho_p%28%5Ctau%29%24"/> is the probability
+    The value of <img src="https://latex.codecogs.com/gif.latex?%24%5Crho_p%281%29%24"/> corresponds to the fraction of instances for which partitioner *p* computed the best solution, while  <img src="https://latex.codecogs.com/gif.latex?%24%5Crho_p%28%5Ctau%29%24"/> is the probability
     that a performance ratio <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%24"/> is within a factor of <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%24"/> of the best possible ratio.
     Note that since performance profiles only allow to assess the performance of each algorithm relative to the *best* algorithm, the <img src="https://latex.codecogs.com/gif.latex?%24%5Crho%281%29%24"/> values
     cannot be used to rank algorithms (i.e., to determine which algorithm is the second best etc.).
     
 In our experimental analysis, the performance profile plots are based on the *best* solutions (i.e., *minimum* connectivity/cut) each algorithm found for each instance.
-    Furthermore, we choose parameters <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Binf%7D%7D%20%5Cgg%20r_%7Bp%2Ci%7D%24"/> for all <img src="https://latex.codecogs.com/gif.latex?%24p%2Ci%24"/> and <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Btimeout%7D%7D%20%5Cgg%20r_%7B%5Ctext%7Binf%7D%7D%24"/> such that a performance ratio <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Binf%7D%24"/> if and only if algorithm p computed an infeasible solution
-    for instance i, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance i within the given time limit.
+    Furthermore, we choose parameters <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Binf%7D%7D%20%5Cgg%20r_%7Bp%2Ci%7D%24"/> for all <img src="https://latex.codecogs.com/gif.latex?%24p%2Ci%24"/> and <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Btimeout%7D%7D%20%5Cgg%20r_%7B%5Ctext%7Binf%7D%7D%24"/> such that a performance ratio <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Binf%7D%24"/> if and only if algorithm *p* computed an infeasible solution
+    for instance *i*, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance *i* within the given time limit.
     Since the performance ratios are heavily right-skewed, the performance profile plots are divided into three segments with different ranges for parameter <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%24"/> to reflect various areas of interest.
     The first segment highlights small values (<img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%20%5Cleq%201.1%24"/>), while the second segment contains results for all instances
     that are up to a factor of <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%3D2%24"/> worse than the best possible ratio. The last segment  contains all remaining ratios, i.e., instances for which
