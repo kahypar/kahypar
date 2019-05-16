@@ -74,6 +74,10 @@ int main(int argc, char* argv[]) {
   Context context;
   context.partition.k = max_part + 1;
 
+  for (size_t i = 0; i < context.partition.k; ++i) {
+    LOG << i << V(hypergraph.partSize(i)) << V(hypergraph.partWeight(i));
+  }
+
   std::cout << "***********************" << hypergraph.k()
             << "-way Partition Result************************" << std::endl;
   std::cout << "cut=" << metrics::hyperedgeCut(hypergraph) << std::endl;
