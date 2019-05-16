@@ -171,7 +171,7 @@ To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the cut-net objective using direct k-way mode run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/cut_kahypar_mf_jea19.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kahypar_mf_jea19.ini
 
 To start EvoHGP/KaHyPar-E optimizing the (connectivity - 1) objective using direct k-way mode run
    
