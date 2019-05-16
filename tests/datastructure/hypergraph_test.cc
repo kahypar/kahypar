@@ -249,10 +249,9 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   int i = 0;
-
+  std::vector<HyperedgeID> incident_nets{ 2, 3 };
   for (const HyperedgeID& he : hypergraph.incidentEdges(6)) {
-    ASSERT_THAT(he, Eq(*(hypergraph._incidence_array.begin() +
-                         hypergraph.hypernode(6).firstEntry() + i)));
+    ASSERT_THAT(he, incident_nets[i]);
     ++i;
   }
 }
@@ -268,15 +267,11 @@ TEST_F(AHypergraphMacro, IteratesOverAllPinsOfAHyperedge) {
 
 TEST_F(AContractionMemento, StoresOldStateOfInvolvedHypernodes) {
   HypernodeID u_id = 4;
-  HypernodeID u_offset = hypergraph.hypernode(u_id).firstEntry();
-  HypernodeID u_size = hypergraph.hypernode(u_id).size();
   HypernodeID v_id = 6;
 
   Memento memento = hypergraph.contract(4, 6);
 
   ASSERT_THAT(memento.u, Eq(u_id));
-  ASSERT_THAT(memento.u_first_entry, Eq(u_offset));
-  ASSERT_THAT(memento.u_size, Eq(u_size));
   ASSERT_THAT(memento.v, Eq(v_id));
 }
 
@@ -308,15 +303,6 @@ TEST_F(AnUncontractionOperation, DisconnectsHyperedgesAddedToRepresenativeDuring
   hypergraph.uncontract(memento);
 
   ASSERT_THAT(hypergraph.nodeDegree(4), Eq(2));
-}
-
-TEST_F(AnUncontractionOperation, DeletesIncidenceInfoAddedDuringContraction) {
-  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(24));
-  Memento memento = hypergraph.contract(4, 6);
-  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(27));
-
-  hypergraph.uncontract(memento);
-  ASSERT_THAT(hypergraph._incidence_array.size(), Eq(24));
 }
 
 TEST_F(AnUncontractionOperation, RestoresIncidenceInfoForHyperedgesAddedToRepresentative) {
@@ -835,77 +821,6 @@ TEST_F(APartitionedHypergraph, IdentifiesBorderHypernodes) {
   ASSERT_THAT(hypergraph.isBorderNode(4), Eq(true));
   ASSERT_THAT(hypergraph.isBorderNode(5), Eq(false));
   ASSERT_THAT(hypergraph.isBorderNode(6), Eq(true));
-}
-
-TEST_F(AHypergraph, SupportsIsolationOfHypernodes) {
-  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
-  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
-  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
-  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
-
-  const HyperedgeID old_degree = hypergraph.isolateNode(0);
-
-  ASSERT_THAT(old_degree, Eq(2));
-  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(0));
-  ASSERT_THAT(hypergraph.edgeSize(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeSize(1), Eq(3));
-  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
-  ASSERT_THAT(std::find(hypergraph.pins(0).first, hypergraph.pins(0).second, 0) ==
-              hypergraph.pins(0).second, Eq(true));
-  ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) ==
-              hypergraph.pins(1).second, Eq(true));
-}
-
-TEST_F(AHypergraph, RemovesEmptyHyperedgesOnHypernodeIsolation) {
-  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
-  ASSERT_THAT(!hypergraph.hyperedge(0).isDisabled(), Eq(true));
-
-  hypergraph.isolateNode(0);
-  hypergraph.isolateNode(2);
-
-  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
-  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(true));
-}
-
-TEST_F(AHypergraph, RestoresRemovedEmptyHyperedgesOnRestoreOfIsolatedHypernodes) {
-  ASSERT_THAT(*hypergraph.pins(0).first, Eq(0));
-  ASSERT_THAT(*(hypergraph.pins(0).first + 1), Eq(2));
-  const HyperedgeID old_degree_0 = hypergraph.isolateNode(0);
-  const HyperedgeID old_degree_2 = hypergraph.isolateNode(2);
-  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(3));
-  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(true));
-
-  hypergraph.setNodePart(0, 0);
-  hypergraph.setNodePart(2, 0);
-  // reverse order!
-  hypergraph.reconnectIsolatedNode(2, old_degree_2);
-  hypergraph.reconnectIsolatedNode(0, old_degree_0);
-
-  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
-  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
-  ASSERT_THAT(hypergraph.hyperedge(0).isDisabled(), Eq(false));
-  ASSERT_THAT(*hypergraph.pins(0).first, Eq(2));
-  ASSERT_THAT(*(hypergraph.pins(0).first + 1), Eq(0));
-}
-
-TEST_F(AHypergraph, SupportsRestoreOfIsolatedHypernodes) {
-  const HyperedgeID old_degree = hypergraph.isolateNode(0);
-  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(0));
-  ASSERT_THAT(hypergraph.edgeSize(0), Eq(1));
-  ASSERT_THAT(hypergraph.edgeSize(1), Eq(3));
-  ASSERT_THAT(hypergraph.currentNumPins(), Eq(10));
-
-  hypergraph.setNodePart(0, 0);
-  hypergraph.reconnectIsolatedNode(0, old_degree);
-
-  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
-  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
-  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
-  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
-  ASSERT_THAT(std::find(hypergraph.pins(0).first, hypergraph.pins(0).second, 0) !=
-              hypergraph.pins(0).second, Eq(true));
-  ASSERT_THAT(std::find(hypergraph.pins(1).first, hypergraph.pins(1).second, 0) !=
-              hypergraph.pins(1).second, Eq(true));
 }
 
 TEST_F(AHypergraph, StoresCorrectNumberOfFixedVertices) {
