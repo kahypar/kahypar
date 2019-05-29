@@ -33,6 +33,7 @@
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
@@ -99,12 +100,11 @@ class MLCoarsener final : public ICoarsener,
       for (const HypernodeID& hn : current_hns) {
         if (_hg.nodeIsEnabled(hn)) {
           const Rating rating = _rater.rate(hn);
-
           if (rating.target != kInvalidTarget) {
             _rater.markAsMatched(hn);
             _rater.markAsMatched(rating.target);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
-
+            KAHYPAR_TRACE_VALUE(_context, rating.value,TraceType::MLCoarsening);
             performContraction(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);

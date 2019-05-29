@@ -34,6 +34,7 @@
 #include "kahypar/partition/coarsening/policies/rating_partition_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
@@ -104,7 +105,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                <= _rater.thresholdNodeWeight());
         ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
                V(_pq.topKey()) << V(_rater.rate(rep_node).value));
-
+        KAHYPAR_TRACE_VALUE(_context, _pq.topKey(),TraceType::LazyCoarsening);
         performContraction(rep_node, contracted_node);
 
         // This assertion does not hold if the cmaxnet parameter is used

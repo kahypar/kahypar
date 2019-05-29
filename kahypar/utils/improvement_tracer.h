@@ -30,14 +30,20 @@
 
 namespace kahypar {
 #ifdef KAHYPAR_TRACE_IMPROVEMENTS
-#define KAHYPAR_TRACE_IMPROVEMENT(context, obj_val, type) kahypar::ImprovementTracer::instance().add(context, obj_val, type)
+#define KAHYPAR_TRACE_VALUE(context, obj_val, type) kahypar::ImprovementTracer::instance().add(context, obj_val, type)
+#define KAHYPAR_TRACE_IMPROVEMENT(context, obj_val, type)
+// #define KAHYPAR_TRACE_IMPROVEMENT(context, obj_val, type) kahypar::ImprovementTracer::instance().add(context, obj_val, type)
 #define KAHYPAR_WRITE_TRACE_TO_FILE(filename) kahypar::ImprovementTracer::instance().writeToFile(filename)
 #else
 #define KAHYPAR_TRACE_IMPROVEMENT(context, obj_val, type)
+#define KAHYPAR_TRACE_VALUE(context, obj_val, type)
 #define KAHYPAR_WRITE_TRACE_TO_FILE(filename)
 #endif
 
 enum class TraceType {
+  LazyCoarsening,
+  FullCoarsening,
+  MLCoarsening,
   InitialSolution,
   FMImprovementBegin,
   FMImprovementStep,
@@ -48,6 +54,9 @@ enum class TraceType {
 
 std::ostream& operator<< (std::ostream& os, const TraceType& trace_type) {
   switch (trace_type) {
+    case TraceType::FullCoarsening: return os << "FullCoarsening";
+    case TraceType::LazyCoarsening: return os << "LazyCoarsening";
+    case TraceType::MLCoarsening: return os << "MLCoarsening";
     case TraceType::InitialSolution: return os << "InitialSolution";
     case TraceType::FMImprovementBegin: return os << "FMImprovementBegin";
     case TraceType::FMImprovementStep: return os << "FMImprovementStep";
@@ -71,7 +80,7 @@ class ImprovementTracer {
     return instance;
   }
 
-  void add(const Context& context, const uint64_t obj_value, const TraceType trace_type) {
+  void add(const Context& context, const double obj_value, const TraceType trace_type) {
     if (context.type == ContextType::main) {
       _trace.emplace_back(TraceItem { obj_value, trace_type });
     }
@@ -79,9 +88,10 @@ class ImprovementTracer {
 
   void writeToFile(const std::string& filename) const {
     std::ofstream out_stream(filename.c_str());
-    out_stream << "Objective, Type" << std::endl;
-    for (const auto& item : _trace) {
-      out_stream << item.objective_value << "," << item.trace_type << std::endl;
+    out_stream << "X, Objective, Type" << std::endl;
+    for (size_t i = 0; i != _trace.size(); ++i) {
+      const auto item = _trace[i];
+      out_stream << i << "," << item.objective_value << "," << item.trace_type << std::endl;
     }
     out_stream.close();
   }
@@ -90,7 +100,7 @@ class ImprovementTracer {
   ImprovementTracer() { }
 
   struct TraceItem {
-    uint64_t objective_value;
+    double objective_value;
     TraceType trace_type;
   };
 

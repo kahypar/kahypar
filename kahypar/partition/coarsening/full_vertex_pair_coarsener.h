@@ -36,6 +36,7 @@
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
+#include "kahypar/utils/improvement_tracer.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 
 namespace kahypar {
@@ -107,7 +108,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
              V(_pq.topKey()) << V(_rater.rate(rep_node).value));
       ASSERT(!invalid_hypernodes[rep_node], V(rep_node));
       ASSERT(!invalid_hypernodes[contracted_node], V(contracted_node));
-
+      KAHYPAR_TRACE_VALUE(_context, _pq.topKey(),TraceType::FullCoarsening);
       performContraction(rep_node, contracted_node);
 
       ASSERT(_pq.contains(contracted_node), V(contracted_node));
