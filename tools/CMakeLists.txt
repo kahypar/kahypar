@@ -47,6 +47,10 @@ set_property(TARGET RepeatsToHgr PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(DegreePinDistribution calculate_degree_pin_distribution.cc)
 set_property(TARGET DegreePinDistribution PROPERTY CXX_STANDARD 14)
 set_property(TARGET DegreePinDistribution PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(ComputeNeighborHoodSizes compute_neighborhood_sizes.cc)
+set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD 14)
+set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD_REQUIRED ON)
+
 
 
 # This test needs test instance files, so we copy them to the corresponding build dir
