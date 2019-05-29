@@ -94,6 +94,13 @@ int main(int argc, char* argv[]) {
   auto he_size_quartiles = kahypar::math::firstAndThirdQuartile(he_sizes);
   auto hn_deg_quartiles = kahypar::math::firstAndThirdQuartile(hn_degrees);
 
+
+  double density = 0;
+  for (const auto he : hypergraph.edges()) {
+    density += hypergraph.edgeSize(he) * (hypergraph.edgeSize(he) -1);
+  }
+  density = density / (num_hypernodes * (num_hypernodes - 1));
+
   out_stream << "RESULT graph=" << graph_name
              << " HNs=" << num_hypernodes
              << " HEs=" << num_hyperedges
@@ -116,6 +123,7 @@ int main(int argc, char* argv[]) {
              << " medHNdegree=" << kahypar::math::median(hn_degrees)
              << " Q3HNdegree=" << hn_deg_quartiles.second
              << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
+             << " true_density=" << density
              << std::endl;
   out_stream.flush();
 
