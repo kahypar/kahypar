@@ -50,6 +50,7 @@ class HypergraphPruner {
 
  public:
   explicit HypergraphPruner(const HypernodeID max_num_nodes) :
+    _max_removed_single_node_he_weight(0),
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
@@ -105,6 +106,8 @@ class HypergraphPruner {
     for (auto he_it = begin_it; he_it != end_it; ++he_it) {
       if (hypergraph.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
+        _max_removed_single_node_he_weight = std::max(_max_removed_single_node_he_weight,
+                                                      hypergraph.edgeWeight(*he_it));
         removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++memento.one_pin_hes_size;
         DBG << "removing single-node HE" << *he_it;
@@ -273,7 +276,12 @@ class HypergraphPruner {
     return _removed_single_node_hyperedges;
   }
 
+  const HyperedgeWeight maxRemovedSingleNodeHyperedgeWeight() const {
+    return _max_removed_single_node_he_weight;
+  }
+
  private:
+  HyperedgeWeight _max_removed_single_node_he_weight;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;

@@ -109,8 +109,8 @@ class CoarsenerBase {
     for (const HyperedgeID& he : _hg.edges()) {
       max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
     }
-    LOG << V(max_degree);
-    LOG << V(max_he_weight);
+    max_he_weight = std::max(max_he_weight,
+                             _hypergraph_pruner.maxRemovedSingleNodeHyperedgeWeight());
     refiner.initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
 #else
     refiner.initialize(0);

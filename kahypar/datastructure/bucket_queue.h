@@ -101,6 +101,7 @@ class EnhancedBucketQueue {
     ASSERT(!_contains[id], V(id));
 
     const KeyType address = key + _key_range;
+    ASSERT(address > 0, V(address) << V(key) << V(_key_range));
     if (!_valid[address]) {
       ASSERT(_index.find(address) == _index.end(), V(address));
       _index.insert(address);
