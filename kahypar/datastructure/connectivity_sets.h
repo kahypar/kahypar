@@ -20,11 +20,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <limits>
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
@@ -44,67 +42,86 @@ class ConnectivitySets final {
   // This memory is allocated outside the structure using a memory arena.
   class ConnectivitySet {
  public:
-    explicit ConnectivitySet() :
-      _contained_parts() { }
+    explicit ConnectivitySet(const PartitionID k) :
+      _k(k),
+      _size(0) {
+      for (PartitionID i = 0; i < _k; ++i) {
+        new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
+      }
+    }
 
     ConnectivitySet(const ConnectivitySet&) = delete;
     ConnectivitySet& operator= (const ConnectivitySet&) = delete;
 
-    ConnectivitySet(ConnectivitySet&& other) noexcept :
-      _contained_parts(std::move(other._contained_parts)) { }
-
-    ConnectivitySet& operator= (ConnectivitySets& other) noexcept {
-      _contained_parts = std::move(other._contained_parts);
-      return *this;
-    }
+    ConnectivitySet(ConnectivitySet&& other) = delete;
+    ConnectivitySet& operator= (ConnectivitySet&&) = delete;
 
     ~ConnectivitySet() = default;
 
     const PartitionID* begin()  const {
-      return _contained_parts.data();
+      return &_size + 1;
     }
 
     const PartitionID* end() const {
-      return _contained_parts.data() + _contained_parts.size();
+      return &_size + 1 + _size;
     }
 
     bool contains(const PartitionID value) const {
-      return std::find(_contained_parts.begin(), _contained_parts.end(), value) != _contained_parts.end();
+      const PartitionID* start = &_size + 1;
+      for (PartitionID i = 0; i < _k; ++i) {
+        const PartitionID k = *(start + i);
+        if (k == value) {
+          return true;
+        } else if (k == std::numeric_limits<PartitionID>::max()) {
+          return false;
+        }
+      }
     }
 
     void add(const PartitionID value) {
-      ASSERT(std::find(_contained_parts.begin(), _contained_parts.end(), value) == _contained_parts.end());
-      _contained_parts.push_back(value);
+      *(&_size + 1 + _size) = value;
+      ++_size;
     }
 
     void remove(const PartitionID value) {
-      ASSERT(std::find(_contained_parts.begin(), _contained_parts.end(), value) != _contained_parts.end());
-      auto it = std::find(_contained_parts.begin(), _contained_parts.end(), value);
-
-      if (it != _contained_parts.end()) {
-        std::swap(*it, _contained_parts.back());
+      PartitionID* start = &_size + 1;
+      for (PartitionID i = 0; i < _k; ++i) {
+        const PartitionID k = *(start + i);
+        if (k == value) {
+          *(start + i) = *(start + _size - 1);
+          *(start + _size - 1) = std::numeric_limits<PartitionID>::max();
+          --_size;
+        }
       }
-      _contained_parts.pop_back();
     }
 
     void clear() {
-      _contained_parts.clear();
+      _size = 0;
+      for (PartitionID i = 0; i < _k; ++i) {
+        new(&_size + i + 1)PartitionID(std::numeric_limits<PartitionID>::max());
+      }
     }
 
     PartitionID size() const {
-      return _contained_parts.size();
+      return _size;
     }
 
  private:
-    std::vector<PartitionID> _contained_parts;
+    const PartitionID _k;
+    PartitionID _size;
+    // After _size are the _dense and _sparse arrays.
   };
 
 
-  explicit ConnectivitySets(const HyperedgeID num_hyperedges) :
-    _connectivity_sets(num_hyperedges) { }
+  explicit ConnectivitySets(const HyperedgeID num_hyperedges, const PartitionID k) :
+    _k(k),
+    _connectivity_sets(nullptr) {
+    initialize(num_hyperedges, _k);
+  }
 
   ConnectivitySets() :
-    _connectivity_sets() { }
+    _k(0),
+    _connectivity_sets(nullptr) { }
 
 
   ~ConnectivitySets() = default;
@@ -113,26 +130,34 @@ class ConnectivitySets final {
   ConnectivitySets& operator= (const ConnectivitySets&) = delete;
 
   ConnectivitySets(ConnectivitySets&& other) noexcept :
-    _connectivity_sets(std::move(other._connectivity_sets)) { }
+    _k(other._k),
+    _connectivity_sets(std::move(other._connectivity_sets)) {
+    other._k = 0;
+    other._connectivity_sets = nullptr;
+  }
 
   ConnectivitySets& operator= (ConnectivitySets&& other) noexcept {
+    _k = other._k;
     _connectivity_sets = std::move(other._connectivity_sets);
+    other._k = 0;
+    other._connectivity_sets = nullptr;
     return *this;
   }
 
-  void initialize(const HyperedgeID num_hyperedges) {
+  void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
+    _k = k;
+    _connectivity_sets = std::make_unique<Byte[]>(num_hyperedges * sizeOfConnectivitySet());
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
-      _connectivity_sets.emplace_back(ConnectivitySet());
+      new(get(i))ConnectivitySet(_k);
     }
   }
 
-  void resize(const HyperedgeID num_hyperedges) {
-    _connectivity_sets.clear();
-    initialize(num_hyperedges);
+  void resize(const HyperedgeID num_hyperedges, const PartitionID k) {
+    initialize(num_hyperedges, k);
   }
 
   const ConnectivitySet& operator[] (const HyperedgeID he) const {
-    return _connectivity_sets[he];
+    return *get(he);
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
@@ -141,7 +166,22 @@ class ConnectivitySets final {
   }
 
  private:
-  std::vector<ConnectivitySet> _connectivity_sets;
+  const ConnectivitySet* get(const HyperedgeID he) const {
+    return reinterpret_cast<ConnectivitySet*>(_connectivity_sets.get() +
+                                              he * sizeOfConnectivitySet());
+  }
+
+  // To avoid code duplication we implement non-const version in terms of const version
+  ConnectivitySet* get(const HyperedgeID he) {
+    return const_cast<ConnectivitySet*>(static_cast<const ConnectivitySets&>(*this).get(he));
+  }
+
+  constexpr size_t sizeOfConnectivitySet() const {
+    return (sizeof(ConnectivitySet) + _k * sizeof(PartitionID));
+  }
+
+  PartitionID _k;
+  std::unique_ptr<Byte[]> _connectivity_sets;
 };
 }  // namespace ds
 }  // namespace kahypar
