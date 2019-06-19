@@ -95,6 +95,18 @@ class FMRefinerBase {
     return false;
   }
 
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void updatePQpartState(const PartitionID from_part,
+                                                         const PartitionID to_part,
+                                                         const HypernodeWeight max_weight_from_part,
+                                                         const HypernodeWeight max_weight_to_part) {
+    if (_hg.partWeight(to_part) >= max_weight_to_part) {
+      _pq.disablePart(to_part);
+    }
+    if (_hg.partWeight(from_part) < max_weight_from_part) {
+      _pq.enablePart(from_part);
+    }
+  }
+
   bool moveIsFeasible(const HypernodeID max_gain_node, const PartitionID from_part,
                       const PartitionID to_part) const {
     ASSERT(_context.partition.mode == Mode::direct_kway,

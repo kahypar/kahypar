@@ -77,7 +77,9 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       oss << " L_max" << "=" << context.partition.max_part_weights[0];
     }
 
-    oss << " pre_enable_min_hash_sparsifier=" << std::boolalpha
+    oss << " pre_enable_deduplication=" << std::boolalpha
+        << context.preprocessing.enable_deduplication
+        << " pre_enable_min_hash_sparsifier=" << std::boolalpha
         << context.preprocessing.enable_min_hash_sparsifier
         << " pre_min_hash_max_hyperedge_size="
         << context.preprocessing.min_hash_sparsifier.max_hyperedge_size

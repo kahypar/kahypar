@@ -221,22 +221,21 @@ class MinHashSparsifier {
     if (_clusters.empty()) {
       return 0;
     }
+    std::unordered_map<HypernodeID, HypernodeID> original_to_reindexed;
 
-    std::vector<HypernodeID> new_clusters(_clusters.size());
-
-    for (const auto& clst : _clusters) {
-      new_clusters[clst] = 1;
+    HypernodeID new_cluster_id = 0;
+    for (auto& clst : _clusters) {
+      if (clst != std::numeric_limits<HypernodeID>::max()) {
+        const auto result = original_to_reindexed.insert({ clst, new_cluster_id });
+        if (result.second) {
+          clst = new_cluster_id;
+          new_cluster_id++;
+        } else {
+          clst = result.first->second;
+        }
+      }
     }
-
-    for (size_t i = 1; i < new_clusters.size(); ++i) {
-      new_clusters[i] += new_clusters[i - 1];
-    }
-
-    for (HypernodeID& cluster : _clusters) {
-      cluster = new_clusters[cluster] - 1;
-    }
-
-    return new_clusters.back();
+    return new_cluster_id;
   }
 
   std::vector<HypernodeID> _clusters;

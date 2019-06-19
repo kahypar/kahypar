@@ -102,8 +102,6 @@ class GenericHypergraph {
   using HyperedgeWeight = HyperedgeWeightType_;
   using HypernodeData = HypernodeData_;
   using HyperedgeData = HyperedgeData_;
-  // forward declaration
-  enum class ContractionType : size_t;
 
   // seed for edge hashes used for parallel net detection
   static constexpr size_t kEdgeHashSeed = 42;
@@ -134,9 +132,6 @@ class GenericHypergraph {
     PartitionID connectivity = 0;
     // ! Fingerprint that will be used for parallel net detection
     size_t hash = kEdgeHashSeed;
-    // ! Type of contraction operation that was performed when
-    // ! the net was last touched.
-    ContractionType contraction_type = ContractionType::Initial;
   };
 
   // ! Additional information stored at each hypernode \f$v\f$
@@ -424,30 +419,6 @@ class GenericHypergraph {
     EdgeAndNodeWeights = 11,
   };
 
-  /*!
-   * When contracting a vertex pair \f$ (u,v)\f$, either
-   * a Case1 or a Case2 contraction operation is performed
-   * on each net \f$ e \in I(v) \f$ incident to \f$ v \f$ .
-   * See GenericHypergraph::contract for details.
-   */
-  enum class ContractionType : size_t {
-    // ! Net is not participating in contraction
-    Initial = 0,
-    /*!
-     * Net \f$ e \f$ contained both \f$u\f$ and \f$v\f$.
-     * Thus \f$v\f$ was just swapped with the last entry
-     * in the edge array of \f$e\f$ and then cut-off
-     * by decreasing the size of \f$e\f$.
-     */
-    Case1 = 1,
-    /*!
-     * Net \f$ e \f$ did not contain \f$u\f$.
-     * It was therefore added to \f$ I(u) \f$.
-     * The array entry of \f$ v \f$ in \f$ e\f$'s incidence
-     * array was reused to store \f$ u \f$.
-     */
-    Case2 = 2
-  };
 
   /*!
    * For each block \f$V_i\f$ of the \f$k\f$-way partition \f$\mathrm{\Pi} = \{V_1, \dots, V_k\}\f$,
@@ -886,7 +857,7 @@ class GenericHypergraph {
         // Case 1:
         // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
         // can just cut off the last entry in the edge array of e that now contains v.
-        hyperedge(_incidence_array[he_it]).contraction_type = ContractionType::Case1;
+        edgeHash(_incidence_array[he_it]) -= math::hash(v);
         hyperedge(_incidence_array[he_it]).decrementSize();
         if (partID(v) != kInvalidPartition) {
           decrementPinCountInPart(_incidence_array[he_it], partID(v));
@@ -896,7 +867,8 @@ class GenericHypergraph {
         // Case 2:
         // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
         // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
-        hyperedge(_incidence_array[he_it]).contraction_type = ContractionType::Case2;
+        edgeHash(_incidence_array[he_it]) -= math::hash(v);
+        edgeHash(_incidence_array[he_it]) += math::hash(u);
         connectHyperedgeToRepresentative(_incidence_array[he_it], u, first_call);
       }
     }
@@ -1262,7 +1234,7 @@ class GenericHypergraph {
     if (!_fixed_vertices) {
       _fixed_vertices = std::make_unique<SparseSet<HypernodeID> >(initialNumNodes());
       _fixed_vertex_part_id.resize(initialNumNodes());
-      std::fill(_fixed_vertex_part_id.begin(),_fixed_vertex_part_id.end(),kInvalidPartition);
+      std::fill(_fixed_vertex_part_id.begin(), _fixed_vertex_part_id.end(), kInvalidPartition);
     }
     _fixed_vertices->add(hn);
     _fixed_vertex_part_id[hn] = id;
@@ -1476,7 +1448,6 @@ class GenericHypergraph {
       for ( ; pins_begin != pins_end; ++pins_begin) {
         const auto pin = *pins_begin;
         hyperedge(i).hash += math::hash(pin);
-        hyperedge(i).contraction_type = ContractionType::Initial;
       }
     }
   }
@@ -1519,16 +1490,6 @@ class GenericHypergraph {
   size_t & edgeHash(const HyperedgeID e) {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
     return hyperedge(e).hash;
-  }
-
-  ContractionType edgeContractionType(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
-    return hyperedge(e).contraction_type;
-  }
-
-  void resetEdgeContractionType(const HyperedgeID e) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
-    hyperedge(e).contraction_type = ContractionType::Initial;
   }
 
   HypernodeWeight nodeWeight(const HypernodeID u) const {
@@ -1799,7 +1760,6 @@ class GenericHypergraph {
   void resetEdgeHashes() {
     for (const HyperedgeID& he : edges()) {
       hyperedge(he).hash = kEdgeHashSeed;
-      hyperedge(he).contraction_type = ContractionType::Initial;
       for (const HypernodeID& pin : pins(he)) {
         hyperedge(he).hash += math::hash(pin);
       }
@@ -2021,8 +1981,9 @@ class GenericHypergraph {
 
     Hypernode& nodeU = hypernode(u);
     if (first_call) {
-      _incidence_array.insert(_incidence_array.cend(), _incidence_array.cbegin() + nodeU.firstEntry(),
-                              _incidence_array.cbegin() + nodeU.firstInvalidEntry());
+      for (size_t i = nodeU.firstEntry(); i != nodeU.firstInvalidEntry(); ++i) {
+        _incidence_array.push_back(_incidence_array[i]);
+      }
       nodeU.setFirstEntry(_incidence_array.size() - nodeU.size());
       first_call = false;
     }
@@ -2175,10 +2136,10 @@ class GenericHypergraph {
   FastResetFlagArray<> _hes_not_containing_u;
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                     typename Hypergraph::PartitionID part,
-                                                                                                                     const Objective& objective);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    typename Hypergraph::PartitionID part,
+                                                                                                                    const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2658,6 +2619,9 @@ static std::vector<std::pair<typename Hypergraph::HyperedgeID,
 removeParallelHyperedges(Hypergraph& hypergraph) {
   typedef typename Hypergraph::HyperedgeID HyperedgeID;
 
+  ASSERT(hypergraph.initialNumEdges() == hypergraph.currentNumEdges(),
+         "Deduplication assumes unmodified hypergraph!");
+
   const size_t next_prime = math::nextPrime(hypergraph.initialNumEdges());
 
   std::vector<size_t> first(next_prime, std::numeric_limits<size_t>::max());
@@ -2737,6 +2701,91 @@ removeParallelHyperedges(Hypergraph& hypergraph) {
   }
 
   return removed_parallel_hes;
+}
+
+template <typename Hypergraph>
+static std::vector<typename Hypergraph::ContractionMemento>
+removeIdenticalNodes(Hypergraph& hypergraph) {
+  typedef typename Hypergraph::HypernodeID HypernodeID;
+
+  ASSERT(hypergraph.initialNumNodes() == hypergraph.currentNumNodes(),
+         "Deduplication assumes unmodified hypergraph!");
+
+  const size_t next_prime = math::nextPrime(hypergraph.initialNumNodes());
+
+  std::vector<size_t> first(next_prime, std::numeric_limits<size_t>::max());
+  std::vector<size_t> next(hypergraph.initialNumNodes(), std::numeric_limits<size_t>::max());
+
+  std::vector<size_t> checksums(hypergraph.initialNumNodes(), -1);
+  std::vector<HypernodeID> representatives(hypergraph.initialNumNodes(),
+                                           std::numeric_limits<HypernodeID>::max());
+
+  for (const auto hn : hypergraph.nodes()) {
+    for (const auto he : hypergraph.incidentEdges(hn)) {
+      checksums[hn] += math::cs2(he);
+    }
+    checksums[hn] = checksums[hn] % next_prime;
+  }
+
+  size_t r = 0;
+
+  ds::FastResetFlagArray<uint64_t> contained_hyperedges(hypergraph.initialNumEdges());
+
+  for (const auto hn : hypergraph.nodes()) {
+    size_t c = first[checksums[hn]];
+    if (c == std::numeric_limits<size_t>::max()) {
+      first[checksums[hn]] = hn;
+      c = hn;
+    }
+
+    while (c != hn) {
+      ASSERT(c < hn);
+      const size_t representative = representatives[c];
+      ASSERT(representative != std::numeric_limits<size_t>::max());
+
+      contained_hyperedges.reset();
+      // check if incident nets of HN l == incident nets of HN hn
+      bool is_same = false;
+      if (hypergraph.nodeDegree(representative) ==
+          hypergraph.nodeDegree(hn)) {
+        for (const auto he : hypergraph.incidentEdges(representative)) {
+          contained_hyperedges.set(he, true);
+        }
+
+        is_same = true;
+        for (const auto he : hypergraph.incidentEdges(hn)) {
+          if (!contained_hyperedges[he]) {
+            is_same = false;
+            break;
+          }
+        }
+      }
+
+      if (is_same) {
+        representatives[hn] = c;
+        break;
+      } else if (next[c] == std::numeric_limits<size_t>::max()) {
+        next[c] = hn;
+      }
+
+      c = next[c];
+    }
+
+    if (representatives[hn] == std::numeric_limits<HypernodeID>::max()) {
+      representatives[hn] = r;
+    }
+    ++r;
+  }
+
+  std::vector<typename Hypergraph::ContractionMemento> removed_identical_hns;
+
+  for (const auto hn : hypergraph.nodes()) {
+    if (representatives[hn] != hn) {
+      removed_identical_hns.emplace_back(hypergraph.contract(representatives[hn], hn));
+    }
+  }
+
+  return removed_identical_hns;
 }
 }  // namespace ds
 }  // namespace kahypar

@@ -203,12 +203,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
         // LOG << "performed MOVE:" << V(max_gain_node) << V(from_part) << V(to_part);
         Base::moveHypernode(max_gain_node, from_part, to_part);
 
-        if (_hg.partWeight(to_part) >= _context.partition.max_part_weights[0]) {
-          _pq.disablePart(to_part);
-        }
-        if (_hg.partWeight(from_part) < _context.partition.max_part_weights[0]) {
-          _pq.enablePart(from_part);
-        }
+        Base::updatePQpartState(from_part,
+                                to_part,
+                                _context.partition.max_part_weights[from_part],
+                                _context.partition.max_part_weights[to_part]);
 
         current_imbalance = metrics::imbalance(_hg, _context);
 

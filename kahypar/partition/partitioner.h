@@ -34,6 +34,7 @@
 #include "kahypar/partition/direct_kway.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/metrics.h"
+#include "kahypar/partition/preprocessing/hypergraph_deduplicator.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
@@ -88,7 +89,8 @@ class Partitioner {
  public:
   Partitioner() :
     _single_node_he_remover(),
-    _pin_sparsifier() { }
+    _pin_sparsifier(),
+    _deduplicator() { }
 
   Partitioner(const Partitioner&) = delete;
   Partitioner& operator= (const Partitioner&) = delete;
@@ -136,6 +138,7 @@ class Partitioner {
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
   MinHashSparsifier _pin_sparsifier;
+  HypergraphDeduplicator _deduplicator;
 };
 
 inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
@@ -191,13 +194,15 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 }
 
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
-  io::printTopLevelPreprocessingBanner(context);
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
   if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
-    LOG << "\033[1m\033[31m" << "Removed" << result.num_removed_single_node_hes
-        << "hyperedges with |e|=1" << "\033[0m";
-    LOG << "\033[1m\033[31m" << "===>" << result.num_unconnected_hns
+    LOG << "Performing single-node HE removal:";
+    LOG << "\033[1m\033[31m" << " # removed hyperedges with |e|=1 = "
+        << result.num_removed_single_node_hes
+        << "\033[0m";
+    LOG << "\033[1m\033[31m" << " ===>" << result.num_unconnected_hns
         << "unconnected HNs could have been removed" << "\033[0m";
+    io::printStripe();
   }
 }
 
@@ -234,8 +239,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
                         std::chrono::duration<double>(end - start).count());
 
   if (context.partition.verbose_output) {
-    LOG << "After sparsification:";
+    LOG << "Performing sparsification::";
     kahypar::io::printHypergraphInfo(sparse_hypergraph, "sparsified hypergraph");
+    io::printStripe();
   }
   preprocess(sparse_hypergraph, context);
 }
@@ -264,6 +270,14 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   setupContext(hypergraph, context);
   io::printInputInformation(context, hypergraph);
 
+  io::printTopLevelPreprocessingBanner(context);
+  if (context.preprocessing.enable_deduplication) {
+    // deduplication needs to be called first, because the code
+    // currently assumes that all HEs and HNs in the hypergraph
+    // exist (i.e., are enabled).
+    _deduplicator.deduplicate(hypergraph, context);
+  }
+
   sanitize(hypergraph, context);
 
   if (context.preprocessing.min_hash_sparsifier.is_active) {
@@ -288,6 +302,8 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     partition::partition(hypergraph, context);
     postprocess(hypergraph);
   }
+
+  _deduplicator.restoreRedundancy(hypergraph);
 
   ASSERT([&]() {
       for (const HypernodeID& hn : hypergraph.fixedVertices()) {

@@ -50,6 +50,7 @@ class HypergraphPruner {
 
  public:
   explicit HypergraphPruner(const HypernodeID max_num_nodes) :
+    _max_removed_single_node_he_weight(0),
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
@@ -105,6 +106,8 @@ class HypergraphPruner {
     for (auto he_it = begin_it; he_it != end_it; ++he_it) {
       if (hypergraph.edgeSize(*he_it) == 1) {
         _removed_single_node_hyperedges.push_back(*he_it);
+        _max_removed_single_node_he_weight = std::max(_max_removed_single_node_he_weight,
+                                                      hypergraph.edgeWeight(*he_it));
         removed_he_weight += hypergraph.edgeWeight(*he_it);
         ++memento.one_pin_hes_size;
         DBG << "removing single-node HE" << *he_it;
@@ -129,7 +132,7 @@ class HypergraphPruner {
                                        CoarseningMemento& memento) {
     memento.parallel_hes_begin = _removed_parallel_hyperedges.size();
 
-    createFingerprints(hypergraph, memento.contraction_memento.u, memento.contraction_memento.v);
+    createFingerprints(hypergraph, memento.contraction_memento.u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
               [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
 
@@ -244,16 +247,9 @@ class HypergraphPruner {
     _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
   }
 
-  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u, const HypernodeID v) {
+  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) {
     _fingerprints.clear();
     for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
-      if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case2) {
-        hypergraph.edgeHash(he) -= math::hash(v);
-        hypergraph.edgeHash(he) += math::hash(u);
-      } else if (hypergraph.edgeContractionType(he) == Hypergraph::ContractionType::Case1) {
-        hypergraph.edgeHash(he) -= math::hash(v);
-      }
-      hypergraph.resetEdgeContractionType(he);
       ASSERT([&]() {
           size_t correct_hash = Hypergraph::kEdgeHashSeed;
           for (const HypernodeID& pin : hypergraph.pins(he)) {
@@ -280,7 +276,12 @@ class HypergraphPruner {
     return _removed_single_node_hyperedges;
   }
 
+  const HyperedgeWeight maxRemovedSingleNodeHyperedgeWeight() const {
+    return _max_removed_single_node_he_weight;
+  }
+
  private:
+  HyperedgeWeight _max_removed_single_node_he_weight;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;
   std::vector<ParallelHE> _removed_parallel_hyperedges;
   std::vector<Fingerprint> _fingerprints;

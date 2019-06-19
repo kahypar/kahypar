@@ -341,6 +341,10 @@ static inline void printMaximumWeightedBipartiteMatchingBanner(const Context& co
   }
 }
 
+static inline void printStripe() {
+  LOG << "--------------------------------------------------------------------------------";
+}
+
 static inline void printTopLevelPreprocessingBanner(const Context& context) {
   if (context.partition.verbose_output) {
     LOG << "\n********************************************************************************";

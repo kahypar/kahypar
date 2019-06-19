@@ -1129,17 +1129,32 @@ TEST(Hypergraphs, CanBeStrippedOfAllParallelHyperedges) {
   Hypergraph hypergraph(5, 7, HyperedgeIndexVector { 0, 1, 4, 6, 10, 13, 14, 17 },
                         HyperedgeVector { 0, 1, 2, 3, 0, 1, 1, 2, 3, 4, 1, 2, 3, 0, 1, 2, 3 });
 
-  //hypergraph.printGraphState();
+  // hypergraph.printGraphState();
 
   auto removed_parallel_hes = removeParallelHyperedges(hypergraph);
 
-  //hypergraph.printGraphState();
+  // hypergraph.printGraphState();
 
   ASSERT_EQ(hypergraph.currentNumEdges(), 4);
   ASSERT_EQ(hypergraph.edgeWeight(0), 2);
   ASSERT_EQ(hypergraph.edgeWeight(1), 3);
   ASSERT_EQ(hypergraph.edgeWeight(2), 1);
   ASSERT_EQ(hypergraph.edgeWeight(3), 1);
+}
+
+TEST(Hypergraphs, CanBeStrippedOfAllIdenticalVertices) {
+  Hypergraph hypergraph(7, 2, HyperedgeIndexVector { 0, 5, 10 },
+                        HyperedgeVector { 6, 1, 0, 2, 5, 3, 5, 4, 0, 6 });
+
+  ASSERT_EQ(hypergraph.currentNumNodes(), 7);
+  ASSERT_EQ(hypergraph.edgeSize(0), 5);
+  ASSERT_EQ(hypergraph.edgeSize(1), 5);
+
+  auto removed_identical_nodes = removeIdenticalNodes(hypergraph);
+
+  ASSERT_EQ(hypergraph.currentNumNodes(), 3);
+  ASSERT_EQ(hypergraph.edgeSize(0), 2);
+  ASSERT_EQ(hypergraph.edgeSize(1), 2);
 }
 }  // namespace ds
 }  // namespace kahypar

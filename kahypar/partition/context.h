@@ -56,6 +56,7 @@ struct CommunityDetection {
 struct PreprocessingParameters {
   bool enable_min_hash_sparsifier = false;
   bool enable_community_detection = false;
+  bool enable_deduplication = false;
   MinHashSparsifierParameters min_hash_sparsifier = MinHashSparsifierParameters();
   CommunityDetection community_detection = CommunityDetection();
 };
@@ -97,6 +98,8 @@ inline std::ostream& operator<< (std::ostream& str, const CommunityDetection& pa
 
 inline std::ostream& operator<< (std::ostream& str, const PreprocessingParameters& params) {
   str << "Preprocessing Parameters:" << std::endl;
+  str << "  enable deduplication:               " << std::boolalpha
+      << params.enable_deduplication << std::endl;
   str << "  enable min hash sparsifier:         " << std::boolalpha
       << params.enable_min_hash_sparsifier << std::endl;
   str << "  enable community detection:         " << std::boolalpha

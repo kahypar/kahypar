@@ -211,7 +211,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
         context.coarsening.algorithm = kahypar::coarseningAlgorithmFromString(ctype);
       }
     }),
-    "Algorithm:\n"
+    "Coarsening Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
     " - heavy_lazy")
@@ -234,8 +234,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
       }
     }),
     "Rating function used to calculate scores for vertex pairs:\n"
-    "heavy_edge "
-    "edge_frequency")
+    "- heavy_edge")
     ((initial_partitioning ? "i-c-rating-use-communities" : "c-rating-use-communities"),
     po::value<bool>()->value_name("<bool>")->notifier(
       [&context, initial_partitioning](bool use_communities) {
@@ -263,8 +262,8 @@ po::options_description createCoarseningOptionsDescription(Context& context,
       }
     }),
     "Penalty function to discourage heavy vertices:\n"
-    "multiplicative "
-    "no_penalty")
+    "- multiplicative\n"
+    "- no_penalty")
     ((initial_partitioning ? "i-c-rating-acceptance-criterion" : "c-rating-acceptance-criterion"),
     po::value<std::string>()->value_name("<string>")->notifier(
       [&context, initial_partitioning](const std::string& crit) {
@@ -277,8 +276,8 @@ po::options_description createCoarseningOptionsDescription(Context& context,
       }
     }),
     "Acceptance/Tiebreaking criterion for contraction partners having the same score:\n"
-    "random "
-    "prefer_unmatched")
+    "- best\n"
+    "- best_prefer_unmatched")
     ((initial_partitioning ? "i-c-fixed-vertex-acceptance-criterion" : "c-fixed-vertex-acceptance-criterion"),
     po::value<std::string>()->value_name("<string>")->notifier(
       [&context, initial_partitioning](const std::string& crit) {
@@ -400,6 +399,9 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
                                                               const int num_columns) {
   po::options_description options("Preprocessing Options", num_columns);
   options.add_options()
+    ("p-enable-deduplication",
+    po::value<bool>(&context.preprocessing.enable_deduplication)->value_name("<bool>"),
+    "Remove identical vertices and parallel nets before partitioning")
     ("p-use-sparsifier",
     po::value<bool>(&context.preprocessing.enable_min_hash_sparsifier)->value_name("<bool>"),
     "Use min-hash pin sparsifier before partitioning")
