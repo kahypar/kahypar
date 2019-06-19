@@ -42,6 +42,9 @@ int main(int argc, char* argv[]) {
   std::string line;
   std::ifstream in_stream(graph_filename.c_str());
   std::getline(in_stream, line);
+  while (line[0] == '%') {
+    std::getline(in_stream, line);
+  }
 
   int num_nodes = -1;
   int num_edges = -1;
