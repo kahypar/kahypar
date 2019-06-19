@@ -516,8 +516,8 @@ class GenericHypergraph {
     _fixed_vertices(nullptr),
     _fixed_vertex_part_id(),
     _part_info(_k),
-    _pins_in_part(_num_hyperedges * k),
     _connectivity_sets(_num_hyperedges, k),
+    _pins_in_part(static_cast<size_t>(_num_hyperedges) * k),
     _hes_not_containing_u(_num_hyperedges) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -1464,7 +1464,7 @@ class GenericHypergraph {
   // internal data structures accordingly.
   void changeK(const PartitionID k) {
     _k = k;
-    _pins_in_part.resize(_num_hyperedges * k, 0);
+    _pins_in_part.resize(static_cast<size_t>(_num_hyperedges) * k, 0);
     _part_info.resize(k, PartInfo());
     _connectivity_sets.resize(_num_hyperedges, k);
   }
