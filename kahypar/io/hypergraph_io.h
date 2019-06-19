@@ -356,11 +356,11 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
       // ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << pin << " ";
     }
-    out_stream << std::endl;
+    out_stream << "\n";
   }
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << hypergraph.nodeWeight(hn) << " ";
+    out_stream << hypergraph.nodeWeight(hn) << "\n";
   }
   out_stream << std::endl;
   out_stream.close();
