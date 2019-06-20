@@ -57,8 +57,8 @@ class EnhancedBucketQueue {
     _index(),
     _repository(std::make_unique<RepositoryElement[]>(max_size)),
     _contains(max_size),
-    _valid(2 * max_gain + 1),
-    _buckets(std::make_unique<std::vector<IDType>[]>(2 * max_gain + 1)) {
+    _valid(static_cast<size_t>(max_gain) * 2 + 1),
+    _buckets(std::make_unique<std::vector<IDType>[]>(static_cast<size_t>(max_gain) * 2 + 1)) {
     static_assert(std::is_integral<KeyType>::value, "Integer required.");
   }
 

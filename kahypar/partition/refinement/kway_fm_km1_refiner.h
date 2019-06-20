@@ -86,7 +86,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     Base(hypergraph, context),
     _tmp_gains(_context.partition.k, 0),
     _new_adjacent_part(_hg.initialNumNodes(), Hypergraph::kInvalidPartition),
-    _unremovable_he_parts(_hg.initialNumEdges() * context.partition.k),
+    _unremovable_he_parts(static_cast<size_t>(_hg.initialNumEdges()) * context.partition.k),
     _gain_cache(_hg.initialNumNodes(), _context.partition.k),
     _stopping_policy() { }
 
@@ -871,6 +871,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       const HyperedgeWeight he_weight = _hg.edgeWeight(he);
       internal += _hg.pinCountInPart(he, source_part) != 1 ? he_weight : 0;
       for (const PartitionID& part : _hg.connectivitySet(he)) {
+        ASSERT(part < _context.partition.k, V(part));
         _tmp_gains[part] += he_weight;
       }
     }

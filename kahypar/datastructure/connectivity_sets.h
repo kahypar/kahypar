@@ -80,11 +80,13 @@ class ConnectivitySets final {
     }
 
     void add(const PartitionID value) {
+      ASSERT(!contains(value), V(value));
       *(&_size + 1 + _size) = value;
       ++_size;
     }
 
     void remove(const PartitionID value) {
+      ASSERT(contains(value), V(value));
       PartitionID* start = &_size + 1;
       for (PartitionID i = 0; i < _k; ++i) {
         const PartitionID k = *(start + i);
