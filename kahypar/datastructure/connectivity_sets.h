@@ -76,6 +76,7 @@ class ConnectivitySets final {
           return false;
         }
       }
+      return false;
     }
 
     void add(const PartitionID value) {
@@ -146,7 +147,7 @@ class ConnectivitySets final {
 
   void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
     _k = k;
-    _connectivity_sets = std::make_unique<Byte[]>(num_hyperedges * sizeOfConnectivitySet());
+    _connectivity_sets = std::make_unique<Byte[]>(static_cast<size_t>(num_hyperedges) * sizeOfConnectivitySet());
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
       new(get(i))ConnectivitySet(_k);
     }
@@ -168,7 +169,7 @@ class ConnectivitySets final {
  private:
   const ConnectivitySet* get(const HyperedgeID he) const {
     return reinterpret_cast<ConnectivitySet*>(_connectivity_sets.get() +
-                                              he * sizeOfConnectivitySet());
+                                              static_cast<size_t>(he) * sizeOfConnectivitySet());
   }
 
   // To avoid code duplication we implement non-const version in terms of const version
@@ -177,7 +178,7 @@ class ConnectivitySets final {
   }
 
   constexpr size_t sizeOfConnectivitySet() const {
-    return (sizeof(ConnectivitySet) + _k * sizeof(PartitionID));
+    return (static_cast<size_t>(sizeof(ConnectivitySet)) + _k * sizeof(PartitionID));
   }
 
   PartitionID _k;
