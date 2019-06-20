@@ -516,8 +516,8 @@ class GenericHypergraph {
     _fixed_vertices(nullptr),
     _fixed_vertex_part_id(),
     _part_info(_k),
-    _connectivity_sets(_num_hyperedges, k),
     _pins_in_part(static_cast<size_t>(_num_hyperedges) * k),
+    _connectivity_sets(_num_hyperedges, k),
     _hes_not_containing_u(_num_hyperedges) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {

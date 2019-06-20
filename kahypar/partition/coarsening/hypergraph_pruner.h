@@ -276,7 +276,7 @@ class HypergraphPruner {
     return _removed_single_node_hyperedges;
   }
 
-  const HyperedgeWeight maxRemovedSingleNodeHyperedgeWeight() const {
+  HyperedgeWeight maxRemovedSingleNodeHyperedgeWeight() const {
     return _max_removed_single_node_he_weight;
   }
 
