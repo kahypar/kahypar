@@ -211,7 +211,11 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     "Coarsening Algorithm:\n"
     " - ml_style\n"
     " - heavy_full\n"
-    " - heavy_lazy")
+    " - heavy_lazy\n"
+    " - multi_level")
+      ((initial_partitioning ? "i-c-r" : "c-r"),
+    po::value<double>((initial_partitioning ? &context.initial_partitioning.coarsening.contraction_factor : &context.coarsening.contraction_factor))->value_name("<double>"),
+       "Contraction factor for multi-level coarsening. A new level is started as soon as the size of the hypergraph is reduced by a factor of r.")
     ((initial_partitioning ? "i-c-s" : "c-s"),
     po::value<double>((initial_partitioning ? &context.initial_partitioning.coarsening.max_allowed_weight_multiplier : &context.coarsening.max_allowed_weight_multiplier))->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"

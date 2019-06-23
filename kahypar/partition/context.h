@@ -156,6 +156,9 @@ struct CoarseningParameters {
 inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& params) {
   str << "Coarsening Parameters:" << std::endl;
   str << "  Algorithm:                          " << params.algorithm << std::endl;
+  if (params.algorithm == CoarseningAlgorithm::multi_level) {
+    str << "  reduction factor:                   " << params.contraction_factor << std::endl;
+  }
   str << "  max-allowed-weight-multiplier:      " << params.max_allowed_weight_multiplier << std::endl;
   str << "  contraction-limit-multiplier:       " << params.contraction_limit_multiplier << std::endl;
   str << "  hypernode weight fraction:          ";
