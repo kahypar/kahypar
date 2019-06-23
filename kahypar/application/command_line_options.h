@@ -104,6 +104,13 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     "Objective: \n"
     " - cut : cut-net metric \n"
     " - km1 : (lambda-1) metric")
+    ("hierarchy",
+    po::value<std::string>()->value_name("<string>")->notifier([&](const std::string& s) {
+      context.partition.hierarchy = kahypar::hierarchyFromString(s);
+    }),
+    "Hierachy Type: \n"
+    " - n_level : n-level scheme \n"
+    " - multi_level : multi-level scheme")
     ("mode,m",
     po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
@@ -213,9 +220,9 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     " - heavy_full\n"
     " - heavy_lazy\n"
     " - multi_level")
-      ((initial_partitioning ? "i-c-r" : "c-r"),
-    po::value<double>((initial_partitioning ? &context.initial_partitioning.coarsening.contraction_factor : &context.coarsening.contraction_factor))->value_name("<double>"),
-       "Contraction factor for multi-level coarsening. A new level is started as soon as the size of the hypergraph is reduced by a factor of r.")
+    ((initial_partitioning ? "i-c-r" : "c-r"),
+    po::value<double>((initial_partitioning ? &context.initial_partitioning.reduction_factor : &context.partition.reduction_factor))->value_name("<double>"),
+    "Contraction factor for multi-level coarsening. A new level is started as soon as the size of the hypergraph is reduced by a factor of r.")
     ((initial_partitioning ? "i-c-s" : "c-s"),
     po::value<double>((initial_partitioning ? &context.initial_partitioning.coarsening.max_allowed_weight_multiplier : &context.coarsening.max_allowed_weight_multiplier))->value_name("<double>"),
     "The maximum weight of a vertex in the coarsest hypergraph H is:\n"
@@ -371,6 +378,13 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     "IP mode: \n"
     " - (recursive) bisection  \n"
     " - (direct) k-way")
+    ("i-hierarchy",
+    po::value<std::string>()->value_name("<string>")->notifier([&](const std::string& s) {
+      context.initial_partitioning.hierarchy = kahypar::hierarchyFromString(s);
+    }),
+    "Initial Partitioning Hierachy Type: \n"
+    " - n_level : n-level scheme \n"
+    " - multi_level : multi-level scheme")
     ("i-technique",
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {

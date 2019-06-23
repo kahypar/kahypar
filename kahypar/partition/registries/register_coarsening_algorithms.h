@@ -68,7 +68,9 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_lazy,
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.fixed_vertex_acceptance_policy));
+                                context.coarsening.rating.fixed_vertex_acceptance_policy),
+                              meta::PolicyRegistry<Hierarchy>::getInstance().getPolicy(
+                                context.partition.hierarchy));
 
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_full,
                               FullCoarseningDispatcher,
@@ -83,7 +85,9 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_full,
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.fixed_vertex_acceptance_policy));
+                                context.coarsening.rating.fixed_vertex_acceptance_policy),
+                              meta::PolicyRegistry<Hierarchy>::getInstance().getPolicy(
+                                context.partition.hierarchy));
 
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                               MLCoarseningDispatcher,
@@ -98,20 +102,8 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                               meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.fixed_vertex_acceptance_policy));
-
-REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::multi_level,
-                              MultiLevelCoarseningDispatcher,
-                              meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
-                                context.coarsening.rating.rating_function),
-                              meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.heavy_node_penalty_policy),
-                              meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.community_policy),
-                              meta::PolicyRegistry<RatingPartitionPolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.partition_policy),
-                              meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.acceptance_policy),
-                              meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
-                                context.coarsening.rating.fixed_vertex_acceptance_policy));
+                                context.coarsening.rating.fixed_vertex_acceptance_policy),
+                              meta::PolicyRegistry<Hierarchy>::getInstance().getPolicy(
+                                context.partition.hierarchy)
+                              );
 }  // namespace kahypar

@@ -29,6 +29,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -45,9 +46,10 @@ template <class ScorePolicy = HeavyEdgeScore,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
+          class CoarseningLevelPolicy = nLevel,
           typename RatingType = RatingType>
 class FullVertexPairCoarsener final : public ICoarsener,
-                                      private VertexPairCoarsenerBase<>{
+                                      private VertexPairCoarsenerBase<CoarseningLevelPolicy>{
  private:
   static constexpr bool debug = false;
 
@@ -59,13 +61,13 @@ class FullVertexPairCoarsener final : public ICoarsener,
                                 FixedVertexPolicy,
                                 RatingType>;
 
-  using Base = VertexPairCoarsenerBase;
+  using Base = VertexPairCoarsenerBase<CoarseningLevelPolicy>;
   using Rating = typename Rater::Rating;
 
  public:
   FullVertexPairCoarsener(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
-    VertexPairCoarsenerBase(hypergraph, context, weight_of_heaviest_node),
+    Base(hypergraph, context, weight_of_heaviest_node),
     _rater(_hg, _context),
     _target(hypergraph.initialNumNodes()) { }
 
@@ -83,7 +85,9 @@ class FullVertexPairCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
-    rateAllHypernodes(_rater, _target);
+    Base::rateAllHypernodes(_rater, _target);
+
+    _coarsening_levels.initialize(_hg, _context);
 
     ds::FastResetFlagArray<> rerated_hypernodes(_hg.initialNumNodes());
     // Used to prevent unnecessary re-rating of hypernodes that have been removed from
@@ -108,10 +112,12 @@ class FullVertexPairCoarsener final : public ICoarsener,
       ASSERT(!invalid_hypernodes[rep_node], V(rep_node));
       ASSERT(!invalid_hypernodes[contracted_node], V(contracted_node));
 
-      performContraction(rep_node, contracted_node);
+      Base::performContraction(rep_node, contracted_node);
 
       ASSERT(_pq.contains(contracted_node), V(contracted_node));
       _pq.remove(contracted_node);
+
+      _coarsening_levels.update(_hg, _context, _history);
 
       // We re-rate the representative HN here, because it might not have any incident HEs left.
       // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
@@ -123,7 +129,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {
-    return doUncoarsen(refiner);
+    return Base::doUncoarsen(refiner);
   }
 
   void reRateAffectedHypernodes(const HypernodeID rep_node,
@@ -169,6 +175,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
   using Base::_context;
   using Base::_history;
   using Base::_hypergraph_pruner;
+  using Base::_coarsening_levels;
   Rater _rater;
   std::vector<HypernodeID> _target;
 };

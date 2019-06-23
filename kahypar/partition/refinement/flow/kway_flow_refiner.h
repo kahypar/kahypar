@@ -76,7 +76,7 @@ class KWayFlowRefiner final : public IRefiner,
                   const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
-    if (_context.coarsening.algorithm != CoarseningAlgorithm::multi_level &&
+    if (_context.partition.hierarchy != Hierarchy::multi_level &&
         !_flow_execution_policy.executeFlow(_hg)) {
       return false;
     }

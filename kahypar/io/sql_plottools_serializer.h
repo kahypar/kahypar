@@ -54,7 +54,11 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
                                                                          context.partition.k);
     }
     oss << " mode=" << context.partition.mode
-        << " objective=" << context.partition.objective
+        << " hierarchy=" << context.partition.hierarchy;
+    if (context.partition.hierarchy == Hierarchy::multi_level) {
+      oss << " reduction_factor=" << context.partition.reduction_factor;
+    }
+    oss << " objective=" << context.partition.objective
         << " k=" << context.partition.k
         << " epsilon=" << context.partition.epsilon
         << " seed=" << context.partition.seed
@@ -106,12 +110,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " louvain_edge_weight=" << context.preprocessing.community_detection.edge_weight
         << " reuse_community_structure=" << std::boolalpha
         << context.preprocessing.community_detection.reuse_communities
-        << " coarsening_algo=" << context.coarsening.algorithm;
-    if (context.coarsening.algorithm == CoarseningAlgorithm::multi_level) {
-      oss << " reduction_factor=" << context.coarsening.contraction_factor;
-    }
-
-    oss << " coarsening_max_allowed_weight_multiplier="
+        << " coarsening_max_allowed_weight_multiplier="
         << context.coarsening.max_allowed_weight_multiplier
         << " coarsening_contraction_limit_multiplier="
         << context.coarsening.contraction_limit_multiplier
@@ -128,15 +127,16 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " coarsening_rating_fixed_vertex_acceptance_policy="
         << context.coarsening.rating.fixed_vertex_acceptance_policy
         << " IP_mode=" << context.initial_partitioning.mode
-        << " IP_technique=" << context.initial_partitioning.technique
+        << " IP_hierarchy=" << context.partition.hierarchy;
+    if (context.initial_partitioning.hierarchy == Hierarchy::multi_level) {
+      oss << " IP_reduction_factor=" << context.initial_partitioning.reduction_factor;
+    }
+    oss << " IP_technique=" << context.initial_partitioning.technique
         << " IP_algorithm=" << context.initial_partitioning.algo
         << " IP_pool_type=" << context.initial_partitioning.pool_type
         << " IP_num_runs=" << context.initial_partitioning.nruns
-        << " IP_coarsening_algo=" << context.initial_partitioning.coarsening.algorithm;
-    if (context.initial_partitioning.coarsening.algorithm == CoarseningAlgorithm::multi_level) {
-      oss << " IP_reduction_factor=" << context.coarsening.contraction_factor;
-    }
-    oss << " IP_coarsening_max_allowed_weight_multiplier="
+        << " IP_coarsening_algo=" << context.initial_partitioning.coarsening.algorithm
+        << " IP_coarsening_max_allowed_weight_multiplier="
         << context.initial_partitioning.coarsening.max_allowed_weight_multiplier
         << " IP_coarsening_contraction_limit_multiplier="
         << context.initial_partitioning.coarsening.contraction_limit_multiplier

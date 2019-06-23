@@ -74,6 +74,9 @@ static inline Context createContext(const Hypergraph& hg,
     }
   }
 
+  // Hierarchy
+  context.partition.hierarchy = context.initial_partitioning.hierarchy;
+
   // Coarsening-Parameters
   context.coarsening = context.initial_partitioning.coarsening;
 

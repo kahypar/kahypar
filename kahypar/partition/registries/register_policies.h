@@ -24,6 +24,7 @@
 #include "kahypar/meta/registrar.h"
 
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -38,6 +39,12 @@
     id, new policy_class())
 
 namespace kahypar {
+// //////////////////////////////////////////////////////////////////////////////
+//                            Hierachy Levels
+// //////////////////////////////////////////////////////////////////////////////
+REGISTER_POLICY(Hierarchy, Hierarchy::multi_level, MultiLevel);
+REGISTER_POLICY(Hierarchy, Hierarchy::n_level, nLevel);
+
 // //////////////////////////////////////////////////////////////////////////////
 //                            Rating Functions
 // //////////////////////////////////////////////////////////////////////////////

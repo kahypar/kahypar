@@ -145,7 +145,6 @@ struct CoarseningParameters {
   RatingParameters rating = { };
   HypernodeID contraction_limit_multiplier = std::numeric_limits<HypernodeID>::max();
   double max_allowed_weight_multiplier = std::numeric_limits<double>::max();
-  double contraction_factor = 1.7;  // like hMetis-K
 
   // Those will be determined dynamically
   HypernodeWeight max_allowed_node_weight = 0;
@@ -156,9 +155,6 @@ struct CoarseningParameters {
 inline std::ostream& operator<< (std::ostream& str, const CoarseningParameters& params) {
   str << "Coarsening Parameters:" << std::endl;
   str << "  Algorithm:                          " << params.algorithm << std::endl;
-  if (params.algorithm == CoarseningAlgorithm::multi_level) {
-    str << "  reduction factor:                   " << params.contraction_factor << std::endl;
-  }
   str << "  max-allowed-weight-multiplier:      " << params.max_allowed_weight_multiplier << std::endl;
   str << "  contraction-limit-multiplier:       " << params.contraction_limit_multiplier << std::endl;
   str << "  hypernode weight fraction:          ";
@@ -259,6 +255,8 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
 
 struct InitialPartitioningParameters {
   Mode mode = Mode::UNDEFINED;
+  Hierarchy hierarchy = Hierarchy::n_level;
+  double reduction_factor = 1.7;  // like hMetis-K
   InitialPartitioningTechnique technique = InitialPartitioningTechnique::UNDEFINED;
   InitialPartitionerAlgorithm algo = InitialPartitionerAlgorithm::UNDEFINED;
   CoarseningParameters coarsening = { };
@@ -291,6 +289,10 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "Initial Partitioning Parameters:" << std::endl;
   str << "  # IP trials:                        " << params.nruns << std::endl;
   str << "  Mode:                               " << params.mode << std::endl;
+  str << "  Hierarchy:                          " << params.hierarchy << std::endl;
+  if (params.hierarchy == Hierarchy::multi_level) {
+    str << "  Reduction Factor:                   " << params.reduction_factor << std::endl;
+  }
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
@@ -306,6 +308,8 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
 
 struct PartitioningParameters {
   Mode mode = Mode::UNDEFINED;
+  Hierarchy hierarchy = Hierarchy::n_level;
+  double reduction_factor = 1.7;  // like hMetis-K
   Objective objective = Objective::UNDEFINED;
   double epsilon = std::numeric_limits<double>::max();
   PartitionID k = std::numeric_limits<PartitionID>::max();
@@ -344,6 +348,10 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
     str << "  Input Partition File:                  " << params.input_partition_filename << std::endl;
   }
   str << "  Mode:                               " << params.mode << std::endl;
+  str << "  Hierarchy:                          " << params.hierarchy << std::endl;
+  if (params.hierarchy == Hierarchy::multi_level) {
+    str << "  Reduction Factor:                   " << params.reduction_factor << std::endl;
+  }
   str << "  Objective:                          " << params.objective << std::endl;
   str << "  k:                                  " << params.k << std::endl;
   str << "  epsilon:                            " << params.epsilon << std::endl;

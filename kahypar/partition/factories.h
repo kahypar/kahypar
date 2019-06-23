@@ -27,7 +27,6 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
-#include "kahypar/partition/coarsening/multi_level_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -53,15 +52,11 @@ using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
 
 using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
                                       CommunityPolicies, PartitionPolicies, AcceptancePolicies,
-                                      FixedVertexAcceptancePolicies>;
+                                      FixedVertexAcceptancePolicies, HierarchyPolicies>;
 
 using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
                                                                 ICoarsener,
                                                                 RatingPolicies>;
-
-using MultiLevelCoarseningDispatcher = meta::StaticMultiDispatchFactory<MultiLevelCoarsener,
-                                                                        ICoarsener,
-                                                                        RatingPolicies>;
 
 using FullCoarseningDispatcher = meta::StaticMultiDispatchFactory<FullVertexPairCoarsener,
                                                                   ICoarsener,

@@ -28,6 +28,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -43,15 +44,16 @@ template <class ScorePolicy = HeavyEdgeScore,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
+          class CoarseningLevelPolicy = nLevel,
           typename RatingType = RatingType>
 class MLCoarsener final : public ICoarsener,
-                          private VertexPairCoarsenerBase<>{
+                          private VertexPairCoarsenerBase<CoarseningLevelPolicy>{
  private:
   static constexpr bool debug = false;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
 
-  using Base = VertexPairCoarsenerBase;
+  using Base = VertexPairCoarsenerBase<CoarseningLevelPolicy>;
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
@@ -79,6 +81,8 @@ class MLCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
+    _coarsening_levels.initialize(_hg, _context);
+
     while (_hg.currentNumNodes() > limit) {
       DBG << V(pass_nr);
       DBG << V(_hg.currentNumNodes());
@@ -105,11 +109,13 @@ class MLCoarsener final : public ICoarsener,
             _rater.markAsMatched(rating.target);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
 
-            performContraction(hn, rating.target);
+            Base::performContraction(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
             // }
           }
+
+          _coarsening_levels.update(_hg, _context, _history);
 
           if (_hg.currentNumNodes() <= limit) {
             break;
@@ -126,13 +132,14 @@ class MLCoarsener final : public ICoarsener,
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {
-    return doUncoarsen(refiner);
+    return Base::doUncoarsen(refiner);
   }
 
   using Base::_pq;
   using Base::_hg;
   using Base::_context;
   using Base::_history;
+  using Base::_coarsening_levels;
   Rater _rater;
 };
 }  // namespace kahypar

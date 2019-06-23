@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2014-2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2014-2019 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -44,9 +45,10 @@ template <class ScorePolicy = HeavyEdgeScore,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
+          class CoarseningLevelPolicy = nLevel,
           typename RatingType = RatingType>
 class LazyVertexPairCoarsener final : public ICoarsener,
-                                      private VertexPairCoarsenerBase<>{
+                                      private VertexPairCoarsenerBase<CoarseningLevelPolicy>{
  private:
   static constexpr bool debug = false;
 
@@ -57,7 +59,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
                                 AcceptancePolicy,
                                 FixedVertexPolicy,
                                 RatingType>;
-  using Base = VertexPairCoarsenerBase;
+  using Base = VertexPairCoarsenerBase<CoarseningLevelPolicy>;
   using Rating = typename Rater::Rating;
 
  public:
@@ -82,7 +84,9 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
-    rateAllHypernodes(_rater, _target);
+    Base::rateAllHypernodes(_rater, _target);
+
+    _coarsening_levels.initialize(_hg, _context);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -105,7 +109,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
         ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
                V(_pq.topKey()) << V(_rater.rate(rep_node).value));
 
-        performContraction(rep_node, contracted_node);
+        Base::performContraction(rep_node, contracted_node);
 
         // This assertion does not hold if the cmaxnet parameter is used
         // to restrict the rating function to incident hyperedges of size
@@ -114,6 +118,8 @@ class LazyVertexPairCoarsener final : public ICoarsener,
         if (_pq.contains(contracted_node)) {
           _pq.remove(contracted_node);
         }
+
+        _coarsening_levels.update(_hg, _context, _history);
 
         // this also invalidates rep_node, however rep_node
         // will be re-rated and updated afterwards
@@ -158,6 +164,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   using Base::_hg;
   using Base::_context;
   using Base::_history;
+  using Base::_coarsening_levels;
   Rater _rater;
   ds::FastResetFlagArray<> _outdated_rating;
   std::vector<HypernodeID> _target;

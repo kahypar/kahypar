@@ -105,7 +105,7 @@ class TwoWayFlowRefiner final : public IRefiner,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
-    if (_context.coarsening.algorithm != CoarseningAlgorithm::multi_level &&
+    if (_context.partition.hierarchy != Hierarchy::multi_level &&
         (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy)) {
       return false;
     }

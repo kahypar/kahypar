@@ -31,6 +31,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
 #include "kahypar/partition/coarsening/coarsener_base.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
@@ -38,7 +39,8 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
+template <class CoarseningLevelPolicy = nLevel,
+          class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  private:
   static constexpr bool debug = false;
@@ -52,7 +54,8 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
     CoarsenerBase(hypergraph, context, weight_of_heaviest_node),
-    _pq(_hg.initialNumNodes()) { }
+    _pq(_hg.initialNumNodes()),
+    _coarsening_levels() { }
 
   ~VertexPairCoarsenerBase() override = default;
 
@@ -88,38 +91,57 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     _context.stats.set(StatTag::InitialPartitioning, "initialImbalance", current_metrics.imbalance);
 
     initializeRefiner(refiner);
-    std::vector<HypernodeID> refinement_nodes(2, 0);
+    std::vector<HypernodeID> refinement_nodes;
     UncontractionGainChanges changes;
     changes.representative.push_back(0);
     changes.contraction_partner.push_back(0);
+    ds::FastResetFlagArray<> contained(_hg.initialNumNodes());
     while (!_history.empty()) {
-      restoreParallelHyperedges();
-      restoreSingleNodeHyperedges();
-
-      DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
-          << _history.back().contraction_memento.v << ")";
-
+      contained.reset();
       refinement_nodes.clear();
-      refinement_nodes.push_back(_history.back().contraction_memento.u);
-      refinement_nodes.push_back(_history.back().contraction_memento.v);
+      const size_t next_level = _coarsening_levels.nextLevel(_history);
+      while (!_history.empty() && _history.size() >= next_level) {
+        restoreParallelHyperedges();
+        restoreSingleNodeHyperedges();
 
-      if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
-        _max_hn_weights.pop_back();
+        DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
+            << _history.back().contraction_memento.v << ")";
+
+        const HypernodeID u = _history.back().contraction_memento.u;
+        const HypernodeID v = _history.back().contraction_memento.v;
+
+        if (_coarsening_levels.type() == Hierarchy::multi_level) {
+          if (!contained[u]) {
+            refinement_nodes.push_back(u);
+            contained.set(u, true);
+          }
+          if (!contained[v]) {
+            refinement_nodes.push_back(v);
+            contained.set(v, true);
+          }
+          _hg.uncontract(_history.back().contraction_memento);
+        } else {
+          refinement_nodes.push_back(u);
+          refinement_nodes.push_back(v);
+          if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
+              _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
+            _hg.uncontract(_history.back().contraction_memento, changes,
+                           meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+          } else {
+            _hg.uncontract(_history.back().contraction_memento);
+          }
+        }
+
+        if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
+          _max_hn_weights.pop_back();
+        }
+        _history.pop_back();
       }
-
-      if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
-          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
-        _hg.uncontract(_history.back().contraction_memento, changes,
-                       meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
-      } else {
-        _hg.uncontract(_history.back().contraction_memento);
-      }
-
       performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
-      _history.pop_back();
     }
+    ASSERT(_history.empty());
 
     // This currently cannot be guaranteed for RB-partitioning and k != 2^x, since it might be
     // possible that 2FM cannot re-adjust the part weights to be less than Lmax0 and Lmax1.
@@ -181,5 +203,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   using CoarsenerBase::_hg;
   using CoarsenerBase::_context;
   PrioQueue _pq;
+  CoarseningLevelPolicy _coarsening_levels;
 };
 }  // namespace kahypar
