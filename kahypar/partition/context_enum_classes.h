@@ -82,6 +82,7 @@ enum class CoarseningAlgorithm : uint8_t {
   heavy_full,
   heavy_lazy,
   ml_style,
+  multi_level,
   do_nothing,
   UNDEFINED
 };
@@ -153,7 +154,7 @@ enum class EvoMutateStrategy : uint8_t {
   UNDEFINED
 };
 
-enum class EvoDecision :uint8_t {
+enum class EvoDecision : uint8_t {
   normal,
   mutation,
   combine
@@ -329,6 +330,7 @@ std::ostream& operator<< (std::ostream& os, const CoarseningAlgorithm& algo) {
     case CoarseningAlgorithm::heavy_full: return os << "heavy_full";
     case CoarseningAlgorithm::heavy_lazy: return os << "heavy_lazy";
     case CoarseningAlgorithm::ml_style: return os << "ml_style";
+    case CoarseningAlgorithm::multi_level: return os << "multi_level";
     case CoarseningAlgorithm::do_nothing: return os << "do_nothing";
     case CoarseningAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -537,7 +539,10 @@ static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type
     return CoarseningAlgorithm::heavy_lazy;
   } else if (type == "ml_style") {
     return CoarseningAlgorithm::ml_style;
+  } else if (type == "multi_level") {
+    return CoarseningAlgorithm::multi_level;
   }
+
   LOG << "Illegal option:" << type;
   exit(0);
   return CoarseningAlgorithm::heavy_lazy;

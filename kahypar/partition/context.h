@@ -145,6 +145,7 @@ struct CoarseningParameters {
   RatingParameters rating = { };
   HypernodeID contraction_limit_multiplier = std::numeric_limits<HypernodeID>::max();
   double max_allowed_weight_multiplier = std::numeric_limits<double>::max();
+  double contraction_factor = 1.7;  // like hMetis-K
 
   // Those will be determined dynamically
   HypernodeWeight max_allowed_node_weight = 0;

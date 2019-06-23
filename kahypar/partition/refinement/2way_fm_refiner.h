@@ -179,15 +179,22 @@ class TwoWayFMRefiner final : public IRefiner,
 
   void updateGainCacheAfterUncontraction(std::vector<HypernodeID>& refinement_nodes,
                                          const UncontractionGainChanges& changes) {
-    // Will always be the case in the first FM pass, since the just uncontracted HN
-    // was not seen before.
-    ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
-    ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
-    if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
-      // In further FM passes, changes will be set to 0 by the caller.
-      _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
-                           + changes.contraction_partner[0]);
-      _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
+    if (refinement_nodes.size() > 2) {
+      // recomputation necessary
+      for (const HypernodeID hn : refinement_nodes) {
+        _gain_cache.setValue(hn, computeGain(hn));
+      }
+    } else {
+      // Will always be the case in the first FM pass, since the just uncontracted HN
+      // was not seen before.
+      ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
+      ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
+      if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
+        // In further FM passes, changes will be set to 0 by the caller.
+        _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
+                             + changes.contraction_partner[0]);
+        _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
+      }
     }
   }
 
