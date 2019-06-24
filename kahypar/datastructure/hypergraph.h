@@ -1466,7 +1466,7 @@ class GenericHypergraph {
     _k = k;
     _pins_in_part.resize(static_cast<size_t>(_num_hyperedges) * k, 0);
     _part_info.resize(k, PartInfo());
-    _connectivity_sets.resize(_num_hyperedges, k);
+    _connectivity_sets.resize(_num_hyperedges);
   }
 
   void setType(const Type type) {
