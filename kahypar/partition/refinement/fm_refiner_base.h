@@ -158,34 +158,34 @@ class FMRefinerBase {
     reset();
     Derived* derived = static_cast<Derived*>(this);
     for (const HypernodeID& hn : refinement_nodes) {
-      derived->_gain_cache.clear(hn);
-      derived->initializeGainCacheFor(hn);
+      // derived->_gain_cache.clear(hn);
+      // derived->initializeGainCacheFor(hn);
     }
     for (const auto& move : moves) {
       DBG << V(move.hn) << V(move.from) << V(move.to);
-      if (!derived->_gain_cache.entryExists(move.hn, move.to)) {
-        derived->_gain_cache.initializeEntry(move.hn,
-                                             move.to,
-                                             derived->gainInducedByHypergraph(move.hn,
-                                                                              move.to));
-      }
+      // if (!derived->_gain_cache.entryExists(move.hn, move.to)) {
+      //   derived->_gain_cache.initializeEntry(move.hn,
+      //                                        move.to,
+      //                                        derived->gainInducedByHypergraph(move.hn,
+      //                                                                         move.to));
+      // }
       _hg.changeNodePart(move.hn, move.from, move.to);
       _hg.activate(move.hn);
       _hg.mark(move.hn);
-      derived->updateNeighboursGainCacheOnly(move.hn, move.from, move.to);
+      // derived->updateNeighboursGainCacheOnly(move.hn, move.from, move.to);
     }
-    derived->_gain_cache.resetDelta();
-    derived->ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // derived->_gain_cache.resetDelta();
+    // derived->ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
 
 
-  template <typename GainCache>
-  void removeHypernodeMovementsFromPQ(const HypernodeID hn, const GainCache& gain_cache) {
+  void removeHypernodeMovementsFromPQ(const HypernodeID hn) {
     if (_hg.active(hn)) {
       _hg.deactivate(hn);
-      for (const PartitionID& part : gain_cache.adjacentParts(hn)) {
-        ASSERT(_pq.contains(hn, part), V(hn) << V(part));
-        _pq.remove(hn, part);
+      for (PartitionID part = 0; part != _context.partition.k; ++part){
+        if (_pq.contains(hn, part)) {
+            _pq.remove(hn, part);
+          }
       }
       ASSERT([&]() {
           for (PartitionID part = 0; part < _context.partition.k; ++part) {

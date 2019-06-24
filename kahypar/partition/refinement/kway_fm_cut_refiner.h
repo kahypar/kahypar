@@ -114,138 +114,138 @@ class KWayFMRefiner final : public IRefiner,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
-    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
-           V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
-    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
-             FloatingPoint<double>(metrics::imbalance(_hg, _context))),
-           V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
+    // ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
+    //        V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
+    // ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
+    //          FloatingPoint<double>(metrics::imbalance(_hg, _context))),
+    //        V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
-    Base::reset();
-    _he_fully_active.reset();
-    _locked_hes.resetUsedEntries();
+    // Base::reset();
+    // _he_fully_active.reset();
+    // _locked_hes.resetUsedEntries();
 
 
-    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
-    for (const HypernodeID& hn : refinement_nodes) {
-      activate<true>(hn);
-    }
+    // Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
+    // for (const HypernodeID& hn : refinement_nodes) {
+    //   activate<true>(hn);
+    // }
 
-    Base::activateAdjacentFreeVertices(refinement_nodes);
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // Base::activateAdjacentFreeVertices(refinement_nodes);
+    // ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
     HyperedgeWeight current_cut = best_metrics.cut;
     double current_imbalance = best_metrics.imbalance;
 
-    int min_cut_index = -1;
-    int touched_hns_since_last_improvement = 0;
-    _stopping_policy.resetStatistics();
+    // int min_cut_index = -1;
+    // int touched_hns_since_last_improvement = 0;
+    // _stopping_policy.resetStatistics();
 
-    const double beta = log(_hg.currentNumNodes());
-    while (!_pq.empty() &&
-           !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
-                                              _context, beta, best_metrics.cut, current_cut)) {
-      Gain max_gain = kInvalidGain;
-      HypernodeID max_gain_node = kInvalidHN;
-      PartitionID to_part = Hypergraph::kInvalidPartition;
-      _pq.deleteMax(max_gain_node, max_gain, to_part);
-      PartitionID from_part = _hg.partID(max_gain_node);
+    // const double beta = log(_hg.currentNumNodes());
+    // while (!_pq.empty() &&
+    //        !_stopping_policy.searchShouldStop(touched_hns_since_last_improvement,
+    //                                           _context, beta, best_metrics.cut, current_cut)) {
+    //   Gain max_gain = kInvalidGain;
+    //   HypernodeID max_gain_node = kInvalidHN;
+    //   PartitionID to_part = Hypergraph::kInvalidPartition;
+    //   _pq.deleteMax(max_gain_node, max_gain, to_part);
+    //   PartitionID from_part = _hg.partID(max_gain_node);
 
-      DBG << V(current_cut) << V(max_gain_node) << V(max_gain)
-          << V(_hg.partID(max_gain_node)) << V(to_part);
+    //   DBG << V(current_cut) << V(max_gain_node) << V(max_gain)
+    //       << V(_hg.partID(max_gain_node)) << V(to_part);
 
-      ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
-      ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part));
-      ASSERT(_hg.isBorderNode(max_gain_node));
-      ASSERT([&]() {
-          _hg.changeNodePart(max_gain_node, from_part, to_part);
-          ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
-                 "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
-          _hg.changeNodePart(max_gain_node, to_part, from_part);
-          return true;
-        } ());
+    //   ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
+    //   ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part));
+    //   ASSERT(_hg.isBorderNode(max_gain_node));
+    //   ASSERT([&]() {
+    //       _hg.changeNodePart(max_gain_node, from_part, to_part);
+    //       ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
+    //              "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
+    //       _hg.changeNodePart(max_gain_node, to_part, from_part);
+    //       return true;
+    //     } ());
 
-      // Staleness assertion: The move should be to a part that is in the connectivity superset of
-      // the max_gain_node.
-      ASSERT(Base::hypernodeIsConnectedToPart(max_gain_node, to_part),
-             V(max_gain_node) << V(from_part) << V(to_part));
+    //   // Staleness assertion: The move should be to a part that is in the connectivity superset of
+    //   // the max_gain_node.
+    //   ASSERT(Base::hypernodeIsConnectedToPart(max_gain_node, to_part),
+    //          V(max_gain_node) << V(from_part) << V(to_part));
 
-      // remove all other possible moves of the current max_gain_node
-      for (const PartitionID& part : _gain_cache.adjacentParts(max_gain_node)) {
-        if (part == to_part) {
-          continue;
-        }
-        _pq.remove(max_gain_node, part);
-      }
-      ASSERT([&]() {
-          for (PartitionID part = 0; part < _context.partition.k; ++part) {
-            if (_pq.contains(max_gain_node, part)) {
-              return false;
-            }
-          }
-          return true;
-        } (), V(max_gain_node));
+    //   // remove all other possible moves of the current max_gain_node
+    //   for (const PartitionID& part : _gain_cache.adjacentParts(max_gain_node)) {
+    //     if (part == to_part) {
+    //       continue;
+    //     }
+    //     _pq.remove(max_gain_node, part);
+    //   }
+    //   ASSERT([&]() {
+    //       for (PartitionID part = 0; part < _context.partition.k; ++part) {
+    //         if (_pq.contains(max_gain_node, part)) {
+    //           return false;
+    //         }
+    //       }
+    //       return true;
+    //     } (), V(max_gain_node));
 
-      _hg.mark(max_gain_node);
-      ++touched_hns_since_last_improvement;
+    //   _hg.mark(max_gain_node);
+    //   ++touched_hns_since_last_improvement;
 
-      if (Base::moveIsFeasible(max_gain_node, from_part, to_part)) {
-        Base::moveHypernode(max_gain_node, from_part, to_part);
+    //   if (Base::moveIsFeasible(max_gain_node, from_part, to_part)) {
+    //     Base::moveHypernode(max_gain_node, from_part, to_part);
 
-        Base::updatePQpartState(from_part,
-                                to_part,
-                                _context.partition.max_part_weights[from_part],
-                                _context.partition.max_part_weights[to_part]);
+    //     Base::updatePQpartState(from_part,
+    //                             to_part,
+    //                             _context.partition.max_part_weights[from_part],
+    //                             _context.partition.max_part_weights[to_part]);
 
-        current_imbalance = metrics::imbalance(_hg, _context);
+    //     current_imbalance = metrics::imbalance(_hg, _context);
 
-        current_cut -= max_gain;
-        _stopping_policy.updateStatistics(max_gain);
+    //     current_cut -= max_gain;
+    //     _stopping_policy.updateStatistics(max_gain);
 
-        ASSERT(current_cut == metrics::hyperedgeCut(_hg),
-               V(current_cut) << V(metrics::hyperedgeCut(_hg)));
-        ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
-               V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
+    //     ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+    //            V(current_cut) << V(metrics::hyperedgeCut(_hg)));
+    //     ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
+    //            V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
 
-        updateNeighbours(max_gain_node, from_part, to_part);
+    //     updateNeighbours(max_gain_node, from_part, to_part);
 
-        // right now, we do not allow a decrease in cut in favor of an increase in balance
-        const bool improved_cut_within_balance = (current_imbalance <= _context.partition.epsilon) &&
-                                                 (current_cut < best_metrics.cut);
-        const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
-                                                     (current_cut <= best_metrics.cut);
-        // if (current_cut < best_metrics.cut && current_imbalance > _context.partition.epsilon) {
-        //   LOG << V(current_cut) << V(best_metrics.cut) << V(current_imbalance);
-        // }
+    //     // right now, we do not allow a decrease in cut in favor of an increase in balance
+    //     const bool improved_cut_within_balance = (current_imbalance <= _context.partition.epsilon) &&
+    //                                              (current_cut < best_metrics.cut);
+    //     const bool improved_balance_less_equal_cut = (current_imbalance < best_metrics.imbalance) &&
+    //                                                  (current_cut <= best_metrics.cut);
+    //     // if (current_cut < best_metrics.cut && current_imbalance > _context.partition.epsilon) {
+    //     //   LOG << V(current_cut) << V(best_metrics.cut) << V(current_imbalance);
+    //     // }
 
-        if (improved_cut_within_balance || improved_balance_less_equal_cut) {
-          DBGC(max_gain == 0) << "KWayFM improved balance between" << from_part << "and "
-                              << to_part << "(max_gain=" << max_gain << ")";
-          DBGC(current_cut < best_metrics.cut) << "KWayFM improved cut from "
-                                               << best_metrics.cut << "to" << current_cut;
-          best_metrics.cut = current_cut;
-          best_metrics.imbalance = current_imbalance;
-          _stopping_policy.resetStatistics();
-          min_cut_index = _performed_moves.size();
-          touched_hns_since_last_improvement = 0;
-          _gain_cache.resetDelta();
-        }
-        _performed_moves.emplace_back(RollbackInfo { max_gain_node, from_part, to_part });
-      }
-    }
-    DBG << "KWayFM performed" << _performed_moves.size()
-        << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
-        << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _context, beta,
-                                          best_metrics.cut, current_cut)
-        == true ? "policy" : "empty queue");
+    //     if (improved_cut_within_balance || improved_balance_less_equal_cut) {
+    //       DBGC(max_gain == 0) << "KWayFM improved balance between" << from_part << "and "
+    //                           << to_part << "(max_gain=" << max_gain << ")";
+    //       DBGC(current_cut < best_metrics.cut) << "KWayFM improved cut from "
+    //                                            << best_metrics.cut << "to" << current_cut;
+    //       best_metrics.cut = current_cut;
+    //       best_metrics.imbalance = current_imbalance;
+    //       _stopping_policy.resetStatistics();
+    //       min_cut_index = _performed_moves.size();
+    //       touched_hns_since_last_improvement = 0;
+    //       _gain_cache.resetDelta();
+    //     }
+    //     _performed_moves.emplace_back(RollbackInfo { max_gain_node, from_part, to_part });
+    //   }
+    // }
+    // DBG << "KWayFM performed" << _performed_moves.size()
+    //     << "local search movements ( min_cut_index=" << min_cut_index << "): stopped because of "
+    //     << (_stopping_policy.searchShouldStop(touched_hns_since_last_improvement, _context, beta,
+    //                                       best_metrics.cut, current_cut)
+    //     == true ? "policy" : "empty queue");
 
-    Base::rollback(_performed_moves.size() - 1, min_cut_index);
-    _gain_cache.rollbackDelta();
+    // Base::rollback(_performed_moves.size() - 1, min_cut_index);
+    // _gain_cache.rollbackDelta();
 
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
-    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
-    ASSERT(best_metrics.cut <= initial_cut, V(initial_cut) << V(best_metrics.cut));
+    // ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
+    // ASSERT(best_metrics.cut <= initial_cut, V(initial_cut) << V(best_metrics.cut));
 
     return FMImprovementPolicy::improvementFound(best_metrics.cut, initial_cut,
                                                  best_metrics.imbalance,
@@ -452,7 +452,7 @@ class KWayFMRefiner final : public IRefiner,
             ++num_active_pins;
           } else {
             if (!_hg.isBorderNode(pin)) {
-              Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
+              // Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
             } else {
               connectivityUpdate(pin, from_part, to_part, he,
                                  move_decreased_connectivity,
@@ -508,7 +508,7 @@ class KWayFMRefiner final : public IRefiner,
         if (!only_update_cache && !_hg.marked(pin)) {
           ASSERT(pin != moved_hn, V(pin));
           if (!_hg.isBorderNode(pin)) {
-            Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
+            // Base::removeHypernodeMovementsFromPQ(pin, _gain_cache);
           } else {
             connectivityUpdate(pin, from_part, to_part, he,
                                move_decreased_connectivity,
