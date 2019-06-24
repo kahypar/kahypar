@@ -73,7 +73,7 @@ class TwoWayFMRefiner final : public IRefiner,
     _he_fully_active(_hg.initialNumEdges()),
     _hns_in_activation_vector(_hg.initialNumNodes()),
     _non_border_hns_to_remove(),
-    _gain_cache(_hg.initialNumNodes()),
+    // _gain_cache(_hg.initialNumNodes()),
     _locked_hes(_hg.initialNumEdges(), HEState::free),
     _stopping_policy() {
     ASSERT(context.partition.k == 2);
@@ -94,13 +94,13 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
-      ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
-             << V(_gain_cache.value(hn)) << V(computeGain(hn)));
+      // ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
+      //        << V(_gain_cache.value(hn)) << V(computeGain(hn)));
 
       DBG << "inserting HN" << hn << "with gain "
           << computeGain(hn) << "in PQ" << 1 - _hg.partID(hn);
 
-      _pq.insert(hn, 1 - _hg.partID(hn), _gain_cache.value(hn));
+      _pq.insert(hn, 1 - _hg.partID(hn), computeGain(hn));
       if (_hg.partWeight(1 - _hg.partID(hn)) < max_allowed_part_weights[1 - _hg.partID(hn)]) {
         _pq.enablePart(1 - _hg.partID(hn));
       }
@@ -147,12 +147,12 @@ class TwoWayFMRefiner final : public IRefiner,
 #endif
       _is_initialized = true;
     }
-    _gain_cache.clear();
-    for (const HypernodeID& hn : _hg.nodes()) {
-      _gain_cache.setValue(hn, computeGain(hn));
-      ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
-             << V(_gain_cache.value(hn)) << V(computeGain(hn)));
-    }
+    // _gain_cache.clear();
+    // for (const HypernodeID& hn : _hg.nodes()) {
+    //   _gain_cache.setValue(hn, computeGain(hn));
+    //   ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
+    //          << V(_gain_cache.value(hn)) << V(computeGain(hn)));
+    // }
   }
 
   void performMovesAndUpdateCacheImpl(const std::vector<Move>& moves,
@@ -161,16 +161,16 @@ class TwoWayFMRefiner final : public IRefiner,
     updateGainCacheAfterUncontraction(refinement_nodes, uncontraction_changes);
     for (const auto& move : moves) {
       _hg.changeNodePart(move.hn, move.from, move.to);
-      const Gain temp = _gain_cache.value(move.hn);
-      ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
-      _gain_cache.setNotCached(move.hn);
-      for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
-        deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
-      }
-      _gain_cache.setValue(move.hn, -temp);
+      // const Gain temp = _gain_cache.value(move.hn);
+      // ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
+      // _gain_cache.setNotCached(move.hn);
+      // for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
+      //   deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
+      // }
+      // _gain_cache.setValue(move.hn, -temp);
     }
-    _gain_cache.resetDelta();
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // _gain_cache.resetDelta();
+    // ASSERT_THAT_GAIN_CACHE_IS_VALID();
   }
 
   std::vector<Move> rollbackImpl() override final {
@@ -181,14 +181,14 @@ class TwoWayFMRefiner final : public IRefiner,
                                          const UncontractionGainChanges& changes) {
     // Will always be the case in the first FM pass, since the just uncontracted HN
     // was not seen before.
-    ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
-    ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
-    if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
-      // In further FM passes, changes will be set to 0 by the caller.
-      _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
-                           + changes.contraction_partner[0]);
-      _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
-    }
+    // ASSERT(changes.representative.size() == 1, V(changes.representative.size()));
+    // ASSERT(changes.contraction_partner.size() == 1, V(changes.contraction_partner.size()));
+    // if (!_gain_cache.isCached(refinement_nodes[1]) && _gain_cache.isCached(refinement_nodes[0])) {
+    //   // In further FM passes, changes will be set to 0 by the caller.
+    //   _gain_cache.setValue(refinement_nodes[1], _gain_cache.value(refinement_nodes[0])
+    //                        + changes.contraction_partner[0]);
+    //   _gain_cache.updateValue(refinement_nodes[0], changes.representative[0]);
+    // }
   }
 
   bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
@@ -224,7 +224,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     // Activate all adjacent free vertices of a fixed vertex in refinement_nodes
     Base::activateAdjacentFreeVertices(refinement_nodes, max_allowed_part_weights);
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     const HyperedgeWeight initial_cut = best_metrics.cut;
     const double initial_imbalance = best_metrics.imbalance;
@@ -252,7 +252,7 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
 
       ASSERT(max_gain == computeGain(max_gain_node));
-      ASSERT(max_gain == _gain_cache.value(max_gain_node));
+      // ASSERT(max_gain == _gain_cache.value(max_gain_node));
       ASSERT([&]() {
           _hg.changeNodePart(max_gain_node, from_part, to_part);
           ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
@@ -307,7 +307,7 @@ class TwoWayFMRefiner final : public IRefiner,
         _stopping_policy.resetStatistics();
         min_cut_index = _performed_moves.size() - 1;
         touched_hns_since_last_improvement = 0;
-        _gain_cache.resetDelta();
+        // _gain_cache.resetDelta();
       }
     }
 
@@ -318,13 +318,13 @@ class TwoWayFMRefiner final : public IRefiner,
         == true ? "policy" : "empty queue");
 
     rollback(_performed_moves.size() - 1, min_cut_index);
-    _gain_cache.rollbackDelta();
+    // _gain_cache.rollbackDelta();
 
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
     ASSERT(best_metrics.cut <= initial_cut, V(initial_cut) << V(best_metrics.cut));
     ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
-    ASSERT_THAT_GAIN_CACHE_IS_VALID();
+    // ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
     // This currently cannot be guaranteed in case k!=2^x, because initial partitioner might create
     // a bipartition which is balanced regarding epsilon, but not regarding the targeted block
@@ -356,10 +356,10 @@ class TwoWayFMRefiner final : public IRefiner,
   void updateNeighbours(const HypernodeID moved_hn, const PartitionID from_part,
                         const PartitionID to_part,
                         const HypernodeWeightArray& max_allowed_part_weights) {
-    const Gain temp = _gain_cache.value(moved_hn);
-    ASSERT(-temp == computeGain(moved_hn), V(moved_hn));
-    const Gain rb_delta = _gain_cache.delta(moved_hn);
-    _gain_cache.setNotCached(moved_hn);
+    // const Gain temp = _gain_cache.value(moved_hn);
+    // ASSERT(-temp == computeGain(moved_hn), V(moved_hn));
+    // const Gain rb_delta = _gain_cache.delta(moved_hn);
+    // _gain_cache.setNotCached(moved_hn);
     for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
       if (_locked_hes.get(he) != HEState::locked) {
         if (_locked_hes.get(he) == to_part) {
@@ -385,8 +385,8 @@ class TwoWayFMRefiner final : public IRefiner,
       }
     }
 
-    _gain_cache.setValue(moved_hn, -temp);
-    _gain_cache.setDelta(moved_hn, rb_delta + 2 * temp);
+    // _gain_cache.setValue(moved_hn, -temp);
+    // _gain_cache.setDelta(moved_hn, rb_delta + 2 * temp);
     for (const HypernodeID& hn : _hns_to_activate) {
       ASSERT(!_hg.active(hn), V(hn));
       activate(hn, max_allowed_part_weights);
@@ -426,8 +426,8 @@ class TwoWayFMRefiner final : public IRefiner,
               }
             }
             // Gain calculation needs to be consistent in cache
-            ASSERT(!_gain_cache.isCached(pin) || _gain_cache.value(pin) == computeGain(pin),
-                   V(pin) << V(_gain_cache.value(pin)) << V(computeGain(pin)));
+            // ASSERT(!_gain_cache.isCached(pin) || _gain_cache.value(pin) == computeGain(pin),
+            //        V(pin) << V(_gain_cache.value(pin)) << V(computeGain(pin)));
           }
         }
         return true;
@@ -443,7 +443,7 @@ class TwoWayFMRefiner final : public IRefiner,
     // Only _gain_cache[moved_hn] = kNotCached, all other entries are cached.
     // However we set _gain_cache[moved_hn] to the correct value after all neighbors
     // are updated.
-    _gain_cache.updateCacheAndDelta(pin, gain_delta);
+    // _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 
   void performNonZeroFullUpdate(const HypernodeID pin, const Gain gain_delta,
@@ -633,9 +633,9 @@ class TwoWayFMRefiner final : public IRefiner,
       _pq.updateKeyBy(pin, target_part, gain_delta);
     }
 
-    ASSERT(_gain_cache.isCached(pin), V(pin));
-    ASSERT(gain_delta != 0, V(gain_delta));
-    _gain_cache.updateCacheAndDelta(pin, gain_delta);
+    // ASSERT(_gain_cache.isCached(pin), V(pin));
+    // ASSERT(gain_delta != 0, V(gain_delta));
+    // _gain_cache.updateCacheAndDelta(pin, gain_delta);
   }
 
   void rollback(int last_index, const int min_cut_index) {
@@ -664,17 +664,17 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
-    ASSERT([&]() {
-        for (const HypernodeID& hn : _hg.nodes()) {
-          if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
-            LOG << V(hn);
-            LOG << V(_gain_cache.value(hn));
-            LOG << V(computeGain(hn));
-            return false;
-          }
-        }
-        return true;
-      } (), "GainCache Invalid");
+    // ASSERT([&]() {
+    //     for (const HypernodeID& hn : _hg.nodes()) {
+    //       if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
+    //         LOG << V(hn);
+    //         LOG << V(_gain_cache.value(hn));
+    //         LOG << V(computeGain(hn));
+    //         return false;
+    //       }
+    //     }
+    //     return true;
+    //   } (), "GainCache Invalid");
   }
 
   using Base::_hg;
@@ -686,7 +686,7 @@ class TwoWayFMRefiner final : public IRefiner,
   ds::FastResetFlagArray<> _he_fully_active;
   ds::FastResetFlagArray<> _hns_in_activation_vector;  // faster than using a SparseSet in this case
   std::vector<HypernodeID> _non_border_hns_to_remove;
-  TwoWayFMGainCache<Gain> _gain_cache;
+  // TwoWayFMGainCache<Gain> _gain_cache;
   ds::FastResetArray<PartitionID> _locked_hes;
   StoppingPolicy _stopping_policy;
 };
