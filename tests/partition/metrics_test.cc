@@ -24,6 +24,7 @@
 #include "kahypar/kahypar.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
@@ -44,6 +45,7 @@ using FirstWinsCoarsener = FullVertexPairCoarsener<HeavyEdgeScore,
                                                    NormalPartitionPolicy,
                                                    BestRatingWithTieBreaking<FirstRatingWins>,
                                                    AllowFreeOnFixedFreeOnFreeFixedOnFixed,
+                                                   nLevel,
                                                    RatingType>;
 using Refiner = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 

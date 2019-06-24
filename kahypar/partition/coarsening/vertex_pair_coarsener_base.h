@@ -30,6 +30,7 @@
 #include "kahypar/datastructure/binary_heap.h"
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
+#include "kahypar/meta/mandatory.h"
 #include "kahypar/partition/coarsening/coarsener_base.h"
 #include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
@@ -39,7 +40,7 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-template <class CoarseningLevelPolicy = nLevel,
+template <class CoarseningLevelPolicy = Mandatory,
           class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  private:
