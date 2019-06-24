@@ -168,7 +168,7 @@ debug output will disappear.
 #define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 // *** an always-on ASSERT
-#define ALWAYS_ASSERT(cond, msg)              \
+#define ALWAYS_ASSERT_2(cond, msg)              \
   do {                                        \
     if (!(cond)) {                            \
       DBG1 << "Assertion `" #cond "` failed:" \
@@ -176,6 +176,12 @@ debug output will disappear.
       std::abort();                           \
     }                                         \
   } while (0)
+
+#define ALWAYS_ASSERT_1(cond) ALWAYS_ASSERT_2(cond, "")
+
+#define ALWAYS_ASSERT_(N) ALWAYS_ASSERT_ ## N
+#define ALWAYS_ASSERT_EVAL(N) ALWAYS_ASSERT_(N)
+#define ALWAYS_ASSERT(...) EXPAND(ALWAYS_ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 #define ONLYDEBUG(x) ((void)x)
 #define UNUSED_FUNCTION(x) ((void)x)

@@ -600,8 +600,8 @@ class GenericHypergraph {
     _fixed_vertices(nullptr),
     _fixed_vertex_part_id(),
     _part_info(_k),
-    _pins_in_part(_num_hyperedges * k),
-    _connectivity_sets(_num_hyperedges, k),
+    _pins_in_part(static_cast<size_t>(_num_hyperedges) * k),
+    _connectivity_sets(_num_hyperedges),
     _hes_not_containing_u(_num_hyperedges) {
     VertexID edge_vector_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
@@ -1452,7 +1452,7 @@ class GenericHypergraph {
   // internal data structures accordingly.
   void changeK(const PartitionID k) {
     _k = k;
-    _pins_in_part.resize(_num_hyperedges * k, 0);
+    _pins_in_part.resize(static_cast<size_t>(_num_hyperedges) * k, 0);
     _part_info.resize(k, PartInfo());
     _connectivity_sets.resize(_num_hyperedges, k);
   }
@@ -2306,7 +2306,7 @@ reindex(const Hypergraph& hypergraph) {
   reindexed_hypergraph->_pins_in_part.resize(static_cast<size_t>(num_hyperedges) * hypergraph._k);
   reindexed_hypergraph->_hes_not_containing_u.setSize(num_hyperedges);
 
-  reindexed_hypergraph->_connectivity_sets.initialize(num_hyperedges, hypergraph._k);
+  reindexed_hypergraph->_connectivity_sets.initialize(num_hyperedges);
 
   for (HypernodeID i = 0; i < num_hypernodes - 1; ++i) {
     reindexed_hypergraph->hypernode(i).setWeight(hypergraph.nodeWeight(reindexed_to_original[i]));
@@ -2453,7 +2453,7 @@ static void setupInternalStructure(const Hypergraph& reference,
                                      static_cast<size_t>(new_k));
   subhypergraph._hes_not_containing_u.setSize(num_hyperedges);
 
-  subhypergraph._connectivity_sets.initialize(num_hyperedges, new_k);
+  subhypergraph._connectivity_sets.initialize(num_hyperedges);
 
   subhypergraph._part_info.resize(new_k);
 

@@ -52,7 +52,7 @@ class MostBalancedMinimumCut {
     _hg(hypergraph),
     _context(context),
     _flow_network(flowNetwork),
-    _visited(_hg.initialNumNodes() + 2 * _hg.initialNumEdges()),
+    _visited(static_cast<size_t>(_hg.initialNumNodes()) + 2 * _hg.initialNumEdges()),
     _graph_to_flow_network(flowNetwork.initialSize(), Network::kInvalidNode),
     _flow_network_to_graph(flowNetwork.initialSize(), Network::kInvalidNode),
     _scc_node_weight(flowNetwork.initialSize(), 0),

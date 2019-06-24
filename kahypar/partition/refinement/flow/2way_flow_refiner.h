@@ -65,7 +65,7 @@ class TwoWayFlowRefiner final : public IRefiner,
     _maximum_flow(FlowAlgorithmFactory<Network>::getInstance().createObject(
                     _context.local_search.flow.algorithm, hypergraph, _context, _flow_network)),
     _quotient_graph(nullptr),
-    _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
+    _visited(static_cast<size_t>(_hg.initialNumNodes()) + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
     _ignore_flow_execution_policy(false) { }

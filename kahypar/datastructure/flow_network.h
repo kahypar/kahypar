@@ -599,7 +599,7 @@ class LawlerNetwork final : public FlowNetwork<LawlerNetwork>{
  public:
   LawlerNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
-         hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
+         static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges()) { }
 
   ~LawlerNetwork() = default;
 
@@ -636,7 +636,7 @@ class HeuerNetwork final : public FlowNetwork<HeuerNetwork>{
  public:
   HeuerNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
-         hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
+         static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges()) { }
 
   ~HeuerNetwork() = default;
 
@@ -696,7 +696,7 @@ class WongNetwork final : public FlowNetwork<WongNetwork>{
  public:
   WongNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
-         hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
+         static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges()) { }
 
   ~WongNetwork() = default;
 
@@ -746,7 +746,7 @@ class HybridNetwork final : public FlowNetwork<HybridNetwork>{
  public:
   HybridNetwork(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context,
-         hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()) { }
+         static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges()) { }
 
   ~HybridNetwork() = default;
 

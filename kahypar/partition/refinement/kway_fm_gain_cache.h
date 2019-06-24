@@ -44,7 +44,7 @@ class KwayGainCache {
   KwayGainCache(const HypernodeID num_hns, const PartitionID k) :
     _k(k),
     _num_hns(num_hns),
-    _cache_element_size(sizeof(KFMCacheElement) +
+    _cache_element_size(static_cast<size_t>(sizeof(KFMCacheElement)) +
                         _k * sizeof(typename KFMCacheElement::Element) +
                         _k * sizeof(PartitionID)),
     _cache(std::make_unique<KFMCacheElement*[]>(num_hns)),

@@ -45,8 +45,10 @@ class BFSInitialPartitioner : public IInitialPartitioner,
   BFSInitialPartitioner(Hypergraph& hypergraph, Context& context) :
     Base(hypergraph, context),
     _queues(),
-    _hypernode_in_queue(context.initial_partitioning.k * hypergraph.initialNumNodes()),
-    _hyperedge_in_queue(context.initial_partitioning.k * hypergraph.initialNumEdges()) { }
+    _hypernode_in_queue(static_cast<size_t>(context.initial_partitioning.k) *
+                        hypergraph.initialNumNodes()),
+    _hyperedge_in_queue(static_cast<size_t>(context.initial_partitioning.k) *
+                        hypergraph.initialNumEdges()) { }
 
   ~BFSInitialPartitioner() override = default;
 
