@@ -1004,7 +1004,8 @@ class GenericHypergraph {
       if (_hes_not_containing_u[he]) {
         // ... then we have to do some kind of restore operation.
         if (_incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v &&
-            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {  ///peeek might go wrong
+            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {
+          // sentinel ensures that hyperedge(he + 1) exists
           // Undo case 1 operation (i.e. Pin v was just cut off by decreasing size of HE e)
           DBG << V(he) << " -> case 1";
           ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
@@ -1119,7 +1120,8 @@ class GenericHypergraph {
       if (_hes_not_containing_u[he]) {
         // ... then we have to do some kind of restore operation.
         if (_incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v &&
-            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {  ///peeek might go wrong
+            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {
+          // hyperedge(he + 1) always exists because of sentinel
           // Undo case 1 operation (i.e. Pin v was just cut off by decreasing size of HE e)
           DBG << V(he) << " -> case 1";
           DBG << "increasing size of HE" << he;
@@ -1454,7 +1456,7 @@ class GenericHypergraph {
     _k = k;
     _pins_in_part.resize(static_cast<size_t>(_num_hyperedges) * k, 0);
     _part_info.resize(k, PartInfo());
-    _connectivity_sets.resize(_num_hyperedges, k);
+    _connectivity_sets.resize(_num_hyperedges);
   }
 
   void setType(const Type type) {
@@ -2049,7 +2051,8 @@ class GenericHypergraph {
 
   // ! Accessor for hyperedge-related information
   const Hyperedge & hyperedge(const HyperedgeID e) const {
-    ASSERT(e <= _num_hyperedges, "Hyperedge" << e << "does not exist");  // sentinel
+    // <= instead of < because of sentinel
+    ASSERT(e <= _num_hyperedges, "Hyperedge" << e << "does not exist");
     return _hyperedges[e];
   }
 
