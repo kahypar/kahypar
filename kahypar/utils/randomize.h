@@ -76,6 +76,10 @@ class Randomize {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
 
+  std::mt19937& getGenerator() {
+    return _gen;
+  }
+
  private:
   Randomize() :
     _seed(-1),

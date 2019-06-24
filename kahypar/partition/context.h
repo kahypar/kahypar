@@ -433,6 +433,8 @@ class Context {
   Context() :
     stats(*this) { }
 
+  ~Context() { }
+
   Context(const Context& other) :
     partition(other.partition),
     preprocessing(other.preprocessing),

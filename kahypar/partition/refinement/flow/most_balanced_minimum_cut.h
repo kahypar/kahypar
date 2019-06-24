@@ -38,6 +38,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/strongly_connected_components.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 using ds::Graph;
@@ -369,7 +370,7 @@ class MostBalancedMinimumCut {
         start_nodes.push_back(u);
       }
     }
-    std::random_shuffle(start_nodes.begin(), start_nodes.end());
+    std::shuffle(start_nodes.begin(), start_nodes.end(),Randomize::instance().getGenerator());
     for (const NodeID& u : start_nodes) {
       _Q.push(u);
     }
