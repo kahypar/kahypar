@@ -47,6 +47,8 @@
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
+#define  JOIN(a, b)       a ## b
+
 // Logging inspired by https://github.com/thrill/thrill/blob/master/thrill/common/logger.hpp
 /*!
 
@@ -168,7 +170,7 @@ debug output will disappear.
 #define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 // *** an always-on ASSERT
-#define ALWAYS_ASSERT_2(cond, msg)              \
+#define ALWAYS_ASSERT_2(cond, msg)            \
   do {                                        \
     if (!(cond)) {                            \
       DBG1 << "Assertion `" #cond "` failed:" \
