@@ -29,9 +29,6 @@
 // Use bucket PQ for FM refinement.
 // #define USE_BUCKET_QUEUE
 
-// Gather advanced statistics
-// #define GATHER_STATS
-
 namespace kahypar {
 using HypernodeID = uint32_t;
 using HyperedgeID = uint32_t;

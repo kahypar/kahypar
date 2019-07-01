@@ -60,14 +60,8 @@ class PartitionerFacade {
     const std::chrono::duration<double> elapsed_seconds = time_and_iteration.first;
     const size_t iteration = time_and_iteration.second;
 
-#ifdef GATHER_STATS
-    io::printStatsBanner();
-    io::printPartitioningStatistics();
-#endif
-
-
     io::printFinalPartitioningResults(hypergraph, context, elapsed_seconds);
-    if (context.partition.write_partition_file){
+    if (context.partition.write_partition_file) {
       io::writePartitionFile(hypergraph, context.partition.graph_partition_filename);
     }
 
