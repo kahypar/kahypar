@@ -272,8 +272,10 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   std::chrono::duration<double> elapsed_seconds = end - start;
   Timer::instance().add(context, Timepoint::pre_community_detection,
                         std::chrono::duration<double>(end - start).count());
-  context.stats.set(StatTag::Preprocessing, "Communities", louvain.numCommunities());
-  context.stats.set(StatTag::Preprocessing, "Modularity", quality);
+  if (context.type == ContextType::main) {
+    context.stats.set(StatTag::Preprocessing, "Communities", louvain.numCommunities());
+    context.stats.set(StatTag::Preprocessing, "Modularity", quality);
+  }
 
   if (verbose_output) {
     LOG << "  # communities         =" << louvain.numCommunities();
