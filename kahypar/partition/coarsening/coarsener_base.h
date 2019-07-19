@@ -80,15 +80,15 @@ class CoarsenerBase {
   }
 
   void removeSingleNodeHyperedges() {
-    const HyperedgeWeight removed_he_weight =
-      _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
-    _context.stats.add(StatTag::Coarsening, "removedSingleNodeHEWeight", removed_he_weight);
+    // const HyperedgeWeight removed_he_weight =
+    _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
+    // _context.stats.add(StatTag::Coarsening, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
   void removeParallelHyperedges() {
-    const HyperedgeID removed_parallel_hes =
-      _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
-    _context.stats.add(StatTag::Coarsening, "numRemovedParalellHEs", removed_parallel_hes);
+    // const HyperedgeID removed_parallel_hes =
+    _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
+    // _context.stats.add(StatTag::Coarsening, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() {

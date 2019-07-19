@@ -291,14 +291,6 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
   LOG << "";
 }
 
-inline void printPartitioningStatistics() {
-  LOG << "\nStatistics ********************************************************************";
-  LOG << "numRemovedParalellHEs: Number of HEs that were removed because they were parallel to some other HE.";
-  LOG << "removedSingleNodeHEWeight: Total weight of HEs that were removed because they contained only 1 HN.\n"
-      << "This sum includes the weight of previously removed parallel HEs, because we sum over the edge weights";
-  // LOG << Stats::instance().toConsoleString();
-}
-
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {
   LOG << "\nConnectivity Values ***********************************************************";
   for (size_t i = 0; i < connectivity_stats.size(); ++i) {
@@ -400,12 +392,6 @@ static inline void printResultBanner(const Context& context) {
     LOG << "*                          FINAL Partitioning Result                           *";
     LOG << "********************************************************************************";
   }
-}
-
-static inline void printStatsBanner() {
-  LOG << "*******************************";
-  LOG << "***** GATHER_STATS ACTIVE *****";
-  LOG << "*******************************";
 }
 
 static inline void printFinalPartitioningResults(const Hypergraph& hypergraph,
