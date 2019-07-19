@@ -29,9 +29,16 @@ option(KAHYPAR_USE_GCOV
 option(KAHYPAR_DISABLE_ASSERTIONS
   "Disable KaHyPar's internal assertions." OFF)
 
+option(KAHYPAR_USE_STANDARD_ASSERTIONS
+  "Use standard C++ asserts instead of custom assertions." OFF)
+
 if(KAHYPAR_DISABLE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
 endif(KAHYPAR_DISABLE_ASSERTIONS)
+
+if(KAHYPAR_USE_STANDARD_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_USE_STANDARD_ASSERTIONS)
+endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
 
 if(KAHYPAR_USE_GCOV)
