@@ -26,3 +26,9 @@ install(FILES ${CMAKE_BINARY_DIR}/lib/libkahypar.pc
 configure_file(cmake_uninstall.cmake.in cmake_uninstall.cmake IMMEDIATE @ONLY)
 
 add_custom_target(uninstall-kahypar "${CMAKE_COMMAND}" -P cmake_uninstall.cmake)
+
+add_custom_target(install.library 
+    ${CMAKE_COMMAND} 
+    -DBUILD_TYPE=${CMAKE_BUILD_TYPE} 
+    -P ${CMAKE_BINARY_DIR}/cmake_install.cmake) 
+ADD_DEPENDENCIES(install.library kahypar) 

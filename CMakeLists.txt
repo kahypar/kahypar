@@ -40,8 +40,8 @@ if(KAHYPAR_USE_STANDARD_ASSERTIONS)
   add_compile_definitions(KAHYPAR_USE_STANDARD_ASSERTIONS)
 endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
-# Remove dependency of "install" target to the "all" target
-set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+# # Remove dependency of "install" target to the "all" target
+# set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
