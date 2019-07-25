@@ -18,7 +18,9 @@ Table of Contents
    * [Building KaHyPar](#building-kahypar)
    * [Testing and Profiling](#testing-and-profiling)
    * [Running KaHyPar](#running-kahypar)
-   * [Using the Library Interface](#using-the-library-interface)
+   * [Using the Library Interfaces](#using-the-library-interfaces)
+     * [The C-Style Interface](#the-c-style-interface)
+     * [The Julia Interface](#the-julia-interface)
    * [Bug Reports](#bug-reports)
    * [Licensing](#licensing)
    * [Contributing](#contributing)
@@ -193,13 +195,14 @@ To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net 
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
-Using the Library Interface
+Using the Library Interfaces
 -----------
+
+#### The C-Style Interface
 We provide a simple C-style interface to use KaHyPar as a library.  The library can be built and installed via
 
 ```sh
-make kahypar
-make install
+make kahypar install.library
 ```
 
 and can be used like this:
@@ -271,6 +274,38 @@ To remove the library from your system use the provided uninstall target:
 
 ```sh
 make uninstall-kahypar
+```
+
+#### The Julia Interface
+Thanks to Jordan Jalving ([@jalving]( https://github.com/jalving)) KaHyPar now also offers a Julia interface,
+which can currently be found here: [jalving/KaHyPar.jl](https://github.com/jalving/KaHyPar.jl).
+
+The corresponding dependency can be installed via:
+
+```jl
+using Pkg
+Pkg.add("https://github.com/jalving/KaHyPar.jl.git")
+Pkg.test("KaHyPar")
+```
+After that, you can use KaHyPar to partition your hypergraphs like this:
+
+```jl
+using KaHyPar
+using SparseArrays
+
+I = [1,3,1,2,4,5,4,5,7,3,6,7]
+J = [1,1,2,2,2,2,3,3,3,4,4,4]
+V = Int.(ones(length(I)))
+
+A = sparse(I,J,V)
+
+h = KaHyPar.hypergraph(A)
+
+KaHyPar.partition(h,2,configuration = :edge_cut)
+
+KaHyPar.partition(h,2,configuration = :connectivity)
+
+KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_direct_kway_sea18.ini"))
 ```
 
 Bug Reports
