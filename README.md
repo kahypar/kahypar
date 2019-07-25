@@ -284,7 +284,7 @@ The corresponding dependency can be installed via:
 
 ```jl
 using Pkg
-Pkg.add("https://github.com/jalving/KaHyPar.jl.git")
+Pkg.add(PackageSpec(url="https://github.com/jalving/KaHyPar.jl.git"))
 Pkg.test("KaHyPar")
 ```
 After that, you can use KaHyPar to partition your hypergraphs like this:
