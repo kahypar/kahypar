@@ -163,12 +163,10 @@ class GenericHypergraph {
     using IDType = typename ElementTypeTraits::IDType;
 
     /*!
-     * Constructs a hypernode/hyperedge.
-     * \param begin The incidence information starts at _incidence_array[begin]
-     * \param size  The number of incident nets (for hypernodes), the number of pins (for hyperedges)
+     * Constructs a hypernode
      * \param weight The weight of the hypernode/hyperedge
      */
-    Vertex(const WeightType weight) :
+    explicit Vertex(const WeightType weight) :
       _incident_nets(),
       _weight(weight) { }
 
@@ -245,15 +243,6 @@ class GenericHypergraph {
   };
 
 
-  /*!
-   * HypergraphElement is the base class for Hypernodes and Hyperedges.
-   * The id of a hypernode/hyperedge is not stored explicitly. Instead the ID corresponds
-   * to the index in the _hypernodes/_hyperedges vector.
-   *
-   * \tparam ElementTypeTraits The traits class specifying weight and ID type.
-   * \tparam HypergraphElementData Additional data attached to the hypernode/hyperedge.
-   *
-   */
   template <typename ElementTypeTraits, class HypergraphElementData>
   class HyperEdge : public HypergraphElementData {
  public:
@@ -261,7 +250,7 @@ class GenericHypergraph {
     using IDType = typename ElementTypeTraits::IDType;
 
     /*!
-     * Constructs a hypernode/hyperedge.
+     * Constructs a hyperedge.
      * \param begin The incidence information starts at _incidence_array[begin]
      * \param size  The number of incident nets (for hypernodes), the number of pins (for hyperedges)
      * \param weight The weight of the hypernode/hyperedge
@@ -762,7 +751,6 @@ class GenericHypergraph {
     printHyperedgeInfo();
     printHypernodes();
     printHyperedges();
-    // printIncidenceArray();
   }
 
   /*!
@@ -970,31 +958,8 @@ class GenericHypergraph {
     HyperedgeWeight& changes_u = changes.representative[0];
     HyperedgeWeight& changes_v = changes.contraction_partner[0];
 
-    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
-    hypernode(memento.v).enable();
-    ++_current_num_hypernodes;
-    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
-    ++_part_info[partID(memento.u)].size;
-    if (isFixedVertex(memento.u)) {
-      if (!isFixedVertex(memento.v)) {
-        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
-        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
-      } else {
-        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
-        _fixed_vertices->add(memento.v);
-      }
-    }
-
-    ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
-           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-                         << memento.v);
-
-    _hes_not_containing_u.reset();
-    // Assume all HEs did not contain u and we have to undo Case 2 operations.
-    for (const HyperedgeID& he : incidentEdges(memento.v)) {
-      _hes_not_containing_u.set(he, true);
-    }
+    reverseContraction(memento);
+    markIncidentNetsOf(memento.v);
 
     const auto& incident_hes_of_u = hypernode(memento.u).incidentNets();
     size_t incident_hes_end = incident_hes_of_u.size();
@@ -1086,31 +1051,8 @@ class GenericHypergraph {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode" << memento.u << "is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode" << memento.v << "is not invalid");
 
-    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
-    hypernode(memento.v).enable();
-    ++_current_num_hypernodes;
-    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
-    ++_part_info[partID(memento.u)].size;
-    if (isFixedVertex(memento.u)) {
-      if (!isFixedVertex(memento.v)) {
-        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
-        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
-      } else {
-        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
-        _fixed_vertices->add(memento.v);
-      }
-    }
-
-    ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
-           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-                         << memento.v);
-
-    _hes_not_containing_u.reset();
-    // Assume all HEs did not contain u and we have to undo Case 2 operations.
-    for (const HyperedgeID& he : incidentEdges(memento.v)) {
-      _hes_not_containing_u.set(he, true);
-    }
+    reverseContraction(memento);
+    markIncidentNetsOf(memento.v);
 
     const auto& incident_hes_of_u = hypernode(memento.u).incidentNets();
     size_t incident_hes_end = incident_hes_of_u.size();
@@ -1954,7 +1896,8 @@ class GenericHypergraph {
    * u at the end of _incidence array. Subsequent calls with first_call = false
    * then only append at the end.
    */
-  void connectHyperedgeToRepresentative(const HyperedgeID e, const HypernodeID u) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void connectHyperedgeToRepresentative(const HyperedgeID e,
+                                                                        const HypernodeID u) {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
     ASSERT(partID(_incidence_array[hyperedge(e).firstInvalidEntry() - 1]) == partID(u),
@@ -1968,6 +1911,35 @@ class GenericHypergraph {
     hypernode(u).incidentNets().push_back(e);
   }
 
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void reverseContraction(const Memento& memento) {
+    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
+    hypernode(memento.v).enable();
+    ++_current_num_hypernodes;
+    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
+    ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u)) {
+      if (!isFixedVertex(memento.v)) {
+        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
+      } else {
+        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
+        _fixed_vertices->add(memento.v);
+      }
+    }
+
+    ASSERT(partID(memento.v) != kInvalidPartition,
+           "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
+           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
+                         << memento.v);
+  }
+
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void markIncidentNetsOf(const HypernodeID v) {
+    _hes_not_containing_u.reset();
+    // Assume all HEs did not contain u and we have to undo Case 2 operations.
+    for (const HyperedgeID& he : incidentEdges(v)) {
+      _hes_not_containing_u.set(he, true);
+    }
+  }
 
   /*!
    * Generic method to remove incidence information
@@ -2125,10 +2097,10 @@ class GenericHypergraph {
   FastResetFlagArray<> _hes_not_containing_u;
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
-                                                                                                                     typename Hypergraph::PartitionID part,
-                                                                                                                     const Objective& objective);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > extractPartAsUnpartitionedHypergraphForBisection(const Hypergraph& hypergraph,
+                                                                                                                    typename Hypergraph::PartitionID part,
+                                                                                                                    const Objective& objective);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2139,12 +2111,12 @@ class GenericHypergraph {
                                                  const Hypergraph& actual);
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > reindex(const Hypergraph& hypergraph);
 
   template <typename Hypergraph>
-  friend std ::pair<std::unique_ptr<Hypergraph>,
-                    std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > removeFixedVertices(const Hypergraph& hypergraph);
 
   template <typename Hypergraph>
   friend  void setupInternalStructure(const Hypergraph& reference,

@@ -47,6 +47,8 @@
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
+#define  JOIN(a, b)       a ## b
+
 // Logging inspired by https://github.com/thrill/thrill/blob/master/thrill/common/logger.hpp
 /*!
 
@@ -148,7 +150,11 @@ debug output will disappear.
 #endif
 
 #ifdef KAHYPAR_USE_ASSERTIONS
-  #define ASSERT_2(cond, msg)                 \
+#ifdef KAHYPAR_USE_STANDARD_ASSERTIONS
+#define ASSERT_2(cond, msg) \
+  assert(cond)
+#else
+#define ASSERT_2(cond, msg)                   \
   do {                                        \
     if (!(cond)) {                            \
       DBG1 << "Assertion `" #cond "` failed:" \
@@ -156,6 +162,7 @@ debug output will disappear.
       std::abort();                           \
     }                                         \
   } while (0)
+#endif
 
   #define ASSERT_1(cond) ASSERT_2(cond, "")
 #else
@@ -168,7 +175,11 @@ debug output will disappear.
 #define ASSERT(...) EXPAND(ASSERT_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
 
 // *** an always-on ASSERT
-#define ALWAYS_ASSERT_2(cond, msg)              \
+#ifdef KAHYPAR_USE_STANDARD_ASSERTIONS
+#define ALWAYS_ASSERT_2(cond, msg) \
+  assert(cond)
+# else
+#define ALWAYS_ASSERT_2(cond, msg)            \
   do {                                        \
     if (!(cond)) {                            \
       DBG1 << "Assertion `" #cond "` failed:" \
@@ -176,6 +187,7 @@ debug output will disappear.
       std::abort();                           \
     }                                         \
   } while (0)
+#endif
 
 #define ALWAYS_ASSERT_1(cond) ALWAYS_ASSERT_2(cond, "")
 
