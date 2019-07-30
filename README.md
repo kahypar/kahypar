@@ -202,7 +202,7 @@ Using the Library Interfaces
 We provide a simple C-style interface to use KaHyPar as a library.  The library can be built and installed via
 
 ```sh
-make kahypar install.library
+make install.library
 ```
 
 and can be used like this:
