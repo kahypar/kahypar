@@ -35,9 +35,11 @@ class nLevel final : public meta::PolicyBase {
                                                   const Context&) { }
 
   template <typename T>
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void update(const Hypergraph&,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool update(const Hypergraph&,
                                               const Context&,
-                                              const std::vector<T>&) { }
+                                              const std::vector<T>&) {
+    return true;
+  }
 
   template <typename T>
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE size_t nextLevel(const std::vector<T>& history) {
@@ -52,6 +54,10 @@ class nLevel final : public meta::PolicyBase {
 
 
 class MultiLevel final : public meta::PolicyBase {
+ 
+ private:
+  static constexpr bool debug = false;
+
  public:
   MultiLevel() :
     _next_level_at(0),
@@ -62,19 +68,21 @@ class MultiLevel final : public meta::PolicyBase {
     _levels.push_back(0);
     _next_level_at = ceil(static_cast<double>(hypergraph.currentNumNodes()) /
                           context.partition.reduction_factor);
-    DBG1 << V(_next_level_at);
+    DBG << V(_next_level_at);
   }
 
   template <typename T>
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void update(const Hypergraph& hypergraph,
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE bool update(const Hypergraph& hypergraph,
                                               const Context& context,
                                               const std::vector<T>& history) {
     if (hypergraph.currentNumNodes() == _next_level_at) {
-      DBG1 << "New Level starting with " << V(hypergraph.currentNumNodes()) << V(history.size());
+      DBG << "New Level starting with " << V(hypergraph.currentNumNodes()) << V(history.size());
       _levels.push_back(history.size());
       _next_level_at = ceil(static_cast<double>(hypergraph.currentNumNodes()) /
                             context.partition.reduction_factor);
+      return true;
     }
+    return false;
   }
 
   template <typename T>

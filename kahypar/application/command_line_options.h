@@ -104,13 +104,6 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     "Objective: \n"
     " - cut : cut-net metric \n"
     " - km1 : (lambda-1) metric")
-    ("hierarchy",
-    po::value<std::string>()->value_name("<string>")->notifier([&](const std::string& s) {
-      context.partition.hierarchy = kahypar::hierarchyFromString(s);
-    }),
-    "Hierachy Type: \n"
-    " - n_level : n-level scheme \n"
-    " - multi_level : multi-level scheme")
     ("mode,m",
     po::value<std::string>()->value_name("<string>")->required()->notifier(
       [&](const std::string& mode) {
@@ -118,7 +111,14 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     }),
     "Partitioning mode: \n"
     " - (recursive) bisection \n"
-    " - (direct) k-way");
+    " - (direct) k-way")
+    ("hierarchy",
+    po::value<std::string>()->value_name("<string>")->notifier([&](const std::string& s) {
+      context.partition.hierarchy = kahypar::hierarchyFromString(s);
+    }),
+    "Hierachy Type: \n"
+    " - n_level : n-level scheme \n"
+    " - multi_level : multi-level scheme");
   return options;
 }
 
@@ -217,9 +217,9 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     }),
     "Coarsening Algorithm:\n"
     " - ml_style\n"
+    " - first_choice\n"
     " - heavy_full\n"
-    " - heavy_lazy\n"
-    " - multi_level")
+    " - heavy_lazy\n")
     ((initial_partitioning ? "i-c-r" : "c-r"),
     po::value<double>((initial_partitioning ? &context.initial_partitioning.reduction_factor : &context.partition.reduction_factor))->value_name("<double>"),
     "Contraction factor for multi-level coarsening. A new level is started as soon as the size of the hypergraph is reduced by a factor of r.")
