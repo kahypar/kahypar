@@ -69,10 +69,13 @@ class ACoarsenerBase : public Test {
 };
 
 template <class Coarsener, class Hypergraph>
-void removesHyperedgesOfSizeOneDuringCoarsening(Coarsener& coarsener, Hypergraph& hypergraph) {
+void removesHyperedgesOfSizeOneDuringCoarsening(Coarsener& coarsener, 
+                                                Hypergraph& hypergraph, 
+                                                const std::vector<HyperedgeID>& size_one_hes) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
+  for ( const HyperedgeID& he : size_one_hes ) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(false));
+  }
 }
 
 template <class Coarsener, class Hypergraph>
@@ -86,53 +89,55 @@ void decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(Coarsener& coarsener,
 
 template <class Coarsener, class HypergraphT, class Refiner>
 void reAddsHyperedgesOfSizeOneDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph,
-                                                 Refiner& refiner) {
+                                                 Refiner& refiner, 
+                                                 const std::vector<HyperedgeID>& size_one_hes,
+                                                 const std::vector<HypernodeID>& block_0,
+                                                 const std::vector<HypernodeID>& block_1) {
   coarsener.coarsen(2);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(false));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(false));
+  for ( const HyperedgeID& he : size_one_hes ) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(false));
+  }
   hypergraph->printGraphState();
-  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
-  if (hypergraph->nodeIsEnabled(1)) {
-    hypergraph->setNodePart(1, 0);
-  } else {
-    ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
-    hypergraph->setNodePart(5, 0);
+  
+  for ( const HypernodeID& hn : block_0 ) {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(hn), Eq(true));
+    hypergraph->setNodePart(hn, 0);
   }
-  if (hypergraph->nodeIsEnabled(3)) {
-    hypergraph->setNodePart(3, 1);
-  } else {
-    ASSERT_THAT(hypergraph->nodeIsEnabled(4), Eq(true));
-    hypergraph->setNodePart(4, 1);
+
+  for ( const HypernodeID& hn : block_1 ) {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(hn), Eq(true));
+    hypergraph->setNodePart(hn, 1);
   }
+
   hypergraph->initializeNumCutHyperedges();
   coarsener.uncoarsen(*refiner);
-  ASSERT_THAT(hypergraph->edgeIsEnabled(0), Eq(true));
-  ASSERT_THAT(hypergraph->edgeIsEnabled(2), Eq(true));
+  for ( const HyperedgeID& he : size_one_hes ) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(true));
+  }
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph->edgeSize(3), Eq(3));
 }
 
 template <class Coarsener, class Hypergraph>
-void removesParallelHyperedgesDuringCoarsening(Coarsener& coarsener, Hypergraph& hypergraph) {
+void removesParallelHyperedgesDuringCoarsening(Coarsener& coarsener, 
+                                               Hypergraph& hypergraph,
+                                               const std::vector<HyperedgeID>& removed_parallel_hes) {
   coarsener.coarsen(2);
-  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
-  if (hypergraph->edgeIsEnabled(3)) {
-    ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(false));
-  } else {
-    ASSERT_THAT(hypergraph->edgeIsEnabled(1), Eq(true));
+  for ( const HyperedgeID& he : removed_parallel_hes ) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(false));
   }
 }
 
 template <class Coarsener, class Hypergraph>
 void updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(Coarsener& coarsener,
-                                                                          Hypergraph& hypergraph) {
+                                                                          Hypergraph& hypergraph,
+                                                                          const std::vector<std::pair<HyperedgeID, HyperedgeWeight>>& he_weights) {
   coarsener.coarsen(2);
-  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
-  if (hypergraph->edgeIsEnabled(1)) {
-    ASSERT_THAT(hypergraph->edgeWeight(1), Eq(2));
-  } else {
-    ASSERT_THAT(hypergraph->edgeIsEnabled(3), Eq(true));
-    ASSERT_THAT(hypergraph->edgeWeight(3), Eq(2));
+  for ( const auto& he_weight : he_weights ) {
+    HyperedgeID he = he_weight.first;
+    HyperedgeWeight weight = he_weight.second;
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(true));
+    ASSERT_THAT(hypergraph->edgeWeight(he), Eq(weight));
   }
 }
 
@@ -152,25 +157,27 @@ void decreasesNumberOfPinsOnParallelHyperedgeRemoval(Coarsener& coarsener, Hyper
 
 template <class Coarsener, class HypergraphT, class Refiner>
 void restoresParallelHyperedgesDuringUncoarsening(Coarsener& coarsener, HypergraphT& hypergraph,
-                                                  Refiner& refiner) {
+                                                  Refiner& refiner,
+                                                 const std::vector<HyperedgeID>& removed_parallel_hes,
+                                                 const std::vector<HypernodeID>& block_0,
+                                                 const std::vector<HypernodeID>& block_1) {
   coarsener.coarsen(2);
   hypergraph->printGraphState();
-  // Lazy-Update Coarsener coarsens slightly differently, thus we have to distinguish this case.
-  if (hypergraph->nodeIsEnabled(1)) {
-    hypergraph->setNodePart(1, 0);
-  } else {
-    ASSERT_THAT(hypergraph->nodeIsEnabled(5), Eq(true));
-    hypergraph->setNodePart(5, 0);
+  for ( const HypernodeID& hn : block_0 ) {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(hn), Eq(true));
+    hypergraph->setNodePart(hn, 0);
   }
-  if (hypergraph->nodeIsEnabled(3)) {
-    hypergraph->setNodePart(3, 1);
-  } else {
-    ASSERT_THAT(hypergraph->nodeIsEnabled(4), Eq(true));
-    hypergraph->setNodePart(4, 1);
+
+  for ( const HypernodeID& hn : block_1 ) {
+    ASSERT_THAT(hypergraph->nodeIsEnabled(hn), Eq(true));
+    hypergraph->setNodePart(hn, 1);
   }
   hypergraph->initializeNumCutHyperedges();
 
   coarsener.uncoarsen(*refiner);
+  for ( const HyperedgeID& he : removed_parallel_hes ) {
+    ASSERT_THAT(hypergraph->edgeIsEnabled(he), Eq(true));
+  }
   ASSERT_THAT(hypergraph->edgeSize(1), Eq(4));
   ASSERT_THAT(hypergraph->edgeSize(3), Eq(3));
   ASSERT_THAT(hypergraph->edgeWeight(1), Eq(1));

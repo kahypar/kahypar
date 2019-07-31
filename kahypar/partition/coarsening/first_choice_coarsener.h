@@ -28,6 +28,8 @@
 #include "kahypar/datastructure/union_find.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/level_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
@@ -64,13 +66,23 @@ class FirstChoiceCoarsener final : public ICoarsener,
                                 RatingType>;
   using Rating = typename Rater::Rating;
 
+  struct Contraction {
+    const HypernodeID representive_node;
+    const HypernodeID contraction_partner;
+
+    Contraction(const HypernodeID rep_node, const HypernodeID contr_partner) :
+      representive_node(rep_node),
+      contraction_partner(contr_partner) { }
+  };
+
  public:
   FirstChoiceCoarsener(Hypergraph& hypergraph, const Context& context,
                        const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, context, weight_of_heaviest_node),
     _rater(_hg, _context),
     _uf(_hg.initialNumNodes()),
-    _target(_hg.initialNumNodes()) { }
+    _target(_hg.initialNumNodes()),
+    _enableRandomization(true) { }
 
   ~FirstChoiceCoarsener() override = default;
 
@@ -80,7 +92,15 @@ class FirstChoiceCoarsener final : public ICoarsener,
   FirstChoiceCoarsener(FirstChoiceCoarsener&&) = delete;
   FirstChoiceCoarsener& operator= (FirstChoiceCoarsener&&) = delete;
 
+  void deactivateRandomization() {
+    _enableRandomization = false;
+  }
+
  private:
+  FRIEND_TEST(AFirstChoiceCoarsener, ComputesCorrectContractionTargets);
+  FRIEND_TEST(AFirstChoiceCoarsener, ComputesContractionForAHypernode);
+  FRIEND_TEST(AFirstChoiceCoarsener, ComputesContractionForSeveralHypernodes);
+
   void coarsenImpl(const HypernodeID limit) override final {
     int pass_nr = 0;
     std::vector<HypernodeID> current_hns;
@@ -97,36 +117,17 @@ class FirstChoiceCoarsener final : public ICoarsener,
 
       // Compute target nodes for all vertices based on the
       // current hypergraph
-      for (const HypernodeID& hn : _hg.nodes()) {
-        current_hns.push_back(hn);
-        Rating rating = _rater.rate(hn);
-        if ( rating.valid ) {
-          _target[ hn ] = rating.target;
-        } else {
-          _target[ hn ] = kInvalidTarget;
-        }
+      computeContractionTargetForAllHypernodes(current_hns);
+
+      if ( _enableRandomization ) {
+        Randomize::instance().shuffleVector(current_hns, current_hns.size());
       }
 
-      Randomize::instance().shuffleVector(current_hns, current_hns.size());
       for (const HypernodeID& hn : current_hns) {
         
         if ( _target[hn] != kInvalidTarget && _hg.nodeIsEnabled(hn) ) {
-          HypernodeID uf_target = _uf.find(_target[hn]);
-          ASSERT( _uf.find(hn) == hn, "Hypernode " << hn << " must be the representative of a contraction set");
-          // By the nature how we link two nodes in the union find data structure, we can
-          // show that, if hn == uf_target, than hn must be visited before, which is not 
-          // possible
-          ASSERT( hn != uf_target, "Cannot contract hypernode " << hn << " on itself" );
-          ASSERT( _hg.nodeIsEnabled(uf_target), "Contraction partner " << uf_target << " must be an active node" );
-          
-          // Representive node for contraction is the representive in the contraction set
-          // of the union find data structure after linking both vertices
-          HypernodeID rep_node = _uf.link(hn, uf_target);
-          if ( rep_node == uf_target ) {
-            uf_target = hn;
-          }
-
-          Base::performContraction(rep_node, uf_target);
+          Contraction contraction = computeContractionForHypernode(hn);
+          Base::performContraction(contraction.representive_node, contraction.contraction_partner);
 
           // If number of nodes is smaller than contraction limit or we reach a new
           // level in the multi level policy, we terminate the current pass over all
@@ -153,6 +154,36 @@ class FirstChoiceCoarsener final : public ICoarsener,
     return Base::doUncoarsen(refiner);
   }
 
+  inline Contraction computeContractionForHypernode(const HypernodeID hn) {
+    HypernodeID uf_target = _uf.find(_target[hn]);
+    ASSERT( _uf.find(hn) == hn, "Hypernode " << hn << " must be the representative of a contraction set");
+    // By the nature how we link two nodes in the union find data structure, we can
+    // show that, if hn == uf_target, than hn must be visited before, which is not 
+    // possible
+    ASSERT( hn != uf_target, "Cannot contract hypernode " << hn << " on itself" );
+    ASSERT( _hg.nodeIsEnabled(uf_target), "Contraction partner " << uf_target << " must be an active node" );
+    
+    // Representive node for contraction is the representive in the contraction set
+    // of the union find data structure after linking both vertices
+    HypernodeID rep_node = _uf.link(hn, uf_target);
+    if ( rep_node == uf_target ) {
+      uf_target = hn;
+    }
+    return Contraction(rep_node, uf_target);
+  } 
+
+  inline void computeContractionTargetForAllHypernodes( std::vector<HypernodeID>& current_hypernodes ) {
+    for (const HypernodeID& hn : _hg.nodes()) {
+      current_hypernodes.push_back(hn);
+      Rating rating = _rater.rate(hn);
+      if ( rating.valid ) {
+        _target[ hn ] = rating.target;
+      } else {
+        _target[ hn ] = kInvalidTarget;
+      }
+    }
+  }
+
   using Base::_pq;
   using Base::_hg;
   using Base::_context;
@@ -161,5 +192,6 @@ class FirstChoiceCoarsener final : public ICoarsener,
   Rater _rater;
   ds::UnionFind _uf;
   std::vector<HypernodeID> _target;
+  bool _enableRandomization;
 };
 }  // namespace kahypar

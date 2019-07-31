@@ -48,7 +48,7 @@ class ACoarsener : public ACoarsenerBase<CoarsenerType>{
 };
 
 TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
-  removesHyperedgesOfSizeOneDuringCoarsening(coarsener, hypergraph);
+  removesHyperedgesOfSizeOneDuringCoarsening(coarsener, hypergraph, {0, 2});
 }
 
 TEST_F(ACoarsener, DecreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne) {
@@ -56,15 +56,15 @@ TEST_F(ACoarsener, DecreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne) {
 }
 
 TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
-  reAddsHyperedgesOfSizeOneDuringUncoarsening(coarsener, hypergraph, refiner);
+  reAddsHyperedgesOfSizeOneDuringUncoarsening(coarsener, hypergraph, refiner, {0, 2}, {1}, {3});
 }
 
 TEST_F(ACoarsener, RemovesParallelHyperedgesDuringCoarsening) {
-  removesParallelHyperedgesDuringCoarsening(coarsener, hypergraph);
+  removesParallelHyperedgesDuringCoarsening(coarsener, hypergraph, {1});
 }
 
 TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval) {
-  updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(coarsener, hypergraph);
+  updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(coarsener, hypergraph, {{1, 2}});
 }
 TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
   decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(coarsener, hypergraph);
@@ -75,7 +75,7 @@ TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
 }
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
-  restoresParallelHyperedgesDuringUncoarsening(coarsener, hypergraph, refiner);
+  restoresParallelHyperedgesDuringUncoarsening(coarsener, hypergraph, refiner, {1}, {1}, {3});
 }
 
 TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
