@@ -1674,6 +1674,17 @@ class GenericHypergraph {
     return _fixed_vertex_total_weight;
   }
 
+  // ! Returns the community ID of the hypernode
+  PartitionID communityID(const HypernodeID u) const {
+    ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
+    return _communities[u];
+  }
+
+  void setNodeCommunity(const HypernodeID hn, const PartitionID community) {
+    ASSERT(!hypernode(hn).isDisabled(), "Hypernode" << hn << "is disabled");
+    _communities[hn] = community;
+  }
+
   // ! Returns the community structure of the hypergraph
   const std::vector<PartitionID> & communities() const {
     return _communities;
@@ -2103,6 +2114,12 @@ class GenericHypergraph {
                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
+  friend std::pair<std::unique_ptr<Hypergraph>,
+                   std::vector<typename Hypergraph::HypernodeID> > extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
+                                                                                                            typename Hypergraph::PartitionID community,
+                                                                                                            bool respect_order_of_hypernodes);
+
+  template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
                                                     const Hypergraph& actual);
 
@@ -2316,6 +2333,94 @@ reindex(const Hypergraph& hypergraph) {
   }
 
   return std::make_pair(std::move(reindexed_hypergraph), reindexed_to_original);
+}
+
+/**
+ * Extracts the community-induced section subhypergraph from the original hypergraph.
+ * We define this subhypergraph as H x ( V(C) u V' ) where C is the corresponding community,
+ * V(C) = { v | v \in C } and V' = { v | \exists e \in E: v \in e \ V(C) }. V' corresponds to
+ * all hypernodes, which are not in C, but are connected to the community via an hyperedge e. For
+ * the definition of the notation H x V, we refer to the wikipedia article for hypergraphs.
+ * 
+ * This function will be used during parallel coarsening, where we extract a community from
+ * the original hypergraph an coarsen inside it independently. However, to ensure that
+ * the ratings of the coarsener are matching those of the sequential partitioner, we need
+ * the original hyperedge sizes of the subhypergraph induced by community C, which includes
+ * also the hyperedges only partially contained in that subhypergraph.
+ */
+template <typename Hypergraph>
+std::pair<std::unique_ptr<Hypergraph>,
+          std::vector<typename Hypergraph::HypernodeID> >
+extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
+                                         const typename Hypergraph::PartitionID community,
+                                         bool respect_order_of_hypernodes = false) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
+  std::vector<HypernodeID> subhypergraph_to_hypergraph;
+  std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
+
+  HypernodeID num_hypernodes = 0;
+  std::vector<bool> visited(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), false);
+  for ( const HypernodeID& hn : hypergraph.nodes() ) {
+    if ( hypergraph.communityID(hn) == community ) {
+      // Add all neighbors of hypernode to subhypergraph in order to ensure
+      // that each incident hyperedge of hn is fully contained in the subhypergraph
+      for ( const HyperedgeID& he : hypergraph.incidentEdges(hn) ) {
+        if ( !visited[hypergraph.initialNumNodes() + he] ) {
+          for ( const HypernodeID& pin : hypergraph.pins(he) ) {
+            if ( !visited[pin] ) {
+              subhypergraph_to_hypergraph.push_back(pin);
+              visited[pin] = true;
+            }
+          }
+          visited[hypergraph.initialNumNodes() + he] = true;
+        }
+      }
+    }
+  }
+
+  // Makes it easier to test, if numbering of hypernodes is in the same order than
+  // in the original hypergraph
+  if ( respect_order_of_hypernodes ) {
+    std::sort(subhypergraph_to_hypergraph.begin(), subhypergraph_to_hypergraph.end());
+  }
+
+  // Create hypergraph to subhypergraph mapping
+  for ( const HypernodeID& hn : subhypergraph_to_hypergraph ) {
+    hypergraph_to_subhypergraph[hn] = num_hypernodes++;
+  }
+
+  if ( num_hypernodes > 0 ) {
+    subhypergraph->_hypernodes.resize(num_hypernodes);
+    subhypergraph->_num_hypernodes = num_hypernodes;  
+
+    HyperedgeID num_hyperedges = 0;
+    HypernodeID pin_index = 0;
+    for ( const HyperedgeID& he : hypergraph.edges() ) {
+      // Add all hyperedges with all its pins to the subhypergraph which we visited before
+      if ( visited[hypergraph.initialNumNodes() + he] ) {
+        subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+        ++subhypergraph->_num_hyperedges;
+        subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+        for (const HypernodeID& pin : hypergraph.pins(he)) {
+          ASSERT(hypergraph_to_subhypergraph.find(pin) != hypergraph_to_subhypergraph.end(), 
+                 "Subhypergraph does not contain hypernode " << pin);
+          subhypergraph->hyperedge(num_hyperedges).incrementSize();
+          subhypergraph->hyperedge(num_hyperedges).hash += math::hash(hypergraph_to_subhypergraph[pin]);
+          subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+          ++pin_index;
+        }
+        ++num_hyperedges;
+      }
+    }
+    
+    setupInternalStructure(hypergraph, subhypergraph_to_hypergraph, *subhypergraph,
+                           2, num_hypernodes, pin_index, num_hyperedges);
+  }
+
+  return std::make_pair(std::move(subhypergraph), subhypergraph_to_hypergraph);
 }
 
 template <typename Hypergraph>

@@ -1040,6 +1040,56 @@ TEST_F(AHypergraph, CanBeConvertedToDualHypergraph) {
               ContainerEq(getIncidentEdges(hypergraph, 6)));
 }
 
+void assignCommunities(Hypergraph& hg,
+                       const std::vector<std::vector<HypernodeID>>& communities) {
+  PartitionID current_community = 0;
+  for ( const auto& community : communities ) {
+    for ( const HypernodeID& hn : community ) {
+      hg.setNodeCommunity(hn, current_community);
+    } 
+    current_community++;
+  }
+}
+
+TEST_F(AHypergraph, ExtractsCommunityZeroAsSectionHypergraph) {
+  assignCommunities(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
+
+  Hypergraph expected_hg(7, 3, HyperedgeIndexVector { 0, 2, 6, 9 },
+                        HyperedgeVector { 0, 2, 0, 1, 3, 4, 2, 5, 6 });
+  assignCommunities(expected_hg, {{0, 1, 2}, {3, 4}, {5, 6}});
+  std::vector<HypernodeID> expected_mapping = {0, 1, 2, 3, 4, 5, 6};
+
+  auto extr_comm0 = extractCommunityInducedSectionHypergraph(hypergraph, 0, true); 
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(expected_hg, *extr_comm0.first), Eq(true));
+  ASSERT_THAT(extr_comm0.second, Eq(expected_mapping));
+}
+
+TEST_F(AHypergraph, ExtractsCommunityOneAsSectionHypergraph) {
+  assignCommunities(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
+
+  Hypergraph expected_hg(5, 2, HyperedgeIndexVector { 0, 4, 7 },
+                         HyperedgeVector { 0, 1, 2, 3, 2, 3, 4 });
+  assignCommunities(expected_hg, {{0, 1}, {2, 3}, {4}});
+  std::vector<HypernodeID> expected_mapping = {0, 1, 3, 4, 6};
+
+  auto extr_comm1 = extractCommunityInducedSectionHypergraph(hypergraph, 1, true); 
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(expected_hg, *extr_comm1.first), Eq(true));
+  ASSERT_THAT(extr_comm1.second, Eq(expected_mapping));
+}
+
+TEST_F(AHypergraph, ExtractsCommunityTwoAsSectionHypergraph) {
+  assignCommunities(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
+
+  Hypergraph expected_hg(5, 2, HyperedgeIndexVector { 0, 3, 6 },
+                         HyperedgeVector { 1, 2, 4, 0, 3, 4 });
+  assignCommunities(expected_hg, {{0}, {1, 2}, {3, 4}});
+  std::vector<HypernodeID> expected_mapping = {2, 3, 4, 5, 6};
+
+  auto extr_comm2 = extractCommunityInducedSectionHypergraph(hypergraph, 2, true); 
+  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(expected_hg, *extr_comm2.first), Eq(true));
+  ASSERT_THAT(extr_comm2.second, Eq(expected_mapping));
+}
+
 TEST(Hypergraphs, CanBeStrippedOfAllParallelHyperedges) {
   Hypergraph hypergraph(5, 7, HyperedgeIndexVector { 0, 1, 4, 6, 10, 13, 14, 17 },
                         HyperedgeVector { 0, 1, 2, 3, 0, 1, 1, 2, 3, 4, 1, 2, 3, 0, 1, 2, 3 });
@@ -1071,5 +1121,6 @@ TEST(Hypergraphs, CanBeStrippedOfAllIdenticalVertices) {
   ASSERT_EQ(hypergraph.edgeSize(0), 2);
   ASSERT_EQ(hypergraph.edgeSize(1), 2);
 }
+
 }  // namespace ds
 }  // namespace kahypar
