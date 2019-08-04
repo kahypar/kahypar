@@ -37,6 +37,7 @@
 #include "kahypar/datastructure/connectivity_sets.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
+#include "kahypar/datastructure/sparse_map.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/empty.h"
 #include "kahypar/meta/int_to_type.h"
@@ -58,6 +59,65 @@ template <typename Iterator>
 Iterator end(const std::pair<Iterator, Iterator>& x) {
   return x.second;
 }
+
+template <typename Hypergraph>
+struct CommunityHyperedge {
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  CommunityHyperedge(const HyperedgeID original_he,
+                              const size_t incidence_array_start,
+                              const size_t incidence_array_end) :
+    original_he(original_he),
+    incidence_array_start(incidence_array_start),
+    incidence_array_end(incidence_array_end) { }
+
+  HyperedgeID original_he;
+  size_t incidence_array_start;
+  size_t incidence_array_end;
+};
+
+template <typename Hypergraph>
+bool operator==(const CommunityHyperedge<Hypergraph>& lhs, const CommunityHyperedge<Hypergraph>& rhs) {
+  return lhs.original_he == rhs.original_he &&
+         lhs.incidence_array_start == rhs.incidence_array_start &&
+         lhs.incidence_array_end == rhs.incidence_array_end;
+}
+
+template <typename Hypergraph>
+struct CommunitySubhypergraph {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
+
+  explicit CommunitySubhypergraph(const PartitionID community_id) :
+    community_id(community_id),
+    subhypergraph(new Hypergraph()),
+    subhypergraph_to_hypergraph_hn(),
+    hypergraph_to_subhypergraph_he(),
+    subhypergraph_to_hypergraph_he() { }
+
+  void addHypernode(const HypernodeID original_hn) {
+    subhypergraph_to_hypergraph_hn.push_back(original_hn);
+  }
+
+  void sortHypernodes() {
+    std::sort(subhypergraph_to_hypergraph_hn.begin(), subhypergraph_to_hypergraph_hn.end());
+  }
+
+  void addHyperedge(const HyperedgeID original_he, 
+                    const size_t incidence_array_start, 
+                    const size_t incidence_array_end) {
+    HyperedgeID he = subhypergraph_to_hypergraph_he.size();
+    subhypergraph_to_hypergraph_he.emplace_back(original_he, incidence_array_start, incidence_array_end);
+    hypergraph_to_subhypergraph_he[original_he] = he;
+  }
+
+  PartitionID community_id;
+  std::unique_ptr<Hypergraph> subhypergraph;
+  std::vector<HypernodeID> subhypergraph_to_hypergraph_hn;
+  std::unordered_map<HyperedgeID, HyperedgeID> hypergraph_to_subhypergraph_he;
+  std::vector<CommunityHyperedge<Hypergraph>> subhypergraph_to_hypergraph_he;
+};
 
 /*!
  * The hypergraph data structure as described in
@@ -2114,10 +2174,9 @@ class GenericHypergraph {
                                                                                                                     const Objective& objective);
 
   template <typename Hypergraph>
-  friend std::pair<std::unique_ptr<Hypergraph>,
-                   std::vector<typename Hypergraph::HypernodeID> > extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
-                                                                                                            typename Hypergraph::PartitionID community,
-                                                                                                            bool respect_order_of_hypernodes);
+  friend CommunitySubhypergraph<Hypergraph> extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
+                                                                                     typename Hypergraph::PartitionID community,
+                                                                                     bool respect_order_of_hypernodes);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
@@ -2349,17 +2408,17 @@ reindex(const Hypergraph& hypergraph) {
  * also the hyperedges only partially contained in that subhypergraph.
  */
 template <typename Hypergraph>
-std::pair<std::unique_ptr<Hypergraph>,
-          std::vector<typename Hypergraph::HypernodeID> >
+CommunitySubhypergraph<Hypergraph>
 extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
                                          const typename Hypergraph::PartitionID community,
                                          bool respect_order_of_hypernodes = false) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PartitionID = typename Hypergraph::PartitionID;
+  using CommunitySubhypergraph = CommunitySubhypergraph<Hypergraph>;
 
   std::unordered_map<HypernodeID, HypernodeID> hypergraph_to_subhypergraph;
-  std::vector<HypernodeID> subhypergraph_to_hypergraph;
-  std::unique_ptr<Hypergraph> subhypergraph(new Hypergraph());
+  CommunitySubhypergraph community_subhypergraph(community);
 
   HypernodeID num_hypernodes = 0;
   std::vector<bool> visited(hypergraph.initialNumNodes() + hypergraph.initialNumEdges(), false);
@@ -2371,7 +2430,7 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
         if ( !visited[hypergraph.initialNumNodes() + he] ) {
           for ( const HypernodeID& pin : hypergraph.pins(he) ) {
             if ( !visited[pin] ) {
-              subhypergraph_to_hypergraph.push_back(pin);
+              community_subhypergraph.addHypernode(pin);
               visited[pin] = true;
             }
           }
@@ -2384,43 +2443,59 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
   // Makes it easier to test, if numbering of hypernodes is in the same order than
   // in the original hypergraph
   if ( respect_order_of_hypernodes ) {
-    std::sort(subhypergraph_to_hypergraph.begin(), subhypergraph_to_hypergraph.end());
+    community_subhypergraph.sortHypernodes();
   }
 
   // Create hypergraph to subhypergraph mapping
-  for ( const HypernodeID& hn : subhypergraph_to_hypergraph ) {
+  for ( const HypernodeID& hn : community_subhypergraph.subhypergraph_to_hypergraph_hn ) {
     hypergraph_to_subhypergraph[hn] = num_hypernodes++;
   }
 
   if ( num_hypernodes > 0 ) {
-    subhypergraph->_hypernodes.resize(num_hypernodes);
-    subhypergraph->_num_hypernodes = num_hypernodes;  
+    community_subhypergraph.subhypergraph->_hypernodes.resize(num_hypernodes);
+    community_subhypergraph.subhypergraph->_num_hypernodes = num_hypernodes;  
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
+    SparseMap<PartitionID, size_t> community_sizes_in_he(hypergraph.initialNumNodes());
     for ( const HyperedgeID& he : hypergraph.edges() ) {
       // Add all hyperedges with all its pins to the subhypergraph which we visited before
       if ( visited[hypergraph.initialNumNodes() + he] ) {
-        subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
-        ++subhypergraph->_num_hyperedges;
-        subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+        community_subhypergraph.subhypergraph->_hyperedges.emplace_back(0, 0, hypergraph.edgeWeight(he));
+        ++community_subhypergraph.subhypergraph->_num_hyperedges;
+        community_subhypergraph.subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
+        community_sizes_in_he.clear();
         for (const HypernodeID& pin : hypergraph.pins(he)) {
           ASSERT(hypergraph_to_subhypergraph.find(pin) != hypergraph_to_subhypergraph.end(), 
                  "Subhypergraph does not contain hypernode " << pin);
-          subhypergraph->hyperedge(num_hyperedges).incrementSize();
-          subhypergraph->hyperedge(num_hyperedges).hash += math::hash(hypergraph_to_subhypergraph[pin]);
-          subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+          community_subhypergraph.subhypergraph->hyperedge(num_hyperedges).incrementSize();
+          community_subhypergraph.subhypergraph->hyperedge(num_hyperedges).hash += math::hash(hypergraph_to_subhypergraph[pin]);
+          community_subhypergraph.subhypergraph->_incidence_array.push_back(hypergraph_to_subhypergraph[pin]);
+          community_sizes_in_he[hypergraph.communityID(pin)] += hypergraph.nodeWeight(pin);
           ++pin_index;
         }
         ++num_hyperedges;
+
+        size_t incidence_array_start = 0;
+        size_t community_size = 0;
+        for ( const auto& element : community_sizes_in_he ) {
+          const PartitionID& comm = element.key;
+          if ( comm < community ) {
+            incidence_array_start += element.value;
+          } else if ( comm == community ) {
+            community_size = element.value;
+          }
+        }
+        community_subhypergraph.addHyperedge(he, incidence_array_start, incidence_array_start + community_size);
       }
     }
     
-    setupInternalStructure(hypergraph, subhypergraph_to_hypergraph, *subhypergraph,
+    setupInternalStructure(hypergraph, community_subhypergraph.subhypergraph_to_hypergraph_hn, 
+                           *community_subhypergraph.subhypergraph,
                            2, num_hypernodes, pin_index, num_hyperedges);
   }
 
-  return std::make_pair(std::move(subhypergraph), subhypergraph_to_hypergraph);
+  return community_subhypergraph;
 }
 
 template <typename Hypergraph>
