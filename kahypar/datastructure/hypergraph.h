@@ -968,8 +968,8 @@ class GenericHypergraph {
       const HyperedgeID he = incident_hes_of_u[incident_hes_it];
       if (_hes_not_containing_u[he]) {
         // ... then we have to do some kind of restore operation.
-        if (_incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v &&
-            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {
+        if (hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry() &&
+            _incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v) {
           // sentinel ensures that hyperedge(he + 1) exists
           // Undo case 1 operation (i.e. Pin v was just cut off by decreasing size of HE e)
           DBG << V(he) << " -> case 1";
@@ -1061,8 +1061,8 @@ class GenericHypergraph {
       const HyperedgeID he = incident_hes_of_u[incident_hes_it];
       if (_hes_not_containing_u[he]) {
         // ... then we have to do some kind of restore operation.
-        if (_incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v &&
-            hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry()) {
+        if (hyperedge(he).firstInvalidEntry() < hyperedge(he + 1).firstEntry() &&
+            _incidence_array[hyperedge(he).firstInvalidEntry()] == memento.v) {
           // hyperedge(he + 1) always exists because of sentinel
           // Undo case 1 operation (i.e. Pin v was just cut off by decreasing size of HE e)
           DBG << V(he) << " -> case 1";
