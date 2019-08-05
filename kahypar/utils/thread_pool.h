@@ -128,23 +128,31 @@ public:
       }
     }
 
-    //! enqueue a Job
-    template<class F, class... Args>
-    auto enqueue(F&& func, Args&&... args)
-      -> std::future<typename std::result_of<F(Args...)>::type> {
-      using return_type = typename std::result_of<F(Args...)>::type;
+    //! enqueue a Job, pass parameters in capture
+    template<class F>
+    auto enqueue(F&& func)
+      -> std::future<typename std::result_of<F()>::type> {
+      return enqueue_job(std::forward<F>(func));
+    }
 
-      auto job = std::make_shared< std::packaged_task<return_type()> >(
-        std::bind(std::forward<F>(func), std::forward<Args>(args)...)
-      );
+    template<class F, class T>
+    auto parallel_for(F&& func, const T& start, const T& end, const T& step_threshold = 1) 
+      -> std::vector<std::future<typename std::result_of<F(T, T)>::type>> {
+      using return_type = typename std::result_of<F(T, T)>::type;
 
-      std::future<return_type> res = job->get_future();
-      {
-        std::unique_lock<std::mutex> lock(mutex_);
-        jobs_.emplace_back([job]() { (*job)(); });
+      T step = (end - start) / size();
+      std::vector<std::future<return_type>> results;
+      if ( step >= step_threshold && size() != 1 ) {
+        for ( size_t i = 0; i < size(); ++i ) {
+          T tmp_start = i * step;
+          T tmp_end = (i == size() - 1) ? end : (i + 1) * step;
+          results.push_back(enqueue_job(func, tmp_start, tmp_end));
+        }
+      } else {
+        results.push_back(enqueue_job(func, start, end));
       }
-      cv_jobs_.notify_one();
-      return res;
+
+      return results;
     }
 
     //! Loop until no more jobs are in the queue AND all threads are idle. When
@@ -202,6 +210,25 @@ public:
     }
 
 private:
+     //! enqueue a Job, pass parameters in capture
+    template<class F, class... Args>
+    auto enqueue_job(F&& func, Args&&... args)
+      -> std::future<typename std::result_of<F(Args...)>::type> {
+      using return_type = typename std::result_of<F(Args...)>::type;
+
+      auto job = std::make_shared< std::packaged_task<return_type()> >(
+        std::bind(std::forward<F>(func), std::forward<Args>(args)...)
+      );
+
+      std::future<return_type> res = job->get_future();
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        jobs_.emplace_back([job]() { (*job)(); });
+      }
+      cv_jobs_.notify_one();
+      return res;
+    }   
+
     //! Worker function, one per thread is started.
     void worker() {
       // lock mutex, it is released during condition waits

@@ -309,26 +309,13 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
   // contraction. In order to realize this we compute the contraction index of a hypernode inside the
   // contraction history and use it later for sorting them.
   std::vector<int> contraction_index(hypergraph.initialNumNodes(), -1);
-  std::function<void(const size_t, const size_t)> construct_contraction_index = 
-    [&history, &contraction_index](const size_t start, const size_t end) {
+  pool.parallel_for([&history, &contraction_index](const size_t& start, const size_t& end) {
     for ( size_t i = start; i < end; ++i ) {
       const HypernodeID hn = history[i].v;
       ASSERT(contraction_index[hn] == -1, "Hypernode " << hn << " occurs more than one time in the contraction history");
       contraction_index[hn] = i;
     }
-  };
-
-  size_t num_threads = pool.size();
-  size_t step = history.size() / num_threads;
-  if ( step >= 1 && num_threads != 1) {
-    for ( size_t i = 0; i < num_threads; ++i ) {
-      size_t start = i * step;
-      size_t end = ( i == num_threads - 1 ) ? history.size() : ( ( i + 1 ) * step );
-      pool.enqueue(construct_contraction_index, start, end);
-    }
-  } else {
-    construct_contraction_index(0, history.size());
-  }
+  }, (size_t) 0, history.size());
 
   // Barrier
   pool.loop_until_empty();
@@ -337,8 +324,7 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
   // The incidence array of a hyperedge is constructed as follows: The first part consists
   // of all enabled pins and the remainder of all invalid pins. The invalid pins in the
   // remainder are sorted in decreasing order of their contraction index.
-  std::function<void(const size_t, const size_t)> create_contraction_hierarchy = 
-    [&hypergraph, &contraction_index](const HyperedgeID start, const HyperedgeID end) {
+  pool.parallel_for([&hypergraph, &contraction_index](const HyperedgeID& start, const HyperedgeID& end) {
     for ( HyperedgeID he = start; he < end; ++he ) {
       Hyperedge& current_he = hypergraph._hyperedges[he];
       bool isDisabled = current_he.isDisabled();
@@ -369,19 +355,8 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
                 [&contraction_index](const HypernodeID& u, const HypernodeID& v) {
                   return contraction_index[u] > contraction_index[v];
                 });
-    }
-  };
-
-  step = hypergraph.initialNumEdges() / num_threads;
-  if ( step >= 1 && num_threads != 1) {
-    for ( size_t i = 0; i < num_threads; ++i ) {
-      HyperedgeID start = i * step;
-      HyperedgeID end = ( i == num_threads - 1 ) ? hypergraph.initialNumEdges() : ( ( i + 1 ) * step );
-      pool.enqueue(create_contraction_hierarchy, start, end);
-    }
-  } else {
-    create_contraction_hierarchy(0, hypergraph.initialNumEdges());
-  }
+    } 
+  }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   // Barrier
   pool.loop_until_empty();

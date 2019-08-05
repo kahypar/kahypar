@@ -48,16 +48,34 @@ TEST_P(AThreadPool, TestsSimpleCount) {
   std::atomic<size_t> cnt(0);
   std::vector<std::future<size_t>> res;
   for (size_t i = 0; i < num_threads; ++i) {
-    res.emplace_back(pool.enqueue([&cnt](const size_t num) {
-      while ( cnt < num) { }
+    res.emplace_back(pool.enqueue([&cnt, i]() {
+      while ( cnt < i) { }
       return cnt++;
-    }, i));
+    }));
   }
 
   for ( size_t i = 0; i < num_threads; ++i ) {
     res[i].wait();
     ASSERT_THAT(res[i].get(), Eq(i));
   }
+}
+
+TEST_P(AThreadPool, ComputesParallelSum) {
+  std::vector<int> vec(200, 1);
+  std::vector<std::future<int>> results = pool.parallel_for([&vec](const size_t& start, const size_t& end) {
+    int sum = 0;
+    for ( size_t i = start; i < end; ++i ) {
+      sum += vec[i];
+    }
+    return sum;
+  }, (size_t) 0, (size_t) 200);
+
+  pool.loop_until_empty();
+  int total_sum = 0;
+  for ( std::future<int>& fut : results ) {
+    total_sum += fut.get();
+  }
+  ASSERT_THAT(total_sum, Eq(200));
 }
 
 }  // namespace parallel
