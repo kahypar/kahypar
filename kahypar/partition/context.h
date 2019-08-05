@@ -32,6 +32,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
+#include "kahypar/utils/thread_pool.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -404,6 +405,17 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   return str;
 }
 
+struct SharedMemoryParameters {
+  size_t num_threads = 0;
+  std::shared_ptr<kahypar::parallel::ThreadPool> pool = nullptr;
+};
+
+inline std::ostream& operator<< (std::ostream& str, const SharedMemoryParameters& params) {
+  str << "Shared Memory Parameters:             " << std::endl;
+  str << "  Number of Threads:                  " << params.num_threads << std::endl;
+  return str;
+}
+
 class Context {
  public:
   using PartitioningStats = Stats<Context>;
@@ -414,6 +426,7 @@ class Context {
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   EvolutionaryParameters evolutionary { };
+  SharedMemoryParameters shared_memory { };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
   bool partition_evolutionary = false;
@@ -430,6 +443,7 @@ class Context {
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
     evolutionary(other.evolutionary),
+    shared_memory(other.shared_memory),
     type(other.type),
     stats(*this, &other.stats.topLevel()),
     partition_evolutionary(other.partition_evolutionary) { }
@@ -479,10 +493,15 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
       << context.coarsening
       << context.initial_partitioning
       << context.local_search
-      << "-------------------------------------------------------------------------------"
-      << std::endl;
+      << "-------------------------------------------------------------------------------";
+  if ( context.shared_memory.num_threads > 0 ) {
+    str << std::endl
+        << context.shared_memory
+        << "-------------------------------------------------------------------------------";
+  }
   if (context.partition_evolutionary) {
-    str << context.evolutionary
+    str << std::endl
+        << context.evolutionary
         << "-------------------------------------------------------------------------------";
   }
   return str;

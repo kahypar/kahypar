@@ -557,6 +557,21 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
   return evolutionary_options;
 }
 
+po::options_description createSharedMemoryOptionsDescription(Context& context,
+                                                             const int num_columns) {
+  po::options_description shared_memory_options("Evolutionary Options", num_columns);
+  shared_memory_options.add_options()
+    ("num-threads",
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t num_threads) {
+      context.shared_memory.num_threads = num_threads;
+      context.shared_memory.pool = std::make_shared<kahypar::parallel::ThreadPool>(num_threads);
+    }),
+    "Number of threads used during shared memory hypergraph partitioning\n"
+    "(default 0)");
+  return shared_memory_options;
+}
+
 po::options_description createGenericOptionsDescription(Context& context,
                                                         const int num_columns) {
   po::options_description generic_options("Generic Options", num_columns);
@@ -629,6 +644,9 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   po::options_description evolutionary_options =
     createEvolutionaryOptionsDescription(context, num_columns);
 
+  po::options_description shared_memory_options =
+    createSharedMemoryOptionsDescription(context, num_columns);
+
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
   .add(required_options)
@@ -638,7 +656,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   .add(coarsening_options)
   .add(ip_options)
   .add(refinement_options)
-  .add(evolutionary_options);
+  .add(evolutionary_options)
+  .add(shared_memory_options);
 
   po::variables_map cmd_vm;
   po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
@@ -706,7 +725,8 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   .add(createCoarseningOptionsDescription(context, num_columns, false))
   .add(createInitialPartitioningOptionsDescription(context, num_columns))
   .add(createRefinementOptionsDescription(context, num_columns, false))
-  .add(createEvolutionaryOptionsDescription(context, num_columns));
+  .add(createEvolutionaryOptionsDescription(context, num_columns))
+  .add(createSharedMemoryOptionsDescription(context, num_columns));
 
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
