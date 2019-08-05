@@ -30,6 +30,7 @@
 using ::testing::Eq;
 using ::testing::ContainerEq;
 using ::testing::Test;
+using kahypar::parallel::ThreadPool;
 
 namespace kahypar {
 namespace ds {
@@ -124,7 +125,8 @@ struct CommunityContraction {
   const HypernodeID v;
 };
 
-void verifyCommunityMergeStep(Hypergraph& hypergraph,
+void verifyCommunityMergeStep(ThreadPool& pool,
+                              Hypergraph& hypergraph,
                               const std::vector<std::vector<HypernodeID>>& community_ids,
                               const std::vector<CommunityContraction>& contractions = {},
                               const std::vector<std::pair<PartitionID, HyperedgeID>>& disabled_hes = {}) {
@@ -158,7 +160,7 @@ void verifyCommunityMergeStep(Hypergraph& hypergraph,
   Hypergraph merged_hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                               HyperedgeVector { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
   assignCommunities(merged_hypergraph, community_ids);
-  mergeCommunityInducedSectionHypergraphs(merged_hypergraph, communities, history);
+  mergeCommunityInducedSectionHypergraphs(pool, merged_hypergraph, communities, history);
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(hypergraph, merged_hypergraph), Eq(true));
 
   for ( const HyperedgeID& he : original_disabled_hes ) {
@@ -174,28 +176,42 @@ void verifyCommunityMergeStep(Hypergraph& hypergraph,
   }
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphs) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
+class AParallelHypergraph : public ::testing::TestWithParam<size_t> {
+ public:
+  AParallelHypergraph() :
+    hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
+               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
+    pool(GetParam()) { }
+  Hypergraph hypergraph;
+  ThreadPool pool;
+};
+
+INSTANTIATE_TEST_CASE_P(NumThreads,
+                        AParallelHypergraph,
+                        ::testing::Values(1, 2, 3));
+
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphs) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphsWithOneContraction) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}});
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphsWithOneContraction) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}});
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphsWithTwoContractions) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {2, 3, 4}});
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphsWithTwoContractions) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {2, 3, 4}});
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphsWithThreeContractions) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {2, 3, 4}});
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphsWithThreeContractions) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {2, 3, 4}});
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphsWithFourContractions) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {0, 1, 0}, {2, 3, 4}});
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphsWithFourContractions) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {0, 1, 0}, {2, 3, 4}});
 }
 
-TEST_F(AHypergraph, MergesThreeCommunitySubhypergraphsWithFourContractionsWithOneDisabledHyperedge) {
-  verifyCommunityMergeStep(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {0, 1, 0}, {2, 3, 4}},
+TEST_P(AParallelHypergraph, MergesThreeCommunitySubhypergraphsWithFourContractionsWithOneDisabledHyperedge) {
+  verifyCommunityMergeStep(pool, hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}}, {{0, 0, 2}, {1, 2, 3}, {0, 1, 0}, {2, 3, 4}},
     {{0, 0}});
 }
 

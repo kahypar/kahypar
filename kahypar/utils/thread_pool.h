@@ -111,10 +111,8 @@ public:
       }
     }
 
-    //! non-copyable: delete copy-constructor
-    ThreadPool(const ThreadPool&) = delete;
-    //! non-copyable: delete assignment operator
-    ThreadPool& operator = (const ThreadPool&) = delete;
+    ThreadPool(const ThreadPool&) = default;
+    ThreadPool& operator = (const ThreadPool&) = default;
 
     //! Stop processing jobs, terminate threads.
     ~ThreadPool() {

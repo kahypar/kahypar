@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/hypergraph.h"
+#include "kahypar/utils/thread_pool.h"
 
 namespace kahypar {
 namespace ds {
@@ -204,7 +205,8 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
 }
 
 template <typename Hypergraph>
-void mergeCommunityInducedSectionHypergraphs(Hypergraph& hypergraph,
+void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool,
+                                             Hypergraph& hypergraph,
                                              const std::vector<CommunitySubhypergraph<Hypergraph>>& communities,
                                              const std::vector<typename Hypergraph::ContractionMemento>& history) {
   using HypernodeID = typename Hypergraph::HypernodeID;
@@ -231,70 +233,75 @@ void mergeCommunityInducedSectionHypergraphs(Hypergraph& hypergraph,
   // the incidence array we are using the unique ranges for the pins of the
   // community defined in the CommunityHyperedge.
   for ( const CommunitySubhypergraph& community : communities ) {
-    const PartitionID current_community = community.community_id;
-    const Hypergraph& community_subhypergraph = *community.subhypergraph;
+    pool.enqueue([&hypergraph, &community]() {
+      const PartitionID current_community = community.community_id;
+      const Hypergraph& community_subhypergraph = *community.subhypergraph;
 
-    std::vector<bool> visited(community_subhypergraph.initialNumEdges(), false);
-    for ( HypernodeID hn = 0; hn < community_subhypergraph.initialNumNodes(); ++hn ) {
-      if ( community_subhypergraph._communities[hn] == current_community ) {
-        const HypernodeID original_hn = community.subhypergraph_to_hypergraph_hn[hn];
-        ASSERT(original_hn < hypergraph._hypernodes.size(), "Hypernode " << original_hn << " does not exists in original hypergraph");
-        ASSERT(current_community == hypergraph._communities[original_hn], "Hypernode " << original_hn << " differs from its community in "
-          << "the community subhypergraph");
-        std::vector<HyperedgeID> incident_nets;
-        for ( const HyperedgeID& he : community_subhypergraph._hypernodes[hn].incidentNets() ) {
-          // Map incident hyperedge back to the original hypergraph
-          // Note, a hypernode can only get new incident net when contracting it with another hypernode.
-          // Since, we only contract inside a community subhypergraph the incident nets for a given
-          // hypernode that belongs to the current community are given by the incident net structure of
-          // the current community subhypergraph (its not possible that due to an contraction within an other
-          // community a hypernode in a different community gets additional incident nets)
-          const HyperedgeID original_he = community.subhypergraph_to_hypergraph_he[he].original_he;
-          ASSERT(original_he < hypergraph._hyperedges.size(), "Hyperedge " << original_he << " does not exists in original hypergraph");
-          incident_nets.push_back(original_he);
+      std::vector<bool> visited(community_subhypergraph.initialNumEdges(), false);
+      for ( HypernodeID hn = 0; hn < community_subhypergraph.initialNumNodes(); ++hn ) {
+        if ( community_subhypergraph._communities[hn] == current_community ) {
+          const HypernodeID original_hn = community.subhypergraph_to_hypergraph_hn[hn];
+          ASSERT(original_hn < hypergraph._hypernodes.size(), "Hypernode " << original_hn << " does not exists in original hypergraph");
+          ASSERT(current_community == hypergraph._communities[original_hn], "Hypernode " << original_hn << " differs from its community in "
+            << "the community subhypergraph");
+          std::vector<HyperedgeID> incident_nets;
+          for ( const HyperedgeID& he : community_subhypergraph._hypernodes[hn].incidentNets() ) {
+            // Map incident hyperedge back to the original hypergraph
+            // Note, a hypernode can only get new incident net when contracting it with another hypernode.
+            // Since, we only contract inside a community subhypergraph the incident nets for a given
+            // hypernode that belongs to the current community are given by the incident net structure of
+            // the current community subhypergraph (its not possible that due to an contraction within an other
+            // community a hypernode in a different community gets additional incident nets)
+            const HyperedgeID original_he = community.subhypergraph_to_hypergraph_he[he].original_he;
+            ASSERT(original_he < hypergraph._hyperedges.size(), "Hyperedge " << original_he << " does not exists in original hypergraph");
+            incident_nets.push_back(original_he);
 
-          if ( !visited[he] ) {
-            const CommunityHyperedge& community_hyperedge = community.subhypergraph_to_hypergraph_he[he];
-            size_t original_incidence_array_start = hypergraph._hyperedges[original_he].firstEntry() + 
-                                                      community_hyperedge.incidence_array_start;
-            size_t incidence_array_start = community_subhypergraph._hyperedges[he].firstEntry();
-            size_t incidence_array_end = community_subhypergraph._hyperedges[he + 1].firstEntry();
-            for ( size_t i = incidence_array_start; i < incidence_array_end; ++i ) {
-              const HypernodeID pin = community_subhypergraph._incidence_array[i];
-              if ( community_subhypergraph._communities[pin] == current_community ) {
-                // If the pin belongs to current community we write it back to incidence array
-                // of the original hypergraph in the range given by the corresponding CommunityHyperedge
-                const HypernodeID original_pin = community.subhypergraph_to_hypergraph_hn[pin];
-                ASSERT(original_pin < hypergraph._hypernodes.size(), "Hypernode " << original_pin << " does not exists in original hypergraph");
-                ASSERT(current_community == hypergraph._communities[original_pin], "Hypernode " << original_pin << " differs from its community in "
-                  << "the community subhypergraph");
-                hypergraph._incidence_array[original_incidence_array_start++] = original_pin;
+            if ( !visited[he] ) {
+              const CommunityHyperedge& community_hyperedge = community.subhypergraph_to_hypergraph_he[he];
+              size_t original_incidence_array_start = hypergraph._hyperedges[original_he].firstEntry() + 
+                                                        community_hyperedge.incidence_array_start;
+              size_t incidence_array_start = community_subhypergraph._hyperedges[he].firstEntry();
+              size_t incidence_array_end = community_subhypergraph._hyperedges[he + 1].firstEntry();
+              for ( size_t i = incidence_array_start; i < incidence_array_end; ++i ) {
+                const HypernodeID pin = community_subhypergraph._incidence_array[i];
+                if ( community_subhypergraph._communities[pin] == current_community ) {
+                  // If the pin belongs to current community we write it back to incidence array
+                  // of the original hypergraph in the range given by the corresponding CommunityHyperedge
+                  const HypernodeID original_pin = community.subhypergraph_to_hypergraph_hn[pin];
+                  ASSERT(original_pin < hypergraph._hypernodes.size(), "Hypernode " << original_pin << " does not exists in original hypergraph");
+                  ASSERT(current_community == hypergraph._communities[original_pin], "Hypernode " << original_pin << " differs from its community in "
+                    << "the community subhypergraph");
+                  hypergraph._incidence_array[original_incidence_array_start++] = original_pin;
+                }
               }
-            }
-            // Update weight
-            if ( hypergraph._hyperedges[he].weight() < community_subhypergraph._hyperedges[he].weight() ) {
-              hypergraph._hyperedges[original_he].setWeight(community_subhypergraph._hyperedges[he].weight());
-            }
-            // Disable hyperedge
-            // Note, a hyperedge is disabled during coarsening, if it becomes parallel with an other hyperedge or
-            // a single-pin net. Both cases can only happen at most one time among all community subhypergraphs for
-            // a hyperedge. Since, we only hypernodes within the same community. Consequently, for all community subhypergraphs
-            // this statement can evaluate only one time to true.
-            if ( community_subhypergraph._hyperedges[he].isDisabled() ) {
-              hypergraph._hyperedges[original_he].disable();
-            }
-            ASSERT(original_incidence_array_start == hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end,
-                    "Number of pins of hyperedge " << original_he << " differs from the number of pins in subhypergraph for community " << current_community
-                    << "(" << V(original_incidence_array_start) << ", " 
-                    << V(hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end) << ")" );
-            visited[he] = true;
-          } 
+              // Update weight
+              if ( hypergraph._hyperedges[he].weight() < community_subhypergraph._hyperedges[he].weight() ) {
+                hypergraph._hyperedges[original_he].setWeight(community_subhypergraph._hyperedges[he].weight());
+              }
+              // Disable hyperedge
+              // Note, a hyperedge is disabled during coarsening, if it becomes parallel with an other hyperedge or
+              // a single-pin net. Both cases can only happen at most one time among all community subhypergraphs for
+              // a hyperedge. Since, we only hypernodes within the same community. Consequently, for all community subhypergraphs
+              // this statement can evaluate only one time to true.
+              if ( community_subhypergraph._hyperedges[he].isDisabled() ) {
+                hypergraph._hyperedges[original_he].disable();
+              }
+              ASSERT(original_incidence_array_start == hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end,
+                      "Number of pins of hyperedge " << original_he << " differs from the number of pins in subhypergraph for community " << current_community
+                      << "(" << V(original_incidence_array_start) << ", " 
+                      << V(hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end) << ")" );
+              visited[he] = true;
+            } 
+          }
+          hypergraph._hypernodes[original_hn] = Hypernode(incident_nets, community_subhypergraph._hypernodes[hn].weight(),
+                                                          !community_subhypergraph._hypernodes[hn].isDisabled());
         }
-        hypergraph._hypernodes[original_hn] = Hypernode(incident_nets, community_subhypergraph._hypernodes[hn].weight(),
-                                                        !community_subhypergraph._hypernodes[hn].isDisabled());
       }
-    }
+    });
   }
+
+  // Barrier
+  pool.loop_until_empty();
 
   // PHASE 2
   // All disabled hypernodes have to follow a specific order in invalid part of the incidence array
@@ -302,47 +309,82 @@ void mergeCommunityInducedSectionHypergraphs(Hypergraph& hypergraph,
   // contraction. In order to realize this we compute the contraction index of a hypernode inside the
   // contraction history and use it later for sorting them.
   std::vector<int> contraction_index(hypergraph.initialNumNodes(), -1);
-  for ( size_t i = 0; i < history.size(); ++i ) {
-    const HypernodeID hn = history[i].v;
-    ASSERT(contraction_index[hn] == -1, "Hypernode " << hn << " occurs more than one time in the contraction history");
-    contraction_index[hn] = i;
+  std::function<void(const size_t, const size_t)> construct_contraction_index = 
+    [&history, &contraction_index](const size_t start, const size_t end) {
+    for ( size_t i = start; i < end; ++i ) {
+      const HypernodeID hn = history[i].v;
+      ASSERT(contraction_index[hn] == -1, "Hypernode " << hn << " occurs more than one time in the contraction history");
+      contraction_index[hn] = i;
+    }
+  };
+
+  size_t num_threads = pool.size();
+  size_t step = history.size() / num_threads;
+  if ( step >= 1 && num_threads != 1) {
+    for ( size_t i = 0; i < num_threads; ++i ) {
+      size_t start = i * step;
+      size_t end = ( i == num_threads - 1 ) ? history.size() : ( ( i + 1 ) * step );
+      pool.enqueue(construct_contraction_index, start, end);
+    }
+  } else {
+    construct_contraction_index(0, history.size());
   }
+
+  // Barrier
+  pool.loop_until_empty();
 
   // PHASE 3
   // The incidence array of a hyperedge is constructed as follows: The first part consists
   // of all enabled pins and the remainder of all invalid pins. The invalid pins in the
   // remainder are sorted in decreasing order of their contraction index.
-  for ( HyperedgeID he = 0; he < hypergraph.initialNumEdges(); ++he ) {
-    Hyperedge& current_he = hypergraph._hyperedges[he];
-    bool isDisabled = current_he.isDisabled();
-    if ( isDisabled ) {
-      current_he.enable();
-    }
-    hypergraph.edgeHash(he) = Hypergraph::kEdgeHashSeed;
-    for ( size_t j = current_he.firstEntry(); j < current_he.firstInvalidEntry(); ++j ) {
-      const HypernodeID pin = hypergraph._incidence_array[j];
-      if ( hypergraph._hypernodes[pin].isDisabled() ) {
-        // Swap disabled pins in remainder and decrement size of hyperedge
-        std::swap(hypergraph._incidence_array[j], hypergraph._incidence_array[current_he.firstInvalidEntry() - 1]);
-        current_he.decrementSize();
-        --j;
-      } else {
-        // Otherwise update hash
-        hypergraph.edgeHash(he) += math::hash(pin);
+  std::function<void(const size_t, const size_t)> create_contraction_hierarchy = 
+    [&hypergraph, &contraction_index](const HyperedgeID start, const HyperedgeID end) {
+    for ( HyperedgeID he = start; he < end; ++he ) {
+      Hyperedge& current_he = hypergraph._hyperedges[he];
+      bool isDisabled = current_he.isDisabled();
+      if ( isDisabled ) {
+        current_he.enable();
       }
+      hypergraph.edgeHash(he) = Hypergraph::kEdgeHashSeed;
+      for ( size_t j = current_he.firstEntry(); j < current_he.firstInvalidEntry(); ++j ) {
+        const HypernodeID pin = hypergraph._incidence_array[j];
+        if ( hypergraph._hypernodes[pin].isDisabled() ) {
+          // Swap disabled pins in remainder and decrement size of hyperedge
+          std::swap(hypergraph._incidence_array[j], hypergraph._incidence_array[current_he.firstInvalidEntry() - 1]);
+          current_he.decrementSize();
+          --j;
+        } else {
+          // Otherwise update hash
+          hypergraph.edgeHash(he) += math::hash(pin);
+        }
+      }
+      if ( isDisabled ) {
+        current_he.disable();
+      }
+      // Sort remainder in decreasing order of their contraction index.
+      size_t invalid_pins_start = current_he.firstInvalidEntry();
+      size_t invalid_pins_end = hypergraph._hyperedges[he + 1].firstEntry();
+      std::sort(hypergraph._incidence_array.begin() + invalid_pins_start,
+                hypergraph._incidence_array.begin() + invalid_pins_end,
+                [&contraction_index](const HypernodeID& u, const HypernodeID& v) {
+                  return contraction_index[u] > contraction_index[v];
+                });
     }
-    if ( isDisabled ) {
-      current_he.disable();
+  };
+
+  step = hypergraph.initialNumEdges() / num_threads;
+  if ( step >= 1 && num_threads != 1) {
+    for ( size_t i = 0; i < num_threads; ++i ) {
+      HyperedgeID start = i * step;
+      HyperedgeID end = ( i == num_threads - 1 ) ? hypergraph.initialNumEdges() : ( ( i + 1 ) * step );
+      pool.enqueue(create_contraction_hierarchy, start, end);
     }
-    // Sort remainder in decreasing order of their contraction index.
-    size_t invalid_pins_start = current_he.firstInvalidEntry();
-    size_t invalid_pins_end = hypergraph._hyperedges[he + 1].firstEntry();
-    std::sort(hypergraph._incidence_array.begin() + invalid_pins_start,
-              hypergraph._incidence_array.begin() + invalid_pins_end,
-              [&contraction_index](const HypernodeID& u, const HypernodeID& v) {
-                return contraction_index[u] > contraction_index[v];
-              });
+  } else {
+    create_contraction_hierarchy(0, hypergraph.initialNumEdges());
   }
+
+  // Barrier
+  pool.loop_until_empty();
 }
 
 

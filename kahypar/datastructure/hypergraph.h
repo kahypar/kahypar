@@ -47,6 +47,11 @@
 
 
 namespace kahypar {
+namespace parallel {
+//forward
+class ThreadPool;
+} // namespace parallel
+
 namespace ds {
 // ! Helper function to allow range-based for loops
 template <typename Iterator>
@@ -2131,7 +2136,8 @@ class GenericHypergraph {
                                                                                      bool respect_order_of_hypernodes);
 
   template <typename Hypergraph>
-  friend void mergeCommunityInducedSectionHypergraphs(Hypergraph& hypergraph,
+  friend void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool,
+                                                      Hypergraph& hypergraph,
                                                       const std::vector<CommunitySubhypergraph<Hypergraph>>& communities,
                                                       const std::vector<typename Hypergraph::ContractionMemento>& history);
 
