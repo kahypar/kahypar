@@ -217,7 +217,10 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       params.algorithm == RefinementAlgorithm::kway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
       params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      params.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter ||
       params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter ||
       params.algorithm == RefinementAlgorithm::kway_fm_flow) {
     str << "  stopping rule:                      " << params.fm.stopping_rule << std::endl;
     if (params.fm.stopping_rule == RefinementStoppingRule::simple) {
@@ -226,10 +229,14 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
   }
-  if (params.algorithm == RefinementAlgorithm::twoway_flow ||
-      params.algorithm == RefinementAlgorithm::kway_flow ||
+  if (params.algorithm == RefinementAlgorithm::twoway_fm ||
+      params.algorithm == RefinementAlgorithm::kway_fm ||
+      params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
       params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+      params.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter ||
       params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter ||
       params.algorithm == RefinementAlgorithm::kway_fm_flow) {
     str << "  Flow Refinement Parameters:" << std::endl;
     str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;

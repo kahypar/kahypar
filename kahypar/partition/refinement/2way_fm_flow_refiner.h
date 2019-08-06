@@ -45,7 +45,9 @@ class TwoWayFMFlowRefiner final : public IRefiner,
     _fm_refiner(RefinerFactory::getInstance().createObject(
                   RefinementAlgorithm::twoway_fm, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                    RefinementAlgorithm::twoway_flow, hypergraph, context)) {
+                    context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ?
+                    RefinementAlgorithm::twoway_flow :
+                    RefinementAlgorithm::twoway_hyperflow_cutter, hypergraph, context)) {
     ASSERT(context.partition.k == 2);
   }
 
@@ -83,7 +85,6 @@ class TwoWayFMFlowRefiner final : public IRefiner,
                   Metrics& best_metrics) override final {
     const bool flow_improvement = _flow_refiner->refine(refinement_nodes, max_allowed_part_weights,
                                                         changes, best_metrics);
-
     // If flow refiner finds an improvement the gain cache update of
     // the uncontracted nodes will be performed in performMovesAndUpdateCache.
     // Therefore, we have to prevent that the FM Refiner will update the

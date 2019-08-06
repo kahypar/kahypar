@@ -111,7 +111,8 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       }
 
       if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
-          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
+          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ||
+          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
         _hg.uncontract(_history.back().contraction_memento, changes,
                        meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
       } else {

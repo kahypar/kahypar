@@ -92,10 +92,14 @@ enum class RefinementAlgorithm : uint8_t {
   kway_fm_km1,
   twoway_flow,
   twoway_fm_flow,
+  twoway_fm_hyperflow_cutter,
   kway_flow,
   kway_fm_flow_km1,
   kway_fm_flow,
   twoway_hyperflow_cutter,
+  kway_hyperflow_cutter,
+  kway_fm_hyperflow_cutter,
+  kway_fm_hyperflow_cutter_km1,
   do_nothing,
   UNDEFINED
 };
@@ -348,6 +352,10 @@ std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
     case RefinementAlgorithm::kway_fm_flow_km1: return os << "kway_fm_flow_km1";
     case RefinementAlgorithm::kway_fm_flow: return os << "kway_fm_flow";
     case RefinementAlgorithm::twoway_hyperflow_cutter: return os << "twoway_hyperflow_cutter";
+    case RefinementAlgorithm::twoway_fm_hyperflow_cutter: return os << "twoway_fm_hyperflow_cutter";
+    case RefinementAlgorithm::kway_hyperflow_cutter: return os << "kway_hyperflow_cutter";
+    case RefinementAlgorithm::kway_fm_hyperflow_cutter: return os << "kway_fm_hyperflow_cutter";
+    case RefinementAlgorithm::kway_fm_hyperflow_cutter_km1: return os << "kway_fm_hyperflow_cutter_km1";
     case RefinementAlgorithm::do_nothing: return os << "do_nothing";
     case RefinementAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -564,6 +572,14 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm_flow;
   } else if (type == "twoway_hyperflow_cutter") {
     return RefinementAlgorithm::twoway_hyperflow_cutter;
+  } else if (type == "kway_hyperflow_cutter") {
+    return RefinementAlgorithm::kway_hyperflow_cutter;
+  } else if (type == "kway_fm_hyperflow_cutter") {
+    return RefinementAlgorithm::kway_fm_hyperflow_cutter;
+  } else if (type == "twoway_fm_hyperflow_cutter") {
+    return RefinementAlgorithm::twoway_fm_hyperflow_cutter;
+  } else if (type == "kway_fm_hyperflow_cutter_km1") {
+    return RefinementAlgorithm::kway_fm_hyperflow_cutter_km1;
   } else if (type == "do_nothing") {
     return RefinementAlgorithm::do_nothing;
   }

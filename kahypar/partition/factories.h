@@ -36,6 +36,7 @@
 #include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
 #include "kahypar/partition/refinement/flow/2way_hyperflowcutter_refiner.h"
 #include "kahypar/partition/refinement/flow/kway_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/kway_hyperflowcutter_refiner.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/i_refiner.h"
@@ -88,7 +89,12 @@ using KWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFlowRefin
                                                                    IRefiner,
                                                                    meta::Typelist<FlowNetworkPolicyClasses,
                                                                                   FlowExecutionPolicyClasses> >;
+
 using TwoWayHyperFlowCutterFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayHyperFlowCutterRefiner,
                                                                                 IRefiner,
                                                                                 meta::Typelist<FlowExecutionPolicyClasses> >;
+
+using KWayHyperFlowCutterFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayHyperFlowCutterRefiner,
+                                                                              IRefiner,
+                                                                              meta::Typelist<FlowExecutionPolicyClasses> >;
 }  // namespace kahypar
