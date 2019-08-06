@@ -38,6 +38,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/flow/strongly_connected_components.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 using ds::Graph;
@@ -52,7 +53,7 @@ class MostBalancedMinimumCut {
     _hg(hypergraph),
     _context(context),
     _flow_network(flowNetwork),
-    _visited(_hg.initialNumNodes() + 2 * _hg.initialNumEdges()),
+    _visited(static_cast<size_t>(_hg.initialNumNodes()) + 2 * _hg.initialNumEdges()),
     _graph_to_flow_network(flowNetwork.initialSize(), Network::kInvalidNode),
     _flow_network_to_graph(flowNetwork.initialSize(), Network::kInvalidNode),
     _scc_node_weight(flowNetwork.initialSize(), 0),
@@ -369,7 +370,7 @@ class MostBalancedMinimumCut {
         start_nodes.push_back(u);
       }
     }
-    std::random_shuffle(start_nodes.begin(), start_nodes.end());
+    std::shuffle(start_nodes.begin(), start_nodes.end(),Randomize::instance().getGenerator());
     for (const NodeID& u : start_nodes) {
       _Q.push(u);
     }

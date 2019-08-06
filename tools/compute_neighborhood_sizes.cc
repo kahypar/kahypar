@@ -27,45 +27,48 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
+#include "kahypar/datastructure/fast_reset_flag_array.h"
 
 using namespace kahypar;
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "No .hgr file specified" << std::endl;
-    std::cout << "Usage: DegreePinDistribution <.hgr>" << std::endl;
+    std::cout << "Usage: ComputeNeighborHoodSizes <.hgr>" << std::endl;
     exit(0);
   }
   std::string hgr_filename(argv[1]);
 
   Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
 
-  std::map<HyperedgeID, size_t> degree_distribution;
-  std::map<HypernodeID, size_t> pin_distribution;
+  std::map<HypernodeID, size_t> neighborhood_sizes;
+  ds::FastResetFlagArray<> seen_hns(hypergraph.initialNumNodes());
 
   for (const auto hn : hypergraph.nodes()){
-    ++degree_distribution[hypergraph.nodeDegree(hn)];
+    HypernodeID neighborhood_size = 0;
+    seen_hns.reset();
+    for (const HyperedgeID& he : hypergraph.incidentEdges(hn)) {
+      for (const HypernodeID& v : hypergraph.pins(he)) {
+        if (!seen_hns[v]) {
+          seen_hns.set(v, true);
+          ++neighborhood_size;
+        }
+      }
+    }
+    ++neighborhood_sizes[neighborhood_size];
   }
 
-  for (const auto he : hypergraph.edges()){
-    ++pin_distribution[hypergraph.edgeSize(he)];
-  }
-
-  std::string output_filename(hgr_filename + ".degree_pin_distribution.csv");
+  std::string output_filename(hgr_filename + ".neighborhood_size.csv");
   const std::string instance_name = hgr_filename.substr(hgr_filename.find_last_of('/') + 1);
 
 
   std::cout << "write csv file: " << output_filename << std::endl;
 
   std::ofstream out_stream(output_filename.c_str());
-  out_stream << "hypergraph," << "type," << "size," << "count" << std::endl;
+  out_stream << "hypergraph," << "size," << "count" << std::endl;
 
-  for (const auto& degree_count : degree_distribution){
-    out_stream << instance_name <<  "," << "degree," << degree_count.first << "," << degree_count.second << std::endl;
-  }
-
-  for (const auto& size_count : pin_distribution){
-    out_stream << instance_name <<  "," << "size," << size_count.first << "," << size_count.second << std::endl;
+  for (const auto& pair : neighborhood_sizes){
+    out_stream << instance_name <<  "," << pair.first << "," << pair.second << std::endl;
   }
 
   out_stream.close();

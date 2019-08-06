@@ -20,11 +20,12 @@
 
 #pragma once
 
+#include "kahypar/macros.h"
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/factories.h"
 
 #define REGISTER_FLOW_ALGORITHM_FOR_NETWORK(id, flow, network)                                           \
-  static meta::Registrar<FlowAlgorithmFactory<network> > register_ ## flow ## network(                   \
+  static meta::Registrar<FlowAlgorithmFactory<network> > JOIN(register_ ## flow, network)(               \
     id,                                                                                                  \
     [](Hypergraph& hypergraph, const Context& context, network& flow_network) -> MaximumFlow<network>* { \
     return new flow<network>(hypergraph, context, flow_network);                                         \

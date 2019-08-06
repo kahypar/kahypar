@@ -38,6 +38,9 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string out_filename(argv[2]);
 
+  std::cout << "Converting graph " << hgr_filename << " to HGR hypergraph format: "
+            << out_filename << "..." << std::endl;
+
   Hypergraph hypergraph(
     io::createHypergraphFromFile(hgr_filename, 2));
 

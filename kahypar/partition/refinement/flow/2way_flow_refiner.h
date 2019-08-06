@@ -39,6 +39,7 @@
 #include "kahypar/partition/refinement/flow/policies/flow_region_build_policy.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 template <class Network = Mandatory>
@@ -65,7 +66,7 @@ class TwoWayFlowRefiner final : public IRefiner,
     _maximum_flow(FlowAlgorithmFactory<Network>::getInstance().createObject(
                     _context.local_search.flow.algorithm, hypergraph, _context, _flow_network)),
     _quotient_graph(nullptr),
-    _visited(_hg.initialNumNodes() + _hg.initialNumEdges()),
+    _visited(static_cast<size_t>(_hg.initialNumNodes()) + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
     _ignore_flow_execution_policy(false) { }
@@ -160,7 +161,7 @@ class TwoWayFlowRefiner final : public IRefiner,
         break;
       }
 
-      std::random_shuffle(cut_hes.begin(), cut_hes.end());
+      std::shuffle(cut_hes.begin(), cut_hes.end(),Randomize::instance().getGenerator());
 
       // Build Flow Problem
       CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,

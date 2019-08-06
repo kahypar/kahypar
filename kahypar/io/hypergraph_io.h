@@ -81,6 +81,11 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     std::string line;
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
       std::getline(file, line);
+      // skip any comments
+      while (line[0] == '%') {
+        std::getline(file, line);
+      }
+
       std::istringstream line_stream(line);
       if (line_stream.peek() == EOF) {
         std::cerr << "Error: Hyperedge " << i << " is empty" << std::endl;
@@ -114,6 +119,10 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
         ASSERT(hypernode_weights != nullptr, "Hypergraph has hypernode weights");
         for (HypernodeID i = 0; i < num_hypernodes; ++i) {
           std::getline(file, line);
+          // skip any comments
+          while (line[0] == '%') {
+            std::getline(file, line);
+          }
           std::istringstream line_stream(line);
           HypernodeWeight node_weight;
           line_stream >> node_weight;
@@ -347,11 +356,11 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
       // ASSERT(mapping.find(pin) != mapping.end(), "No mapping found for pin " << pin);
       out_stream << pin << " ";
     }
-    out_stream << std::endl;
+    out_stream << "\n";
   }
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << hypergraph.nodeWeight(hn) << " ";
+    out_stream << hypergraph.nodeWeight(hn) << "\n";
   }
   out_stream << std::endl;
   out_stream.close();

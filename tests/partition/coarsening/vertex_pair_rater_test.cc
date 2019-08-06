@@ -167,4 +167,18 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
   ASSERT_THAT(rater.rate(0).value, Eq(std::numeric_limits<RatingType>::min()));
   ASSERT_THAT(rater.rate(0).valid, Eq(false));
 }
+
+TEST_F(ARater, HandlesZeroWeightHypernodes) {
+  context.coarsening.max_allowed_node_weight = 7;
+  HypernodeWeightVector hypernode_weights{ 0, 5 };
+  hypergraph.reset(new Hypergraph(2, 1, HyperedgeIndexVector { 0, 2 },
+                                  HyperedgeVector { 0, 1 }, 2, nullptr, &hypernode_weights));
+
+  FirstWinsRater rater(*hypergraph, context);
+
+  const auto rating = rater.rate(0);
+  ASSERT_THAT(rating.target, Eq(1));
+  ASSERT_THAT(rating.value, Eq(1 / 5.0));
+  ASSERT_THAT(rating.valid, Eq(true));
+}
 }  // namespace kahypar

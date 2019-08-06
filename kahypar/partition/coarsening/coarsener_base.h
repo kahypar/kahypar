@@ -80,15 +80,15 @@ class CoarsenerBase {
   }
 
   void removeSingleNodeHyperedges() {
-    const HyperedgeWeight removed_he_weight =
-      _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
-    _context.stats.add(StatTag::Coarsening, "removedSingleNodeHEWeight", removed_he_weight);
+    // const HyperedgeWeight removed_he_weight =
+    _hypergraph_pruner.removeSingleNodeHyperedges(_hg, _history.back());
+    // _context.stats.add(StatTag::Coarsening, "removedSingleNodeHEWeight", removed_he_weight);
   }
 
   void removeParallelHyperedges() {
-    const HyperedgeID removed_parallel_hes =
-      _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
-    _context.stats.add(StatTag::Coarsening, "numRemovedParalellHEs", removed_parallel_hes);
+    // const HyperedgeID removed_parallel_hes =
+    _hypergraph_pruner.removeParallelHyperedges(_hg, _history.back());
+    // _context.stats.add(StatTag::Coarsening, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
   void restoreParallelHyperedges() {
@@ -109,8 +109,8 @@ class CoarsenerBase {
     for (const HyperedgeID& he : _hg.edges()) {
       max_he_weight = std::max(max_he_weight, _hg.edgeWeight(he));
     }
-    LOG << V(max_degree);
-    LOG << V(max_he_weight);
+    max_he_weight = std::max(max_he_weight,
+                             _hypergraph_pruner.maxRemovedSingleNodeHyperedgeWeight());
     refiner.initialize(static_cast<HyperedgeWeight>(max_degree * max_he_weight));
 #else
     refiner.initialize(0);

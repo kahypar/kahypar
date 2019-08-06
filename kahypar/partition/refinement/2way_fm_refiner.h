@@ -195,6 +195,7 @@ class TwoWayFMRefiner final : public IRefiner,
                   const HypernodeWeightArray& max_allowed_part_weights,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
+    ASSERT(_is_initialized);
     ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(

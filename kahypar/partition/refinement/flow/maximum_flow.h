@@ -518,9 +518,9 @@ class BoykovKolmogorov : public MaximumFlow<Network>{
  public:
   BoykovKolmogorov(Hypergraph& hypergraph, const Context& context, Network& flow_network) :
     Base(hypergraph, context, flow_network),
-    _flow_graph(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(),
-                hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges()),
-    _flow_network_mapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
+    _flow_graph(static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges(),
+                static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges()),
+    _flow_network_mapping(static_cast<size_t>(hypergraph.initialNumNodes()) + 2 * hypergraph.initialNumEdges(), 0) { }
 
   ~BoykovKolmogorov() = default;
 
@@ -607,7 +607,8 @@ class IBFS : public MaximumFlow<Network>{
   IBFS(Hypergraph& hypergraph, const Context& context, Network& flow_network) :
     Base(hypergraph, context, flow_network),
     _flow_graph(FlowGraph::IB_INIT_COMPACT),
-    _flow_network_mapping(hypergraph.initialNumNodes() + 2 * hypergraph.initialNumEdges(), 0) { }
+    _flow_network_mapping(static_cast<size_t>(hypergraph.initialNumNodes()) +
+                          2 * hypergraph.initialNumEdges(), 0) { }
 
   ~IBFS() = default;
 

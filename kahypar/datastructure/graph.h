@@ -107,7 +107,8 @@ class Graph {
     _cluster_id(),
     _cluster_size(),
     _incident_cluster_weight(),
-    _incident_cluster_weight_position(hypergraph.initialNumNodes() + hypergraph.initialNumEdges()),
+    _incident_cluster_weight_position(static_cast<size_t>(hypergraph.initialNumNodes()) +
+                                      hypergraph.initialNumEdges()),
     _hypernode_mapping() {
     for (const HyperedgeID he : hypergraph.edges()) {
       if (hypergraph.edgeSize(he) > 2) {

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <stack>
 #include <vector>
@@ -111,9 +112,11 @@ class VertexPairRater {
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
-      const RatingType tmp_rating = it->value /
-                                    HeavyNodePenaltyPolicy::penalty(weight_u,
-                                                                    _hg.nodeWeight(tmp_target));
+      const HypernodeWeight target_weight = _hg.nodeWeight(tmp_target);
+      HypernodeWeight penalty = HeavyNodePenaltyPolicy::penalty(weight_u,
+                                                                target_weight);
+      penalty = penalty == 0 ? std::max(std::max(weight_u, target_weight), 1) : penalty;
+      const RatingType tmp_rating = it->value / static_cast<double>(penalty);
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
