@@ -146,6 +146,7 @@ struct CoarseningParameters {
   RatingParameters rating = { };
   HypernodeID contraction_limit_multiplier = std::numeric_limits<HypernodeID>::max();
   double max_allowed_weight_multiplier = std::numeric_limits<double>::max();
+  PartitionID community_contraction_target = -1;
 
   // Those will be determined dynamically
   HypernodeWeight max_allowed_node_weight = 0;

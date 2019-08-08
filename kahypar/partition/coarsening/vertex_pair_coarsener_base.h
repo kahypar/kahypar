@@ -42,6 +42,7 @@ template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  private:
   static constexpr bool debug = false;
+  static constexpr PartitionID kInvalidPart = -1;
 
  protected:
   using CoarsenerBase::performLocalSearch;
@@ -165,10 +166,12 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     std::vector<HypernodeID> permutation;
     createHypernodePermutation(permutation);
     for (const HypernodeID hn : permutation) {
-      const typename Rater::Rating rating = rater.rate(hn);
-      if (rating.valid) {
-        _pq.push(hn, rating.value);
-        target[hn] = rating.target;
+      if ( isEligibleForContraction(hn) ) {
+        const typename Rater::Rating rating = rater.rate(hn);
+        if (rating.valid) {
+          _pq.push(hn, rating.value);
+          target[hn] = rating.target;
+        }
       }
     }
   }
@@ -179,6 +182,12 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       permutation.push_back(hn);
     }
     Randomize::instance().shuffleVector(permutation, permutation.size());
+  }
+
+  bool isEligibleForContraction(const HypernodeID hn) {
+    return _context.coarsening.community_contraction_target == kInvalidPart ||
+      _context.coarsening.community_contraction_target == _hg.communityID(hn);
+      
   }
 
   using CoarsenerBase::_hg;

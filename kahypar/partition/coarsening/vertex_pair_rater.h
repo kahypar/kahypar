@@ -27,6 +27,7 @@
 
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/datastructure/fast_hash_table.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
@@ -48,6 +49,11 @@ template <class ScorePolicy = HeavyEdgeScore,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
+  using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
+  // using HashTable = std::unordered_map<HypernodeID, HypernodeID>;
+  using HashTable = kahypar::ds::FastHashTable<>;
+  using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
+
   static constexpr bool debug = false;
 
   class VertexPairRating {
@@ -81,8 +87,21 @@ class VertexPairRater {
   VertexPairRater(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
+    _hn_mapping(nullptr),
+    _reverse_hn_mapping(nullptr),
     _tmp_ratings(_hg.initialNumNodes()),
     _already_matched(_hg.initialNumNodes()) { }
+
+  VertexPairRater(Hypergraph& hypergraph, 
+                  const Context& context,
+                  const HypernodeMapping hn_mapping,
+                  const ReverseHypernodeMapping reverse_hn_mapping) :
+    _hg(hypergraph),
+    _context(context),
+    _hn_mapping(hn_mapping),
+    _reverse_hn_mapping(reverse_hn_mapping),
+    _tmp_ratings(_hn_mapping->size()),
+    _already_matched(_hn_mapping->size()) { }
 
   VertexPairRater(const VertexPairRater&) = delete;
   VertexPairRater& operator= (const VertexPairRater&) = delete;
@@ -99,19 +118,21 @@ class VertexPairRater {
       ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
         const RatingType score = ScorePolicy::score(_hg, he, _context);
-        for (const HypernodeID& v : _hg.pins(he)) {
+        for (const HypernodeID& v : _hg.pins(he, _context.coarsening.community_contraction_target)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               RatingPartitionPolicy::accept(_hg, _context, u, v)) {
-            _tmp_ratings[v] += score;
+            _tmp_ratings[mapToCommunityHypergraph(v)] += score;
           }
         }
       }
     }
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
+    HypernodeID community_target = std::numeric_limits<HypernodeID>::max();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
-      const HypernodeID tmp_target = it->key;
+      const HypernodeID tmp_community_target = it->key;
+      const HypernodeID tmp_target = mapToOriginalHypergraph(tmp_community_target);
       const HypernodeWeight target_weight = _hg.nodeWeight(tmp_target);
       HypernodeWeight penalty = HeavyNodePenaltyPolicy::penalty(weight_u,
                                                                 target_weight);
@@ -120,9 +141,11 @@ class VertexPairRater {
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
-                                         target, tmp_target, _already_matched) &&
-          FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)) {
+                                         community_target, tmp_community_target, 
+                                         _already_matched) /*&&
+          FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)*/) {
         max_rating = tmp_rating;
+        community_target = tmp_community_target;
         target = tmp_target;
       }
     }
@@ -159,8 +182,27 @@ class VertexPairRater {
     return weight_v + weight_u <= _context.coarsening.max_allowed_node_weight;
   }
 
+  inline HypernodeID mapToOriginalHypergraph(const HypernodeID hn) {
+    if ( !_hn_mapping ) {
+      return hn;
+    }
+    ASSERT(hn < _hn_mapping->size(), "There exists no mapping for hypernode " << hn);
+    return (*_hn_mapping)[hn];
+  }
+
+  inline HypernodeID mapToCommunityHypergraph(const HypernodeID hn) {
+    if ( !_reverse_hn_mapping ) {
+      return hn;
+    }
+    ASSERT(_reverse_hn_mapping->find(hn) != _reverse_hn_mapping->end(), 
+           "There exists no mapping for hypernode " << hn);
+    return _reverse_hn_mapping->find(hn)->second;
+  }
+
   Hypergraph& _hg;
   const Context& _context;
+  const HypernodeMapping _hn_mapping;
+  const ReverseHypernodeMapping _reverse_hn_mapping;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   ds::FastResetFlagArray<> _already_matched;
 };

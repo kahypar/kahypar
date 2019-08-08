@@ -378,8 +378,10 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
   pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
+    size_t max_he_size = 0;
     for ( HyperedgeID he = start; he < end; ++he ) {
       ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+      max_he_size = std::max(max_he_size, (size_t) hypergraph.edgeSize(he));
       size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
       size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
       // Sort incidence array of hyperedge he in ascending order of their community id
@@ -401,7 +403,14 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
           std::forward_as_tuple(community_id),
           std::forward_as_tuple(start, end - start, hypergraph.edgeWeight(he))
         );
-        hypergraph.hyperedge(he, community_id).hash = hypergraph._hyperedges[he].hash;
+
+        // Compute edge hash for pins in community
+        hypergraph.hyperedge(he, community_id).hash = Hypergraph::kEdgeHashSeed;
+        for ( size_t cur = start; cur < end; ++cur ) {
+          HypernodeID pin = hypergraph._incidence_array[cur];
+          ASSERT(hypergraph.communityID(pin) == community_id, "Pin " << pin << " is not part of community " << community_id);
+          hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
+        }
       };
       for ( size_t current_position = incidence_array_start + 1; 
             current_position < incidence_array_end; 
@@ -415,6 +424,7 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
       }
       add_community(last_community, last_community_start, incidence_array_end);
     }
+    return max_he_size;
   }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   pool.loop_until_empty();

@@ -339,7 +339,6 @@ class GenericHypergraph {
     }
 
     IDType size() const {
-      ASSERT(!isDisabled());
       return _size;
     }
 
@@ -1532,6 +1531,7 @@ class GenericHypergraph {
           ++_current_num_pins;
       }
     }
+    hyperedge(he).setSize(1);
   }
 
   /*!
@@ -1562,9 +1562,8 @@ class GenericHypergraph {
           }
 
           if (connectivity(old_representative) > 1) {
-            ++hypernode(pin).num_incident_cut_hes;
+            ++_hypernodes[pin].num_incident_cut_hes;
           }
-
           ++_current_num_pins;
       }
     }
@@ -1655,6 +1654,13 @@ class GenericHypergraph {
     } else { 
       return hyperedge(e).size();
     }
+  }
+
+  HypernodeID edgeSize(const HyperedgeID e, const PartitionID community) {
+    ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
+    ASSERT(containsCommunityHyperedge(e, community),
+           "There are no community information for community " << community << " in hyperedge " << e);
+    return hyperedge(e, community).size();
   }
 
   size_t & edgeHash(const HyperedgeID e) {
@@ -1918,7 +1924,6 @@ class GenericHypergraph {
     }
   }
 
-
   HypernodeWeight weightOfHeaviestNode() const {
     HypernodeWeight max_weight = std::numeric_limits<HypernodeWeight>::min();
     for (const HypernodeID& hn : nodes()) {
@@ -1980,6 +1985,11 @@ class GenericHypergraph {
 
   void resetCommunities() {
     std::fill(_communities.begin(), _communities.end(), 0);
+  }
+
+  size_t numCommunitiesInHyperedge(const HypernodeID he) const {
+    ASSERT(hyperedge(he).community_hyperedges.size() > 0, "No community information for hyperedge" << he);
+    return hyperedge(he).community_hyperedges.size();
   }
 
   void resetEdgeHashes() {
@@ -2172,9 +2182,23 @@ class GenericHypergraph {
     PinHandleIterator pin_begin;
     PinHandleIterator pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
+    if ( pin_begin == pin_end ) {
+      LOG << V(he) << V(memento.u) << V(memento.v);
+      for ( size_t i = hyperedge(he).firstEntry(); i < hyperedge(he+1).firstEntry(); ++i ) {
+        HypernodeID hn = _incidence_array[i];
+        LOG << V(hn) << V(nodeIsEnabled(hn));
+      }
+    }
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
     while (*pin_end != memento.u) {
+      if ( pin_begin == pin_end ) {
+        LOG << V(memento.u) << V(memento.v) << V(he) << V(hyperedge(he).size());
+        for ( size_t i = hyperedge(he).firstEntry(); i < hyperedge(he+1).firstEntry(); ++i ) {
+          HypernodeID hn = _incidence_array[i];
+          LOG << V(hn) << V(nodeIsEnabled(hn));
+        }
+      }
       ASSERT(pin_end != pin_begin, "Pin" << memento.u << "not found in pinlist of HE" << he);
       --pin_end;
     }
@@ -2343,15 +2367,22 @@ class GenericHypergraph {
     return _hyperedges[e];
   }
 
+  size_t indexOfCommunityHyperedge(const HyperedgeID e, const PartitionID community) const {
+    ASSERT(e <= _num_hyperedges, "Hyperedge" << e << "does not exist");
+    size_t idx = 0;
+    for ( const auto& community_he : _hyperedges[e].community_hyperedges ) {
+      if ( community_he.first == community ) {
+        return idx;
+      }
+      idx++;
+    }
+    return idx;
+  }
+
   bool containsCommunityHyperedge(const HyperedgeID e, const PartitionID community) const {
     // <= instead of < because of sentinel
     ASSERT(e <= _num_hyperedges, "Hyperedge" << e << "does not exist");
-    for ( const auto& community_he : _hyperedges[e].community_hyperedges ) {
-      if ( community_he.first == community ) {
-        return true;
-      }
-    }
-    return false;
+    return indexOfCommunityHyperedge(e, community) < _hyperedges[e].community_hyperedges.size();
   }
 
   // ! Accessor for community-hyperedge-related information
@@ -2468,7 +2499,7 @@ class GenericHypergraph {
 
   template <typename Hypergraph>
   friend void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
-                                                         Hypergraph& hypergraph);
+                                                           Hypergraph& hypergraph);
 
   template <typename Hypergraph>
   friend void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
