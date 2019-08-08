@@ -39,7 +39,7 @@ class DoNothingRefiner final : public IRefiner {
   DoNothingRefiner& operator= (const DoNothingRefiner&) = delete;
   DoNothingRefiner& operator= (DoNothingRefiner&&) = delete;
   ~DoNothingRefiner() override = default;
-
+  
  private:
   bool refineImpl(std::vector<HypernodeID>&,
                   const std::array<HypernodeWeight, 2>&,

@@ -49,5 +49,5 @@ class EvoPartitionPolicy final : public meta::PolicyBase {
   }
 };
 
-using PartitionPolicies = meta::Typelist<EvoPartitionPolicy, NormalPartitionPolicy>;
+using PartitionPolicies = meta::Typelist</*EvoPartitionPolicy,*/ NormalPartitionPolicy>;
 }  // namespace kahypar

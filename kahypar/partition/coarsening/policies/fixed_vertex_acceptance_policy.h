@@ -130,7 +130,7 @@ class AllowFreeOnFreeFixedOnFixed final : public FixedVertexAcceptancePolicy {
 };
 
 
-using FixedVertexAcceptancePolicies = meta::Typelist<AllowFreeOnFixedFreeOnFree,
-                                                     AllowFreeOnFixedFreeOnFreeFixedOnFixed,
-                                                     AllowFreeOnFreeFixedOnFixed>;
+using FixedVertexAcceptancePolicies = meta::Typelist<//AllowFreeOnFixedFreeOnFree,
+                                                     AllowFreeOnFixedFreeOnFreeFixedOnFixed/*,
+                                                     AllowFreeOnFreeFixedOnFixed*/>;
 }  // namespace kahypar

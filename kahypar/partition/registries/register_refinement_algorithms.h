@@ -57,7 +57,7 @@
 
 
 namespace kahypar {
-REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
+/*REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::twoway_fm,
                             TwoWayFMFactoryDispatcher,
                             meta::PolicyRegistry<RefinementStoppingRule>::getInstance().getPolicy(
                               context.local_search.fm.stopping_rule));
@@ -83,6 +83,6 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_flow,
                               context.local_search.flow.execution_policy));
 REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);
 REGISTER_REFINER(RefinementAlgorithm::kway_fm_flow_km1, KWayFMFlowRefiner);
-REREGISTER_REFINER(RefinementAlgorithm::kway_fm_flow, KWayFMFlowRefiner, 2);
+REREGISTER_REFINER(RefinementAlgorithm::kway_fm_flow, KWayFMFlowRefiner, 2);*/
 REGISTER_REFINER(RefinementAlgorithm::do_nothing, DoNothingRefiner);
 }  // namespace kahypar

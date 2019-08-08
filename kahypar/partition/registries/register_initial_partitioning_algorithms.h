@@ -32,7 +32,7 @@
   })
 
 namespace kahypar {
-using BFSInitialPartitionerBFS = BFSInitialPartitioner<BFSStartNodeSelectionPolicy<> >;
+/*using BFSInitialPartitionerBFS = BFSInitialPartitioner<BFSStartNodeSelectionPolicy<> >;
 using LPInitialPartitionerBFS_FM =
   LabelPropagationInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                      FMGainComputationPolicy>;
@@ -71,10 +71,10 @@ using GHGInitialPartitionerBFS_MAXN_GLO =
 using GHGInitialPartitionerBFS_MAXN_RND =
   GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                             MaxNetGainComputationPolicy,
-                                            RoundRobinQueueSelectionPolicy>;
+                                            RoundRobinQueueSelectionPolicy>;*/
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::random,
                              RandomInitialPartitioner);
-REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::bfs, BFSInitialPartitionerBFS);
+/*REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::bfs, BFSInitialPartitionerBFS);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::lp, LPInitialPartitionerBFS_FM);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_sequential,
                              GHGInitialPartitionerBFS_FM_SEQ);
@@ -94,5 +94,5 @@ REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_global_maxnet,
                              GHGInitialPartitionerBFS_MAXN_GLO);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_round_maxnet,
                              GHGInitialPartitionerBFS_MAXN_RND);
-REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::pool, PoolInitialPartitioner);
+REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::pool, PoolInitialPartitioner);*/
 }  // namespace kahypar

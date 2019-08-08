@@ -71,11 +71,11 @@ class Modularity {
 
     _graph.setClusterID(node, new_cid);
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
         if (!dbg_modularity_function) return true;
         const EdgeWeight q = quality();
         return q < std::numeric_limits<EdgeWeight>::max();
-      } (), "");
+      } (), "");*/
   }
 
   EdgeWeight gain(const NodeID node, const ClusterID cid,
@@ -89,7 +89,7 @@ class Modularity {
 
     const EdgeWeight gain = incident_community_weight - totc * w_degree / m2;
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
         if (!dbg_modularity_function) return true;
         const EdgeWeight modularity_before = modularity();
         insert(node, cid, incident_community_weight);
@@ -102,7 +102,7 @@ class Modularity {
           return false;
         }
         return true;
-      } (), "Gain calculation failed!");
+      } (), "Gain calculation failed!");*/
 
     return gain;
   }

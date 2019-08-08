@@ -43,6 +43,6 @@ class IgnoreCommunityStructure final : public meta::PolicyBase {
   }
 };
 
-using CommunityPolicies = meta::Typelist<UseCommunityStructure,
-                                         IgnoreCommunityStructure>;
+using CommunityPolicies = meta::Typelist<UseCommunityStructure/*,
+                                         IgnoreCommunityStructure*/>;
 }  // namespace kahypar

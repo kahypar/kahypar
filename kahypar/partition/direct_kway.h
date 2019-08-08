@@ -68,7 +68,6 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
   return improved_quality;
 }
 
-
 static inline void partition(Hypergraph& hypergraph, const Context& context) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(

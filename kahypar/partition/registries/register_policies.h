@@ -48,42 +48,42 @@ using RandomWinsRaterHeavyEdgeRater = VertexPairRater<>;
 // //////////////////////////////////////////////////////////////////////////////
 REGISTER_POLICY(RatingPartitionPolicy, RatingPartitionPolicy::normal,
                 NormalPartitionPolicy);
-REGISTER_POLICY(RatingPartitionPolicy, RatingPartitionPolicy::evolutionary,
-                EvoPartitionPolicy);
+/*REGISTER_POLICY(RatingPartitionPolicy, RatingPartitionPolicy::evolutionary,
+                EvoPartitionPolicy);*/
 REGISTER_POLICY(CommunityPolicy, CommunityPolicy::use_communities,
                 UseCommunityStructure);
-REGISTER_POLICY(CommunityPolicy, CommunityPolicy::ignore_communities,
-                IgnoreCommunityStructure);
+/*REGISTER_POLICY(CommunityPolicy, CommunityPolicy::ignore_communities,
+                IgnoreCommunityStructure);*/
 
 REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::no_penalty,
                 NoWeightPenalty);
-REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::multiplicative_penalty,
+/*REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::multiplicative_penalty,
                 MultiplicativePenalty);
 REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::edge_frequency_penalty,
-                EdgeFrequencyPenalty);
+                EdgeFrequencyPenalty);*/
 
 REGISTER_POLICY(RatingFunction, RatingFunction::heavy_edge,
                 HeavyEdgeScore);
-REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
-                EdgeFrequencyScore);
+/*REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
+                EdgeFrequencyScore);*/
 
 using BestWithTieBreaking = BestRatingWithTieBreaking<>;
 using BestPreferringUnmatched = BestRatingPreferringUnmatched<>;
 
-REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
-                BestWithTieBreaking);
+/*REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best,
+                BestWithTieBreaking);*/
 REGISTER_POLICY(AcceptancePolicy, AcceptancePolicy::best_prefer_unmatched,
                 BestPreferringUnmatched);
 
-REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+/*REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
                 FixVertexContractionAcceptancePolicy::free_vertex_only,
-                AllowFreeOnFixedFreeOnFree);
+                AllowFreeOnFixedFreeOnFree);*/
 REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
                 FixVertexContractionAcceptancePolicy::fixed_vertex_allowed,
                 AllowFreeOnFixedFreeOnFreeFixedOnFixed);
-REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
+/*REGISTER_POLICY(FixVertexContractionAcceptancePolicy,
                 FixVertexContractionAcceptancePolicy::equivalent_vertices,
-                AllowFreeOnFreeFixedOnFixed);
+                AllowFreeOnFreeFixedOnFixed);*/
 
 // //////////////////////////////////////////////////////////////////////////////
 //                       Local Search Algorithm Policies
@@ -93,19 +93,19 @@ REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
 
-REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::constant,
+/*REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::constant,
                 ConstantFlowExecution);
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
-                MultilevelFlowExecution);
+                MultilevelFlowExecution);*/
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
                 ExponentialFlowExecution);
 
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
+/*REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
                 LawlerNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
                 HeuerNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
-                WongNetworkPolicy);
+                WongNetworkPolicy);*/
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
                 HybridNetworkPolicy);
 }  // namespace kahypar

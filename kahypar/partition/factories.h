@@ -27,6 +27,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
+#include "kahypar/partition/coarsening/parallel_ml_community_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -58,19 +59,23 @@ using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
                                                                 ICoarsener,
                                                                 RatingPolicies>;
 
-using FullCoarseningDispatcher = meta::StaticMultiDispatchFactory<FullVertexPairCoarsener,
-                                                                  ICoarsener,
-                                                                  RatingPolicies>;
+using ParallelMLCommunityCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCommunityCoarsener,
+                                                                                 ICoarsener,
+                                                                                 RatingPolicies>;
 
-using LazyCoarseningDispatcher = meta::StaticMultiDispatchFactory<LazyVertexPairCoarsener,
+/*using FullCoarseningDispatcher = meta::StaticMultiDispatchFactory<FullVertexPairCoarsener,
+                                                                  ICoarsener,
+                                                                  RatingPolicies>;*/
+
+/*using LazyCoarseningDispatcher = meta::StaticMultiDispatchFactory<LazyVertexPairCoarsener,
                                                                   ICoarsener,
                                                                   RatingPolicies>;
 
 using TwoWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFMRefiner,
                                                                    IRefiner,
-                                                                   meta::Typelist<StoppingPolicyClasses> >;
+                                                                   meta::Typelist<StoppingPolicyClasses> >;*/
 
-using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
+/*using KWayFMFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFMRefiner,
                                                                  IRefiner,
                                                                  meta::Typelist<StoppingPolicyClasses> >;
 
@@ -86,5 +91,5 @@ using TwoWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<TwoWayFlowR
 using KWayFlowFactoryDispatcher = meta::StaticMultiDispatchFactory<KWayFlowRefiner,
                                                                    IRefiner,
                                                                    meta::Typelist<FlowNetworkPolicyClasses,
-                                                                                  FlowExecutionPolicyClasses> >;
+                                                                                  FlowExecutionPolicyClasses> >;*/
 }  // namespace kahypar

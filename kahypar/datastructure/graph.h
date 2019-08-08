@@ -308,7 +308,7 @@ class Graph {
 
     _cluster_id[node] = to;
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           std::set<ClusterID> distinct_comm;
           size_t from_size = 0;
           size_t to_size = 0;
@@ -338,7 +338,7 @@ class Graph {
             return false;
           }
           return true;
-        } ());
+        } ());*/
   }
 
 
@@ -374,7 +374,7 @@ class Graph {
       }
     }
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           const auto incident_cluster_weight_range =
             std::make_pair(_incident_cluster_weight.begin(),
                            _incident_cluster_weight.begin() + idx);
@@ -420,7 +420,7 @@ class Graph {
             return false;
           }
           return true;
-        } (), "Incident cluster weight calculation of node" << node << "failed!");
+        } (), "Incident cluster weight calculation of node" << node << "failed!");*/
 
     return std::make_pair(_incident_cluster_weight.begin(), _incident_cluster_weight.begin() + idx);
   }
@@ -455,7 +455,7 @@ class Graph {
       }
     }
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           for (HypernodeID hn = 0; hn < _hypernode_mapping.size(); ++hn) {
             if (_hypernode_mapping[hn] != kInvalidNode &&
                 static_cast<NodeID>(clusterID(_hypernode_mapping[hn])) !=
@@ -466,7 +466,7 @@ class Graph {
             }
           }
           return true;
-        } (), "Hypernodes are not correctly mapped to contracted graph");
+        } (), "Hypernodes are not correctly mapped to contracted graph");*/
 
 
     std::vector<ClusterID> clusterID(new_cid);
@@ -569,8 +569,8 @@ class Graph {
    */
   std::pair<IncidentClusterWeightIterator,
             IncidentClusterWeightIterator> incidentClusterWeightOfCluster(const std::pair<NodeIterator, NodeIterator>& cluster_range) {
-    ASSERT(std::all_of(cluster_range.first, cluster_range.second,
-                       [&](const NodeID i) { return clusterID(i) == clusterID(*cluster_range.first); }));
+    /*ASSERT(std::all_of(cluster_range.first, cluster_range.second,
+                       [&](const NodeID i) { return clusterID(i) == clusterID(*cluster_range.first); }));*/
     _incident_cluster_weight_position.clear();
     size_t idx = 0;
 
@@ -592,7 +592,7 @@ class Graph {
     auto incident_cluster_weight_range = std::make_pair(_incident_cluster_weight.begin(),
                                                         _incident_cluster_weight.begin() + idx);
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           std::set<ClusterID> incident_cluster;
           for (const NodeID& node : cluster_range) {
             for (const Edge& e : incidentEdges(node)) {
@@ -635,7 +635,7 @@ class Graph {
             return false;
           }
           return true;
-        } (), "Incident cluster weight calculation failed!");
+        } (), "Incident cluster weight calculation failed!");*/
 
     return incident_cluster_weight_range;
   }
@@ -673,7 +673,7 @@ class Graph {
       }
     }
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           // Check Hypernodes in Graph
           for (const HypernodeID& hn : hg.nodes()) {
             if (hg.nodeDegree(hn) != degree(_hypernode_mapping[hn])) {
@@ -699,7 +699,7 @@ class Graph {
             }
           }
           return true;
-        } (), "Graph is not equivalent with hypergraph");
+        } (), "Graph is not equivalent with hypergraph");*/
   }
 
 
@@ -757,7 +757,7 @@ class Graph {
     }
 
 
-    ASSERT([&]() {
+    /*ASSERT([&]() {
           // Check Hypernodes in Graph
           for (const HypernodeID& hn : hg.nodes()) {
             if (hg.nodeDegree(hn) != degree(_hypernode_mapping[hn])) {
@@ -799,7 +799,7 @@ class Graph {
             }
           }
           return true;
-        } (), "Bipartite Graph is not equivalent with hypergraph");
+        } (), "Bipartite Graph is not equivalent with hypergraph");*/
   }
 
   NodeID _num_nodes;
