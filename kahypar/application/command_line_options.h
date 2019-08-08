@@ -210,6 +210,7 @@ po::options_description createCoarseningOptionsDescription(Context& context,
     }),
     "Coarsening Algorithm:\n"
     " - ml_style\n"
+    " - ml_parallel\n"
     " - heavy_full\n"
     " - heavy_lazy")
     ((initial_partitioning ? "i-c-s" : "c-s"),
