@@ -74,7 +74,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   using History = std::vector<CoarseningMemento>;
   using Hierarchy = std::vector<typename Hypergraph::ContractionMemento>;
   using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
-  using HashTable = kahypar::ds::FastHashTable<>;
+  using HashTable = typename Rater::HashTable;
   using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
   using ParallelHyperedge = typename ParallelHypergraphPruner::ParallelHE;
 
@@ -194,6 +194,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     // number of nodes, we create a mapping from the original hypergraph
     // to a remapped consecutive range of hypernodes, such that memory allocated
     // by those structures is proportional to the number of nodes in the community
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     size_t current_num_nodes = community_hns->size();
     ReverseHypernodeMapping reverse_mapping =
       std::make_shared<HashTable>(current_num_nodes);
@@ -263,9 +264,12 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       ++pass_nr;
     }
 
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     DBG << "Finish coarsening of community" << community_id
-        << "(" << V(current_num_nodes) << ","
-        << V(community_context.coarsening.contraction_limit) << ")";
+        << "( initial_num_nodes = " << community_hns->size()
+        << V(current_num_nodes) << ","
+        << V(community_context.coarsening.contraction_limit)
+        << "time =" << std::chrono::duration<double>(end - start).count() << "s)";
     return result;
   }
 
