@@ -19,6 +19,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <sched.h>
 
 namespace kahypar {
 namespace parallel {
@@ -106,8 +107,14 @@ public:
         done_(0),
         terminate_(false) {
       // immediately construct worker threads
+      size_t hardware_threads = std::thread::hardware_concurrency();
       for (size_t i = 0; i < num_threads; ++i) {
         threads_[i] = std::thread(&ThreadPool::worker, this);
+        // Set CPU affinity to exactly ONE CPU
+        cpu_set_t cpu_set;
+        CPU_ZERO(&cpu_set);
+        CPU_SET(i % hardware_threads, &cpu_set);
+        pthread_setaffinity_np(threads_[i].native_handle(), sizeof(cpu_set), &cpu_set);
       }
     }
 
@@ -136,7 +143,7 @@ public:
     }
 
     template<class F, class T>
-    auto parallel_for(F&& func, const T& start, const T& end, const T& step_threshold = 1) 
+    auto parallel_for(F&& func, const T& start, const T& end, const T& step_threshold = 1)
       -> std::vector<std::future<typename std::result_of<F(T, T)>::type>> {
       using return_type = typename std::result_of<F(T, T)>::type;
 
@@ -227,7 +234,7 @@ private:
       }
       cv_jobs_.notify_one();
       return res;
-    }   
+    }
 
     //! Worker function, one per thread is started.
     void worker() {

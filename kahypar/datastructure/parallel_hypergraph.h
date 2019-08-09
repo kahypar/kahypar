@@ -379,10 +379,8 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
   pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
-    size_t max_he_size = 0;
     for ( HyperedgeID he = start; he < end; ++he ) {
       ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
-      max_he_size = std::max(max_he_size, (size_t) hypergraph.edgeSize(he));
       size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
       size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
       // Sort incidence array of hyperedge he in ascending order of their community id
@@ -425,7 +423,6 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
       }
       add_community(last_community, last_community_start, incidence_array_end);
     }
-    return max_he_size;
   }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   if ( !async ) {

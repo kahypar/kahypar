@@ -81,7 +81,7 @@ class HypergraphDeduplicator {
   void restoreParallelHyperedges(Hypergraph& hypergraph) {
     for (const auto& memento : reverse(_removed_parallel_hes)) {
       DBG << "restoring parallel HE: (" << memento.second << "," << memento.first << ")";
-      hypergraph.restoreEdge(memento.first, memento.second);
+      hypergraph.restoreParallelEdge(memento.first, memento.second);
       hypergraph.setEdgeWeight(memento.second,
                                hypergraph.edgeWeight(memento.second) -
                                hypergraph.edgeWeight(memento.first));
