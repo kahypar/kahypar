@@ -49,11 +49,6 @@ template <class ScorePolicy = HeavyEdgeScore,
           typename RatingType = RatingType>
 class VertexPairRater {
  private:
-  using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
-  // using HashTable = std::unordered_map<HypernodeID, HypernodeID>;
-  using HashTable = kahypar::ds::FastHashTable<>;
-  using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
-
   static constexpr bool debug = false;
 
   class VertexPairRating {
@@ -83,6 +78,9 @@ class VertexPairRater {
 
  public:
   using Rating = VertexPairRating;
+  using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
+  using HashTable = kahypar::ds::FastHashTable<>;
+  using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
 
   VertexPairRater(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
@@ -196,7 +194,7 @@ class VertexPairRater {
     }
     ASSERT(_reverse_hn_mapping->find(hn) != _reverse_hn_mapping->end(),
            "There exists no mapping for hypernode " << hn);
-    return _reverse_hn_mapping->find(hn)->second;
+    return (*_reverse_hn_mapping)[hn];
   }
 
   Hypergraph& _hg;
