@@ -24,7 +24,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/datastructure/community_subhypergraph.h"
+#include "kahypar/datastructure/parallel_hypergraph.h"
 #include "tests/datastructure/hypergraph_test_fixtures.h"
 
 using ::testing::Eq;
@@ -41,7 +41,7 @@ void assignCommunities(Hypergraph& hg,
   for ( const auto& community : communities ) {
     for ( const HypernodeID& hn : community ) {
       hg.setNodeCommunity(hn, current_community);
-    } 
+    }
     current_community++;
   }
 }
@@ -74,7 +74,7 @@ TEST_F(AHypergraph, ExtractsCommunityOneAsSectionHypergraph) {
   std::vector<CommunityHyperedge<Hypergraph>> expected_he_mapping =
     { {1, 2, 4}, {2, 0, 2} };
 
-  auto extr_comm1 = extractCommunityInducedSectionHypergraph(hypergraph, 1, {3, 4}, true); 
+  auto extr_comm1 = extractCommunityInducedSectionHypergraph(hypergraph, 1, {3, 4}, true);
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(expected_hg, *extr_comm1.subhypergraph), Eq(true));
   ASSERT_THAT(extr_comm1.subhypergraph_to_hypergraph_hn, Eq(expected_hn_mapping));
   ASSERT_THAT(extr_comm1.subhypergraph_to_hypergraph_he, Eq(expected_he_mapping));
@@ -92,7 +92,7 @@ TEST_F(AHypergraph, ExtractsCommunityTwoAsSectionHypergraph) {
   std::vector<CommunityHyperedge<Hypergraph>> expected_he_mapping =
     { {2, 2, 3}, {3, 1, 3} };
 
-  auto extr_comm2 = extractCommunityInducedSectionHypergraph(hypergraph, 2, {5, 6}, true); 
+  auto extr_comm2 = extractCommunityInducedSectionHypergraph(hypergraph, 2, {5, 6}, true);
 
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(expected_hg, *extr_comm2.subhypergraph), Eq(true));
   ASSERT_THAT(extr_comm2.subhypergraph_to_hypergraph_hn, Eq(expected_hn_mapping));
@@ -106,7 +106,7 @@ using Memento = typename Hypergraph::ContractionMemento;
 Memento contract(CommunitySubhypergraph<Hypergraph>& community,
                                         const HypernodeID u, const HypernodeID v) {
   Memento memento = community.subhypergraph->contract(u, v);
-  return { community.subhypergraph_to_hypergraph_hn[memento.u], 
+  return { community.subhypergraph_to_hypergraph_hn[memento.u],
            community.subhypergraph_to_hypergraph_hn[memento.v] };
 }
 
@@ -134,7 +134,7 @@ void verifyCommunityMergeStep(ThreadPool& pool,
                               const std::vector<std::pair<PartitionID, HyperedgeID>>& disabled_hes = {}) {
   using CommunitySubhypergraph = CommunitySubhypergraph<Hypergraph>;
   using Memento = typename Hypergraph::ContractionMemento;
-  
+
   assignCommunities(hypergraph, community_ids);
   std::vector<CommunitySubhypergraph> communities;
   communities.emplace_back(extractCommunityInducedSectionHypergraph(hypergraph, 0, community_ids[0], true));
@@ -224,7 +224,7 @@ TEST_P(AParallelHypergraph, PreparesHypergraphForParallelContractionCorrectly) {
   using CommunityHyperedge = std::vector<std::set<HypernodeID>>;
   assignCommunities(hypergraph, {{0, 1, 2}, {3, 4}, {5, 6}});
 
-  prepareForParallelCommunityAwareCoarsening(pool, hypergraph);
+  prepareForParallelCommunityAwareCoarsening(pool, hypergraph, false);
 
   std::vector<CommunityHyperedge> expected_community_he = { { {0, 2}, {}, {} },
                                                             { {0, 1}, {3, 4}, {} },
@@ -260,11 +260,12 @@ void verifyParallelContractionStep(ThreadPool& pool,
   ASSERT_THAT(disabled_he.size(), Eq(num_communities));
   assignCommunities(hypergraph, community_ids);
   assignCommunities(reference, community_ids);
-  prepareForParallelCommunityAwareCoarsening(pool, hypergraph);
+  prepareForParallelCommunityAwareCoarsening(pool, hypergraph, false);
 
   size_t num_threads = pool.size();
   std::atomic<size_t> active_threads(0);
-  std::vector<Memento> history; 
+  std::vector<Memento> history;
+  std::unordered_map<HyperedgeID, size_t> disabled_he_to_size;
   for ( PartitionID c = 0; c < num_communities; ++c ) {
     std::vector<Memento> contractions = community_contractions[c];
     std::vector<HyperedgeID> community_disabled_he = disabled_he[c];
@@ -283,19 +284,19 @@ void verifyParallelContractionStep(ThreadPool& pool,
       history.push_back(reference.contract(memento.u, memento.v));
     }
     for ( const HyperedgeID& he : community_disabled_he ) {
+      disabled_he_to_size[he] = reference.edgeSize(he);
       reference.removeEdge(he);
     }
   }
   pool.loop_until_empty();
 
   undoPreparationForParallelCommunityAwareCoarsening(pool, hypergraph, history);
-  reference.removeAllDisabledEdgesFromIncidentNets();
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(reference, hypergraph), Eq(true));
 
   for ( PartitionID c = 0; c < num_communities; ++c ) {
     for ( const HyperedgeID& he : disabled_he[c] ) {
-      hypergraph.restoreEdgeAfterParallelCoarsening(he);
-      reference.restoreEdgeAfterParallelCoarsening(he);
+      hypergraph.restoreEdge(he, disabled_he_to_size[he]);
+      reference.restoreEdge(he, disabled_he_to_size[he]);
     }
   }
 
@@ -347,13 +348,6 @@ TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodesWithRemovingO
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, {} },
                                 { {0}, {}, {} });
-}
-
-TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodesWithRemovingTwoEdges) {
-  verifyParallelContractionStep(pool, hypergraph, reference,
-                                { {0, 1, 2}, {3, 4}, {5, 6} },
-                                { { {0, 2} }, { {3, 4} }, {} },
-                                { {0}, {}, {3} });
 }
 
 }  // namespace ds

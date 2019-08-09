@@ -81,8 +81,8 @@ struct CommunitySubhypergraph {
     std::sort(subhypergraph_to_hypergraph_hn.begin(), subhypergraph_to_hypergraph_hn.end());
   }
 
-  void addHyperedge(const HyperedgeID original_he, 
-                    const size_t incidence_array_start, 
+  void addHyperedge(const HyperedgeID original_he,
+                    const size_t incidence_array_start,
                     const size_t incidence_array_end) {
     subhypergraph_to_hypergraph_he.emplace_back(original_he, incidence_array_start, incidence_array_end);
   }
@@ -102,7 +102,7 @@ struct CommunitySubhypergraph {
  * V(C) = { v | v \in C } and V' = { v | \exists e \in E: v \in e \ V(C) }. V' corresponds to
  * all hypernodes, which are not in C, but are connected to the community via an hyperedge e. For
  * the definition of the notation H x V, we refer to the wikipedia article for hypergraphs.
- * 
+ *
  * This function will be used during parallel coarsening, where we extract a community from
  * the original hypergraph an coarsen inside it independently. However, to ensure that
  * the ratings of the coarsener are matching those of the sequential partitioner, we need
@@ -160,7 +160,7 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
 
   if ( num_hypernodes > 0 ) {
     community_subhypergraph.subhypergraph->_hypernodes.resize(num_hypernodes);
-    community_subhypergraph.subhypergraph->_num_hypernodes = num_hypernodes;  
+    community_subhypergraph.subhypergraph->_num_hypernodes = num_hypernodes;
 
     HyperedgeID num_hyperedges = 0;
     HypernodeID pin_index = 0;
@@ -172,7 +172,7 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
       community_subhypergraph.subhypergraph->_hyperedges[num_hyperedges].setFirstEntry(pin_index);
       community_sizes_in_he.clear();
       for (const HypernodeID& pin : hypergraph.pins(he)) {
-        ASSERT(hypergraph_to_subhypergraph.find(pin) != hypergraph_to_subhypergraph.end(), 
+        ASSERT(hypergraph_to_subhypergraph.find(pin) != hypergraph_to_subhypergraph.end(),
                 "Subhypergraph does not contain hypernode " << pin);
         community_subhypergraph.subhypergraph->hyperedge(num_hyperedges).incrementSize();
         community_subhypergraph.subhypergraph->hyperedge(num_hyperedges).hash += math::hash(hypergraph_to_subhypergraph[pin]);
@@ -197,8 +197,8 @@ extractCommunityInducedSectionHypergraph(const Hypergraph& hypergraph,
       }
       community_subhypergraph.addHyperedge(he, incidence_array_start, incidence_array_start + community_size);
     }
-    
-    setupInternalStructure(hypergraph, community_subhypergraph.subhypergraph_to_hypergraph_hn, 
+
+    setupInternalStructure(hypergraph, community_subhypergraph.subhypergraph_to_hypergraph_hn,
                            *community_subhypergraph.subhypergraph,
                            2, num_hypernodes, pin_index, num_hyperedges);
   }
@@ -229,8 +229,8 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
   }
 
   // PHASE 1
-  // In the first phase we write for each community subhypergraph the 
-  // hypernodes that belong the corresponding community back to the 
+  // In the first phase we write for each community subhypergraph the
+  // hypernodes that belong the corresponding community back to the
   // original hypergraph and to the incidence array. For writing back to
   // the incidence array we are using the unique ranges for the pins of the
   // community defined in the CommunityHyperedge.
@@ -260,7 +260,7 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
 
             if ( !visited[he] ) {
               const CommunityHyperedge& community_hyperedge = community.subhypergraph_to_hypergraph_he[he];
-              size_t original_incidence_array_start = hypergraph._hyperedges[original_he].firstEntry() + 
+              size_t original_incidence_array_start = hypergraph._hyperedges[original_he].firstEntry() +
                                                         community_hyperedge.incidence_array_start;
               size_t incidence_array_start = community_subhypergraph._hyperedges[he].firstEntry();
               size_t incidence_array_end = community_subhypergraph._hyperedges[he + 1].firstEntry();
@@ -290,10 +290,10 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
               }
               ASSERT(original_incidence_array_start == hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end,
                       "Number of pins of hyperedge " << original_he << " differs from the number of pins in subhypergraph for community " << current_community
-                      << "(" << V(original_incidence_array_start) << ", " 
+                      << "(" << V(original_incidence_array_start) << ", "
                       << V(hypergraph._hyperedges[original_he].firstEntry() + community_hyperedge.incidence_array_end) << ")" );
               visited[he] = true;
-            } 
+            }
           }
           hypergraph._hypernodes[original_hn] = Hypernode(incident_nets, community_subhypergraph._hypernodes[hn].weight(),
                                                           !community_subhypergraph._hypernodes[hn].isDisabled());
@@ -357,7 +357,7 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
                 [&contraction_index](const HypernodeID& u, const HypernodeID& v) {
                   return contraction_index[u] > contraction_index[v];
                 });
-    } 
+    }
   }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   // Barrier
@@ -373,7 +373,8 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
  */
 template <typename Hypergraph>
 void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
-                                                Hypergraph& hypergraph) {
+                                                Hypergraph& hypergraph,
+                                                bool async) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
@@ -390,12 +391,12 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
                 [&hypergraph]( const HypernodeID& lhs, const HypernodeID& rhs ) {
                   return hypergraph.communityID( lhs ) < hypergraph.communityID( rhs );
                 });
-      
+
       // Introduce community hyperedges for each consecutive range of pins belonging to
       // the same community
       PartitionID last_community = hypergraph.communityID(hypergraph._incidence_array[incidence_array_start]);
       size_t last_community_start = incidence_array_start;
-      auto add_community = [&hypergraph, &he](const PartitionID community_id, 
+      auto add_community = [&hypergraph, &he](const PartitionID community_id,
                                               const size_t start,
                                               const size_t end ) {
         hypergraph._hyperedges[he].community_hyperedges.emplace_back(
@@ -412,8 +413,8 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
           hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
         }
       };
-      for ( size_t current_position = incidence_array_start + 1; 
-            current_position < incidence_array_end; 
+      for ( size_t current_position = incidence_array_start + 1;
+            current_position < incidence_array_end;
             ++current_position ) {
         PartitionID current_community = hypergraph.communityID(hypergraph._incidence_array[current_position]);
         if ( last_community != current_community ) {
@@ -427,7 +428,9 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
     return max_he_size;
   }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
-  pool.loop_until_empty();
+  if ( !async ) {
+    pool.loop_until_empty();
+  }
 }
 
 template <typename Hypergraph>
@@ -501,11 +504,13 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
         size_t invalid_pins_end = hypergraph._hyperedges[he + 1].firstEntry();
         std::sort(hypergraph._incidence_array.begin() + invalid_pins_start,
                   hypergraph._incidence_array.begin() + invalid_pins_end,
-                  [&contraction_index](const HypernodeID& u, const HypernodeID& v) {
+                  [&contraction_index, &he](const HypernodeID& u, const HypernodeID& v) {
+                    ASSERT(contraction_index[u] != -1, "Hypernode" << u << "should be not in invalid part of HE" << he);
+                    ASSERT(contraction_index[v] != -1, "Hypernode" << v << "should be not in invalid part of HE" << he);
                     return contraction_index[u] > contraction_index[v];
                   });
         hypergraph._hyperedges[he].community_hyperedges.clear();
-      } 
+      }
       return std::make_pair(num_hyperedges, num_pins);
     }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
@@ -520,26 +525,6 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
     hypergraph._current_num_hyperedges += res.first;
     hypergraph._current_num_pins += res.second;
   }
-
-  // PHASE 3
-  // Since removed hyperedges within a community are only removed from the incident net set of
-  // hypernodes within the same community, we just remove all disabled hyperedges from all incident
-  // net sets of all hypernodes to guarantee that the incident net set of all hypernodes points
-  // to valid hyperedges.
-  pool.parallel_for([&hypergraph, &contraction_index](const HyperedgeID& start, const HyperedgeID& end) {
-    for ( HypernodeID hn = start; hn < end; ++hn ) {
-      int64_t incident_nets_end = hypergraph._hypernodes[hn].incidentNets().size() - 1;
-      for ( int64_t cur = 0; cur <= incident_nets_end; ++cur ) {
-        HyperedgeID he = hypergraph._hypernodes[hn].incidentNets()[cur];
-        if ( !hypergraph.edgeIsEnabled(he) ) {
-          // Swap disabled hyperedge to end of incident set and remove
-          std::swap( hypergraph._hypernodes[hn].incidentNets()[cur--], 
-                     hypergraph._hypernodes[hn].incidentNets()[incident_nets_end--] );
-          hypergraph._hypernodes[hn].incidentNets().pop_back();
-        }
-      }
-    }
-  }, (HypernodeID) 0, hypergraph.initialNumNodes());
 
   // Barrier
   pool.loop_until_empty();

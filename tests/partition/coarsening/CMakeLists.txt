@@ -1,3 +1,4 @@
 add_gmock_test(full_vertex_pair_coarsener_test full_vertex_pair_coarsener_test.cc)
 add_gmock_test(lazy_vertex_pair_coarsener_test lazy_vertex_pair_coarsener_test.cc)
+add_gmock_test(parallel_ml_community_coarsener_test parallel_ml_community_coarsener_test.cc)
 add_gmock_test(vertex_pair_rater_test vertex_pair_rater_test.cc)

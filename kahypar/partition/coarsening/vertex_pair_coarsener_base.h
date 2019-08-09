@@ -114,7 +114,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
           _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
         _hg.uncontract(_history.back().contraction_memento, changes,
-                       meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+                        meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
       } else {
         _hg.uncontract(_history.back().contraction_memento);
       }
@@ -187,7 +187,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   bool isEligibleForContraction(const HypernodeID hn) {
     return _context.coarsening.community_contraction_target == kInvalidPart ||
       _context.coarsening.community_contraction_target == _hg.communityID(hn);
-      
+
   }
 
   using CoarsenerBase::_hg;

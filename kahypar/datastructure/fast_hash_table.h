@@ -34,6 +34,10 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
 
 #include "data-structures/seqcircular.h"
 #include "data-structures/simpleelement.h"
@@ -101,6 +105,8 @@ using FastHashTable = growt::SeqCircular<growt::SimpleElement, HashFct, Allocato
 }  // namespace ds
 }  // namespace kahypar
 
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop

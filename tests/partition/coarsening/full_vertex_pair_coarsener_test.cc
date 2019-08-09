@@ -46,34 +46,35 @@ class ACoarsener : public ACoarsenerBase<CoarsenerType>{
 };
 
 TEST_F(ACoarsener, RemovesHyperedgesOfSizeOneDuringCoarsening) {
-  removesHyperedgesOfSizeOneDuringCoarsening(coarsener, hypergraph);
+  removesHyperedgesOfSizeOneDuringCoarsening(coarsener, hypergraph, 2, {0, 2});
 }
 
 TEST_F(ACoarsener, DecreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne) {
-  decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(coarsener, hypergraph);
+  decreasesNumberOfPinsWhenRemovingHyperedgesOfSizeOne(coarsener, hypergraph, 6, 10);
 }
 
 TEST_F(ACoarsener, ReAddsHyperedgesOfSizeOneDuringUncoarsening) {
-  reAddsHyperedgesOfSizeOneDuringUncoarsening(coarsener, hypergraph, refiner);
+  reAddsHyperedgesOfSizeOneDuringUncoarsening(coarsener, hypergraph, refiner, 2, {0, 2}, {1}, {3});
 }
 
 TEST_F(ACoarsener, RemovesParallelHyperedgesDuringCoarsening) {
-  removesParallelHyperedgesDuringCoarsening(coarsener, hypergraph);
+  removesParallelHyperedgesDuringCoarsening(coarsener, hypergraph, 2, {2});
 }
 
 TEST_F(ACoarsener, UpdatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval) {
-  updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(coarsener, hypergraph);
+  updatesEdgeWeightOfRepresentativeHyperedgeOnParallelHyperedgeRemoval(coarsener, hypergraph, 2, {{1, 2}});
 }
+
 TEST_F(ACoarsener, DecreasesNumberOfHyperedgesOnParallelHyperedgeRemoval) {
-  decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(coarsener, hypergraph);
+  decreasesNumberOfHyperedgesOnParallelHyperedgeRemoval(coarsener, hypergraph, 2, 1);
 }
 
 TEST_F(ACoarsener, DecreasesNumberOfPinsOnParallelHyperedgeRemoval) {
-  decreasesNumberOfPinsOnParallelHyperedgeRemoval(coarsener, hypergraph);
+  decreasesNumberOfPinsOnParallelHyperedgeRemoval(coarsener, hypergraph, 2, 2);
 }
 
 TEST_F(ACoarsener, RestoresParallelHyperedgesDuringUncoarsening) {
-  restoresParallelHyperedgesDuringUncoarsening(coarsener, hypergraph, refiner);
+  restoresParallelHyperedgesDuringUncoarsening(coarsener, hypergraph, refiner, 2, {2}, {1}, {3});
 }
 
 TEST(AnUncoarseningOperation, RestoresParallelHyperedgesInReverseOrder) {
@@ -85,7 +86,7 @@ TEST(AnUncoarseningOperation, RestoresSingleNodeHyperedgesInReverseOrder) {
 }
 
 TEST_F(ACoarsener, DoesNotCoarsenUntilCoarseningLimit) {
-  doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, context);
+  doesNotCoarsenUntilCoarseningLimit(coarsener, hypergraph, context, 2, 3);
 }
 
 // accesses private coarsener internals and therefore cannot be extracted easily

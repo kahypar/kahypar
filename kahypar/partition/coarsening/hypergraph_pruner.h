@@ -86,8 +86,8 @@ class HypergraphPruner {
       DBG << "restore HE "
           << _removed_parallel_hyperedges[i].removed_id << "which is parallel to "
           << _removed_parallel_hyperedges[i].representative_id;
-      hypergraph.restoreEdge(_removed_parallel_hyperedges[i].removed_id,
-                             _removed_parallel_hyperedges[i].representative_id);
+      hypergraph.restoreParallelEdge(_removed_parallel_hyperedges[i].removed_id,
+                                     _removed_parallel_hyperedges[i].representative_id);
       hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].removed_id));

@@ -92,7 +92,7 @@ class VertexPairRater {
     _tmp_ratings(_hg.initialNumNodes()),
     _already_matched(_hg.initialNumNodes()) { }
 
-  VertexPairRater(Hypergraph& hypergraph, 
+  VertexPairRater(Hypergraph& hypergraph,
                   const Context& context,
                   const HypernodeMapping hn_mapping,
                   const ReverseHypernodeMapping reverse_hn_mapping) :
@@ -141,7 +141,7 @@ class VertexPairRater {
       DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
-                                         community_target, tmp_community_target, 
+                                         community_target, tmp_community_target,
                                          _already_matched) /*&&
           FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)*/) {
         max_rating = tmp_rating;
@@ -194,7 +194,7 @@ class VertexPairRater {
     if ( !_reverse_hn_mapping ) {
       return hn;
     }
-    ASSERT(_reverse_hn_mapping->find(hn) != _reverse_hn_mapping->end(), 
+    ASSERT(_reverse_hn_mapping->find(hn) != _reverse_hn_mapping->end(),
            "There exists no mapping for hypernode " << hn);
     return _reverse_hn_mapping->find(hn)->second;
   }

@@ -921,7 +921,7 @@ class GenericHypergraph {
                                                 << partID(u) << "&" << partID(v));
     ASSERT(communityID(u) == communityID(v), "Hypernodes" << u << "&" << v << "are in different communities: "
                                                           << communityID(u) << "&" << communityID(v));
-    ASSERT(communityID(u) == community, "Hypernodes " << u << " and " << v << " are not part of community " 
+    ASSERT(communityID(u) == community, "Hypernodes " << u << " and " << v << " are not part of community "
                                                       << community);
 
     DBG << "contracting (" << u << "," << v << ")";
@@ -1415,6 +1415,7 @@ class GenericHypergraph {
    */
   void removeEdge(const HyperedgeID he, const PartitionID community) {
     ASSERT(!hyperedge(he, community).isDisabled(), "Hyperedge is disabled!");
+    ASSERT(numCommunitiesInHyperedge(he) == 1, "There are more than one community in hyperedge" << he);
     for (const HypernodeID& pin : pins(he, community)) {
       removeIncidentEdgeFromHypernode(he, pin);
     }
@@ -1424,7 +1425,7 @@ class GenericHypergraph {
 
   /*!
    * Only for testing
-   * 
+   *
    * After parallel coarsening we remove all disabled hyperedges from incident
    * nets of each hypernode. To simulate this on a sequential coarsened hypergraph
    * in test, one can execute this function.
@@ -1452,10 +1453,13 @@ class GenericHypergraph {
    * it is necessary to perform the restore operations __in reverse__
    * order as the removal operations occurred!
    */
-  void restoreEdge(const HyperedgeID he) {
+  void restoreEdge(const HyperedgeID he, const size_t old_edge_size = 0) {
     ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
     enableEdge(he);
     resetPartitionPinCounts(he);
+    if ( old_edge_size > 0 ) {
+      hyperedge(he).setSize(old_edge_size);
+    }
     for (const HypernodeID& pin : pins(he)) {
       ASSERT(std::count(hypernode(pin).incidentNets().begin(),
                         hypernode(pin).incidentNets().end(), he)
@@ -1478,10 +1482,15 @@ class GenericHypergraph {
    * \param old_representative Representative hyperedge that remained in the hypergraph
    *
    */
-  void restoreEdge(const HyperedgeID he, const HyperedgeID old_representative) {
+  void restoreParallelEdge(const HyperedgeID he,
+                           const HyperedgeID old_representative,
+                           const size_t old_edge_size = 0) {
     ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
     enableEdge(he);
     resetPartitionPinCounts(he);
+    if ( old_edge_size > 0 ) {
+      hyperedge(he).setSize(old_edge_size);
+    }
     for (const HypernodeID& pin : pins(he)) {
       ASSERT(std::count(hypernode(pin).incidentNets().begin(),
                         hypernode(pin).incidentNets().end(), he)
@@ -1497,75 +1506,6 @@ class GenericHypergraph {
         ++hypernode(pin).num_incident_cut_hes;
       }
       ++_current_num_pins;
-    }
-  }
-
-  /*!
-   * Restores a deleted hyperedge.
-   * Since the hyperedge information was left intact, we reuse this information to restore
-   * the information on the incident hypernodes (i.e. pins).
-   * For each pin p of the hyperedge of the original hypergraph (also disabled pin), 
-   * the removal of he from I(p) was done by swapping
-   * he to the end of the incidence structure of p and decreasing its size. Therefore
-   * it is necessary to perform the restore operations __in reverse__
-   * order as the removal operations occurred!
-   */
-  void restoreEdgeAfterParallelCoarsening(const HyperedgeID he) {
-    ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
-    enableEdge(he);
-    resetPartitionPinCounts(he);
-    size_t incidence_array_start = hyperedge(he).firstEntry();
-    size_t incidence_array_end = hyperedge(he + 1).firstEntry();
-    for (size_t cur = incidence_array_start; cur < incidence_array_end; ++cur) {
-      HypernodeID pin = _incidence_array[cur];
-      ASSERT(std::count(_hypernodes[pin].incidentNets().begin(),
-                        _hypernodes[pin].incidentNets().end(), he)
-             == 0,
-             "HN" << pin << "is already connected to HE" << he);
-      DBG << "re-adding pin" << pin << "to HE" << he;
-      _hypernodes[pin].incidentNets().push_back(he);
-      if ( nodeIsEnabled(pin) ) {
-          if (partID(pin) != kInvalidPartition) {
-            incrementPinCountInPart(he, partID(pin));
-          }
-          ++_current_num_pins;
-      }
-    }
-    hyperedge(he).setSize(1);
-  }
-
-  /*!
-   * Restores a hyperedge that was removed during coarsening because it was
-   * parallel to another hyperedge.
-   *
-   * \param he Hyperedge to be restored
-   * \param old_representative Representative hyperedge that remained in the hypergraph
-   *
-   */
-  void restoreEdgeAfterParallelCoarsening(const HyperedgeID he, const HyperedgeID old_representative) {
-    ASSERT(hyperedge(he).isDisabled(), "Hyperedge is enabled!");
-    enableEdge(he);
-    resetPartitionPinCounts(he);
-    size_t incidence_array_start = hyperedge(he).firstEntry();
-    size_t incidence_array_end = hyperedge(he + 1).firstEntry();
-    for (size_t cur = incidence_array_start; cur < incidence_array_end; ++cur) {
-      HypernodeID pin = _incidence_array[cur];
-      ASSERT(std::count(_hypernodes[pin].incidentNets().begin(),
-                        _hypernodes[pin].incidentNets().end(), he)
-             == 0,
-             "HN" << pin << "is already connected to HE" << he);
-      DBG << "re-adding pin" << pin << "to HE" << he;
-      _hypernodes[pin].incidentNets().push_back(he);
-      if ( nodeIsEnabled(pin) ) {
-          if (partID(pin) != kInvalidPartition) {
-            incrementPinCountInPart(he, partID(pin));
-          }
-
-          if (connectivity(old_representative) > 1) {
-            ++_hypernodes[pin].num_incident_cut_hes;
-          }
-          ++_current_num_pins;
-      }
     }
   }
 
@@ -1651,7 +1591,7 @@ class GenericHypergraph {
         size += community_he.second.size();
       }
       return size;
-    } else { 
+    } else {
       return hyperedge(e).size();
     }
   }
@@ -2182,23 +2122,9 @@ class GenericHypergraph {
     PinHandleIterator pin_begin;
     PinHandleIterator pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
-    if ( pin_begin == pin_end ) {
-      LOG << V(he) << V(memento.u) << V(memento.v);
-      for ( size_t i = hyperedge(he).firstEntry(); i < hyperedge(he+1).firstEntry(); ++i ) {
-        HypernodeID hn = _incidence_array[i];
-        LOG << V(hn) << V(nodeIsEnabled(hn));
-      }
-    }
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
     while (*pin_end != memento.u) {
-      if ( pin_begin == pin_end ) {
-        LOG << V(memento.u) << V(memento.v) << V(he) << V(hyperedge(he).size());
-        for ( size_t i = hyperedge(he).firstEntry(); i < hyperedge(he+1).firstEntry(); ++i ) {
-          HypernodeID hn = _incidence_array[i];
-          LOG << V(hn) << V(nodeIsEnabled(hn));
-        }
-      }
       ASSERT(pin_end != pin_begin, "Pin" << memento.u << "not found in pinlist of HE" << he);
       --pin_end;
     }
@@ -2499,7 +2425,8 @@ class GenericHypergraph {
 
   template <typename Hypergraph>
   friend void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
-                                                           Hypergraph& hypergraph);
+                                                         Hypergraph& hypergraph,
+                                                         bool async);
 
   template <typename Hypergraph>
   friend void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,

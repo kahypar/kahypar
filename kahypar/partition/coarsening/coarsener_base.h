@@ -41,12 +41,12 @@ class CoarsenerBase {
  private:
   static constexpr bool debug = false;
 
+ public:
   struct CurrentMaxNodeWeight {
     HypernodeID num_nodes;
     HypernodeWeight max_weight;
   };
 
- public:
   CoarsenerBase(Hypergraph& hypergraph, const Context& context,
                 const HypernodeWeight weight_of_heaviest_node) :
     _hg(hypergraph),
@@ -91,11 +91,11 @@ class CoarsenerBase {
     // _context.stats.add(StatTag::Coarsening, "numRemovedParalellHEs", removed_parallel_hes);
   }
 
-  void restoreParallelHyperedges() {
+  virtual void restoreParallelHyperedges() {
     _hypergraph_pruner.restoreParallelHyperedges(_hg, _history.back());
   }
 
-  void restoreSingleNodeHyperedges() {
+  virtual void restoreSingleNodeHyperedges() {
     _hypergraph_pruner.restoreSingleNodeHyperedges(_hg, _history.back());
   }
 

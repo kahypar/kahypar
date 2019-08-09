@@ -43,16 +43,17 @@ class ParallelHypergraphPruner {
     size_t hash;
   };
 
-  static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
-
-  using HypernodeMapping = std::shared_ptr<ds::FastHashTable<>>;  
-
- public:
   struct ParallelHE {
     HyperedgeID representative_id;
     HyperedgeID removed_id;
+    size_t removed_old_size;
   };
 
+  static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
+
+  using HypernodeMapping = std::shared_ptr<ds::FastHashTable<>>;
+
+ public:
   explicit ParallelHypergraphPruner(const PartitionID community_id, const size_t num_nodes) :
     _community_id(community_id),
     _max_removed_single_node_he_weight(0),
@@ -77,7 +78,7 @@ class ParallelHypergraphPruner {
              "Index out of bounds" << i);
       DBG << "restore single-node HE "
           << _removed_single_node_hyperedges[i];
-      hypergraph.restoreEdgeAfterParallelCoarsening(_removed_single_node_hyperedges[i]);
+      hypergraph.restoreEdge(_removed_single_node_hyperedges[i], 1);
       _removed_single_node_hyperedges.pop_back();
     }
   }
@@ -91,8 +92,9 @@ class ParallelHypergraphPruner {
       DBG << "restore HE "
           << _removed_parallel_hyperedges[i].removed_id << "which is parallel to "
           << _removed_parallel_hyperedges[i].representative_id;
-      hypergraph.restoreEdgeAfterParallelCoarsening(_removed_parallel_hyperedges[i].removed_id,
-                                                    _removed_parallel_hyperedges[i].representative_id);
+      hypergraph.restoreParallelEdge(_removed_parallel_hyperedges[i].removed_id,
+                                     _removed_parallel_hyperedges[i].representative_id,
+                                     _removed_parallel_hyperedges[i].removed_old_size);
       hypergraph.setEdgeWeight(_removed_parallel_hyperedges[i].representative_id,
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].representative_id) -
                                hypergraph.edgeWeight(_removed_parallel_hyperedges[i].removed_id));
@@ -124,6 +126,18 @@ class ParallelHypergraphPruner {
     return removed_he_weight;
   }
 
+  // Parallel hyperedge detection is done via fingerprinting. For each hyperedge incident
+  // to the representative, we first create a fingerprint ({he,hash,|he|}). The fingerprints
+  // are then sorted according to the hash value, which brings those hyperedges together that
+  // are likely to be parallel (due to same hash). Afterwards we perform one pass over the vector
+  // of fingerprints and check whether two neighboring hashes are equal. In this case we have
+  // to check the pins of both HEs in order to determine whether they are really equal or not.
+  // This check is only performed, if the sizes of both HEs match - otherwise they can't be
+  // parallel. In case we detect a parallel HE, it is removed from the graph and we proceed by
+  // checking if there are more fingerprints with the same hash value.
+  // Note, in the parallel version of the hypergraph pruner we only detect parallel nets
+  // if the hyperedge contains only one community. Parallel net detection for hyperedges
+  // which span several communities are still an open task.
   void removeParallelHyperedges(Hypergraph& hypergraph,
                                 CoarseningMemento& memento,
                                 const HypernodeMapping hn_mapping) {
@@ -131,8 +145,8 @@ class ParallelHypergraphPruner {
 
     createFingerprints(hypergraph, memento.contraction_memento.u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [](const Fingerprint& a, const Fingerprint& b) { 
-                return a.hash < b.hash || (a.hash == b.hash && a.id < b.id); 
+              [](const Fingerprint& a, const Fingerprint& b) {
+                return a.hash < b.hash || (a.hash == b.hash && a.id < b.id);
     });
 
     DBG <<[&]() {
@@ -147,7 +161,7 @@ class ParallelHypergraphPruner {
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
       DBG << "i=" << i << ", j=" << j;
-      if (_fingerprints[i].id != kInvalidID && 
+      if (_fingerprints[i].id != kInvalidID &&
           hypergraph.numCommunitiesInHyperedge(_fingerprints[i].id) == 1) {
         ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id, _community_id), V(_fingerprints[i].id));
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
@@ -157,8 +171,9 @@ class ParallelHypergraphPruner {
           DBG << "Size:" << hypergraph.edgeSize(_fingerprints[i].id, _community_id) << "=="
               << hypergraph.edgeSize(_fingerprints[j].id, _community_id);
           if (_fingerprints[j].id != kInvalidID &&
-              hypergraph.edgeSize(_fingerprints[i].id, _community_id) == 
-              hypergraph.edgeSize(_fingerprints[j].id, _community_id)) {
+              hypergraph.edgeSize(_fingerprints[i].id, _community_id) ==
+              hypergraph.edgeSize(_fingerprints[j].id, _community_id) &&
+              hypergraph.numCommunitiesInHyperedge(_fingerprints[j].id) == 1) {
             ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
             if (!filled_probe_bitset) {
               fillProbeBitset(hypergraph, _fingerprints[i].id, hn_mapping);
@@ -187,8 +202,9 @@ class ParallelHypergraphPruner {
                              hypergraph.edgeWeight(representative)
                              + hypergraph.edgeWeight(to_remove));
     DBG << "removed HE" << to_remove << "which was parallel to" << representative;
+    size_t removed_old_size = hypergraph.edgeSize(to_remove);
     hypergraph.removeEdge(to_remove, _community_id);
-    _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
+    _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove, removed_old_size });
   }
 
   bool isParallelHyperedge(Hypergraph& hypergraph, const HyperedgeID he,
@@ -254,7 +270,7 @@ class ParallelHypergraphPruner {
  private:
   inline HypernodeID mapToCommunityHypergraph(const HypernodeID hn,
                                               const HypernodeMapping hn_mapping) {
-    ASSERT(hn_mapping->find(hn) != hn_mapping->end(), 
+    ASSERT(hn_mapping->find(hn) != hn_mapping->end(),
            "There exists no mapping for hypernode " << hn);
     return hn_mapping->find(hn)->second;
   }
