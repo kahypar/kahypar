@@ -255,7 +255,7 @@ class Louvain {
 };
 
 namespace internal {
-inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
+inline std::vector<ClusterID> detectCommunities(Hypergraph& hypergraph,
                                                 const Context& context) {
   const bool verbose_output = (context.type == ContextType::main &&
                                context.partition.verbose_output) ||
@@ -283,9 +283,13 @@ inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
   }
 
   std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
+  ClusterID max_cluster_id = 0;
   for (const HypernodeID& hn : hypergraph.nodes()) {
     communities[hn] = louvain.hypernodeClusterID(hn);
+    max_cluster_id = std::max(max_cluster_id, louvain.hypernodeClusterID(hn) + 1);
   }
+  // TODO(heuer): currently a work around try to remap cluster ids to consecutive range
+  hypergraph.setNumCommunities(max_cluster_id);
   ASSERT(std::none_of(communities.cbegin(), communities.cend(),
                       [](ClusterID i) {
         return i == -1;

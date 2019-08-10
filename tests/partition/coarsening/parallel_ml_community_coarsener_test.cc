@@ -67,6 +67,7 @@ class AParallelCoarsener : public ::testing::TestWithParam<size_t> {
     context.shared_memory.num_threads = GetParam();
     context.shared_memory.pool = std::make_unique<kahypar::parallel::ThreadPool>(GetParam());
 
+    hypergraph->setNumCommunities(3);
     hypergraph->setNodeCommunity(0,  0);
     hypergraph->setNodeCommunity(1,  0);
     hypergraph->setNodeCommunity(2,  0);

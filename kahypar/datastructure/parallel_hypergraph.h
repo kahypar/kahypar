@@ -431,6 +431,110 @@ void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& p
 }
 
 template <typename Hypergraph>
+void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                             Hypergraph& hypergraph) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using PrefixSum = std::pair<std::pair<HypernodeID, HypernodeID>, std::vector<size_t>>;
+
+  std::vector<std::future<PrefixSum>> results =
+    pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
+      std::vector<size_t> num_pins_in_communities(hypergraph.numCommunities(), 0);
+      for ( HyperedgeID he = start; he < end; ++he ) {
+        ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+        size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
+        size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
+        for ( size_t cur = incidence_array_start; cur < incidence_array_end; ++cur ) {
+          const HypernodeID hn = hypergraph._incidence_array[cur];
+          ASSERT(hypergraph.communityID(hn) < hypergraph.numCommunities(), "Not a valid community"
+            << V(hypergraph.numCommunities()) << V(hypergraph.communityID(hn)));
+          num_pins_in_communities[hypergraph.communityID(hn)]++;
+        }
+      }
+      return std::make_pair(std::make_pair(start, end), std::move(num_pins_in_communities));
+    }, (HyperedgeID) 0, hypergraph.initialNumEdges());
+
+  pool.loop_until_empty();
+
+  std::vector<PrefixSum> prefix_sums;
+  for ( std::future<PrefixSum>& result : results ) {
+    prefix_sums.emplace_back(std::move(result.get()));
+  }
+  std::sort(prefix_sums.begin(), prefix_sums.end(),
+            [&]( const PrefixSum& lhs, const PrefixSum& rhs ) {
+    return lhs.first.first < rhs.first.first;
+  });
+  size_t sum = 0;
+  for ( HypernodeID cluster_id = 0; cluster_id < hypergraph.numCommunities(); ++cluster_id ) {
+    for ( PrefixSum& prefix_sum : prefix_sums ) {
+      size_t num_pins_in_cluster = prefix_sum.second[cluster_id];
+      prefix_sum.second[cluster_id] = sum;
+      sum += num_pins_in_cluster;
+    }
+  }
+
+  std::vector<HypernodeID> tmp_incidence_array(hypergraph._incidence_array.size(), 0);
+  pool.parallel_for([&hypergraph, &tmp_incidence_array, &prefix_sums](const HyperedgeID& start, const HyperedgeID& end) {
+    std::vector<size_t> cluster_pin_ranges;
+    for ( size_t i = 0; i < prefix_sums.size(); ++i ) {
+      if ( prefix_sums[i].first.first == start ) {
+        cluster_pin_ranges = std::move(prefix_sums[i].second);
+        break;
+      }
+    }
+
+    ds::SparseMap<HypernodeID, size_t> he_cluster_start(hypergraph.numCommunities());
+    ds::SparseMap<HypernodeID, size_t> he_cluster_size(hypergraph.numCommunities());
+    for ( HyperedgeID he = start; he < end; ++he ) {
+      he_cluster_start.clear();
+      he_cluster_size.clear();
+      ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+      size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
+      size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
+      for ( size_t cur = incidence_array_start; cur < incidence_array_end; ++cur ) {
+        HypernodeID hn = hypergraph._incidence_array[cur];
+        HypernodeID cluster_id = hypergraph.communityID(hn);
+        if ( !he_cluster_start.contains(cluster_id) ) {
+          he_cluster_start[cluster_id] = cluster_pin_ranges[cluster_id];
+          he_cluster_size[cluster_id] = 0;
+        }
+        tmp_incidence_array[cluster_pin_ranges[cluster_id]++] = hn;
+        he_cluster_size[cluster_id]++;
+      }
+
+      auto add_community = [&hypergraph, &he, &tmp_incidence_array](
+        const PartitionID community_id,
+        const size_t start,
+        const size_t size ) {
+        hypergraph._hyperedges[he].community_hyperedges.emplace_back(
+          std::piecewise_construct,
+          std::forward_as_tuple(community_id),
+          std::forward_as_tuple(start, size, hypergraph.edgeWeight(he))
+        );
+        hypergraph._hyperedges[he].initial_size.push_back(size);
+
+        // Compute edge hash for pins in community
+        hypergraph.hyperedge(he, community_id).hash = Hypergraph::kEdgeHashSeed;
+        for ( size_t cur = start; cur < start + size; ++cur ) {
+          HypernodeID pin = tmp_incidence_array[cur];
+          ASSERT(hypergraph.communityID(pin) == community_id, "Pin " << pin << " is not part of community " << community_id);
+          hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
+        }
+      };
+      for ( const auto& entry : he_cluster_start ) {
+        const HypernodeID community_id = entry.key;
+        const size_t community_start = entry.value;
+        const size_t community_size = he_cluster_size[community_id];
+        add_community(community_id, community_start, community_size);
+      }
+    }
+  }, (HyperedgeID) 0, hypergraph.initialNumEdges());
+
+  pool.loop_until_empty();
+  hypergraph._incidence_array = std::move(tmp_incidence_array);
+}
+
+template <typename Hypergraph>
 void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
                                                         Hypergraph& hypergraph,
                                                         const std::vector<typename Hypergraph::ContractionMemento>& history) {
@@ -525,6 +629,38 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
 
   // Barrier
   pool.loop_until_empty();
+}
+
+template <typename Hypergraph>
+void undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                                     Hypergraph& hypergraph,
+                                                                     const std::vector<typename Hypergraph::ContractionMemento>& history) {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  std::vector<HypernodeID> tmp_incidence_array(hypergraph._incidence_array.size(), 0);
+  pool.parallel_for([&hypergraph, &tmp_incidence_array](const HyperedgeID& start, const HyperedgeID& end) {
+    for ( HyperedgeID he = start; he < end; ++he ) {
+      ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+      size_t cur_incidence_array_pos = hypergraph._hyperedges[he].firstEntry();
+      size_t idx = 0;
+      for ( const auto& community : hypergraph._hyperedges[he].community_hyperedges ) {
+        size_t incidence_array_start = community.second.firstEntry();
+        size_t incidence_array_end = incidence_array_start + hypergraph._hyperedges[he].initial_size[idx];
+        for ( size_t cur = incidence_array_start; cur < incidence_array_end; ++cur ) {
+          HypernodeID hn = hypergraph._incidence_array[cur];
+          tmp_incidence_array[cur_incidence_array_pos++] = hn;
+        }
+        ++idx;
+      }
+      hypergraph._hyperedges[he].initial_size.clear();
+    }
+  }, (HyperedgeID) 0, hypergraph.initialNumEdges());
+
+  pool.loop_until_empty();
+  hypergraph._incidence_array = std::move(tmp_incidence_array);
+
+  undoPreparationForParallelCommunityAwareCoarsening(pool, hypergraph, history);
 }
 
 }  // namespace ds

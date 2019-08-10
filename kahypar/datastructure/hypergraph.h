@@ -153,10 +153,12 @@ class GenericHypergraph {
     using CommunityHyperedgePair = std::pair<PartitionID, CommunityHyperedge>;
 
     AdditionalHyperedgeCommunityData() :
-      community_hyperedges() { }
+      community_hyperedges(),
+      initial_size() { }
 
     // ! hyperedges pointing to incidence array containing pins of corresponding community
     std::vector<CommunityHyperedgePair> community_hyperedges;
+    std::vector<size_t> initial_size;
   };
 
   // ! Additional information stored at each hypernode \f$v\f$
@@ -606,6 +608,7 @@ class GenericHypergraph {
     _num_hypernodes(num_hypernodes),
     _num_hyperedges(num_hyperedges),
     _num_pins(index_vector[num_hyperedges]),
+    _num_communities(0),
     _total_weight(0),
     _fixed_vertex_total_weight(0),
     _k(k),
@@ -684,6 +687,7 @@ class GenericHypergraph {
     _num_hypernodes(0),
     _num_hyperedges(0),
     _num_pins(0),
+    _num_communities(0),
     _total_weight(0),
     _fixed_vertex_total_weight(0),
     _k(2),
@@ -1716,6 +1720,15 @@ class GenericHypergraph {
     return _num_pins;
   }
 
+  void setNumCommunities(const HypernodeID num_communities) {
+    _num_communities = num_communities;
+  }
+
+  // ! Returns the number of communities
+  HypernodeID numCommunities()  const {
+    return _num_communities;
+  }
+
   /*!
    * Returns the current number of hypernodes.
    * This number will be less than or equal to the original number of
@@ -2353,6 +2366,8 @@ class GenericHypergraph {
   HyperedgeID _num_hyperedges;
   // ! Original number of pins |P|
   HypernodeID _num_pins;
+  // ! Number of communities
+  HypernodeID _num_communities;
   // ! Sum of the weights of all hypernodes
   HypernodeWeight _total_weight;
   // ! Sum of the weights of all fixed vertices
@@ -2429,9 +2444,18 @@ class GenericHypergraph {
                                                          bool async);
 
   template <typename Hypergraph>
+  friend void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                                      Hypergraph& hypergraph);
+
+  template <typename Hypergraph>
   friend void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
                                                                  Hypergraph& hypergraph,
                                                                  const std::vector<typename Hypergraph::ContractionMemento>& history);
+
+  template <typename Hypergraph>
+  friend void undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                                              Hypergraph& hypergraph,
+                                                                              const std::vector<typename Hypergraph::ContractionMemento>& history);
 
   template <typename Hypergraph>
   friend bool verifyEquivalenceWithoutPartitionInfo(const Hypergraph& expected,
