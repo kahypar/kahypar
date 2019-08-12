@@ -148,9 +148,11 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
 
     // Enqueue a coarsening job for each community in thread pool
     std::vector<std::future<ParallelCoarseningResult>> results;
+    std::string desc_community_sizes = "";
     for ( const CommunitySize& community_size : community_sizes ) {
       const PartitionID community_id = community_size.first;
       size_t size = community_size.second;
+      desc_community_sizes += std::to_string(size) + ",";
       HypernodeMapping community_hns = community_to_hns[community_id];
       DBG << "Enqueue parallel contraction job of community" << community_id
           << "of size" << size;
@@ -169,6 +171,11 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       }));
     }
     pool.loop_until_empty();
+
+    std::cout << "COMMUNITY_RESULT graph=" << _context.partition.graph_filename.substr(
+      _context.partition.graph_filename.find_last_of('/') + 1)
+              << " num_threads=" << _context.shared_memory.num_threads
+              << " community_sizes=" << desc_community_sizes << std::endl;
 
     // Create structures relevant for uncontractions
     std::vector<ParallelCoarseningResult> coarsening_results;
