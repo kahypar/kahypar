@@ -437,6 +437,8 @@ void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::
   using HyperedgeID = typename Hypergraph::HyperedgeID;
   using PrefixSum = std::pair<std::pair<HypernodeID, HypernodeID>, std::vector<size_t>>;
 
+  // PHASE 1
+  // Compute for each range (s,e) the number of pins in each community
   std::vector<std::future<PrefixSum>> results =
     pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
       std::vector<size_t> num_pins_in_communities(hypergraph.numCommunities(), 0);
@@ -456,6 +458,9 @@ void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::
 
   pool.loop_until_empty();
 
+  // PHASE 2
+  // Compute prefix sum such that the pins of each community is mapped
+  // to a conescutive range in the incidence array
   std::vector<PrefixSum> prefix_sums;
   for ( std::future<PrefixSum>& result : results ) {
     prefix_sums.emplace_back(std::move(result.get()));
@@ -465,43 +470,50 @@ void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::
     return lhs.first.first < rhs.first.first;
   });
   size_t sum = 0;
-  for ( HypernodeID cluster_id = 0; cluster_id < hypergraph.numCommunities(); ++cluster_id ) {
+  for ( PartitionID community_id = 0; community_id < hypergraph.numCommunities(); ++community_id ) {
     for ( PrefixSum& prefix_sum : prefix_sums ) {
-      size_t num_pins_in_cluster = prefix_sum.second[cluster_id];
-      prefix_sum.second[cluster_id] = sum;
+      size_t num_pins_in_cluster = prefix_sum.second[community_id];
+      prefix_sum.second[community_id] = sum;
       sum += num_pins_in_cluster;
     }
   }
 
+  // PHASE 3
+  // Reorder pins of incidence array to the corresponding positions indicated in prefix sums.
   std::vector<HypernodeID> tmp_incidence_array(hypergraph._incidence_array.size(), 0);
   pool.parallel_for([&hypergraph, &tmp_incidence_array, &prefix_sums](const HyperedgeID& start, const HyperedgeID& end) {
-    std::vector<size_t> cluster_pin_ranges;
+    // Find corresponding pin ranges for range (s,e)
+    std::vector<size_t> community_pin_ranges;
     for ( size_t i = 0; i < prefix_sums.size(); ++i ) {
       if ( prefix_sums[i].first.first == start ) {
-        cluster_pin_ranges = std::move(prefix_sums[i].second);
+        community_pin_ranges = std::move(prefix_sums[i].second);
         break;
       }
     }
 
-    ds::SparseMap<HypernodeID, size_t> he_cluster_start(hypergraph.numCommunities());
-    ds::SparseMap<HypernodeID, size_t> he_cluster_size(hypergraph.numCommunities());
+    ds::SparseMap<HypernodeID, size_t> he_community_start(hypergraph.numCommunities());
+    ds::SparseMap<HypernodeID, size_t> he_community_size(hypergraph.numCommunities());
     for ( HyperedgeID he = start; he < end; ++he ) {
-      he_cluster_start.clear();
-      he_cluster_size.clear();
+      he_community_start.clear();
+      he_community_size.clear();
       ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+      // Compute for each he, the contained communities, its start position in the
+      // incidence array and its size.
       size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
       size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
       for ( size_t cur = incidence_array_start; cur < incidence_array_end; ++cur ) {
         HypernodeID hn = hypergraph._incidence_array[cur];
-        HypernodeID cluster_id = hypergraph.communityID(hn);
-        if ( !he_cluster_start.contains(cluster_id) ) {
-          he_cluster_start[cluster_id] = cluster_pin_ranges[cluster_id];
-          he_cluster_size[cluster_id] = 0;
+        HypernodeID community_id = hypergraph.communityID(hn);
+        if ( !he_community_start.contains(community_id) ) {
+          he_community_start[community_id] = community_pin_ranges[community_id];
+          he_community_size[community_id] = 0;
         }
-        tmp_incidence_array[cluster_pin_ranges[cluster_id]++] = hn;
-        he_cluster_size[cluster_id]++;
+        tmp_incidence_array[community_pin_ranges[community_id]++] = hn;
+        he_community_size[community_id]++;
+        ASSERT(community_pin_ranges[community_id] <= tmp_incidence_array.size(), "Out of bounds");
       }
 
+      // Add community hyperedges to hypergraph
       auto add_community = [&hypergraph, &he, &tmp_incidence_array](
         const PartitionID community_id,
         const size_t start,
@@ -521,16 +533,18 @@ void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::
           hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
         }
       };
-      for ( const auto& entry : he_cluster_start ) {
+      for ( const auto& entry : he_community_start ) {
         const HypernodeID community_id = entry.key;
         const size_t community_start = entry.value;
-        const size_t community_size = he_cluster_size[community_id];
+        const size_t community_size = he_community_size[community_id];
         add_community(community_id, community_start, community_size);
       }
     }
   }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   pool.loop_until_empty();
+  /*ASSERT(std::is_permutation(hypergraph._incidence_array.begin(), hypergraph._incidence_array.end(),
+                             tmp_incidence_array.begin()), "Reordering of pins failed!");*/
   hypergraph._incidence_array = std::move(tmp_incidence_array);
 }
 
@@ -638,6 +652,7 @@ void undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::pa
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
 
+  // Write pins back to original hyperedge pin range
   std::vector<HypernodeID> tmp_incidence_array(hypergraph._incidence_array.size(), 0);
   pool.parallel_for([&hypergraph, &tmp_incidence_array](const HyperedgeID& start, const HyperedgeID& end) {
     for ( HyperedgeID he = start; he < end; ++he ) {
@@ -649,6 +664,7 @@ void undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::pa
         size_t incidence_array_end = incidence_array_start + hypergraph._hyperedges[he].initial_size[idx];
         for ( size_t cur = incidence_array_start; cur < incidence_array_end; ++cur ) {
           HypernodeID hn = hypergraph._incidence_array[cur];
+          ASSERT(cur_incidence_array_pos < hypergraph._hyperedges[he + 1].firstEntry(), "Out of bounds");
           tmp_incidence_array[cur_incidence_array_pos++] = hn;
         }
         ++idx;

@@ -282,14 +282,22 @@ void verifyParallelContractionStep(ThreadPool& pool,
                                    Hypergraph& reference,
                                    const std::vector<std::vector<HypernodeID>>& community_ids,
                                    const std::vector<std::vector<Memento>>& community_contractions,
-                                   const std::vector<std::vector<HyperedgeID>> disabled_he) {
+                                   const std::vector<std::vector<HyperedgeID>> disabled_he,
+                                   const bool cache_friendly) {
   PartitionID num_communities = community_contractions.size();
   ASSERT_THAT(community_ids.size(), Eq(num_communities));
   ASSERT_THAT(community_contractions.size(), Eq(num_communities));
   ASSERT_THAT(disabled_he.size(), Eq(num_communities));
   assignCommunities(hypergraph, community_ids);
   assignCommunities(reference, community_ids);
-  prepareForParallelCommunityAwareCoarsening(pool, hypergraph, false);
+  hypergraph.setNumCommunities(3);
+  reference.setNumCommunities(3);
+
+  if ( cache_friendly ) {
+    prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, hypergraph);
+  } else {
+    prepareForParallelCommunityAwareCoarsening(pool, hypergraph, false);
+  }
 
   size_t num_threads = pool.size();
   std::atomic<size_t> active_threads(0);
@@ -319,7 +327,11 @@ void verifyParallelContractionStep(ThreadPool& pool,
   }
   pool.loop_until_empty();
 
-  undoPreparationForParallelCommunityAwareCoarsening(pool, hypergraph, history);
+  if ( cache_friendly ) {
+    undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, hypergraph, history);
+  } else {
+    undoPreparationForParallelCommunityAwareCoarsening(pool, hypergraph, history);
+  }
   ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(reference, hypergraph), Eq(true));
 
   for ( PartitionID c = 0; c < num_communities; ++c ) {
@@ -341,146 +353,96 @@ TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodes1) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, {}, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodes2) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, {} },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodes3) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingParallelContractionOfThreeHypernodes) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingParallelContractionOfFourHypernodes) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2}, {1, 0} }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingParallelContractionOfTwoHypernodesWithRemovingOneEdge) {
   verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, {} },
-                                { {0}, {}, {} });
-}
-
-void verifyCacheFriendlyParallelContractionStep(ThreadPool& pool,
-                                                Hypergraph& hypergraph,
-                                                Hypergraph& reference,
-                                                const std::vector<std::vector<HypernodeID>>& community_ids,
-                                                const std::vector<std::vector<Memento>>& community_contractions,
-                                                const std::vector<std::vector<HyperedgeID>> disabled_he) {
-  PartitionID num_communities = community_contractions.size();
-  ASSERT_THAT(community_ids.size(), Eq(num_communities));
-  ASSERT_THAT(community_contractions.size(), Eq(num_communities));
-  ASSERT_THAT(disabled_he.size(), Eq(num_communities));
-  assignCommunities(hypergraph, community_ids);
-  assignCommunities(reference, community_ids);
-  hypergraph.setNumCommunities(3);
-  reference.setNumCommunities(3);
-  prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, hypergraph);
-
-  size_t num_threads = pool.size();
-  std::atomic<size_t> active_threads(0);
-  std::vector<Memento> history;
-  std::unordered_map<HyperedgeID, size_t> disabled_he_to_size;
-  for ( PartitionID c = 0; c < num_communities; ++c ) {
-    std::vector<Memento> contractions = community_contractions[c];
-    std::vector<HyperedgeID> community_disabled_he = disabled_he[c];
-    pool.enqueue([&hypergraph, &active_threads, &num_threads, c, contractions, community_disabled_he]() {
-      active_threads++;
-      while(active_threads < num_threads) { }
-
-      for ( const Memento& memento : contractions ) {
-        hypergraph.parallelContract(c, memento.u, memento.v);
-      }
-      for ( const HyperedgeID& he : community_disabled_he ) {
-        hypergraph.removeEdge(he, c);
-      }
-    });
-    for ( const Memento& memento : contractions ) {
-      history.push_back(reference.contract(memento.u, memento.v));
-    }
-    for ( const HyperedgeID& he : community_disabled_he ) {
-      disabled_he_to_size[he] = reference.edgeSize(he);
-      reference.removeEdge(he);
-    }
-  }
-  pool.loop_until_empty();
-
-  undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, hypergraph, history);
-  ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(reference, hypergraph), Eq(true));
-
-  for ( PartitionID c = 0; c < num_communities; ++c ) {
-    for ( const HyperedgeID& he : disabled_he[c] ) {
-      hypergraph.restoreEdge(he, disabled_he_to_size[he]);
-      reference.restoreEdge(he, disabled_he_to_size[he]);
-    }
-  }
-
-  assingRandomParition(reference, hypergraph);
-  for ( int i = history.size() - 1; i >= 0; --i ) {
-    reference.uncontract(history[i]);
-    hypergraph.uncontract(history[i]);
-    ASSERT_THAT(verifyEquivalenceWithoutPartitionInfo(reference, hypergraph), Eq(true));
-  }
+                                { {0}, {}, {} },
+                                false);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfTwoHypernodes1) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, {}, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                true);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfTwoHypernodes2) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, {} },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                true);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfTwoHypernodes3) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                true);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfThreeHypernodes) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                true);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfFourHypernodes) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2}, {1, 0} }, { {3, 4} }, { {5, 6} } },
-                                { {}, {}, {} });
+                                { {}, {}, {} },
+                                true);
 }
 
 TEST_P(AParallelHypergraph, DoingCacheFriendlyParallelContractionOfTwoHypernodesWithRemovingOneEdge) {
-  verifyCacheFriendlyParallelContractionStep(pool, hypergraph, reference,
+  verifyParallelContractionStep(pool, hypergraph, reference,
                                 { {0, 1, 2}, {3, 4}, {5, 6} },
                                 { { {0, 2} }, { {3, 4} }, {} },
-                                { {0}, {}, {} });
+                                { {0}, {}, {} },
+                                true);
 }
 
 }  // namespace ds

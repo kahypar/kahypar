@@ -1720,12 +1720,12 @@ class GenericHypergraph {
     return _num_pins;
   }
 
-  void setNumCommunities(const HypernodeID num_communities) {
+  void setNumCommunities(const PartitionID num_communities) {
     _num_communities = num_communities;
   }
 
   // ! Returns the number of communities
-  HypernodeID numCommunities()  const {
+  PartitionID numCommunities()  const {
     return _num_communities;
   }
 
@@ -2367,7 +2367,7 @@ class GenericHypergraph {
   // ! Original number of pins |P|
   HypernodeID _num_pins;
   // ! Number of communities
-  HypernodeID _num_communities;
+  PartitionID _num_communities;
   // ! Sum of the weights of all hypernodes
   HypernodeWeight _total_weight;
   // ! Sum of the weights of all fixed vertices
