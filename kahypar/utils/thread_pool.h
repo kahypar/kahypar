@@ -21,6 +21,8 @@
 #include <vector>
 #include <sched.h>
 
+#include "kahypar/partition/context.h"
+
 namespace kahypar {
 namespace parallel {
 
@@ -95,11 +97,10 @@ private:
 
 public:
     //! Construct running thread pool of num_threads
-    explicit ThreadPool(
-        size_t num_threads = std::thread::hardware_concurrency())
+    explicit ThreadPool(const kahypar::Context& context)
       : jobs_(),
         mutex_(),
-        threads_(num_threads),
+        threads_(std::max(context.shared_memory.num_threads, static_cast<size_t>(1))),
         cv_jobs_(),
         cv_finished_(),
         busy_(0),
@@ -108,6 +109,7 @@ public:
         terminate_(false) {
       // immediately construct worker threads
       size_t hardware_threads = std::thread::hardware_concurrency();
+      size_t num_threads = threads_.size();
       for (size_t i = 0; i < num_threads; ++i) {
         threads_[i] = std::thread(&ThreadPool::worker, this);
         // Set CPU affinity to exactly ONE CPU

@@ -121,7 +121,11 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
 
     // Setup internal structures in hypergraph such that
     // parallel contractions are possible
-    prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg);
+    if ( _context.shared_memory.cache_friendly_coarsening ) {
+      prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg);
+    } else {
+      prepareForParallelCommunityAwareCoarsening(pool, _hg, true);
+    }
 
     // Compute hypernodes per community and community sizes. Community sizes
     // are used to sort communities in decreasing order and hypernodes per
@@ -187,7 +191,11 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     // Undo changes on internal hypergraph data structure done by
     // prepareForParallelCommunityAwareCoarsening(...) such that
     // hypergraph can be again used in a sequential setting
-    kahypar::ds::undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
+    if ( _context.shared_memory.cache_friendly_coarsening ) {
+      kahypar::ds::undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
+    } else {
+      kahypar::ds::undoPreparationForParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
+    }
   }
 
   /**

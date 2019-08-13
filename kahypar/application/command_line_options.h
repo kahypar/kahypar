@@ -560,16 +560,21 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
 
 po::options_description createSharedMemoryOptionsDescription(Context& context,
                                                              const int num_columns) {
-  po::options_description shared_memory_options("Evolutionary Options", num_columns);
+  po::options_description shared_memory_options("Shared Memory Options", num_columns);
   shared_memory_options.add_options()
-    ("num-threads",
+    ("s-num-threads",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t num_threads) {
       context.shared_memory.num_threads = num_threads;
-      context.shared_memory.pool = std::make_shared<kahypar::parallel::ThreadPool>(num_threads);
     }),
     "Number of threads used during shared memory hypergraph partitioning\n"
-    "(default 0)");
+    "(default 0)")
+    ("s-cache-friendly-coarsening",
+    po::value<bool>(&context.shared_memory.cache_friendly_coarsening)->value_name("<bool>"),
+    "If true, cache friendly hypergraph layout is used during shared memory coarsening (default: false)")
+    ("s-numa-aware-thread-pinning",
+    po::value<bool>(&context.shared_memory.numa_aware_thread_pinning)->value_name("<bool>"),
+    "If true, threads are pinned to NUMA nodes considering architecture (default: false)");
   return shared_memory_options;
 }
 

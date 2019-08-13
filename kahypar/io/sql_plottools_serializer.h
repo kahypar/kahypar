@@ -107,6 +107,10 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " reuse_community_structure=" << std::boolalpha
         << context.preprocessing.community_detection.reuse_communities
         << " num_threads=" << context.shared_memory.num_threads
+        << " cache_friendly_coarsening=" << std::boolalpha
+        << context.shared_memory.cache_friendly_coarsening
+        << " numa_aware_thread_pinning=" << std::boolalpha
+        << context.shared_memory.numa_aware_thread_pinning
         << " coarsening_algo=" << context.coarsening.algorithm
         << " coarsening_max_allowed_weight_multiplier="
         << context.coarsening.max_allowed_weight_multiplier

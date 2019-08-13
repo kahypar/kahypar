@@ -32,10 +32,14 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
-#include "kahypar/utils/thread_pool.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
+
+namespace parallel {
+  class ThreadPool;
+} // namespace parallel
+
 struct MinHashSparsifierParameters {
   uint32_t max_hyperedge_size = std::numeric_limits<uint32_t>::max();
   uint32_t max_cluster_size = std::numeric_limits<uint32_t>::max();
@@ -408,12 +412,18 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
 
 struct SharedMemoryParameters {
   size_t num_threads = 0;
+  bool cache_friendly_coarsening = false;
+  bool numa_aware_thread_pinning = false;
   std::shared_ptr<kahypar::parallel::ThreadPool> pool = nullptr;
 };
 
 inline std::ostream& operator<< (std::ostream& str, const SharedMemoryParameters& params) {
   str << "Shared Memory Parameters:             " << std::endl;
   str << "  Number of Threads:                  " << params.num_threads << std::endl;
+  str << "  Cache Friendly Coarsening:          " << std::boolalpha
+      << params.cache_friendly_coarsening << std::endl;
+  str << "  NUMA Aware Thread Pinning:          " << std::boolalpha
+      << params.numa_aware_thread_pinning << std::endl;
   return str;
 }
 

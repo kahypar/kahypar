@@ -23,11 +23,14 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partitioner_facade.h"
+#include "kahypar/utils/thread_pool.h"
 
 int main(int argc, char* argv[]) {
   kahypar::Context context;
 
   kahypar::processCommandLineInput(context, argc, argv);
+
+  context.shared_memory.pool = std::make_shared<kahypar::parallel::ThreadPool>(context); 
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
