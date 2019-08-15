@@ -70,6 +70,9 @@ Iterator end(const std::pair<Iterator, Iterator>& x) {
 template <typename Hypergraph>
 struct CommunitySubhypergraph;
 
+template <typename Hypergraph>
+struct CommunityHyperedgeStats;
+
 /*!
  * The hypergraph data structure as described in
  * ,,k-way Hypergraph Partitioning via n-Level Recursive Bisection''
@@ -2439,9 +2442,9 @@ class GenericHypergraph {
                                                       const std::vector<typename Hypergraph::ContractionMemento>& history);
 
   template <typename Hypergraph>
-  friend void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
-                                                         Hypergraph& hypergraph,
-                                                         bool async);
+  friend CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                                                        Hypergraph& hypergraph,
+                                                                                        bool async);
 
   template <typename Hypergraph>
   friend void prepareForCacheFriendlyParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,

@@ -25,6 +25,8 @@
 #include <vector>
 #include <unordered_map>
 #include <chrono>
+#include <sched.h>
+#include <numa.h>
 
 
 #include "kahypar/definitions.h"
@@ -86,12 +88,22 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       community_id(community_id),
       history(),
       pruner(community_id, num_nodes),
-      max_hn_weights() { }
+      max_hn_weights(),
+      start(std::chrono::high_resolution_clock::now()),
+      end(),
+      num_hypernodes(0),
+      total_vertex_degree(0),
+      numa_node(-1) { }
 
     PartitionID community_id;
     History history;
     ParallelHypergraphPruner pruner;
     std::vector<CurrentMaxNodeWeight> max_hn_weights;
+    HighResClockTimepoint start;
+    HighResClockTimepoint end;
+    HypernodeID num_hypernodes;
+    HyperedgeID total_vertex_degree;
+    int numa_node;
   };
 
  public:
@@ -119,14 +131,17 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     ASSERT(_context.shared_memory.pool, "Thread pool not initialized");
     ThreadPool& pool = *_context.shared_memory.pool;
+    HighResClockTimepoint global_start = std::chrono::high_resolution_clock::now();
+
 
     // Setup internal structures in hypergraph such that
     // parallel contractions are possible
+    kahypar::ds::CommunityHyperedgeStats<Hypergraph> comm_hyperedge_stats(0);
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     if ( _context.shared_memory.cache_friendly_coarsening ) {
       prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg);
     } else {
-      prepareForParallelCommunityAwareCoarsening(pool, _hg, true);
+      comm_hyperedge_stats = prepareForParallelCommunityAwareCoarsening(pool, _hg, false);
     }
     pool.loop_until_empty();
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -189,12 +204,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     Timer::instance().add(_context, Timepoint::parallel_coarsening,
                           std::chrono::duration<double>(end - start).count());
 
-    /*std::cout << "COMMUNITY_RESULT graph=" << _context.partition.graph_filename.substr(
-      _context.partition.graph_filename.find_last_of('/') + 1)
-              << " num_threads=" << _context.shared_memory.num_threads
-              << " community_sizes=" << desc_community_sizes << std::endl;*/
-
-    // Create structures relevant for uncontractions
+        // Create structures relevant for uncontractions
     start = std::chrono::high_resolution_clock::now();
     std::vector<ParallelCoarseningResult> coarsening_results;
     for ( std::future<ParallelCoarseningResult>& fut : results ) {
@@ -204,6 +214,23 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::merge_hierarchies,
                           std::chrono::duration<double>(end - start).count());
+
+    for ( const ParallelCoarseningResult& result : coarsening_results ) {
+      std::cout << "COMMUNITY_RESULT graph=" << _context.partition.graph_filename.substr(
+                   _context.partition.graph_filename.find_last_of('/') + 1)
+                << " seed=" << _context.partition.seed
+                << " num_threads=" << _context.shared_memory.num_threads
+                << " community=" << result.community_id
+                << " num_hypernodes=" << result.num_hypernodes
+                << " total_vertex_degree=" << result.total_vertex_degree
+                << " num_hyperedges=" << comm_hyperedge_stats.num_hyperedges[result.community_id]
+                << " num_pins=" << comm_hyperedge_stats.num_pins[result.community_id]
+                << " start=" << std::chrono::duration<double>(result.start - global_start).count()
+                << " end=" << std::chrono::duration<double>(result.end - global_start).count()
+                << " duration=" << std::chrono::duration<double>(result.end - result.start).count()
+                << " numa_node=" << result.numa_node
+                << std::endl;
+    }
 
     // Undo changes on internal hypergraph data structure done by
     // prepareForParallelCommunityAwareCoarsening(...) such that
@@ -225,6 +252,13 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   ParallelCoarseningResult communityCoarsening(const Context& community_context,
                                                const PartitionID community_id,
                                                const HypernodeMapping community_hns) {
+                                                 
+    ParallelCoarseningResult result(community_id, community_hns->size());
+    result.numa_node = numa_node_of_cpu(sched_getcpu());
+    result.max_hn_weights.emplace_back(
+      CurrentMaxNodeWeight { 0, _weight_of_heaviest_node } );
+    result.num_hypernodes = community_hns->size();
+
     // Since internal coarsening structures sometimes allocate for some
     // internal data structures memory that is proportional to the intial
     // number of nodes, we create a mapping from the original hypergraph
@@ -236,12 +270,10 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       std::make_shared<HashTable>(current_num_nodes);
     for ( HypernodeID hn = 0; hn < community_hns->size(); ++hn ) {
       (*reverse_mapping)[(*community_hns)[hn]] = hn;
+      result.total_vertex_degree += _hg.nodeDegree(hn);
     }
 
     Rater rater(_hg, community_context, community_hns, reverse_mapping);
-    ParallelCoarseningResult result(community_id, community_hns->size());
-    result.max_hn_weights.emplace_back(
-      CurrentMaxNodeWeight { 0, _weight_of_heaviest_node } );
 
     int pass_nr = 0;
     HypernodeID contraction_idx = 0;
@@ -261,7 +293,6 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       if ( _enableRandomization ) {
         Randomize::instance().shuffleVector(current_hns, current_hns.size());
       }
-
 
       for ( const HypernodeID& hn : current_hns ) {
         if ( _hg.nodeIsEnabled(hn) ) {
@@ -306,6 +337,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
         << V(current_num_nodes) << ","
         << V(community_context.coarsening.contraction_limit)
         << "time =" << std::chrono::duration<double>(end - start).count() << "s)";
+    result.end = std::chrono::high_resolution_clock::now();
     return result;
   }
 

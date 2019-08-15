@@ -28,6 +28,19 @@
 namespace kahypar {
 namespace ds {
 
+template<typename Hypergraph>
+struct CommunityHyperedgeStats {
+  using HypernodeID = typename Hypergraph::HypernodeID;
+  using HyperedgeID = typename Hypergraph::HyperedgeID;
+
+  explicit CommunityHyperedgeStats(const size_t num_communities) :
+    num_hyperedges(num_communities),
+    num_pins(num_communities) { }
+
+  std::vector<HyperedgeID> num_hyperedges;
+  std::vector<HypernodeID> num_pins;
+};
+
 template <typename Hypergraph>
 struct CommunityHyperedge {
   using HyperedgeID = typename Hypergraph::HyperedgeID;
@@ -372,62 +385,82 @@ void mergeCommunityInducedSectionHypergraphs(kahypar::parallel::ThreadPool& pool
  * hyperedges pointing to those ranges.
  */
 template <typename Hypergraph>
-void prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
-                                                Hypergraph& hypergraph,
-                                                bool async) {
+CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(kahypar::parallel::ThreadPool& pool,
+                                                                               Hypergraph& hypergraph,
+                                                                               bool async) {
   using HypernodeID = typename Hypergraph::HypernodeID;
   using HyperedgeID = typename Hypergraph::HyperedgeID;
+  using CommunityHyperedgeStats = CommunityHyperedgeStats<Hypergraph>;
 
-  pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
-    for ( HyperedgeID he = start; he < end; ++he ) {
-      ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
-      size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
-      size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
-      // Sort incidence array of hyperedge he in ascending order of their community id
-      std::sort(hypergraph._incidence_array.begin() + incidence_array_start,
-                hypergraph._incidence_array.begin() + incidence_array_end,
-                [&hypergraph]( const HypernodeID& lhs, const HypernodeID& rhs ) {
-                  return hypergraph.communityID( lhs ) < hypergraph.communityID( rhs );
-                });
+  std::vector<std::future<CommunityHyperedgeStats>> results =
+    pool.parallel_for([&hypergraph](const HyperedgeID& start, const HyperedgeID& end) {
+      CommunityHyperedgeStats stats(hypergraph.numCommunities());
 
-      // Introduce community hyperedges for each consecutive range of pins belonging to
-      // the same community
-      PartitionID last_community = hypergraph.communityID(hypergraph._incidence_array[incidence_array_start]);
-      size_t last_community_start = incidence_array_start;
-      auto add_community = [&hypergraph, &he](const PartitionID community_id,
-                                              const size_t start,
-                                              const size_t end ) {
-        hypergraph._hyperedges[he].community_hyperedges.emplace_back(
-          std::piecewise_construct,
-          std::forward_as_tuple(community_id),
-          std::forward_as_tuple(start, end - start, hypergraph.edgeWeight(he))
-        );
+      for ( HyperedgeID he = start; he < end; ++he ) {
+        ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
+        size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
+        size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
+        // Sort incidence array of hyperedge he in ascending order of their community id
+        std::sort(hypergraph._incidence_array.begin() + incidence_array_start,
+                  hypergraph._incidence_array.begin() + incidence_array_end,
+                  [&hypergraph]( const HypernodeID& lhs, const HypernodeID& rhs ) {
+                    return hypergraph.communityID( lhs ) < hypergraph.communityID( rhs );
+                  });
 
-        // Compute edge hash for pins in community
-        hypergraph.hyperedge(he, community_id).hash = Hypergraph::kEdgeHashSeed;
-        for ( size_t cur = start; cur < end; ++cur ) {
-          HypernodeID pin = hypergraph._incidence_array[cur];
-          ASSERT(hypergraph.communityID(pin) == community_id, "Pin " << pin << " is not part of community " << community_id);
-          hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
+        // Introduce community hyperedges for each consecutive range of pins belonging to
+        // the same community
+        PartitionID last_community = hypergraph.communityID(hypergraph._incidence_array[incidence_array_start]);
+        size_t last_community_start = incidence_array_start;
+        auto add_community = [&hypergraph, &he, &stats](const PartitionID community_id,
+                                                        const size_t start,
+                                                        const size_t end ) {
+          hypergraph._hyperedges[he].community_hyperedges.emplace_back(
+            std::piecewise_construct,
+            std::forward_as_tuple(community_id),
+            std::forward_as_tuple(start, (end - start), hypergraph.edgeWeight(he))
+          );
+
+          // Compute edge hash for pins in community
+          hypergraph.hyperedge(he, community_id).hash = Hypergraph::kEdgeHashSeed;
+          for ( size_t cur = start; cur < end; ++cur ) {
+            HypernodeID pin = hypergraph._incidence_array[cur];
+            ASSERT(hypergraph.communityID(pin) == community_id, "Pin " << pin << " is not part of community " << community_id);
+            hypergraph.hyperedge(he, community_id).hash += math::hash(pin);
+          }
+
+          // Add stats
+          stats.num_pins[community_id] += (end - start);
+          ++stats.num_hyperedges[community_id];
+        };
+        for ( size_t current_position = incidence_array_start + 1;
+              current_position < incidence_array_end;
+              ++current_position ) {
+          PartitionID current_community = hypergraph.communityID(hypergraph._incidence_array[current_position]);
+          if ( last_community != current_community ) {
+            add_community(last_community, last_community_start, current_position);
+            last_community_start = current_position;
+            last_community = current_community;
+          }
         }
-      };
-      for ( size_t current_position = incidence_array_start + 1;
-            current_position < incidence_array_end;
-            ++current_position ) {
-        PartitionID current_community = hypergraph.communityID(hypergraph._incidence_array[current_position]);
-        if ( last_community != current_community ) {
-          add_community(last_community, last_community_start, current_position);
-          last_community_start = current_position;
-          last_community = current_community;
-        }
+        add_community(last_community, last_community_start, incidence_array_end);
       }
-      add_community(last_community, last_community_start, incidence_array_end);
-    }
-  }, (HyperedgeID) 0, hypergraph.initialNumEdges());
+      return stats;
+    }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
   if ( !async ) {
     pool.loop_until_empty();
   }
+
+  CommunityHyperedgeStats stats(hypergraph.numCommunities());
+  for ( auto& fut : results ) {
+    CommunityHyperedgeStats res_stats = std::move(fut.get());
+    for ( PartitionID community = 0; community < hypergraph.numCommunities(); ++community ) {
+      stats.num_hyperedges[community] += res_stats.num_hyperedges[community];
+      stats.num_pins[community] += res_stats.num_pins[community];
+    }
+  }
+
+  return stats;
 }
 
 template <typename Hypergraph>
