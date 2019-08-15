@@ -415,6 +415,7 @@ struct SharedMemoryParameters {
   bool cache_friendly_coarsening = false;
   bool numa_aware_thread_pinning = false;
   std::shared_ptr<kahypar::parallel::ThreadPool> pool = nullptr;
+  std::string community_file = "";
 };
 
 inline std::ostream& operator<< (std::ostream& str, const SharedMemoryParameters& params) {
@@ -424,6 +425,9 @@ inline std::ostream& operator<< (std::ostream& str, const SharedMemoryParameters
       << params.cache_friendly_coarsening << std::endl;
   str << "  NUMA Aware Thread Pinning:          " << std::boolalpha
       << params.numa_aware_thread_pinning << std::endl;
+  if ( params.community_file != "" ) {
+    str << "  Community File:                     " << params.community_file << std::endl;
+  }
   return str;
 }
 

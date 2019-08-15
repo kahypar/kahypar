@@ -574,7 +574,10 @@ po::options_description createSharedMemoryOptionsDescription(Context& context,
     "If true, cache friendly hypergraph layout is used during shared memory coarsening (default: false)")
     ("s-numa-aware-thread-pinning",
     po::value<bool>(&context.shared_memory.numa_aware_thread_pinning)->value_name("<bool>"),
-    "If true, threads are pinned to NUMA nodes considering architecture (default: false)");
+    "If true, threads are pinned to NUMA nodes considering architecture (default: false)")
+    ("s-community-file",
+    po::value<std::string>(&context.shared_memory.community_file)->value_name("<string>"),
+    "Community file that should be used instead of community detection.");
   return shared_memory_options;
 }
 

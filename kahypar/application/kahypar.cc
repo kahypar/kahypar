@@ -36,6 +36,14 @@ int main(int argc, char* argv[]) {
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
 
+  if ( context.shared_memory.community_file != "" ) {
+    std::vector<kahypar::PartitionID> communities;
+    kahypar::io::readPartitionFile(context.shared_memory.community_file, communities);
+    hypergraph.setCommunities(std::move(communities));
+    hypergraph.setNumCommunities(128);
+    context.preprocessing.enable_community_detection = false;
+  }
+
   kahypar::PartitionerFacade().partition(hypergraph, context);
 
 
