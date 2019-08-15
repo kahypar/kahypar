@@ -31,6 +31,11 @@ enum class Timepoint : uint8_t {
   pre_sparsifier,
   pre_community_detection,
   coarsening,
+  hypergraph_preparation,
+  compute_community_sizes,
+  parallel_coarsening,
+  merge_hierarchies,
+  undo_preparation,
   initial_partitioning,
   ip_coarsening,
   ip_initial_partitioning,
@@ -85,6 +90,11 @@ class Timer {
     double pre_community_detection = 0.0;
     double total_preprocessing = 0.0;
     double total_coarsening = 0.0;
+    double hypergraph_preparation = 0.0;
+    double compute_community_sizes = 0.0;
+    double parallel_coarsening = 0.0;
+    double merge_hierarchies = 0.0;
+    double undo_preparation = 0.0;
     double total_initial_partitioning = 0.0;
     double total_ip_coarsening = 0.0;
     double total_ip_initial_partitioning = 0.0;
@@ -164,6 +174,22 @@ class Timer {
             break;
           case Timepoint::post_sparsifier_restore:
             _result.post_sparsifier_restore = timing.time;
+            break;
+          case Timepoint::hypergraph_preparation:
+            _result.hypergraph_preparation = timing.time;
+            break;
+          case Timepoint::compute_community_sizes:
+            _result.compute_community_sizes = timing.time;
+            break;
+          case Timepoint::parallel_coarsening:
+            _result.parallel_coarsening = timing.time;
+            break;
+          case Timepoint::merge_hierarchies:
+            _result.merge_hierarchies = timing.time;
+            break;
+          case Timepoint::undo_preparation:
+            _result.undo_preparation = timing.time;
+            break;
           default:
             break;
         }

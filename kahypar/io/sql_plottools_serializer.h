@@ -238,6 +238,11 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " minHashSparsifierTime=" << timings.pre_sparsifier
         << " communityDetectionTime=" << timings.pre_community_detection
         << " coarseningTime=" << timings.total_coarsening
+        << " hypergraphPreparation=" << timings.hypergraph_preparation
+        << " computeCommunitySizes=" << timings.compute_community_sizes
+        << " parallelCoarsening=" << timings.parallel_coarsening
+        << " mergeHierarchies=" << timings.merge_hierarchies
+        << " undoPreparation=" << timings.undo_preparation
         << " initialPartitionTime=" << timings.total_initial_partitioning
         << " uncoarseningRefinementTime=" << timings.total_local_search
         << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;

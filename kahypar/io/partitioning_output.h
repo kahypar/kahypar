@@ -234,6 +234,11 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
     LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";
     LOG << "    | community detection          =" << timings.pre_community_detection << "s";
     LOG << "  + Coarsening                     =" << timings.total_coarsening << "s";
+    LOG << "    | hypergraph preparation       =" << timings.hypergraph_preparation << "s";
+    LOG << "    | compute community sizes      =" << timings.compute_community_sizes << "s";
+    LOG << "    | parallel coarsening          =" << timings.parallel_coarsening << "s";
+    LOG << "    | merge hierarchies            =" << timings.merge_hierarchies << "s";
+    LOG << "    | undo preparation             =" << timings.undo_preparation << "s";
     if (context.partition.mode == Mode::recursive_bisection) {
       for (const auto& timing : timings.bisection_coarsening) {
         LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk

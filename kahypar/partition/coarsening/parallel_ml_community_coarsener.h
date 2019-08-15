@@ -31,6 +31,7 @@
 #include "kahypar/macros.h"
 #include "kahypar/datastructure/parallel_hypergraph.h"
 #include "kahypar/datastructure/fast_hash_table.h"
+#include "kahypar/utils/timer.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
@@ -121,16 +122,22 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
 
     // Setup internal structures in hypergraph such that
     // parallel contractions are possible
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     if ( _context.shared_memory.cache_friendly_coarsening ) {
       prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg);
     } else {
       prepareForParallelCommunityAwareCoarsening(pool, _hg, true);
     }
+    pool.loop_until_empty();
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::hypergraph_preparation,
+                          std::chrono::duration<double>(end - start).count());
 
     // Compute hypernodes per community and community sizes. Community sizes
     // are used to sort communities in decreasing order and hypernodes per
     // community are used to iterate more efficient over hypernodes of
     // a community during coarsening.
+    start = std::chrono::high_resolution_clock::now();
     std::unordered_map<PartitionID, HypernodeMapping> community_to_hns;
     for ( const HypernodeID& hn : _hg.nodes() ) {
       PartitionID community = _hg.communityID(hn);
@@ -147,16 +154,19 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       [](const CommunitySize& lhs, const CommunitySize& rhs) {
         return lhs.second > rhs.second || (lhs.second == rhs.second && lhs.first < rhs.first);
     });
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::compute_community_sizes,
+                          std::chrono::duration<double>(end - start).count());
 
-    pool.loop_until_empty();
 
     // Enqueue a coarsening job for each community in thread pool
+    start = std::chrono::high_resolution_clock::now();
     std::vector<std::future<ParallelCoarseningResult>> results;
     std::string desc_community_sizes = "";
     for ( const CommunitySize& community_size : community_sizes ) {
       const PartitionID community_id = community_size.first;
       size_t size = community_size.second;
-      desc_community_sizes += std::to_string(size) + ",";
+      //desc_community_sizes += std::to_string(size) + ",";
       HypernodeMapping community_hns = community_to_hns[community_id];
       DBG << "Enqueue parallel contraction job of community" << community_id
           << "of size" << size;
@@ -175,27 +185,38 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       }));
     }
     pool.loop_until_empty();
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::parallel_coarsening,
+                          std::chrono::duration<double>(end - start).count());
 
-    std::cout << "COMMUNITY_RESULT graph=" << _context.partition.graph_filename.substr(
+    /*std::cout << "COMMUNITY_RESULT graph=" << _context.partition.graph_filename.substr(
       _context.partition.graph_filename.find_last_of('/') + 1)
               << " num_threads=" << _context.shared_memory.num_threads
-              << " community_sizes=" << desc_community_sizes << std::endl;
+              << " community_sizes=" << desc_community_sizes << std::endl;*/
 
     // Create structures relevant for uncontractions
+    start = std::chrono::high_resolution_clock::now();
     std::vector<ParallelCoarseningResult> coarsening_results;
     for ( std::future<ParallelCoarseningResult>& fut : results ) {
       coarsening_results.emplace_back(std::move(fut.get()));
     }
     Hierarchy hierarchy = createUncontractionHistory(coarsening_results);
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::merge_hierarchies,
+                          std::chrono::duration<double>(end - start).count());
 
     // Undo changes on internal hypergraph data structure done by
     // prepareForParallelCommunityAwareCoarsening(...) such that
     // hypergraph can be again used in a sequential setting
+    start = std::chrono::high_resolution_clock::now();
     if ( _context.shared_memory.cache_friendly_coarsening ) {
       kahypar::ds::undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
     } else {
       kahypar::ds::undoPreparationForParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
     }
+    end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::undo_preparation,
+                          std::chrono::duration<double>(end - start).count());
   }
 
   /**
