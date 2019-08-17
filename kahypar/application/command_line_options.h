@@ -575,6 +575,13 @@ po::options_description createSharedMemoryOptionsDescription(Context& context,
     ("s-numa-aware-thread-pinning",
     po::value<bool>(&context.shared_memory.numa_aware_thread_pinning)->value_name("<bool>"),
     "If true, threads are pinned to NUMA nodes considering architecture (default: false)")
+    ("s-working-packages",
+    po::value<size_t>()->value_name("<size_t>")->notifier(
+      [&](const size_t working_packages) {
+      context.shared_memory.working_packages = working_packages * context.shared_memory.num_threads;
+    }),
+    "Number of working packages in parallel for (will be working_packages * num_threads)\n"
+    "(default 4)")
     ("s-community-file",
     po::value<std::string>(&context.shared_memory.community_file)->value_name("<string>"),
     "Community file that should be used instead of community detection.");

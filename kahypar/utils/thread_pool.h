@@ -95,6 +95,9 @@ private:
     //! Flag whether to terminate
     std::atomic<bool> terminate_;
 
+    //! Number of working packages in parallel for
+    const size_t working_packages_;
+
 public:
     //! Construct running thread pool of num_threads
     explicit ThreadPool(const kahypar::Context& context)
@@ -106,7 +109,8 @@ public:
         busy_(0),
         idle_(0),
         done_(0),
-        terminate_(false) {
+        terminate_(false),
+        working_packages_(context.shared_memory.working_packages) {
       // immediately construct worker threads
       size_t hardware_threads = std::thread::hardware_concurrency();
       size_t num_threads = threads_.size();
@@ -145,16 +149,16 @@ public:
     }
 
     template<class F, class T>
-    auto parallel_for(F&& func, const T& start, const T& end, const T& step_threshold = 1)
+    auto parallel_for(F&& func, const T& start, const T& end)
       -> std::vector<std::future<typename std::result_of<F(T, T)>::type>> {
       using return_type = typename std::result_of<F(T, T)>::type;
 
-      T step = (end - start) / size();
+      T step = (end - start) / working_packages_;
       std::vector<std::future<return_type>> results;
-      if ( step >= step_threshold && size() != 1 ) {
+      if ( step >= 1 && size() != 1 ) {
         for ( size_t i = 0; i < size(); ++i ) {
-          T tmp_start = i * step;
-          T tmp_end = (i == size() - 1) ? end : (i + 1) * step;
+          T tmp_start = start + i * step;
+          T tmp_end = (i == size() - 1) ? end : start + (i + 1) * step;
           results.push_back(enqueue_job(func, tmp_start, tmp_end));
         }
       } else {
