@@ -155,10 +155,10 @@ public:
 
       T step = (end - start) / working_packages_;
       std::vector<std::future<return_type>> results;
-      if ( step >= 1 && size() != 1 ) {
-        for ( size_t i = 0; i < size(); ++i ) {
+      if ( step >= 1 && working_packages_ != 1 ) {
+        for ( size_t i = 0; i < working_packages_; ++i ) {
           T tmp_start = start + i * step;
-          T tmp_end = (i == size() - 1) ? end : start + (i + 1) * step;
+          T tmp_end = (i == working_packages_ - 1) ? end : start + (i + 1) * step;
           results.push_back(enqueue_job(func, tmp_start, tmp_end));
         }
       } else {
