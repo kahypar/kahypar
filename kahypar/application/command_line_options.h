@@ -581,7 +581,7 @@ po::options_description createSharedMemoryOptionsDescription(Context& context,
       context.shared_memory.working_packages = working_packages * context.shared_memory.num_threads;
     }),
     "Number of working packages in parallel for (will be working_packages * num_threads)\n"
-    "(default 4)")
+    "(default 64)")
     ("s-community-file",
     po::value<std::string>(&context.shared_memory.community_file)->value_name("<string>"),
     "Community file that should be used instead of community detection.");

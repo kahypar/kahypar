@@ -414,7 +414,7 @@ struct SharedMemoryParameters {
   size_t num_threads = 0;
   bool cache_friendly_coarsening = false;
   bool numa_aware_thread_pinning = false;
-  size_t working_packages = 4;
+  size_t working_packages = 64;
   std::shared_ptr<kahypar::parallel::ThreadPool> pool = nullptr;
   std::string community_file = "";
 };
