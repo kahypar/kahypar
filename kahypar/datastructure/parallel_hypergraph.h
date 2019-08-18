@@ -470,7 +470,7 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
                     hypergraph._hypernodes[hn].incidentNets()[incident_net_end--]);
         }
       }
-      hypergraph._hypernodes[hn].single_pin_nets_start = incident_net_end + 1;
+      hypergraph._hypernodes[hn].community_degree = incident_net_end + 1;
     }
   }, (HypernodeID) 0, hypergraph.initialNumNodes());
 
@@ -622,6 +622,14 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
   hypergraph._current_num_hypernodes = hypergraph.initialNumNodes() - history.size();
 
   // PHASE 1
+  // Restore all single pin community hyperedges
+  pool.parallel_for([&hypergraph](const HypernodeID& start, const HypernodeID& end) {
+    for ( HypernodeID hn = start; hn < end; ++hn ) {
+      hypergraph._hypernodes[hn].community_degree = Hypergraph::invalidHyperedgeID;
+    }
+  }, (HypernodeID) 0, hypergraph.initialNumNodes());
+
+  // PHASE 2
   // All disabled hypernodes have to follow a specific order in invalid part of the incidence array
   // such that they can be successfully uncontracted. They have be sorted in decreasing order of their
   // contraction. In order to realize this we compute the contraction index of a hypernode inside the
@@ -638,7 +646,7 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
   // Barrier
   pool.loop_until_empty();
 
-  // PHASE 2
+  // PHASE 3
   // The incidence array of a hyperedge is constructed as follows: The first part consists
   // of all enabled pins and the remainder of all invalid pins. The invalid pins in the
   // remainder are sorted in decreasing order of their contraction index.

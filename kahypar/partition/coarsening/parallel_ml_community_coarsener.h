@@ -308,7 +308,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
             rater.markAsMatched((*reverse_mapping)[hn]);
             rater.markAsMatched((*reverse_mapping)[rating.target]);
 
-            LOG << "Contract (" << hn << "," << rating.target << ")";
+            DBG << "Contract (" << hn << "," << rating.target << ")";
             result.history.emplace_back(community_id,
               _hg.parallelContract(community_id, hn, rating.target));
             result.pruner.removeSingleNodeHyperedges(_hg, result.history.back());

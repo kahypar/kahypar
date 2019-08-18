@@ -120,6 +120,8 @@ class GenericHypergraph {
   // seed for edge hashes used for parallel net detection
   static constexpr size_t kEdgeHashSeed = 42;
 
+  static constexpr HyperedgeID invalidHyperedgeID = std::numeric_limits<HyperedgeID>::max();
+
  private:
   /*!
    * Hypernode traits defining the data types
@@ -175,7 +177,7 @@ class GenericHypergraph {
   };
 
   struct AdditionalHypernodeCommunityData : public AdditionalHypernodeData {
-    HyperedgeID single_pin_nets_start = std::numeric_limits<HyperedgeID>::max();
+    HyperedgeID community_degree = invalidHyperedgeID;
   };
 
   // ! A dummy data structure that is used in GenericHypergraph::changeNodePart
@@ -574,6 +576,8 @@ class GenericHypergraph {
   // ! An invalid block has id kInvalidPartition
   enum { kInvalidPartition = -1 };
 
+
+
   /*!
    * Construct a hypergraph using the index_vector/edge_vector representation that
    * is also used by hMetis.
@@ -845,13 +849,13 @@ class GenericHypergraph {
   // ! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
-    if ( hypernode(u).single_pin_nets_start == std::numeric_limits<HyperedgeID>::max() ) {
+    if ( hypernode(u).community_degree == invalidHyperedgeID ) {
       return std::make_pair(hypernode(u).incidentNets().cbegin(),
                             hypernode(u).incidentNets().cend());
     } else {
       return std::make_pair(hypernode(u).incidentNets().cbegin(),
                             hypernode(u).incidentNets().cbegin() +
-                            hypernode(u).single_pin_nets_start);
+                            hypernode(u).community_degree);
     }
   }
 
@@ -2200,10 +2204,10 @@ class GenericHypergraph {
     // the hypernode's point of view.
     _incidence_array[hyperedge(e, c).firstInvalidEntry() - 1] = u;
     hypernode(u).incidentNets().push_back(e);
-    if ( edgeSize( e, c ) > 1 ) {
-      std::swap(hypernode(u).incidentNets()[hypernode(u).single_pin_nets_start],
+    if (hypernode(u).community_degree != invalidHyperedgeID && edgeSize( e, c ) > 1 ) {
+      std::swap(hypernode(u).incidentNets()[hypernode(u).community_degree],
                 hypernode(u).incidentNets()[hypernode(u).incidentNets().size() - 1]);
-      ++hypernode(u).single_pin_nets_start;
+      ++hypernode(u).community_degree;
     }
   }
 
@@ -2273,12 +2277,20 @@ class GenericHypergraph {
 
     auto begin = hypernode(hn).incidentNets().begin();
     ASSERT(hypernode(hn).size() > 0);
-    auto last_entry = hypernode(hn).incidentNets().end() - 1;
+    size_t last_entry = hypernode(hn).community_degree;
+    ASSERT(last_entry > 0);
+    auto last_net = last_entry != invalidHyperedgeID ?
+                      hypernode(hn).incidentNets().begin() + last_entry - 1:
+                      hypernode(hn).incidentNets().end() - 1;
     while (*begin != he) {
       ++begin;
     }
-    ASSERT(begin < hypernode(hn).incidentNets().end());
-    swap(*begin, *last_entry);
+    ASSERT(begin < last_net + 1);
+    swap(*begin, *last_net);
+    if ( last_entry != invalidHyperedgeID ) {
+      swap(*last_net, *(hypernode(hn).incidentNets().end() - 1));
+      --hypernode(hn).community_degree;
+    }
     hypernode(hn).incidentNets().pop_back();
   }
 
