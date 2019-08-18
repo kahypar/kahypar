@@ -461,8 +461,8 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
     for ( HypernodeID hn = start; hn < end; ++hn ) {
       ASSERT(!hypergraph._hypernodes[hn].isDisabled(), "Hypernode " << hn << " is disabled");
       PartitionID community_id = hypergraph.communityID(hn);
-      size_t incident_net_pos = 0;
-      size_t incident_net_end = hypergraph._hypernodes[hn].incidentNets().size() - 1;
+      int64_t incident_net_pos = 0;
+      int64_t incident_net_end = hypergraph._hypernodes[hn].incidentNets().size() - 1;
       for ( ; incident_net_pos <= incident_net_end; ++incident_net_pos ) {
         const HyperedgeID he = hypergraph._hypernodes[hn].incidentNets()[incident_net_pos];
         if ( hypergraph.edgeSize(he, community_id) == 1 ) {
