@@ -174,6 +174,10 @@ class GenericHypergraph {
     uint32_t state = 0;
   };
 
+  struct AdditionalHypernodeCommunityData : public AdditionalHypernodeData {
+    HyperedgeID single_pin_nets_start = std::numeric_limits<HyperedgeID>::max();
+  };
+
   // ! A dummy data structure that is used in GenericHypergraph::changeNodePart
   // ! for algorithms that do not need non-border-node detection.
   class Dummy {
@@ -495,7 +499,7 @@ class GenericHypergraph {
   // ! The data type used to incident nets of vertices and pins of nets
   using VertexID = uint32_t;
   // ! The data type for hypernodes
-  using Hypernode = Vertex<HypernodeTraits, AdditionalHypernodeData>;
+  using Hypernode = Vertex<HypernodeTraits, AdditionalHypernodeCommunityData>;
   // ! The data type for hyperedges
   using Hyperedge = HyperEdge<HyperedgeTraits, AdditionalHyperedgeCommunityData>;
   // ! Iterator that is internally used to iterate over pins of nets and incident edges of vertices.
@@ -841,8 +845,14 @@ class GenericHypergraph {
   // ! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const {
     ASSERT(!hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
-    return std::make_pair(hypernode(u).incidentNets().cbegin(),
-                          hypernode(u).incidentNets().cend());
+    if ( hypernode(u).single_pin_nets_start == std::numeric_limits<HyperedgeID>::max() ) {
+      return std::make_pair(hypernode(u).incidentNets().cbegin(),
+                            hypernode(u).incidentNets().cend());
+    } else {
+      return std::make_pair(hypernode(u).incidentNets().cbegin(),
+                            hypernode(u).incidentNets().cbegin() +
+                            hypernode(u).single_pin_nets_start);
+    }
   }
 
   // ! Returns a for-each iterator-pair to loop over the set pins of hyperedge e.
@@ -2190,6 +2200,11 @@ class GenericHypergraph {
     // the hypernode's point of view.
     _incidence_array[hyperedge(e, c).firstInvalidEntry() - 1] = u;
     hypernode(u).incidentNets().push_back(e);
+    if ( edgeSize( e, c ) > 1 ) {
+      std::swap(hypernode(u).incidentNets()[hypernode(u).single_pin_nets_start],
+                hypernode(u).incidentNets()[hypernode(u).incidentNets().size() - 1]);
+      ++hypernode(u).single_pin_nets_start;
+    }
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void reverseContraction(const Memento& memento) {

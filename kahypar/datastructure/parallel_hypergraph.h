@@ -35,10 +35,12 @@ struct CommunityHyperedgeStats {
 
   explicit CommunityHyperedgeStats(const size_t num_communities) :
     num_hyperedges(num_communities),
-    num_pins(num_communities) { }
+    num_pins(num_communities),
+    single_pin_community_hyperedges(num_communities) { }
 
   std::vector<HyperedgeID> num_hyperedges;
   std::vector<HypernodeID> num_pins;
+  std::vector<HypernodeID> single_pin_community_hyperedges;
 };
 
 template <typename Hypergraph>
@@ -397,6 +399,9 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
       CommunityHyperedgeStats stats(hypergraph.numCommunities());
 
       for ( HyperedgeID he = start; he < end; ++he ) {
+        if ( hypergraph._hyperedges[he].size() == 1 ) {
+          continue;
+        }
         ASSERT(!hypergraph._hyperedges[he].isDisabled(), "Hyperedge " << he << " is disabled");
         size_t incidence_array_start = hypergraph._hyperedges[he].firstEntry();
         size_t incidence_array_end = hypergraph._hyperedges[he + 1].firstEntry();
@@ -431,6 +436,9 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
           // Add stats
           stats.num_pins[community_id] += (end - start);
           ++stats.num_hyperedges[community_id];
+          if ( end - start == 1 ) {
+            ++stats.single_pin_community_hyperedges[community_id];
+          }
         };
         for ( size_t current_position = incidence_array_start + 1;
               current_position < incidence_array_end;
@@ -447,6 +455,25 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
       return stats;
     }, (HyperedgeID) 0, hypergraph.initialNumEdges());
 
+  pool.loop_until_empty();
+
+  pool.parallel_for([&hypergraph](const HypernodeID& start, const HypernodeID& end) {
+    for ( HypernodeID hn = start; hn < end; ++hn ) {
+      ASSERT(!hypergraph._hypernodes[hn].isDisabled(), "Hypernode " << hn << " is disabled");
+      PartitionID community_id = hypergraph.communityID(hn);
+      size_t incident_net_pos = 0;
+      size_t incident_net_end = hypergraph._hypernodes[hn].incidentNets().size() - 1;
+      for ( ; incident_net_pos <= incident_net_end; ++incident_net_pos ) {
+        const HyperedgeID he = hypergraph._hypernodes[hn].incidentNets()[incident_net_pos];
+        if ( hypergraph.edgeSize(he, community_id) == 1 ) {
+          std::swap(hypergraph._hypernodes[hn].incidentNets()[incident_net_pos--],
+                    hypergraph._hypernodes[hn].incidentNets()[incident_net_end--]);
+        }
+      }
+      hypergraph._hypernodes[hn].single_pin_nets_start = incident_net_end + 1;
+    }
+  }, (HypernodeID) 0, hypergraph.initialNumNodes());
+
   if ( !async ) {
     pool.loop_until_empty();
   }
@@ -457,6 +484,7 @@ CommunityHyperedgeStats<Hypergraph> prepareForParallelCommunityAwareCoarsening(k
     for ( PartitionID community = 0; community < hypergraph.numCommunities(); ++community ) {
       stats.num_hyperedges[community] += res_stats.num_hyperedges[community];
       stats.num_pins[community] += res_stats.num_pins[community];
+      stats.single_pin_community_hyperedges[community] += res_stats.single_pin_community_hyperedges[community];
     }
   }
 
@@ -619,6 +647,9 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
       size_t num_hyperedges = 0;
       size_t num_pins = 0;
       for ( HyperedgeID he = start; he < end; ++he ) {
+        if ( hypergraph._hyperedges[he].size() == 1 ) {
+          continue;
+        }
         Hyperedge& current_he = hypergraph._hyperedges[he];
         bool isEnabled = hypergraph.allCommunityEdgesAreEnabled(he);
         if ( isEnabled ) {

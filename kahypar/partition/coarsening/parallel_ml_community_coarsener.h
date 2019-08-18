@@ -225,6 +225,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
                 << " total_vertex_degree=" << result.total_vertex_degree
                 << " num_hyperedges=" << comm_hyperedge_stats.num_hyperedges[result.community_id]
                 << " num_pins=" << comm_hyperedge_stats.num_pins[result.community_id]
+                << " single_pin_hyperedges=" << comm_hyperedge_stats.single_pin_community_hyperedges[result.community_id]
                 << " start=" << std::chrono::duration<double>(result.start - global_start).count()
                 << " end=" << std::chrono::duration<double>(result.end - global_start).count()
                 << " duration=" << std::chrono::duration<double>(result.end - result.start).count()
@@ -252,7 +253,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   ParallelCoarseningResult communityCoarsening(const Context& community_context,
                                                const PartitionID community_id,
                                                const HypernodeMapping community_hns) {
-                                                 
+
     ParallelCoarseningResult result(community_id, community_hns->size());
     result.numa_node = numa_node_of_cpu(sched_getcpu());
     result.max_hn_weights.emplace_back(
@@ -269,8 +270,9 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     ReverseHypernodeMapping reverse_mapping =
       std::make_shared<HashTable>(current_num_nodes);
     for ( HypernodeID hn = 0; hn < community_hns->size(); ++hn ) {
-      (*reverse_mapping)[(*community_hns)[hn]] = hn;
-      result.total_vertex_degree += _hg.nodeDegree(hn);
+      HypernodeID original_hn = (*community_hns)[hn];
+      (*reverse_mapping)[original_hn] = hn;
+      result.total_vertex_degree += _hg.nodeDegree(original_hn);
     }
 
     Rater rater(_hg, community_context, community_hns, reverse_mapping);
@@ -286,7 +288,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       current_hns.clear();
       size_t num_hns_before_pass = current_num_nodes;
       for (const HypernodeID& hn : *community_hns) {
-        if ( _hg.nodeIsEnabled(hn) ) {
+        if ( _hg.nodeIsEnabled(hn) && _hg.nodeDegree(hn) > 0 ) {
           current_hns.push_back(hn);
         }
       }
@@ -306,7 +308,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
             rater.markAsMatched((*reverse_mapping)[hn]);
             rater.markAsMatched((*reverse_mapping)[rating.target]);
 
-            DBG << "Contract (" << hn << "," << rating.target << ")";
+            LOG << "Contract (" << hn << "," << rating.target << ")";
             result.history.emplace_back(community_id,
               _hg.parallelContract(community_id, hn, rating.target));
             result.pruner.removeSingleNodeHyperedges(_hg, result.history.back());
