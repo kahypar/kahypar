@@ -58,6 +58,9 @@ using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolic
 using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
                                                                 ICoarsener,
                                                                 RatingPolicies>;
+using ParallelMLCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCoarsener,
+                                                                        ICoarsener,
+                                                                        RatingPolicies>;
 
 using ParallelMLCommunityCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCommunityCoarsener,
                                                                                  ICoarsener,

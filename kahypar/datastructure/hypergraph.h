@@ -31,7 +31,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <atomic>
+#include <shared_mutex>
 
 #include "gtest/gtest_prod.h"
 
@@ -39,6 +39,7 @@
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/datastructure/sparse_map.h"
+#include "kahypar/datastructure/mutex_vector.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/empty.h"
 #include "kahypar/meta/int_to_type.h"
@@ -116,6 +117,10 @@ class GenericHypergraph {
   using HyperedgeWeight = HyperedgeWeightType_;
   using HypernodeData = HypernodeData_;
   using HyperedgeData = HyperedgeData_;
+
+  using Mutex = std::mutex;
+  template<typename Key>
+  using MutexVector = MutexVector<Key, Mutex>;
 
   // seed for edge hashes used for parallel net detection
   static constexpr size_t kEdgeHashSeed = 42;
@@ -994,6 +999,65 @@ class GenericHypergraph {
     return Memento { u, v };
   }
 
+  Memento parallelContract(const HypernodeID u, 
+                           const HypernodeID v,
+                           MutexVector<HypernodeID>& hn_mutex,
+                           MutexVector<HyperedgeID>& he_mutex) {
+    using std::swap;
+    std::lock_guard<Mutex> lock_u(hn_mutex[std::min(u, v)]);
+    std::lock_guard<Mutex> lock_v(hn_mutex[std::max(u, v)]);
+    DBG << "contracting (" << u << "," << v << ")";
+
+    if ( !nodeIsEnabled(u) || !nodeIsEnabled(v) ) {
+      return { 0, 0 };
+    }
+
+    hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
+
+    for (const HyperedgeID he : hypernode(v).incidentNets()) {
+      std::lock_guard<Mutex> lock_he(he_mutex[he]);
+      const HypernodeID pins_begin = hyperedge(he).firstEntry();
+      const HypernodeID pins_end = hyperedge(he).firstInvalidEntry();
+      HypernodeID slot_of_u = pins_end - 1;
+      HypernodeID last_pin_slot = pins_end - 1;
+
+      for (HypernodeID pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
+        const HypernodeID pin = _incidence_array[pin_iter];
+        if (pin == v) {
+          swap(_incidence_array[pin_iter], _incidence_array[last_pin_slot]);
+          --pin_iter;
+        } else if (pin == u) {
+          slot_of_u = pin_iter;
+        }
+      }
+
+      ASSERT(_incidence_array[last_pin_slot] == v, "v is not last entry in adjacency array!");
+
+      if (slot_of_u != last_pin_slot) {
+        // Case 1:
+        // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
+        // can just cut off the last entry in the edge array of e that now contains v.
+        DBG << V(he) << ": Case 1";
+        edgeHash(he) -= math::hash(v);
+        hyperedge(he).decrementSize();
+        // TODO: Decrement pin count in part
+        //--_current_num_pins; // make this atomic
+      } else {
+        DBG << V(he) << ": Case 2";
+        // Case 2:
+        // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
+        // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
+        edgeHash(he) -= math::hash(v);
+        edgeHash(he) += math::hash(u);
+        connectHyperedgeToRepresentative(he, u);
+      }
+    }
+
+    hypernode(v).disable();
+    //--_current_num_hypernodes; // TODO: make this atomic
+    return Memento { u, v };
+  }
+
   /*!
    * Contracts the vertex pair (u,v). The representative u remains in the hypergraph.
    * The contraction partner v is removed from the hypergraph.
@@ -1765,6 +1829,10 @@ class GenericHypergraph {
     return _current_num_hypernodes;
   }
 
+  void setCurrentNumNodes(const HypernodeID current_num_hypernodes) {
+    _current_num_hypernodes = current_num_hypernodes;
+  }
+
   /*!
    * Returns the current number of hyperedges.
    * This number will be less than or equal to the original number of
@@ -1782,6 +1850,10 @@ class GenericHypergraph {
           return count == _current_num_hyperedges;
         } ());
     return _current_num_hyperedges;
+  }
+
+  void setCurrentNumEdges(const HyperedgeID current_num_hyperedges) {
+    _current_num_hyperedges = current_num_hyperedges;
   }
 
   /*!
@@ -1807,6 +1879,10 @@ class GenericHypergraph {
           return count == _current_num_pins;
         } ());
     return _current_num_pins;
+  }
+
+  void setCurrentNumPins(const HypernodeID current_num_pins) {
+    _current_num_pins = current_num_pins;
   }
 
   HypernodeID numFixedVertices() const {

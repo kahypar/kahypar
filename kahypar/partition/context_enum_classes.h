@@ -83,6 +83,7 @@ enum class CoarseningAlgorithm : uint8_t {
   heavy_lazy,
   ml_style,
   ml_parallel,
+  ml_parallel_community,
   do_nothing,
   UNDEFINED
 };
@@ -331,6 +332,7 @@ std::ostream& operator<< (std::ostream& os, const CoarseningAlgorithm& algo) {
     case CoarseningAlgorithm::heavy_lazy: return os << "heavy_lazy";
     case CoarseningAlgorithm::ml_style: return os << "ml_style";
     case CoarseningAlgorithm::ml_parallel: return os << "ml_parallel";
+    case CoarseningAlgorithm::ml_parallel_community: return os << "ml_parallel_community";
     case CoarseningAlgorithm::do_nothing: return os << "do_nothing";
     case CoarseningAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -541,6 +543,8 @@ static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type
     return CoarseningAlgorithm::ml_style;
   } else if (type == "ml_parallel") {
     return CoarseningAlgorithm::ml_parallel;
+  } else if (type == "ml_parallel_community") {
+    return CoarseningAlgorithm::ml_parallel_community;
   }
   LOG << "Illegal option:" << type;
   exit(0);

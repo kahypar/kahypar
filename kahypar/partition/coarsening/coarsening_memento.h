@@ -43,6 +43,7 @@ class CoarseningMemento {
     contraction_memento(contraction_memento_) { }
 
   PartitionID community_id;     // community of the two vertices in hypergraph memento
+  PartitionID thread_id;        // thread id of the thread which performed contraction
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
   int parallel_hes_begin;       // start of removed parallel hyperedges
