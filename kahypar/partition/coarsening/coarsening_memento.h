@@ -25,8 +25,20 @@
 namespace kahypar {
 class CoarseningMemento {
  public:
+  CoarseningMemento() :
+    community_id(-1),
+    thread_id(-1),
+    contraction_index(0),
+    one_pin_hes_begin(0),
+    one_pin_hes_size(0),
+    parallel_hes_begin(0),
+    parallel_hes_size(0),
+    contraction_memento({0, 0}) { }
+
   explicit CoarseningMemento(const Hypergraph::ContractionMemento& contraction_memento_) :
     community_id(-1),
+    thread_id(-1),
+    contraction_index(0),
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
@@ -36,6 +48,8 @@ class CoarseningMemento {
   explicit CoarseningMemento(const PartitionID community_id,
                              const Hypergraph::ContractionMemento& contraction_memento_) :
     community_id(community_id),
+    thread_id(-1),
+    contraction_index(0),
     one_pin_hes_begin(0),
     one_pin_hes_size(0),
     parallel_hes_begin(0),
@@ -44,10 +58,11 @@ class CoarseningMemento {
 
   PartitionID community_id;     // community of the two vertices in hypergraph memento
   PartitionID thread_id;        // thread id of the thread which performed contraction
+  HypernodeID contraction_index;
   int one_pin_hes_begin;        // start of removed single pin hyperedges
   int one_pin_hes_size;         // # removed single pin hyperedges
   int parallel_hes_begin;       // start of removed parallel hyperedges
   int parallel_hes_size;        // # removed parallel hyperedges
-  const Hypergraph::ContractionMemento contraction_memento;
+  Hypergraph::ContractionMemento contraction_memento;
 };
 }  // namespace kahypar

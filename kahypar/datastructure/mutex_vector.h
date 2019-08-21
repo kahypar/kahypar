@@ -45,7 +45,7 @@ class MutexVector {
 
  public:
   explicit MutexVector(size_t size) :
-    _size(std::max(size, 50000UL)),
+    _size(size),
     _mutex(_size) { }
 
   MutexVector(const MutexVector&) = delete;
@@ -58,7 +58,7 @@ class MutexVector {
   }
 
   Mutex & get ( const Key& key ) {
-    return _mutex[std::hash<Key>()(key) % _size];
+    return _mutex[key % _size];
   }
 
  private:

@@ -51,26 +51,28 @@ class LockBasedHypergraphPruner {
 
   static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
 
-  using Mutex = std::mutex;
+  using Mutex = std::shared_timed_mutex;
   template<typename Key>
   using MutexVector = kahypar::ds::MutexVector<Key, Mutex>;
 
  public:
-  LockBasedHypergraphPruner( MutexVector<HypernodeID>& hn_mutex,
+  LockBasedHypergraphPruner( const HypernodeID num_hypernodes,
+                             MutexVector<HypernodeID>& hn_mutex,
                              MutexVector<HyperedgeID>& he_mutex ) :
     _max_removed_single_node_he_weight(0),
     _removed_single_node_hyperedges(),
     _removed_parallel_hyperedges(),
     _fingerprints(),
     _hn_mutex(hn_mutex),
-    _he_mutex(he_mutex)/*,
-    _contained_hypernodes(max_num_nodes)*/ { }
+    _he_mutex(he_mutex),
+    _contained_hypernodes(num_hypernodes),
+    _contained_hns() { }
 
   LockBasedHypergraphPruner(const LockBasedHypergraphPruner&) = delete;
   LockBasedHypergraphPruner& operator= (const LockBasedHypergraphPruner&) = delete;
 
-  LockBasedHypergraphPruner(LockBasedHypergraphPruner&&) = delete;
-  LockBasedHypergraphPruner& operator= (LockBasedHypergraphPruner&&) = delete;
+  LockBasedHypergraphPruner(LockBasedHypergraphPruner&&) = default;
+  LockBasedHypergraphPruner& operator= (LockBasedHypergraphPruner&&) = default;
 
   ~LockBasedHypergraphPruner() = default;
 
@@ -107,24 +109,27 @@ class LockBasedHypergraphPruner {
 
   HyperedgeWeight removeSingleNodeHyperedges(Hypergraph& hypergraph,
                                              CoarseningMemento& memento) {
-    ASSERT(_history.top().contraction_memento.u == u,
-           "Current coarsening memento does not belong to hypernode" << u);
-    memento.one_pin_hes_begin = _removed_single_node_hyperedges.size();
-    auto begin_it = hypergraph.incidentEdges(memento.contraction_memento.u).first;
-    auto end_it = hypergraph.incidentEdges(memento.contraction_memento.u).second;
+    // ASSERT(_history.top().contraction_memento.u == u,
+    //        "Current coarsening memento does not belong to hypernode" << u);
     HyperedgeWeight removed_he_weight = 0;
-    for (auto he_it = begin_it; he_it != end_it; ++he_it) {
-      if (hypergraph.edgeSize(*he_it) == 1) {        
-        std::lock_guard<Mutex> he_lock(_he_mutex[*he_it]);
-        _removed_single_node_hyperedges.push_back(*he_it);
-        _max_removed_single_node_he_weight = std::max(_max_removed_single_node_he_weight,
-                                                      hypergraph.edgeWeight(*he_it));
-        removed_he_weight += hypergraph.edgeWeight(*he_it);
-        ++memento.one_pin_hes_size;
-        DBG << "removing single-node HE" << *he_it;
-        hypergraph.removeEdge(*he_it);
-        --he_it;
-        --end_it;
+    std::shared_lock<Mutex> hn_lock(_hn_mutex[memento.contraction_memento.u]);
+    memento.one_pin_hes_begin = _removed_single_node_hyperedges.size();
+    if ( hypergraph.nodeIsEnabled(memento.contraction_memento.u) ) {
+      auto begin_it = hypergraph.incidentEdges(memento.contraction_memento.u).first;
+      auto end_it = hypergraph.incidentEdges(memento.contraction_memento.u).second;
+      for (auto he_it = begin_it; he_it != end_it; ++he_it) {
+        std::unique_lock<Mutex> he_lock(_he_mutex[*he_it]);
+        if ( hypergraph.edgeIsEnabled(*he_it) && hypergraph.edgeSize(*he_it) == 1) {        
+          _removed_single_node_hyperedges.push_back(*he_it);
+          _max_removed_single_node_he_weight = std::max(_max_removed_single_node_he_weight,
+                                                        hypergraph.edgeWeight(*he_it));
+          removed_he_weight += hypergraph.edgeWeight(*he_it);
+          ++memento.one_pin_hes_size;
+          DBG << "removing single-node HE" << *he_it;
+          hypergraph.removeEdge(*he_it);
+          --he_it;
+          --end_it;
+        }
       }
     }
     return removed_he_weight;
@@ -140,12 +145,15 @@ class LockBasedHypergraphPruner {
   // parallel. In case we detect a parallel HE, it is removed from the graph and we proceed by
   // checking if there are more fingerprints with the same hash value.
   HyperedgeID removeParallelHyperedges(Hypergraph& hypergraph,
-                                       CoarseningMemento& memento) {
+                                       CoarseningMemento& memento,
+                                       const std::vector<HypernodeID>& last_touched) {
     memento.parallel_hes_begin = _removed_parallel_hyperedges.size();
 
     createFingerprints(hypergraph, memento.contraction_memento.u);
     std::sort(_fingerprints.begin(), _fingerprints.end(),
-              [](const Fingerprint& a, const Fingerprint& b) { return a.hash < b.hash; });
+              [](const Fingerprint& a, const Fingerprint& b) { 
+                return a.hash < b.hash || (a.hash == b.hash && a.id < b.id); 
+    });
 
     // debug_state = std::find_if(_fingerprints.begin(), _fingerprints.end(),
     // [](const Fingerprint& a) {return a.id == 20686;}) != _fingerprints.end();
@@ -156,32 +164,41 @@ class LockBasedHypergraphPruner {
       return std::string("");
       } ();
 
-    //size_t i = 0;
+    size_t i = 0;
     HyperedgeWeight removed_parallel_hes = 0;
-    /*bool filled_probe_bitset = false;
+    bool filled_probe_bitset = false;
     while (i < _fingerprints.size()) {
       size_t j = i + 1;
       DBG << "i=" << i << ", j=" << j;
-      if (_fingerprints[i].id != kInvalidID) {
-        ASSERT(hypergraph.edgeIsEnabled(_fingerprints[i].id), V(_fingerprints[i].id));
+      std::shared_lock<Mutex> i_lock(_he_mutex[_fingerprints[i].id]);
+      if (_fingerprints[i].id != kInvalidID && last_touched[_fingerprints[i].id] <= memento.contraction_index) {
         while (j < _fingerprints.size() && _fingerprints[i].hash == _fingerprints[j].hash) {
-          // If we are here, then we have a hash collision for _fingerprints[i].id and
-          // _fingerprints[j].id.
-          DBG << _fingerprints[i].hash << "==" << _fingerprints[j].hash;
-          DBG << "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
-              << hypergraph.edgeSize(_fingerprints[j].id);
-          if (_fingerprints[j].id != kInvalidID &&
-              hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id)) {
-            ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
-            if (!filled_probe_bitset) {
-              fillProbeBitset(hypergraph, _fingerprints[i].id);
-              filled_probe_bitset = true;
-            }
-            if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
-              removed_parallel_hes += 1;
-              removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
-              _fingerprints[j].id = kInvalidID;
-              ++memento.parallel_hes_size;
+          std::shared_lock<Mutex> j_lock(_he_mutex[_fingerprints[j].id]);
+          if (_fingerprints[j].id != kInvalidID && last_touched[_fingerprints[j].id] <= memento.contraction_index) {
+            if ( hypergraph.edgeIsEnabled(_fingerprints[i].id) &&
+                  hypergraph.edgeIsEnabled(_fingerprints[j].id) ) {
+              // If we are here, then we have a hash collision for _fingerprints[i].id and
+              // _fingerprints[j].id.
+              DBG << _fingerprints[i].hash << "==" << _fingerprints[j].hash;
+              DBG << "Size:" << hypergraph.edgeSize(_fingerprints[i].id) << "=="
+                  << hypergraph.edgeSize(_fingerprints[j].id);
+              if (hypergraph.edgeSize(_fingerprints[i].id) == hypergraph.edgeSize(_fingerprints[j].id) &&
+                  hypergraph.edgeSize(_fingerprints[i].id) > 1) {
+                if (!filled_probe_bitset) {
+                  fillProbeBitset(hypergraph, _fingerprints[i].id);
+                  filled_probe_bitset = true;
+                }
+                if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
+                  i_lock.unlock();
+                  j_lock.unlock();
+                  if ( removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id) ) {
+                    removed_parallel_hes += 1;
+                    _fingerprints[j].id = kInvalidID;
+                    ++memento.parallel_hes_size;
+                  }
+                  i_lock.lock();
+                }
+              }
             }
           }
           ++j;
@@ -190,7 +207,7 @@ class LockBasedHypergraphPruner {
       // We need pairwise comparisons for all HEs with same hash.
       filled_probe_bitset = false;
       ++i;
-    }*/
+    }
 
 
     /*ASSERT([&]() {
@@ -227,56 +244,80 @@ class LockBasedHypergraphPruner {
   }
 
   bool isParallelHyperedge(Hypergraph& hypergraph, const HyperedgeID he) const {
-    /*bool is_parallel = true;
-    for (const HypernodeID& pin : hypergraph.pins(he)) {
-      if (!_contained_hypernodes[pin]) {
-        is_parallel = false;
-        break;
+    std::shared_lock<Mutex> lock(_he_mutex[he]);
+    bool is_parallel = true;
+    if ( hypergraph.edgeIsEnabled(he) ) {
+      for (const HypernodeID& pin : hypergraph.pins(he)) {
+        if (!_contained_hypernodes[pin]) {
+          is_parallel = false;
+          break;
+        }
       }
+      DBG << "HE" << he << "is parallel HE=" << is_parallel;
     }
-    DBG << "HE" << he << "is parallel HE=" << is_parallel;
-    return is_parallel;*/
-    return false;
+    return is_parallel;
   }
 
   void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he) {
-    /*_contained_hypernodes.reset();
+    for ( const HypernodeID& hn : _contained_hns ) {
+      _contained_hypernodes[hn] = false;
+    }
+    _contained_hns.clear();
+
     DBG << "Filling Bitprobe Set for HE" << he;
-    for (const HypernodeID& pin : hypergraph.pins(he)) {
-      DBG << "_contained_hypernodes[" << pin << "]=1";
-      _contained_hypernodes.set(pin, true);
-    }*/
+    std::shared_lock<Mutex> he_lock(_he_mutex[he]);
+    if ( hypergraph.edgeIsEnabled(he) ) {
+      for (const HypernodeID& pin : hypergraph.pins(he)) {
+        DBG << "_contained_hypernodes[" << pin << "]=1";
+        _contained_hypernodes[pin] = true;
+        _contained_hns.emplace_back(pin);
+      }
+    }
   }
 
-  void removeParallelHyperedge(Hypergraph& hypergraph,
+  bool removeParallelHyperedge(Hypergraph& hypergraph,
                                const HyperedgeID representative,
                                const HyperedgeID to_remove) {
-    /*hypergraph.setEdgeWeight(representative,
-                             hypergraph.edgeWeight(representative)
-                             + hypergraph.edgeWeight(to_remove));
-    DBG << "removed HE" << to_remove << "which was parallel to" << representative;
-    hypergraph.removeEdge(to_remove);
-    _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });*/
+    std::shared_lock<Mutex> he_lock(_he_mutex[to_remove]);
+    if ( hypergraph.edgeIsEnabled(to_remove) ) {
+      HyperedgeWeight to_remove_weight = hypergraph.edgeWeight(to_remove);
+      he_lock.unlock();
+      if ( hypergraph.removeEdge(to_remove, representative, _he_mutex, _hn_mutex) ) {
+        DBG << "removed HE" << to_remove << "which was parallel to" << representative;
+        hypergraph.setEdgeWeight(representative,
+                                 hypergraph.edgeWeight(representative)
+                                 + to_remove_weight);
+        _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove });
+        return true;
+      } 
+    }
+    return false;
   }
 
   void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) {
     _fingerprints.clear();
-    for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
-      ASSERT([&]() {
-          size_t correct_hash = Hypergraph::kEdgeHashSeed;
-          for (const HypernodeID& pin : hypergraph.pins(he)) {
-            correct_hash += math::hash(pin);
-          }
-          if (correct_hash != hypergraph.edgeHash(he)) {
-            LOG << V(correct_hash);
-            LOG << V(hypergraph.edgeHash(he));
-            return false;
-          }
-          return true;
-        } (), V(he));
-      DBG << "Fingerprint for HE" << he << "= {" << he << "," << hypergraph.edgeHash(he)
-          << "," << hypergraph.edgeSize(he) << "}";
-      _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he) });
+    std::shared_lock<Mutex> hn_lock(_hn_mutex[u]);
+    if ( hypergraph.nodeIsEnabled(u) ) {
+      for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
+        /*ASSERT([&]() {
+            size_t correct_hash = Hypergraph::kEdgeHashSeed;
+            for (const HypernodeID& pin : hypergraph.pins(he)) {
+              correct_hash += math::hash(pin);
+            }
+            if (correct_hash != hypergraph.edgeHash(he)) {
+              LOG << V(correct_hash);
+              LOG << V(hypergraph.edgeHash(he));
+              return false;
+            }
+            return true;
+          } (), V(he));*/
+        std::shared_lock<Mutex> he_lock(_he_mutex[he]);
+        if ( hypergraph.edgeIsEnabled(he) ) {
+          DBG << "Fingerprint for HE" << he << "= {" << he << "," << hypergraph.edgeHash(he)
+              << "," << hypergraph.edgeSize(he) << "}";
+          _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he) });
+        }
+      }
     }
   }
 
@@ -300,6 +341,8 @@ class LockBasedHypergraphPruner {
 
   MutexVector<HypernodeID>& _hn_mutex;
   MutexVector<HyperedgeID>& _he_mutex;  
-  // ds::FastResetFlagArray<uint64_t> _contained_hypernodes;
+
+  std::vector<bool> _contained_hypernodes;
+  std::vector<HypernodeID> _contained_hns;
 };
 }  // namespace kahypar

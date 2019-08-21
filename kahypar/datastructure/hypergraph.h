@@ -118,7 +118,7 @@ class GenericHypergraph {
   using HypernodeData = HypernodeData_;
   using HyperedgeData = HyperedgeData_;
 
-  using Mutex = std::mutex;
+  using Mutex = std::shared_timed_mutex;
   template<typename Key>
   using MutexVector = MutexVector<Key, Mutex>;
 
@@ -247,7 +247,7 @@ class GenericHypergraph {
     }
 
     IDType size() const {
-      ASSERT(!isDisabled());
+      // ASSERT(!isDisabled());
       return _incident_nets.size();
     }
 
@@ -364,7 +364,7 @@ class GenericHypergraph {
     }
 
     void incrementSize() {
-      ASSERT(!isDisabled());
+      // ASSERT(!isDisabled());
       ++_size;
     }
 
@@ -380,7 +380,7 @@ class GenericHypergraph {
     }
 
     void setWeight(WeightType weight) {
-      ASSERT(!isDisabled());
+      // ASSERT(!isDisabled());
       _weight = weight;
     }
 
@@ -525,9 +525,9 @@ class GenericHypergraph {
    */
   struct Memento {
     // ! The representative hypernode that remains in the hypergraph
-    const HypernodeID u;
+    HypernodeID u;
     // ! The contraction partner of u that is removed from the hypergraph after the contraction.
-    const HypernodeID v;
+    HypernodeID v;
   };
 
   /*!
@@ -1002,20 +1002,38 @@ class GenericHypergraph {
   Memento parallelContract(const HypernodeID u, 
                            const HypernodeID v,
                            MutexVector<HypernodeID>& hn_mutex,
-                           MutexVector<HyperedgeID>& he_mutex) {
+                           MutexVector<HyperedgeID>& he_mutex,
+                           std::atomic<HypernodeID>& contraction_counter,
+                           HypernodeID& contraction_index,
+                           std::vector<bool>& active,
+                           std::vector<HypernodeID>& last_touched) {
     using std::swap;
-    std::lock_guard<Mutex> lock_u(hn_mutex[std::min(u, v)]);
-    std::lock_guard<Mutex> lock_v(hn_mutex[std::max(u, v)]);
     DBG << "contracting (" << u << "," << v << ")";
 
-    if ( !nodeIsEnabled(u) || !nodeIsEnabled(v) ) {
+    std::unique_lock<Mutex> lock1(hn_mutex[std::min(u,v)]);
+    std::unique_lock<Mutex> lock2(hn_mutex[std::max(u,v)]);
+
+    if ( !nodeIsEnabled(u) || !nodeIsEnabled(v) || active[u] || active[v] ) {
       return { 0, 0 };
     }
 
+    std::sort(hypernode(v).incidentNets().begin(), hypernode(v).incidentNets().end());
+    std::vector<std::unique_lock<Mutex>> he_locks;
+    for ( const HyperedgeID he : hypernode(v).incidentNets() ) {
+      he_locks.emplace_back(he_mutex[he]);
+      if ( !edgeIsEnabled(he)) {
+        return { 0, 0 };
+      }
+    }
+
+    active[u] = true;
+    active[v] = true;
+
+    contraction_index = contraction_counter++;
     hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
 
     for (const HyperedgeID he : hypernode(v).incidentNets()) {
-      std::lock_guard<Mutex> lock_he(he_mutex[he]);
+      last_touched[he] = contraction_index;
       const HypernodeID pins_begin = hyperedge(he).firstEntry();
       const HypernodeID pins_end = hyperedge(he).firstInvalidEntry();
       HypernodeID slot_of_u = pins_end - 1;
@@ -1489,6 +1507,43 @@ class GenericHypergraph {
     --_current_num_hyperedges;
   }
 
+  bool removeEdge(const HyperedgeID he, const HyperedgeID representive,
+                  MutexVector<HypernodeID>& he_mutex, MutexVector<HypernodeID>& hn_mutex) {
+    std::unique_lock<Mutex> he_lock(he_mutex[he]);
+    std::vector<HypernodeID> he_pins;
+    if ( edgeIsEnabled(he) ) {
+      for ( const HypernodeID& pin : pins(he) ) {
+        he_pins.emplace_back(pin);
+      }
+      std::sort(he_pins.begin(), he_pins.end());
+    } else {
+      return false;
+    }
+    he_lock.unlock();
+    
+    std::vector<std::unique_lock<Mutex>> hn_locks;
+    for ( const HypernodeID& pin : he_pins ) {
+      hn_locks.emplace_back(hn_mutex[pin]);
+      if ( !nodeIsEnabled(pin) ) {
+        return false;
+      }
+    }
+
+    std::unique_lock<Mutex> lock1(he_mutex[std::min(he, representive)]);
+    std::unique_lock<Mutex> lock2(he_mutex[std::max(he, representive)]);
+    if ( edgeIsEnabled(he) && edgeIsEnabled(representive) ) {
+      for (const HypernodeID& pin : he_pins) {
+        removeIncidentEdgeFromHypernode(he, pin);
+      }
+      hyperedge(he).disable();
+      // invalidatePartitionPinCounts(he);
+      // --_current_num_hyperedges;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   /*!
    * Removes a hyperedge from the hypergraph.
    *
@@ -1590,6 +1645,7 @@ class GenericHypergraph {
       if (connectivity(old_representative) > 1) {
         ++hypernode(pin).num_incident_cut_hes;
       }
+
       ++_current_num_pins;
     }
   }
@@ -1713,8 +1769,8 @@ class GenericHypergraph {
   }
 
   HyperedgeWeight edgeWeight(const HyperedgeID e) const {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
-    return hyperedge(e).weight();
+    // ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
+    return _hyperedges[e].weight();
   }
 
   HyperedgeWeight maxCommunityEdgeWeight(const HyperedgeID e) const {
@@ -1733,8 +1789,8 @@ class GenericHypergraph {
   }
 
   void setEdgeWeight(const HyperedgeID e, const HyperedgeWeight weight) {
-    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
-    hyperedge(e).setWeight(weight);
+    // ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
+    _hyperedges[e].setWeight(weight);
   }
 
   void setEdgeWeight(const HyperedgeID e, const PartitionID community, const HyperedgeWeight weight) {
@@ -2224,19 +2280,30 @@ class GenericHypergraph {
    * This method undoes this operation.
    */
   void resetReusedPinSlotToOriginalValue(const HyperedgeID he, const Memento& memento) {
-    ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
+    // ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
     PinHandleIterator pin_begin;
     PinHandleIterator pin_end;
     std::tie(pin_begin, pin_end) = pinHandles(he);
     ASSERT(pin_begin != pin_end, "Accessed empty hyperedge");
     --pin_end;
-    while (*pin_end != memento.u) {
+    while (*pin_end != memento.u /*&& *pin_end != memento.v*/) {
+      /*if ( pin_end == pin_begin ) {
+        for ( size_t i = hyperedge(he).firstEntry(); i < hyperedge(he+1).firstEntry(); ++i ) {
+          if ( i == hyperedge(he).firstInvalidEntry() ) {
+            std::cout << "| ";
+          }
+          std::cout << _incidence_array[i] << " ";
+        }
+        std::cout << std::endl;
+      }*/
       ASSERT(pin_end != pin_begin, "Pin" << memento.u << "not found in pinlist of HE" << he);
       --pin_end;
     }
     ASSERT(*pin_end == memento.u && std::distance(_incidence_array.begin(), pin_begin)
-           <= std::distance(_incidence_array.begin(), pin_end), "Reused slot not found");
+      <= std::distance(_incidence_array.begin(), pin_end), "Reused slot not found");
+    //if ( *pin_end == memento.u ) {
     *pin_end = memento.v;
+    //}
   }
 
   /*!
@@ -2317,6 +2384,25 @@ class GenericHypergraph {
     }
   }
 
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE std::vector<HyperedgeID> markLockBasedIncidentNetsOf(const HypernodeID v) {
+    _hes_not_containing_u.reset();
+    // Assume all HEs did not contain u and we have to undo Case 2 operations.
+    std::vector<HyperedgeID> disabled_hyperedges;
+    auto& incident_hes_of_v = hypernode(v).incidentNets();
+    int64_t incident_nets_end = incident_hes_of_v.size();
+    for (int64_t incident_nets_pos = 0; incident_nets_pos < incident_nets_end; ++incident_nets_pos) {
+      const HyperedgeID he = incident_hes_of_v[incident_nets_pos];
+      if ( !edgeIsEnabled(he) ) {
+        std::swap(incident_hes_of_v[incident_nets_pos--],
+                  incident_hes_of_v[incident_nets_end--]);
+        incident_hes_of_v.pop_back();
+        disabled_hyperedges.push_back(he);
+      }
+      _hes_not_containing_u.set(he, true);
+    }
+    return disabled_hyperedges;
+  }
+
   /*!
    * Generic method to remove incidence information
    * The method finds id to_remove in the incidence structure of
@@ -2369,7 +2455,6 @@ class GenericHypergraph {
     }
     hypernode(hn).incidentNets().pop_back();
   }
-
 
   std::string typeToString(Type hypergraph_type) const {
     std::string typestring;
