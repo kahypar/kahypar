@@ -79,8 +79,9 @@ class CommunityHypergraph {
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const {
     ASSERT(!_hg.hypernode(u).isDisabled(), "Hypernode" << u << "is disabled");
     if ( _hg.hypernode(u).community_degree != INVALID_COMMUNITY_DEGREE ) {
+      ASSERT(_hg.hypernode(u).community_degree <= _hg.hypernode(u).incidentNets().size());
       return std::make_pair(_hg.hypernode(u).incidentNets().cbegin(),
-                            _hg.hypernode(u).incidentNets().cend() +
+                            _hg.hypernode(u).incidentNets().cbegin() +
                             _hg.hypernode(u).community_degree);
     } else {
       return std::make_pair(_hg.hypernode(u).incidentNets().cbegin(),
@@ -226,7 +227,7 @@ class CommunityHypergraph {
     return _hg.edgeWeight(e);
   }
 
-  HyperedgeWeight edgeWeight(const HyperedgeID e, const PartitionID community) const {
+  HyperedgeWeight edgeWeight(const HyperedgeID e, const PartitionID community) const {    
    if ( community != -1 ) { 
       ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
       ASSERT(containsCommunityHyperedge(e, community),
@@ -403,13 +404,14 @@ class CommunityHypergraph {
             int64_t incident_net_end = this->_hg._hypernodes[hn].incidentNets().size() - 1;
             for ( ; incident_net_pos <= incident_net_end; ++incident_net_pos ) {
               const HyperedgeID he = this->_hg._hypernodes[hn].incidentNets()[incident_net_pos];
-              if ( this->_hg.edgeSize(he, community_id) == 1 ) {
+              if ( edgeSize(he, community_id) == 1 ) {
                 std::swap(this->_hg._hypernodes[hn].incidentNets()[incident_net_pos--],
                           this->_hg._hypernodes[hn].incidentNets()[incident_net_end--]);
               }
             }
             this->_hg._hypernodes[hn].community_degree = incident_net_end + 1;
 
+            ASSERT(this->_hg._hypernodes[hn].community_degree <= this->_hg._hypernodes[hn].incidentNets().size());
             ASSERT([&]() {
               for ( size_t i = 0; i < this->_hg._hypernodes[hn].community_degree; ++i) {
                 const HyperedgeID he = this->_hg._hypernodes[hn].incidentNets()[i];
@@ -478,7 +480,6 @@ class CommunityHypergraph {
 
   void undo(const std::vector<Memento>& history) {
     ASSERT(history.size() < this->_hg.initialNumNodes(), "More contractions than initial number of nodes");
-
     this->_hg._current_num_hypernodes = this->_hg.initialNumNodes() - history.size();
 
     // PHASE 1
@@ -618,7 +619,7 @@ class CommunityHypergraph {
     _hg.hypernode(u).incidentNets().push_back(e);
     if (_context.shared_memory.remove_single_pin_community_hyperedges && edgeSize( e, c ) > 1 ) {
       std::swap(_hg.hypernode(u).incidentNets()[_hg.hypernode(u).community_degree],
-                _hg.hypernode(u).incidentNets().back());
+                _hg.hypernode(u).incidentNets()[_hg.hypernode(u).incidentNets().size() - 1]);
       ++_hg.hypernode(u).community_degree;
     }
   }
@@ -644,6 +645,7 @@ class CommunityHypergraph {
       swap(*last_net, *(_hg.hypernode(hn).incidentNets().end() - 1));
       --_hg.hypernode(hn).community_degree;
     }
+    ASSERT(_hg.hypernode(hn).incidentNets().back() == he);
     _hg.hypernode(hn).incidentNets().pop_back();
   }
 

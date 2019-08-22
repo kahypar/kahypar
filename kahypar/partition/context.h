@@ -412,7 +412,7 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
 
 struct SharedMemoryParameters {
   size_t num_threads = 0;
-  bool remove_single_pin_community_hyperedges = false;
+  bool remove_single_pin_community_hyperedges = true;
   bool cache_friendly_coarsening = false;
   bool numa_aware_thread_pinning = false;
   size_t working_packages = 64;
