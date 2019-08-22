@@ -191,7 +191,8 @@ class LockBasedHypergraphPruner {
                 if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
                   i_lock.unlock();
                   j_lock.unlock();
-                  if ( removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id) ) {
+                  if ( removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id,
+                        last_touched, memento.contraction_index) ) {
                     removed_parallel_hes += 1;
                     _fingerprints[j].id = kInvalidID;
                     ++memento.parallel_hes_size;
@@ -277,12 +278,14 @@ class LockBasedHypergraphPruner {
 
   bool removeParallelHyperedge(Hypergraph& hypergraph,
                                const HyperedgeID representative,
-                               const HyperedgeID to_remove) {
+                               const HyperedgeID to_remove,
+                               const std::vector<HypernodeID>& last_touched, 
+                               const HypernodeID contraction_index) {
     std::shared_lock<Mutex> he_lock(_he_mutex[to_remove]);
     if ( hypergraph.edgeIsEnabled(to_remove) ) {
       HyperedgeWeight to_remove_weight = hypergraph.edgeWeight(to_remove);
       he_lock.unlock();
-      if ( hypergraph.removeEdge(to_remove, representative, _he_mutex, _hn_mutex) ) {
+      if ( hypergraph.removeEdge(to_remove, representative, _he_mutex, _hn_mutex, last_touched, contraction_index) ) {
         DBG << "removed HE" << to_remove << "which was parallel to" << representative;
         hypergraph.setEdgeWeight(representative,
                                  hypergraph.edgeWeight(representative)

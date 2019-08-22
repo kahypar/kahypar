@@ -1508,7 +1508,8 @@ class GenericHypergraph {
   }
 
   bool removeEdge(const HyperedgeID he, const HyperedgeID representive,
-                  MutexVector<HypernodeID>& he_mutex, MutexVector<HypernodeID>& hn_mutex) {
+                  MutexVector<HypernodeID>& he_mutex, MutexVector<HypernodeID>& hn_mutex,
+                  const std::vector<HypernodeID>& last_touched, const HypernodeID contraction_index) {
     std::unique_lock<Mutex> he_lock(he_mutex[he]);
     std::vector<HypernodeID> he_pins;
     if ( edgeIsEnabled(he) ) {
@@ -1531,7 +1532,8 @@ class GenericHypergraph {
 
     std::unique_lock<Mutex> lock1(he_mutex[std::min(he, representive)]);
     std::unique_lock<Mutex> lock2(he_mutex[std::max(he, representive)]);
-    if ( edgeIsEnabled(he) && edgeIsEnabled(representive) ) {
+    if ( edgeIsEnabled(he) && edgeIsEnabled(representive) &&
+         last_touched[he] <= contraction_index && last_touched[representive] <= contraction_index ) {
       for (const HypernodeID& pin : he_pins) {
         removeIncidentEdgeFromHypernode(he, pin);
       }
