@@ -53,6 +53,8 @@ class LockBasedVertexPairRater {
  private:
   static constexpr bool debug = false;
 
+  static constexpr size_t MAP_SIZE = 10000;
+
   class VertexPairRating {
  public:
     VertexPairRating(HypernodeID trgt, RatingType val, bool is_valid) :
@@ -80,8 +82,6 @@ class LockBasedVertexPairRater {
 
  public:
   using Rating = VertexPairRating;
-  using HashTable = kahypar::ds::FastHashTable<>;
-  using TargetRating = std::pair<HypernodeID, RatingType>;
   using Mutex = std::shared_timed_mutex;
   template<typename Key>
   using MutexVector = kahypar::ds::MutexVector<Key, Mutex>;
@@ -92,8 +92,7 @@ class LockBasedVertexPairRater {
                            MutexVector<HyperedgeID>& he_mutex ) :
     _hg(hypergraph),
     _context(context),
-    _tmp_ratings(),
-    _tmp_ratings_pos(10000),
+    _tmp_ratings(MAP_SIZE),
     _hn_mutex(hn_mutex),
     _he_mutex(he_mutex) { }
 
@@ -119,11 +118,7 @@ class LockBasedVertexPairRater {
             const RatingType score = ScorePolicy::score(_hg, he, _context); 
             for (const HypernodeID& v : _hg.pins(he, _context.coarsening.community_contraction_target)) {
               if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) ) {
-                if ( _tmp_ratings_pos.find(v) == _tmp_ratings_pos.end() ) {
-                  _tmp_ratings_pos[v] = _tmp_ratings.size();
-                  _tmp_ratings.push_back(std::make_pair(v, 0.0));
-                }
-                _tmp_ratings[_tmp_ratings_pos[v]].second += score;
+                _tmp_ratings.update(v, score);
               }
             }
           }
@@ -133,8 +128,8 @@ class LockBasedVertexPairRater {
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
-    for ( const TargetRating& rating : _tmp_ratings ) {
-      const HypernodeID tmp_target = rating.first;
+    for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
+      const HypernodeID tmp_target = it->key;
       if ( u > tmp_target ) {
         hn_lock.unlock();
       }
@@ -147,7 +142,7 @@ class LockBasedVertexPairRater {
         HypernodeWeight penalty = HeavyNodePenaltyPolicy::penalty(weight_u,
                                                                   target_weight);
         penalty = penalty == 0 ? std::max(std::max(weight_u, target_weight), 1) : penalty;
-        const RatingType tmp_rating = rating.second / static_cast<double>(penalty);
+        const RatingType tmp_rating = it->value / static_cast<double>(penalty);
         DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
         if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
             AcceptancePolicy::acceptRating(tmp_rating, max_rating,
@@ -158,9 +153,11 @@ class LockBasedVertexPairRater {
           max_rating = tmp_rating;
           target = tmp_target;
         }
+        _tmp_ratings.remove_last_entry();
       } else if ( !_hg.nodeIsEnabled(u) ) {
         max_rating = std::numeric_limits<RatingType>::min();
         target = std::numeric_limits<HypernodeID>::max();
+        _tmp_ratings.remove_last_entry();
         break;
       }
     }
@@ -174,7 +171,7 @@ class LockBasedVertexPairRater {
       ret.valid = true;
       ASSERT(_hg.communities()[u] == _hg.communities()[ret.target]);
     }
-    clearRatings();
+    _tmp_ratings.clear();
     DBG << "rating=(" << ret.value << "," << ret.target << "," << ret.valid << ")";
     return ret;
   }
@@ -189,17 +186,9 @@ class LockBasedVertexPairRater {
     return weight_v + weight_u <= _context.coarsening.max_allowed_node_weight;
   }
 
-  void clearRatings() {
-    for ( const TargetRating& rating : _tmp_ratings ) {
-      _tmp_ratings_pos.erase(rating.first);
-    }
-    _tmp_ratings.clear();
-  }
-
   Hypergraph& _hg;
   const Context& _context;
-  std::vector<TargetRating> _tmp_ratings;
-  HashTable _tmp_ratings_pos;
+  ds::ProbabilisticSparseMap<HypernodeID, RatingType> _tmp_ratings;
   MutexVector<HypernodeID>& _hn_mutex;
   MutexVector<HyperedgeID>& _he_mutex;  
 };

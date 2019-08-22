@@ -33,6 +33,7 @@
 
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 namespace ds {
@@ -106,7 +107,8 @@ class SparseMapBase {
     _size(0),
     _sparse(std::make_unique<size_t[]>((max_size * sizeof(MapElement) +
                                         max_size * sizeof(size_t)) / sizeof(size_t))),
-    _dense(nullptr) {
+    _dense(nullptr),
+    _initial_value(initial_value) {
     _dense = reinterpret_cast<MapElement*>(_sparse.get() + max_size);
     for (size_t i = 0; i < max_size; ++i) {
       _sparse[i] = std::numeric_limits<size_t>::max();
@@ -128,6 +130,7 @@ class SparseMapBase {
   size_t _size;
   std::unique_ptr<size_t[]> _sparse;
   MapElement* _dense;
+  Value _initial_value;
 };
 
 
@@ -170,6 +173,7 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
   }
 
  private:
+
   bool containsImpl(const Key key) const {
     const size_t index = _sparse[key];
     return index < _size && _dense[index].key == key;
@@ -191,6 +195,128 @@ class SparseMap final : public SparseMapBase<Key, Value, SparseMap<Key, Value> >
   using Base::_sparse;
   using Base::_dense;
   using Base::_size;
+};
+
+template <typename Key = Mandatory,
+          typename Value = Mandatory>
+class ProbabilisticSparseMap final : public SparseMapBase<Key, Value, ProbabilisticSparseMap<Key, Value> >{
+  using Base = SparseMapBase<Key, Value, ProbabilisticSparseMap<Key, Value> >;
+  friend Base;
+  using MapElement = typename Base::MapElement;
+
+  static constexpr size_t NUM_PRECOMPUTED_COIN_FLIPS = 100;
+
+ public:
+  explicit ProbabilisticSparseMap(const Key max_size,
+                                const Value initial_value = 0) :
+    Base(max_size, initial_value),
+    _initial_size(max_size),
+    _flip_coin_index(0),
+    _precomputed_flip_coin(NUM_PRECOMPUTED_COIN_FLIPS),
+    _locked(max_size) { 
+    for ( size_t i = 0; i < NUM_PRECOMPUTED_COIN_FLIPS; ++i ) {
+      _precomputed_flip_coin[i] = Randomize::instance().flipCoin();
+    }
+  }
+
+  ProbabilisticSparseMap(const ProbabilisticSparseMap&) = delete;
+  ProbabilisticSparseMap& operator= (const ProbabilisticSparseMap& other) = delete;
+
+  ProbabilisticSparseMap(ProbabilisticSparseMap&& other) :
+    Base(std::move(other)) { }
+
+  ProbabilisticSparseMap& operator= (ProbabilisticSparseMap&& other) {
+    _sparse = std::move(other._sparse);
+    _size = 0;
+    _dense = std::move(other._dense);
+    other._size = 0;
+    other._sparse = nullptr;
+    other._dense = nullptr;
+    return *this;
+  }
+
+  ~ProbabilisticSparseMap() = default;
+
+  void update(const Key key, const Value delta) {
+    const size_t index = _sparse[key % _initial_size];
+    if ( index >= _size ) {
+      // Case, where key is not contained in map and entry is
+      // not occupied by any other key
+      _dense[_size] = { key, delta };
+      _sparse[key % _initial_size] = _size++;
+      _locked[key % _initial_size] = false;
+    } else if ( _dense[index].key == key ) {
+      // Case, where key is already contained in map
+      _dense[index].value += delta;
+    } else if ( !_locked[key % _initial_size] && coinFlip() ) {
+      // Case, where another key occupies the entry for current key
+      // and coin flip decides to remove that key
+      _dense[index] = { key, delta };
+      _locked[key % _initial_size] = true;
+    }
+  }
+
+  void remove(const Key key) {
+    const size_t index = _sparse[key % _initial_size];
+    if (index < _size && _dense[index].key == key) {
+      std::swap(_dense[index], _dense[_size - 1]);
+      _sparse[_dense[index].key % _initial_size] = index;
+      --_size;
+    }
+  }
+
+  void remove_last_entry() {
+    if ( _size > 0 ) {
+      const Key key = _dense[_size - 1].key;
+      _sparse[key % _initial_size] = std::numeric_limits<Key>::max();
+      _dense[--_size] = { std::numeric_limits<Key>::max(), _initial_value };
+    }
+  }
+
+ private:
+
+  bool containsImpl(const Key key) const {
+    const size_t index = _sparse[key % _initial_size];
+    return index < _size && _dense[index].key == key;
+  }
+
+  void addImpl(const Key key, const Value value) {
+    const size_t index = _sparse[key % _initial_size];
+    if ( index >= _size ) {
+      // Case, where key is not contained in map and entry is
+      // not occupied by any other key
+      _dense[_size] = { key, value };
+      _sparse[key % _initial_size] = _size++;
+      _locked[key % _initial_size] = false;
+    } else if ( _dense[index].key == key ) {
+      // Case, where key is already contained in map
+      _dense[index].value = value;
+    } else if ( !_locked[key % _initial_size] && coinFlip() ) {
+      // Case, where another key occupies the entry for current key
+      // and coin flip decides to remove that key
+      _dense[index] = { key, value };
+      _locked[key % _initial_size] = true;
+    }
+  }
+
+  void clearImpl() {
+    _size = 0;
+  }
+
+  inline bool coinFlip() {
+    _flip_coin_index = ( ( _flip_coin_index + 1 ) % NUM_PRECOMPUTED_COIN_FLIPS );
+    return _precomputed_flip_coin[_flip_coin_index];
+  }
+
+  using Base::_sparse;
+  using Base::_dense;
+  using Base::_size;
+  using Base::_initial_value;
+
+  size_t _initial_size;
+  size_t _flip_coin_index;
+  std::vector<bool> _precomputed_flip_coin;
+  std::vector<bool> _locked;
 };
 }  // namespace ds
 }  // namespace kahypar
