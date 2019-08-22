@@ -121,7 +121,8 @@ class SparseMapBase {
   SparseMapBase(SparseMapBase&& other) :
     _size(other._size),
     _sparse(std::move(other._sparse)),
-    _dense(std::move(other._dense)) {
+    _dense(std::move(other._dense)),
+    _initial_value(std::move(other._initial_value)) {
     other._size = 0;
     other._sparse = nullptr;
     other._dense = nullptr;

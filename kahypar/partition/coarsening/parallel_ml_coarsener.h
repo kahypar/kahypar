@@ -31,7 +31,6 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/datastructure/parallel_hypergraph.h"
 #include "kahypar/datastructure/fast_hash_table.h"
 #include "kahypar/datastructure/mutex_vector.h"
 #include "kahypar/utils/thread_pool.h"

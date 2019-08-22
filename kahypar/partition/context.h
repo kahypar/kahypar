@@ -412,6 +412,7 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
 
 struct SharedMemoryParameters {
   size_t num_threads = 0;
+  bool remove_single_pin_community_hyperedges = false;
   bool cache_friendly_coarsening = false;
   bool numa_aware_thread_pinning = false;
   size_t working_packages = 64;
@@ -422,6 +423,8 @@ struct SharedMemoryParameters {
 inline std::ostream& operator<< (std::ostream& str, const SharedMemoryParameters& params) {
   str << "Shared Memory Parameters:             " << std::endl;
   str << "  Number of Threads:                  " << params.num_threads << std::endl;
+  str << "  Remove Single Pin Community HEs     " << std::boolalpha
+      << params.remove_single_pin_community_hyperedges << std::endl;
   str << "  Cache Friendly Coarsening:          " << std::boolalpha
       << params.cache_friendly_coarsening << std::endl;
   str << "  NUMA Aware Thread Pinning:          " << std::boolalpha

@@ -27,7 +27,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/fast_reset_flag_array.h"
-#include "kahypar/datastructure/fast_hash_table.h"
+#include "kahypar/datastructure/community_hypergraph.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/coarsening_memento.h"
 #include "kahypar/utils/math.h"
@@ -50,8 +50,8 @@ class ParallelHypergraphPruner {
   };
 
   static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
-
-  using HypernodeMapping = std::shared_ptr<ds::FastHashTable<>>;
+  
+  using CommunityHypergraph = kahypar::ds::CommunityHypergraph<Hypergraph>;
 
  public:
   explicit ParallelHypergraphPruner(const PartitionID community_id, const size_t num_nodes) :
@@ -102,7 +102,7 @@ class ParallelHypergraphPruner {
     }
   }
 
-  HyperedgeWeight removeSingleNodeHyperedges(Hypergraph& hypergraph,
+  HyperedgeWeight removeSingleNodeHyperedges(CommunityHypergraph& hypergraph,
                                              CoarseningMemento& memento) {
     // ASSERT(_history.top().contraction_memento.u == u,
     //        "Current coarsening memento does not belong to hypernode" << u);
@@ -115,7 +115,7 @@ class ParallelHypergraphPruner {
         _removed_single_node_hyperedges.push_back(*he_it);
         _max_removed_single_node_he_weight = std::max(_max_removed_single_node_he_weight,
                                                       hypergraph.edgeWeight(*he_it, _community_id));
-        removed_he_weight += hypergraph.edgeWeight(*he_it);
+        removed_he_weight += hypergraph.edgeWeight(*he_it, _community_id);
         ++memento.one_pin_hes_size;
         DBG << "removing single-node HE" << *he_it;
         hypergraph.removeEdge(*he_it, _community_id);
@@ -138,9 +138,8 @@ class ParallelHypergraphPruner {
   // Note, in the parallel version of the hypergraph pruner we only detect parallel nets
   // if the hyperedge contains only one community. Parallel net detection for hyperedges
   // which span several communities are still an open task.
-  void removeParallelHyperedges(Hypergraph& hypergraph,
-                                CoarseningMemento& memento,
-                                const HypernodeMapping hn_mapping) {
+  void removeParallelHyperedges(CommunityHypergraph& hypergraph,
+                                CoarseningMemento& memento) {
     memento.parallel_hes_begin = _removed_parallel_hyperedges.size();
 
     createFingerprints(hypergraph, memento.contraction_memento.u);
@@ -174,12 +173,12 @@ class ParallelHypergraphPruner {
               hypergraph.edgeSize(_fingerprints[i].id, _community_id) ==
               hypergraph.edgeSize(_fingerprints[j].id, _community_id) &&
               hypergraph.numCommunitiesInHyperedge(_fingerprints[j].id) == 1) {
-            ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id), V(_fingerprints[j].id));
+            ASSERT(hypergraph.edgeIsEnabled(_fingerprints[j].id, _community_id), V(_fingerprints[j].id));
             if (!filled_probe_bitset) {
-              fillProbeBitset(hypergraph, _fingerprints[i].id, hn_mapping);
+              fillProbeBitset(hypergraph, _fingerprints[i].id);
               filled_probe_bitset = true;
             }
-            if (isParallelHyperedge(hypergraph, _fingerprints[j].id, hn_mapping)) {
+            if (isParallelHyperedge(hypergraph, _fingerprints[j].id)) {
               removeParallelHyperedge(hypergraph, _fingerprints[i].id, _fingerprints[j].id);
               _fingerprints[j].id = kInvalidID;
               ++memento.parallel_hes_size;
@@ -194,11 +193,10 @@ class ParallelHypergraphPruner {
     }
   }
 
-  void removeParallelHyperedge(Hypergraph& hypergraph,
+  void removeParallelHyperedge(CommunityHypergraph& hypergraph,
                                const HyperedgeID representative,
                                const HyperedgeID to_remove) {
-    hypergraph.setEdgeWeight(representative,
-                             _community_id,
+    hypergraph.setEdgeWeight(representative, _community_id,
                              hypergraph.edgeWeight(representative)
                              + hypergraph.edgeWeight(to_remove));
     DBG << "removed HE" << to_remove << "which was parallel to" << representative;
@@ -207,11 +205,10 @@ class ParallelHypergraphPruner {
     _removed_parallel_hyperedges.emplace_back(ParallelHE { representative, to_remove, removed_old_size });
   }
 
-  bool isParallelHyperedge(Hypergraph& hypergraph, const HyperedgeID he,
-                           const HypernodeMapping hn_mapping) {
+  bool isParallelHyperedge(CommunityHypergraph& hypergraph, const HyperedgeID he) {
     bool is_parallel = true;
     for (const HypernodeID& pin : hypergraph.pins(he, _community_id)) {
-      if (!_contained_hypernodes[mapToCommunityHypergraph(pin, hn_mapping)]) {
+      if (!_contained_hypernodes[hypergraph.communityNodeID(pin)]) {
         is_parallel = false;
         break;
       }
@@ -220,17 +217,16 @@ class ParallelHypergraphPruner {
     return is_parallel;
   }
 
-  void fillProbeBitset(Hypergraph& hypergraph, const HyperedgeID he,
-                       const HypernodeMapping hn_mapping) {
+  void fillProbeBitset(CommunityHypergraph& hypergraph, const HyperedgeID he) {
     _contained_hypernodes.reset();
     DBG << "Filling Bitprobe Set for HE" << he;
     for (const HypernodeID& pin : hypergraph.pins(he, _community_id)) {
       DBG << "_contained_hypernodes[" << pin << "]=1";
-      _contained_hypernodes.set(mapToCommunityHypergraph(pin, hn_mapping), true);
+      _contained_hypernodes.set(hypergraph.communityNodeID(pin), true);
     }
   }
 
-  void createFingerprints(Hypergraph& hypergraph, const HypernodeID u) {
+  void createFingerprints(CommunityHypergraph& hypergraph, const HypernodeID u) {
     _fingerprints.clear();
     for (const HyperedgeID& he : hypergraph.incidentEdges(u)) {
       ASSERT([&]() {
@@ -240,13 +236,13 @@ class ParallelHypergraphPruner {
           }
           if (correct_hash != hypergraph.edgeHash(he, _community_id)) {
             LOG << V(correct_hash);
-            LOG << V(hypergraph.edgeHash(he));
+            LOG << V(hypergraph.edgeHash(he, _community_id));
             return false;
           }
           return true;
         } (), V(he));
       DBG << "Fingerprint for HE" << he << "= {" << he << "," << hypergraph.edgeHash(he, _community_id)
-          << "," << hypergraph.edgeSize(he) << "}";
+          << "," << hypergraph.edgeSize(he, _community_id) << "}";
       _fingerprints.emplace_back(Fingerprint { he, hypergraph.edgeHash(he, _community_id) });
     }
   }
@@ -268,13 +264,6 @@ class ParallelHypergraphPruner {
   }
 
  private:
-  inline HypernodeID mapToCommunityHypergraph(const HypernodeID hn,
-                                              const HypernodeMapping hn_mapping) {
-    ASSERT(hn_mapping->find(hn) != hn_mapping->end(),
-           "There exists no mapping for hypernode " << hn);
-    return hn_mapping->find(hn)->second;
-  }
-
   const PartitionID _community_id;
   HyperedgeWeight _max_removed_single_node_he_weight;
   std::vector<HyperedgeID> _removed_single_node_hyperedges;

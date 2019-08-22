@@ -65,7 +65,7 @@ class AParallelCoarsener : public ::testing::TestWithParam<size_t> {
     context.coarsening.max_allowed_node_weight = 5;
     context.coarsening.contraction_limit = 6;
     context.shared_memory.num_threads = GetParam();
-    context.shared_memory.pool = std::make_unique<kahypar::parallel::ThreadPool>(GetParam());
+    context.shared_memory.pool = std::make_unique<kahypar::parallel::ThreadPool>(context);
 
     hypergraph->setNumCommunities(3);
     hypergraph->setNodeCommunity(0,  0);

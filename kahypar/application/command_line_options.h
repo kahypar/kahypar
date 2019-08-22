@@ -569,6 +569,9 @@ po::options_description createSharedMemoryOptionsDescription(Context& context,
     }),
     "Number of threads used during shared memory hypergraph partitioning\n"
     "(default 0)")
+    ("s-remove-single-pin-community-hyperedges",
+    po::value<bool>(&context.shared_memory.remove_single_pin_community_hyperedges)->value_name("<bool>"),
+    "If true, single pin community hyperedges are ignored during parallel community coarsenign (default: false)")
     ("s-cache-friendly-coarsening",
     po::value<bool>(&context.shared_memory.cache_friendly_coarsening)->value_name("<bool>"),
     "If true, cache friendly hypergraph layout is used during shared memory coarsening (default: false)")

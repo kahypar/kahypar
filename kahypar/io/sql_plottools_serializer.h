@@ -107,6 +107,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " reuse_community_structure=" << std::boolalpha
         << context.preprocessing.community_detection.reuse_communities
         << " num_threads=" << context.shared_memory.num_threads
+        << " remove_single_pin_community_hyperedges=" << std::boolalpha
+        << context.shared_memory.remove_single_pin_community_hyperedges
         << " cache_friendly_coarsening=" << std::boolalpha
         << context.shared_memory.cache_friendly_coarsening
         << " numa_aware_thread_pinning=" << std::boolalpha
