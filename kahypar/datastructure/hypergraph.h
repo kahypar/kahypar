@@ -78,6 +78,9 @@ struct CommunityHyperedgeStats;
 template <typename Hypergraph>
 class CommunityHypergraph;
 
+template <typename Hypergraph>
+class LockBasedHypergraph;
+
 /*!
  * The hypergraph data structure as described in
  * ,,k-way Hypergraph Partitioning via n-Level Recursive Bisection''
@@ -921,83 +924,6 @@ class GenericHypergraph {
     return _connectivity_sets[he];
   }
 
-  Memento parallelContract(const HypernodeID u, 
-                           const HypernodeID v,
-                           MutexVector<HypernodeID>& hn_mutex,
-                           MutexVector<HyperedgeID>& he_mutex,
-                           std::atomic<HypernodeID>& contraction_counter,
-                           HypernodeID& contraction_index,
-                           std::vector<bool>& active,
-                           std::vector<HypernodeID>& last_touched) {
-    using std::swap;
-    DBG << "contracting (" << u << "," << v << ")";
-
-    std::unique_lock<Mutex> lock1(hn_mutex[std::min(u,v)]);
-    std::unique_lock<Mutex> lock2(hn_mutex[std::max(u,v)]);
-
-    if ( !nodeIsEnabled(u) || !nodeIsEnabled(v) || active[u] || active[v] ) {
-      return { 0, 0 };
-    }
-
-    std::sort(hypernode(v).incidentNets().begin(), hypernode(v).incidentNets().end());
-    std::vector<std::unique_lock<Mutex>> he_locks;
-    for ( const HyperedgeID he : hypernode(v).incidentNets() ) {
-      he_locks.emplace_back(he_mutex[he]);
-      if ( !edgeIsEnabled(he)) {
-        return { 0, 0 };
-      }
-    }
-
-    active[u] = true;
-    active[v] = true;
-
-    contraction_index = contraction_counter++;
-    hypernode(u).setWeight(hypernode(u).weight() + hypernode(v).weight());
-
-    for (const HyperedgeID he : hypernode(v).incidentNets()) {
-      last_touched[he] = contraction_index;
-      const HypernodeID pins_begin = hyperedge(he).firstEntry();
-      const HypernodeID pins_end = hyperedge(he).firstInvalidEntry();
-      HypernodeID slot_of_u = pins_end - 1;
-      HypernodeID last_pin_slot = pins_end - 1;
-
-      for (HypernodeID pin_iter = pins_begin; pin_iter != last_pin_slot; ++pin_iter) {
-        const HypernodeID pin = _incidence_array[pin_iter];
-        if (pin == v) {
-          swap(_incidence_array[pin_iter], _incidence_array[last_pin_slot]);
-          --pin_iter;
-        } else if (pin == u) {
-          slot_of_u = pin_iter;
-        }
-      }
-
-      ASSERT(_incidence_array[last_pin_slot] == v, "v is not last entry in adjacency array!");
-
-      if (slot_of_u != last_pin_slot) {
-        // Case 1:
-        // Hyperedge e contains both u and v. Thus we don't need to connect u to e and
-        // can just cut off the last entry in the edge array of e that now contains v.
-        DBG << V(he) << ": Case 1";
-        edgeHash(he) -= math::hash(v);
-        hyperedge(he).decrementSize();
-        // TODO: Decrement pin count in part
-        //--_current_num_pins; // make this atomic
-      } else {
-        DBG << V(he) << ": Case 2";
-        // Case 2:
-        // Hyperedge e does not contain u. Therefore we  have to connect e to the representative u.
-        // This reuses the pin slot of v in e's incidence array (i.e. last_pin_slot!)
-        edgeHash(he) -= math::hash(v);
-        edgeHash(he) += math::hash(u);
-        connectHyperedgeToRepresentative(he, u);
-      }
-    }
-
-    hypernode(v).disable();
-    //--_current_num_hypernodes; // TODO: make this atomic
-    return Memento { u, v };
-  }
-
   /*!
    * Contracts the vertex pair (u,v). The representative u remains in the hypergraph.
    * The contraction partner v is removed from the hypergraph.
@@ -1429,43 +1355,8 @@ class GenericHypergraph {
     --_current_num_hyperedges;
   }
 
-  bool removeEdge(const HyperedgeID he, const HyperedgeID representive,
-                  MutexVector<HypernodeID>& he_mutex, MutexVector<HypernodeID>& hn_mutex,
-                  const std::vector<HypernodeID>& last_touched, const HypernodeID contraction_index) {
-    std::unique_lock<Mutex> he_lock(he_mutex[he]);
-    std::vector<HypernodeID> he_pins;
-    if ( edgeIsEnabled(he) ) {
-      for ( const HypernodeID& pin : pins(he) ) {
-        he_pins.emplace_back(pin);
-      }
-      std::sort(he_pins.begin(), he_pins.end());
-    } else {
-      return false;
-    }
-    he_lock.unlock();
-    
-    std::vector<std::unique_lock<Mutex>> hn_locks;
-    for ( const HypernodeID& pin : he_pins ) {
-      hn_locks.emplace_back(hn_mutex[pin]);
-      if ( !nodeIsEnabled(pin) ) {
-        return false;
-      }
-    }
-
-    std::unique_lock<Mutex> lock1(he_mutex[std::min(he, representive)]);
-    std::unique_lock<Mutex> lock2(he_mutex[std::max(he, representive)]);
-    if ( edgeIsEnabled(he) && edgeIsEnabled(representive) &&
-         last_touched[he] <= contraction_index && last_touched[representive] <= contraction_index ) {
-      for (const HypernodeID& pin : he_pins) {
-        removeIncidentEdgeFromHypernode(he, pin);
-      }
-      hyperedge(he).disable();
-      // invalidatePartitionPinCounts(he);
-      // --_current_num_hyperedges;
-      return true;
-    } else {
-      return false;
-    }
+  void removeEdge(const HyperedgeID he, const PartitionID) {
+    removeEdge(he);
   }
 
   /*!
@@ -1651,6 +1542,10 @@ class GenericHypergraph {
   void setEdgeWeight(const HyperedgeID e, const HyperedgeWeight weight) {
     ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
     _hyperedges[e].setWeight(weight);
+  }
+
+  void setEdgeWeight(const HyperedgeID e, const PartitionID, const HyperedgeWeight weight) {
+    setEdgeWeight(e, weight);
   }
 
   PartitionID partID(const HypernodeID u) const {
@@ -2241,7 +2136,6 @@ class GenericHypergraph {
                                                                        const HypernodeID hn) {
     using std::swap;
     ASSERT(!hypernode(hn).isDisabled());
-
     auto begin = hypernode(hn).incidentNets().begin();
     ASSERT(hypernode(hn).size() > 0);
     auto last_entry = hypernode(hn).incidentNets().end() - 1;
@@ -2366,6 +2260,9 @@ class GenericHypergraph {
 
   template <typename Hypergraph>
   friend class CommunityHypergraph;
+
+  template <typename Hypergraph>
+  friend class LockBasedHypergraph;
 
   template <typename Hypergraph>
   friend std::pair<std::unique_ptr<Hypergraph>,

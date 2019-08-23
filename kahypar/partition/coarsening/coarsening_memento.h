@@ -21,9 +21,13 @@
 #pragma once
 
 #include "kahypar/definitions.h"
+#include "kahypar/datastructure/lock_based_hypergraph.h"
 
 namespace kahypar {
 class CoarseningMemento {
+ using Memento = typename Hypergraph::ContractionMemento;
+ using LockBasedMemento = typename kahypar::ds::LockBasedHypergraph<Hypergraph>::LockBasedContractionMemento;
+ 
  public:
   CoarseningMemento() :
     community_id(-1),
@@ -35,7 +39,7 @@ class CoarseningMemento {
     parallel_hes_size(0),
     contraction_memento({0, 0}) { }
 
-  explicit CoarseningMemento(const Hypergraph::ContractionMemento& contraction_memento_) :
+  explicit CoarseningMemento(const Memento& contraction_memento_) :
     community_id(-1),
     thread_id(-1),
     contraction_index(0),
@@ -45,9 +49,9 @@ class CoarseningMemento {
     parallel_hes_size(0),
     contraction_memento(contraction_memento_) { }
 
-  explicit CoarseningMemento(const PartitionID community_id,
-                             const Hypergraph::ContractionMemento& contraction_memento_) :
-    community_id(community_id),
+  explicit CoarseningMemento(const PartitionID community_id_,
+                             const Memento& contraction_memento_) :
+    community_id(community_id_),
     thread_id(-1),
     contraction_index(0),
     one_pin_hes_begin(0),
@@ -55,6 +59,17 @@ class CoarseningMemento {
     parallel_hes_begin(0),
     parallel_hes_size(0),
     contraction_memento(contraction_memento_) { }
+
+  explicit CoarseningMemento(const PartitionID thread_id_,
+                             const LockBasedMemento& contraction_memento_) :
+    community_id(-1),
+    thread_id(thread_id_),
+    contraction_index(contraction_memento_.contraction_id),
+    one_pin_hes_begin(0),
+    one_pin_hes_size(0),
+    parallel_hes_begin(0),
+    parallel_hes_size(0),
+    contraction_memento(contraction_memento_.memento) { }
 
   PartitionID community_id;     // community of the two vertices in hypergraph memento
   PartitionID thread_id;        // thread id of the thread which performed contraction

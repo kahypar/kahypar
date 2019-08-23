@@ -1,7 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2019 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2019 Tobias Heuer <tobias.heuer@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +18,6 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
 ******************************************************************************/
-/*
- * Sparse set representation based on
- * Briggs, Preston, and Linda Torczon. "An efficient representation for sparse sets."
- * ACM Letters on Programming Languages and Systems (LOPLAS) 2.1-4 (1993): 59-69.
- */
 
 #pragma once
 
@@ -53,7 +49,7 @@ class CommunityHypergraph {
   using HyperedgeIterator = typename Hypergraph::HyperedgeIterator;
   using Memento = typename Hypergraph::ContractionMemento;
 
-
+  static constexpr PartitionID INVALID_COMMUNITY_ID = -1;
   static constexpr HyperedgeID INVALID_COMMUNITY_DEGREE = std::numeric_limits<HyperedgeID>::max();
 
   static constexpr bool debug = false;
@@ -98,9 +94,13 @@ class CommunityHypergraph {
   // ! Returns a for-each iterator-pair to loop over the set pins for specific
   // ! community of hyperedge e.
   std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e, const PartitionID community) const {
-    ASSERT(_is_initialized, "Community hyperedges not initialized");
-    return std::make_pair(_hg._incidence_array.cbegin() + hyperedge(e, community).firstEntry(),
-                          _hg._incidence_array.cbegin() + hyperedge(e, community).firstInvalidEntry());
+    if ( community != INVALID_COMMUNITY_ID ) {
+      ASSERT(_is_initialized, "Community hyperedges not initialized");
+      return std::make_pair(_hg._incidence_array.cbegin() + hyperedge(e, community).firstEntry(),
+                            _hg._incidence_array.cbegin() + hyperedge(e, community).firstInvalidEntry());
+    } else {
+      return pins(e);
+    }
   }
 
   /*!
@@ -217,10 +217,14 @@ class CommunityHypergraph {
   }
 
   size_t & edgeHash(const HyperedgeID e, const PartitionID community) {
-    ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
-    ASSERT(containsCommunityHyperedge(e, community),
-           "There are no community information for community " << community << " in hyperedge " << e);
-    return hyperedge(e, community).hash;
+    if ( community != INVALID_COMMUNITY_ID ) {
+      ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
+      ASSERT(containsCommunityHyperedge(e, community),
+            "There are no community information for community " << community << " in hyperedge " << e);
+      return hyperedge(e, community).hash;
+    } else {
+      return _hg.edgeHash(e);
+    }
   }
 
   HyperedgeWeight edgeWeight(const HyperedgeID e) const {
@@ -228,7 +232,7 @@ class CommunityHypergraph {
   }
 
   HyperedgeWeight edgeWeight(const HyperedgeID e, const PartitionID community) const {    
-   if ( community != -1 ) { 
+   if ( community != INVALID_COMMUNITY_ID ) { 
       ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
       ASSERT(containsCommunityHyperedge(e, community),
              "There are no community information for community " << community << " in hyperedge " << e);
@@ -239,24 +243,36 @@ class CommunityHypergraph {
   }
 
   void setEdgeWeight(const HyperedgeID e, const PartitionID community, const HyperedgeWeight weight) {
-    ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
-    hyperedge(e, community).setWeight(weight);
+    if ( community != INVALID_COMMUNITY_ID ) {
+      ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
+      hyperedge(e, community).setWeight(weight);
+    } else {
+      _hg.setEdgeWeight(e, weight);
+    }
   }
 
   HypernodeID edgeSize(const HyperedgeID e) const {
     ASSERT(e <= _hg._num_hyperedges, "Not a valid hyperedge" << e);
-    HypernodeID size = 0;
-    for ( const auto& community_he : _hg.hyperedge(e).community_hyperedges ) {
-      size += community_he.second.size();
+    if ( _is_initialized ) {
+      HypernodeID size = 0;
+      for ( const auto& community_he : _hg.hyperedge(e).community_hyperedges ) {
+        size += community_he.second.size();
+      }
+      return size;
+    } else {
+      return _hg.edgeSize(e);
     }
-    return size;
   }
 
   HypernodeID edgeSize(const HyperedgeID e, const PartitionID community) {
     ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
     ASSERT(containsCommunityHyperedge(e, community),
            "There are no community information for community " << community << " in hyperedge " << e);
-    return hyperedge(e, community).size();
+    if ( community != INVALID_COMMUNITY_ID ) {
+      return hyperedge(e, community).size();
+    } else {
+      return edgeSize(e);
+    }
   }
 
   size_t numCommunitiesInHyperedge(const HypernodeID he) const {
@@ -299,7 +315,11 @@ class CommunityHypergraph {
   }
 
   bool edgeIsEnabled(const HyperedgeID e, const PartitionID community) const {
-    return !hyperedge(e, community).isDisabled();
+    if ( community != INVALID_COMMUNITY_ID ) {
+      return !hyperedge(e, community).isDisabled();
+    } else {
+      return _hg.edgeIsEnabled(e);
+    }
   }
 
   /**
