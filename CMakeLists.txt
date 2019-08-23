@@ -43,6 +43,17 @@ endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
+find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
+if (CMAKE_CXX_CPPCHECK)
+    list(
+        APPEND CMAKE_CXX_CPPCHECK 
+            "--enable=all"
+            "--inconclusive"
+            "--force" 
+            "--inline-suppr"
+    )
+endif()
+
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
    setup_target_for_coverage(${PROJECT_NAME}_coverage tests coverage)
