@@ -51,6 +51,15 @@
 
 namespace kahypar {
 
+/**
+ * TODOS:
+ *  - TBB Concurrent Queue vs. Own Batch Queue
+ *  - Prepare Mutex Vector for Conflicts
+ *  - Refactor Lock Based Vertex Pair Rater
+ *  - Refactor Probabilistic Sparse Map
+ */
+
+
 template <class ScorePolicy = HeavyEdgeScore,
           class HeavyNodePenaltyPolicy = NoWeightPenalty,
           class CommunityPolicy = UseCommunityStructure,

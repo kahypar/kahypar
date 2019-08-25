@@ -102,6 +102,12 @@ class LockBasedHypergraph {
 
   // ! Returns a for-each iterator-pair to loop over the set pins for specific
   // ! community of hyperedge e.
+  std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e) const {
+    return _hg.pins(e);
+  }
+
+  // ! Returns a for-each iterator-pair to loop over the set pins for specific
+  // ! community of hyperedge e.
   std::pair<IncidenceIterator, IncidenceIterator> pins(const HyperedgeID e, const PartitionID community) const {
     return _hg.pins(e, community);
   }
@@ -133,6 +139,10 @@ class LockBasedHypergraph {
                           const HypernodeID contraction_id) {
 
     std::unique_lock<Mutex> to_remove_lock(_he_mutex[to_remove]);
+
+    if ( !edgeIsEnabled(to_remove) ) {
+      return false;
+    }
 
     if ( !_use_deferred_locks ) {
       // In case we use no deferred locks, we sort the pins of the hyperedge in
