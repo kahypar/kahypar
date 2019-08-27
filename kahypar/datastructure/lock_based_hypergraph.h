@@ -49,7 +49,7 @@ class LockBasedHypergraph {
   using IncidenceIterator = typename Hypergraph::IncidenceIterator;
   using HypernodeIterator = typename Hypergraph::HypernodeIterator;
   using HyperedgeIterator = typename Hypergraph::HyperedgeIterator;
-  using Memento = typename Hypergraph::ContractionMemento;
+  using Memento = typename Hypergraph::Memento;
   using Mutex = std::shared_timed_mutex;
   template<typename Key>
   using MutexVector = kahypar::ds::MutexVector<Key, Mutex>;
@@ -76,7 +76,8 @@ class LockBasedHypergraph {
                                MutexVector<HypernodeID>& hn_mutex,
                                MutexVector<HyperedgeID>& he_mutex,
                                std::vector<HypernodeID>& last_touched,
-                               std::vector<bool>& active) :
+                               std::vector<bool>& active,
+                               bool use_current_num_nodes_of_hypergraph = false) :
     _hg(hypergraph),
     _current_num_nodes(_hg.initialNumNodes()),
     _hn_mutex(hn_mutex),
@@ -84,7 +85,7 @@ class LockBasedHypergraph {
     _last_touched(last_touched),
     _active(active),
     _contraction_id(0),
-    _use_deferred_locks(true),
+    _use_current_num_nodes_of_hypergraph(use_current_num_nodes_of_hypergraph),
     _unmark_active_after_contraction(false) { }
 
   LockBasedHypergraph(LockBasedHypergraph&& other) = default;
@@ -136,61 +137,51 @@ class LockBasedHypergraph {
 
   bool removeParallelEdge(const HyperedgeID representative,
                           const HyperedgeID to_remove,
-                          const HypernodeID contraction_id) {
+                          const HypernodeID contraction_id,
+                          const PartitionID community_id = -1) {
 
     std::unique_lock<Mutex> to_remove_lock(_he_mutex[to_remove]);
 
-    if ( !edgeIsEnabled(to_remove) ) {
+    if ( !edgeIsEnabled(to_remove, community_id) ) {
       return false;
     }
 
-    if ( !_use_deferred_locks ) {
-      // In case we use no deferred locks, we sort the pins of the hyperedge in
-      // increasing order of their hypernode id such that locks are acquired
-      // in correct order to prevent deadlocks
-      std::sort(_hg._incidence_array.begin() + _hg.hyperedge(to_remove).firstEntry(), 
-                _hg._incidence_array.begin() + _hg.hyperedge(to_remove).firstInvalidEntry());
-    }
+    // We sort the pins of the hyperedge in
+    // increasing order of their hypernode id such that locks are acquired
+    // in correct order to prevent deadlocks
+    _hg.sortPins(to_remove, community_id);
 
     std::vector<HypernodeID> he_pins;
-    std::vector<std::unique_lock<Mutex>> hn_locks;
-    for ( const HypernodeID& pin : _hg.pins(to_remove) ) {
-      hn_locks.emplace_back( _hn_mutex[pin], std::defer_lock );
-      if ( _use_deferred_locks ) {      
-        // Try to get locks
-        if ( !hn_locks.back().try_lock() || !_hg.nodeIsEnabled(pin) ) {
-          return false;
-        }
-      } else {
-        // If no deferred locks are used we temporary store the pins of the
-        // hyperedge in a vector, because we have to follow that first hypernode
-        // locks are acquired and afterwards hyperedge locks to prevent deadlocks
-        he_pins.emplace_back(pin);
-      }
+    for ( const HypernodeID& pin : _hg.pins(to_remove, community_id) ) {
+      // We temporary store the pins of the
+      // hyperedge in a vector, because we have to follow that first hypernode
+      // locks are acquired and afterwards hyperedge locks to prevent deadlocks
+      he_pins.emplace_back(pin);
     }
     to_remove_lock.unlock();
 
-    if ( !_use_deferred_locks ) {
-      for ( size_t i = 0; i < he_pins.size(); ++i ) {
-        hn_locks[i].lock();
-        if ( !_hg.nodeIsEnabled(he_pins[i]) ) {
-          return false;
-        }
+    std::vector<std::unique_lock<Mutex>> hn_locks;
+    for ( const HypernodeID& pin : he_pins ) {
+      hn_locks.emplace_back(_hn_mutex[pin]);
+      if ( !_hg.nodeIsEnabled(pin) ) {
+        return false;
       }
     }
 
     std::unique_lock<Mutex> lock1(_he_mutex[std::min(representative, to_remove)]);
     std::unique_lock<Mutex> lock2(_he_mutex[std::max(representative, to_remove)]);
     if ( _last_touched[to_remove] <= contraction_id && _last_touched[representative] <= contraction_id &&
-         _hg.edgeIsEnabled(to_remove) && _hg.edgeIsEnabled(representative) ) {
-      _hg.removeEdge(to_remove);
+         _hg.edgeIsEnabled(to_remove, community_id) && _hg.edgeIsEnabled(representative, community_id) ) {
+      _hg.removeEdge(to_remove, community_id);
       return true;
     } else {
       return false;
     }
   }
 
-  LockBasedContractionMemento contract(const HypernodeID u, const HypernodeID v) {
+  LockBasedContractionMemento contract(const HypernodeID u, 
+                                       const HypernodeID v, 
+                                       const PartitionID community = -1) {
     using std::swap;
 
     // Acquire locks for u and v
@@ -201,33 +192,31 @@ class LockBasedHypergraph {
     }
 
     // Try to acquire locks for all incident edges
-    if ( !_use_deferred_locks ) {
+    if ( _hg.hypernode(v).community_degree != INVALID_COMMUNITY_DEGREE ) {
       std::sort(_hg.hypernode(v).incidentNets().begin(), 
-                _hg.hypernode(v).incidentNets().end());
+                _hg.hypernode(v).incidentNets().begin() + 
+                _hg.hypernode(v).community_degree );
+    } else {
+      std::sort(_hg.hypernode(v).incidentNets().begin(), 
+                _hg.hypernode(v).incidentNets().end());    
     }
     std::vector<std::unique_lock<Mutex>> he_locks;
     for ( const HyperedgeID he : _hg.incidentEdges(v) ) {
-      he_locks.emplace_back(_he_mutex[he], std::defer_lock);
-      if ( !_use_deferred_locks ) {
-        // Only for test reasons
-        he_locks.back().lock();
-      } 
-      // Note, we try to get the lock here for the specific hyperedge to
-      // prevent deadlocks. An alternative could be to sort all hyperedges
-      // and then acquire the locks in ascending order. However, an comparison
-      // between the approaches is missing.
-      if ( ( _use_deferred_locks && !he_locks.back().try_lock() ) || !_hg.edgeIsEnabled(he)) {
+      he_locks.emplace_back(_he_mutex[he]);
+      if (!_hg.edgeIsEnabled(he, community)) {
         return LockBasedContractionMemento({0, 0}, INVALID_CONTRACTION_ID);
       }
     }
 
     _active[u] = true;
     _active[v] = true;
-    HypernodeID contraction_id = _contraction_id++;
+    HypernodeID contraction_id = drawContractionId();
     for ( const HyperedgeID he : _hg.incidentEdges(v) ) {
       _last_touched[he] = contraction_id;
     }
-    --_current_num_nodes;
+    if ( !_use_current_num_nodes_of_hypergraph ) {
+      --_current_num_nodes;
+    }
 
     // All hypernodes and incident edges involved in the contractions are
     // now locked
@@ -239,11 +228,15 @@ class LockBasedHypergraph {
     return memento;
   }
 
+  HypernodeID drawContractionId() {
+    return _contraction_id++;
+  }
+
   HypernodeID edgeSize(const HyperedgeID e) const {
     return _hg.edgeSize(e);
   }
 
-  HypernodeID edgeSize(const HyperedgeID e, const PartitionID community) {
+  HypernodeID edgeSize(const HyperedgeID e, const PartitionID community) const {
     return _hg.edgeSize(e, community);
   }
 
@@ -251,7 +244,7 @@ class LockBasedHypergraph {
     return _hg.edgeWeight(e);
   }
 
-  HyperedgeWeight edgeWeight(const HyperedgeID e, const PartitionID community) {
+  HyperedgeWeight edgeWeight(const HyperedgeID e, const PartitionID community) const {
     return _hg.edgeWeight(e, community);
   }
 
@@ -271,6 +264,10 @@ class LockBasedHypergraph {
     return _hg.edgeHash(e, community);
   }
 
+  HypernodeWeight nodeWeight(const HypernodeID u) const {
+    return _hg.nodeWeight(u);
+  }
+
   bool nodeIsEnabled(const HypernodeID u) const {
     return _hg.nodeIsEnabled(u);
   }
@@ -284,11 +281,32 @@ class LockBasedHypergraph {
   }
 
   HypernodeID currentNumNodes() const {
-    return _current_num_nodes;
+    if ( _use_current_num_nodes_of_hypergraph ) {
+      return _hg.currentNumNodes();
+    } else {
+      return _current_num_nodes;
+    }
+  }
+
+  size_t numCommunitiesInHyperedge(const HypernodeID he) const {
+    return _hg.numCommunitiesInHyperedge(he);
+  }
+
+  HypernodeID currentCommunityNumNodes(const PartitionID community) const {
+    return _hg.currentCommunityNumNodes(community);
   }
 
   HypernodeID numContractions() const {
     return _contraction_id;
+  }
+
+  // ! Returns the community structure of the hypergraph
+  const std::vector<PartitionID> & communities() const {
+    return _hg.communities();
+  }
+
+  PartitionID partID(const HypernodeID u) const {
+    return _hg.partID(u);
   }
 
   void unmarkAsActive(const HypernodeID u) {
@@ -297,7 +315,7 @@ class LockBasedHypergraph {
   }
 
   void restoreHypergraphStats( ThreadPool& pool ) {
-    _hg._current_num_hypernodes = _current_num_nodes;
+    _hg.setCurrentNumNodes(currentNumNodes());
 
     // Compute number of hyperedges and pins
     std::vector<std::future<std::pair<HyperedgeID, HypernodeID>>> results =
@@ -322,13 +340,8 @@ class LockBasedHypergraph {
       num_pins += sizes.second;
     }
 
-    _hg._current_num_hyperedges = num_hyperedges;
-    _hg._current_num_pins = num_pins;
-  }
-
-  // ! Only for testing
-  void disableDeferredLocks() {
-    _use_deferred_locks = false;
+    _hg.setCurrentNumEdges(num_hyperedges);
+    _hg.setCurrentNumPins(num_pins);
   }
 
   // ! Only for testing 
@@ -357,8 +370,9 @@ class LockBasedHypergraph {
   // Atomic counter for assigning each contraction a unique id
   std::atomic<HypernodeID> _contraction_id;
 
+  bool _use_current_num_nodes_of_hypergraph;
+
   // Only for testing
-  bool _use_deferred_locks;
   bool _unmark_active_after_contraction;
 };
 

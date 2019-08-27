@@ -31,9 +31,9 @@ class HeavyEdgeScore final : public meta::PolicyBase {
   template <typename HypergraphT>
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const HypergraphT& hypergraph,
                                                                  const HyperedgeID he,
-                                                                 const Context& context) {
-    return static_cast<RatingType>(hypergraph.edgeWeight(he, 
-      context.coarsening.community_contraction_target)) / (hypergraph.edgeSize(he) - 1);
+                                                                 const Context&,
+                                                                 const PartitionID& community_id) {
+    return static_cast<RatingType>(hypergraph.edgeWeight(he, community_id)) / (hypergraph.edgeSize(he) - 1);
   }
 };
 
@@ -42,7 +42,8 @@ class EdgeFrequencyScore final : public meta::PolicyBase {
   template <typename HypergraphT>
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const HypergraphT& hypergraph,
                                                                  const HyperedgeID he,
-                                                                 const Context& context) {
+                                                                 const Context& context,
+                                                                 const PartitionID&) {
     return static_cast<RatingType>(exp(-context.evolutionary.gamma *
                                        context.evolutionary.edge_frequency[he]) /
                                    hypergraph.edgeSize(he));

@@ -30,11 +30,11 @@
 #include <sched.h>
 #include <numa.h>
 
-
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/datastructure/lock_based_hypergraph.h"
 #include "kahypar/datastructure/mutex_vector.h"
+#include "kahypar/datastructure/concurrent_batch_queue.h"
 #include "kahypar/utils/thread_pool.h"
 #include "kahypar/utils/timer.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
@@ -53,7 +53,6 @@ namespace kahypar {
 
 /**
  * TODOS:
- *  - TBB Concurrent Queue vs. Own Batch Queue
  *  - Prepare Mutex Vector for Conflicts
  *  - Refactor Lock Based Vertex Pair Rater
  *  - Refactor Probabilistic Sparse Map
@@ -67,11 +66,12 @@ template <class ScorePolicy = HeavyEdgeScore,
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
           typename RatingType = RatingType>
-class ParallelMLCoarsener final : public ICoarsener,
+class ParallelMLLockBasedCoarsener final : public ICoarsener,
                                   protected VertexPairCoarsenerBase<>{
  private:
   static constexpr bool debug = false;
   static constexpr size_t BATCH_SIZE = 1000;
+  static constexpr double REDUCTION_THRESHOLD = 1.05;
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
 
   using Base = VertexPairCoarsenerBase;
@@ -89,6 +89,7 @@ class ParallelMLCoarsener final : public ICoarsener,
   using Mutex = std::shared_timed_mutex;
   template<typename Key>
   using MutexVector = kahypar::ds::MutexVector<Key, Mutex>;
+  using ConcurrentBatchQueue = kahypar::ds::ConcurrentBatchQueue<HypernodeID>;
   using Memento = typename Hypergraph::Memento;
   using History = std::vector<CoarseningMemento>;
   using CurrentMaxNodeWeight = typename CoarsenerBase::CurrentMaxNodeWeight;
@@ -127,31 +128,27 @@ class ParallelMLCoarsener final : public ICoarsener,
   };
 
  public:
-  ParallelMLCoarsener(Hypergraph& hypergraph, const Context& context,
+  ParallelMLLockBasedCoarsener(Hypergraph& hypergraph, const Context& context,
                       const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, context, weight_of_heaviest_node),
     _weight_of_heaviest_node(weight_of_heaviest_node),
     _pruner(),
-    _num_nodes_before_pass(_hg.initialNumNodes()),
+    _sync(),
+    _global_round(1),
     _hn_mutex(_hg.initialNumNodes()),
     _he_mutex(_hg.initialNumEdges()),
-    _current_batch_size(0),
-    _batch(_context.shared_memory.num_threads),
-    _batches_mutex(),
-    _batches(),
-    _tmp_batches_mutex(),
-    _tmp_batches(),
+    _queue(context.shared_memory.num_threads, BATCH_SIZE),
     _already_matched(_hg.initialNumNodes()),
     _active(_hg.initialNumNodes()),
     _last_touched(_hg.initialNumEdges(), 0) { }
 
-  ~ParallelMLCoarsener() override = default;
+  ~ParallelMLLockBasedCoarsener() override = default;
 
-  ParallelMLCoarsener(const ParallelMLCoarsener&) = delete;
-  ParallelMLCoarsener& operator= (const ParallelMLCoarsener&) = delete;
+  ParallelMLLockBasedCoarsener(const ParallelMLLockBasedCoarsener&) = delete;
+  ParallelMLLockBasedCoarsener& operator= (const ParallelMLLockBasedCoarsener&) = delete;
 
-  ParallelMLCoarsener(ParallelMLCoarsener&&) = delete;
-  ParallelMLCoarsener& operator= (ParallelMLCoarsener&&) = delete;
+  ParallelMLLockBasedCoarsener(ParallelMLLockBasedCoarsener&&) = delete;
+  ParallelMLLockBasedCoarsener& operator= (ParallelMLLockBasedCoarsener&&) = delete;
 
  private:
   void coarsenImpl(const HypernodeID limit) override final {
@@ -163,9 +160,8 @@ class ParallelMLCoarsener final : public ICoarsener,
     // Enqueue batches of hypernode in global queue
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     for ( const HypernodeID& hn : _hg.nodes() ) {
-      addHypernodeToQueue(0, hn);
+      _queue.push(0, hn);
     }
-    swapTmpBatches();
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::hypergraph_preparation,
                           std::chrono::duration<double>(end - start).count());
@@ -229,20 +225,20 @@ class ParallelMLCoarsener final : public ICoarsener,
     result.max_hn_weights.emplace_back( 
       CurrentMaxNodeWeight { hypergraph.currentNumNodes(), _weight_of_heaviest_node } );
 
-    size_t batch_pass = 0;
-    while( hypergraph.currentNumNodes() > limit && !_batches.empty() ) {
-      ++batch_pass;
+    size_t round = 1;
+    size_t num_nodes_before_pass = hypergraph.currentNumNodes();
+    while( hypergraph.currentNumNodes() > limit && !_queue.empty() ) {
       DBG << V(thread_id) << V(hypergraph.currentNumNodes()) 
-          << V(_batches.size()) << V(limit);
+          << V(_queue.unsafe_size()) << V(round) << V(limit);
 
-      std::vector<HypernodeID> batch = popBatch();
+      std::vector<HypernodeID> batch = _queue.pop_batch();
       Randomize::instance().shuffleVector(batch, batch.size());
 
       size_t failed_contractions = 0;
       size_t tried_contractions = 0;
       for ( const HypernodeID& hn : batch ) {
         if ( _hg.nodeIsEnabled(hn) ) {
-          Rating rating = rater.rate(hn, _already_matched);
+          Rating rating = rater.rateLockBased(hn, _already_matched);
           
           if ( rating.target != kInvalidTarget ) {
             ++tried_contractions;
@@ -276,7 +272,7 @@ class ParallelMLCoarsener final : public ICoarsener,
           }
 
           if ( _hg.nodeIsEnabled(hn) ) {
-            addHypernodeToQueue(thread_id, hn);
+            _queue.push(thread_id, hn);
           }
 
           if ( hypergraph.currentNumNodes() <= limit ) {
@@ -291,19 +287,17 @@ class ParallelMLCoarsener final : public ICoarsener,
       result.total_failed_contractions += failed_contractions;
       result.total_tried_contractions += tried_contractions;
 
-      // In case batch queue is empty, we swap content from temporary
-      // batch queue into the global batch queue. This is only allowed
-      // to be executed by one thread, therefore we introduce this
-      // synchronization barrier.
-      std::unique_lock<Mutex> _batch_lock(_batches_mutex);
-      std::unique_lock<Mutex> tmp_batch_lock(_tmp_batches_mutex);
-      if ( _batches.empty() && _tmp_batches.size() > 0 ) {
-        swapTmpBatches();
-        _already_matched.reset();
-        if ( hypergraph.currentNumNodes() == _num_nodes_before_pass ) {
+      if ( round < _queue.round() ) {
+        if ( REDUCTION_THRESHOLD * hypergraph.currentNumNodes() >= num_nodes_before_pass ) {
           break;
         }
-        _num_nodes_before_pass = hypergraph.currentNumNodes();
+        round = _queue.round();
+        num_nodes_before_pass = hypergraph.currentNumNodes();
+        std::unique_lock<Mutex> sync_lock(_sync);
+        if ( _global_round < _queue.round() ) {
+          _global_round = _queue.round();
+          _already_matched.reset();
+        }
       }
     }
 
@@ -343,52 +337,6 @@ class ParallelMLCoarsener final : public ICoarsener,
     }
   }
 
-
-  void addHypernodeToQueue(const size_t thread, const HypernodeID hn) {
-    std::shared_lock<std::shared_timed_mutex> lock(_batches_mutex);
-    _batch[thread].push_back(hn);
-    ++_current_batch_size;
-    if ( _current_batch_size >= BATCH_SIZE ) {
-      lock.unlock();
-      lockBasedEnqueueBatch();
-    }
-  }
-
-  void lockBasedEnqueueBatch() {
-    std::unique_lock<std::shared_timed_mutex> lock(_batches_mutex);
-    enqueueBatch();
-  }
-
-  void enqueueBatch() {
-    std::vector<HypernodeID> new_batch;
-    for ( size_t thread = 0; thread < _context.shared_memory.num_threads; ++thread ) {
-      new_batch.insert(new_batch.end(), _batch[thread].begin(), _batch[thread].end());
-      _batch[thread].clear();
-    }
-    if ( new_batch.size() > 0 ) {
-      _tmp_batches.emplace(std::move(new_batch));
-      _current_batch_size = 0;
-    }
-  }
-
-  void swapTmpBatches() {
-    enqueueBatch();
-    ASSERT(_batches.size() == 0);
-    std::swap(_batches, _tmp_batches);
-    _tmp_batches = std::queue<std::vector<HypernodeID>>();
-  }
-
-  std::vector<HypernodeID> popBatch() {
-    std::unique_lock<std::shared_timed_mutex> lock(_batches_mutex);
-    if ( !_batches.empty() ) {
-      std::vector<HypernodeID> batch = std::move(_batches.front());
-      _batches.pop();
-      return batch;
-    } else {
-      return std::vector<HypernodeID>();
-    }
-  }
-
   bool uncoarsenImpl(IRefiner& refiner) override final {
     return doUncoarsen(refiner);
   }
@@ -410,31 +358,19 @@ class ParallelMLCoarsener final : public ICoarsener,
   using Base::_context;
   using Base::_history;
   using Base::_max_hn_weights;
-  
   const HypernodeWeight _weight_of_heaviest_node;
 
   std::vector<LockBasedHypergraphPruner> _pruner;
 
-  HypernodeID _num_nodes_before_pass;
+  Mutex _sync;
+  size_t _global_round = 0;
 
   // Vectors to lock hypernodes an hyperedges
   MutexVector<HypernodeID> _hn_mutex;
   MutexVector<HyperedgeID> _he_mutex;
 
-  // Each thread contains its own batch queues
-  // Once the batch size threshold is reached all
-  // hypernodes from all batch queues are inserted 
-  // into _tmp_batches
-  std::atomic<HypernodeID> _current_batch_size;
-  std::vector<std::vector<HypernodeID>> _batch;
-
-  // Batch Queue - Contains nodes for current contraction round
-  std::shared_timed_mutex _batches_mutex;
-  std::queue<std::vector<HypernodeID>> _batches;
-
-  // Batch Queue - Contains nodes for next contraction round
-  std::shared_timed_mutex _tmp_batches_mutex;
-  std::queue<std::vector<HypernodeID>> _tmp_batches;
+  // Queue contains batches of hypernodes for coarsening
+  ConcurrentBatchQueue _queue;
 
   kahypar::ds::FastResetFlagArray<> _already_matched;
   std::vector<bool> _active;

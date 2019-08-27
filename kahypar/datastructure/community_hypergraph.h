@@ -24,6 +24,7 @@
 #include <limits>
 #include <memory>
 #include <utility>
+#include <shared_mutex>
 
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
@@ -34,7 +35,7 @@ namespace ds {
 
 template <typename Hypergraph = Mandatory>
 class CommunityHypergraph {
- private:
+ public:
   friend Hypergraph;
 
   using ThreadPool = kahypar::parallel::ThreadPool;
@@ -42,12 +43,14 @@ class CommunityHypergraph {
   using HyperedgeID = typename Hypergraph::HyperedgeID;
   using HypernodeWeight = typename Hypergraph::HypernodeWeight;
   using HyperedgeWeight = typename Hypergraph::HyperedgeWeight;
+  using Hypernode = typename Hypergraph::Hypernode;
   using Hyperedge = typename Hypergraph::Hyperedge;
   using CommunityHyperedge = typename Hypergraph::CommunityHyperedge;
   using IncidenceIterator = typename Hypergraph::IncidenceIterator;
   using HypernodeIterator = typename Hypergraph::HypernodeIterator;
   using HyperedgeIterator = typename Hypergraph::HyperedgeIterator;
-  using Memento = typename Hypergraph::ContractionMemento;
+  using Memento = typename Hypergraph::Memento;
+  using Mutex = std::shared_timed_mutex;
 
   static constexpr PartitionID INVALID_COMMUNITY_ID = -1;
   static constexpr HyperedgeID INVALID_COMMUNITY_DEGREE = std::numeric_limits<HyperedgeID>::max();
@@ -61,6 +64,9 @@ class CommunityHypergraph {
     _hg(hypergraph),
     _context(context),
     _pool(pool),
+    _current_num_nodes(hypergraph.currentNumNodes()),
+    _community_num_nodes_mutex(hypergraph.numCommunities()),
+    _community_num_nodes(hypergraph.numCommunities(), 0),
     _is_initialized(false) { }
 
   CommunityHypergraph(CommunityHypergraph&& other) = default;
@@ -100,6 +106,20 @@ class CommunityHypergraph {
                             _hg._incidence_array.cbegin() + hyperedge(e, community).firstInvalidEntry());
     } else {
       return pins(e);
+    }
+  }
+
+  void sortPins(const HyperedgeID e) {
+    _hg.sortPins(e);
+  }
+
+  void sortPins(const HyperedgeID e, const PartitionID community) {
+    ASSERT(!hyperedge(e, community).isDisabled(), "Hyperedge" << e << "is disabled");
+    if ( community != INVALID_COMMUNITY_ID ) {
+      std::sort(_hg._incidence_array.begin() + hyperedge(e, community).firstEntry(), 
+                _hg._incidence_array.begin() + hyperedge(e, community).firstInvalidEntry());
+    } else {
+      sortPins(e);
     }
   }
 
@@ -212,7 +232,9 @@ class CommunityHypergraph {
     }
 
     _hg.hypernode(v).disable();
-    //--_current_num_hypernodes; // TODO: make this atomic
+    --_current_num_nodes;
+    std::unique_lock<Mutex> community_num_nodes_lock(_community_num_nodes_mutex[community]);
+    --_community_num_nodes[community];
     return Memento { u, v };
   }
 
@@ -240,6 +262,10 @@ class CommunityHypergraph {
     } else {
       return _hg.edgeWeight(e);
     }
+  }
+
+  void setEdgeWeight(const HyperedgeID e, const HyperedgeWeight weight) {
+    _hg.setEdgeWeight(e, weight);
   }
 
   void setEdgeWeight(const HyperedgeID e, const PartitionID community, const HyperedgeWeight weight) {
@@ -314,12 +340,65 @@ class CommunityHypergraph {
     return _hg.nodeIsEnabled(u);
   }
 
+  bool edgeIsEnabled(const HyperedgeID e) const {
+    return _hg.edgeIsEnabled(e);
+  }
+
   bool edgeIsEnabled(const HyperedgeID e, const PartitionID community) const {
     if ( community != INVALID_COMMUNITY_ID ) {
       return !hyperedge(e, community).isDisabled();
     } else {
       return _hg.edgeIsEnabled(e);
     }
+  }
+
+  HypernodeWeight totalWeight() const {
+    return _hg.totalWeight();
+  }
+
+  HypernodeID initialNumNodes() const {
+    return _hg.initialNumNodes();
+  }
+
+  HypernodeID initialNumPins() const {
+    return _hg.initialNumPins();
+  }
+
+  HyperedgeID initialNumEdges() const {
+    return _hg.initialNumEdges();
+  }
+
+  HypernodeID currentNumNodes() const {
+    return _current_num_nodes;
+  }
+
+  HypernodeID currentCommunityNumNodes(const PartitionID community) const {
+    ASSERT(community < _community_num_nodes.size());
+    return _community_num_nodes[community];
+  }
+
+  void setCommunityNumNodes(const PartitionID community, const HypernodeID current_num_hypernodes) {
+    _community_num_nodes[community] = current_num_hypernodes;
+  }
+
+  void setCurrentNumNodes(const HypernodeID current_num_hypernodes) {
+    _hg._current_num_hypernodes = current_num_hypernodes;
+  }
+
+  void setCurrentNumEdges(const HyperedgeID current_num_hyperedges) {
+    _hg._current_num_hyperedges = current_num_hyperedges;
+  }
+
+  void setCurrentNumPins(const HypernodeID current_num_pins) {
+    _hg._current_num_pins = current_num_pins;
+  }
+  
+  const Hypernode & hypernode(const HypernodeID u) const {
+    return _hg.hypernode(u);
+  }
+
+  Hypernode & hypernode(const HypernodeID u) {
+    return _hg.hypernode(u);
   }
 
   /**
@@ -612,6 +691,7 @@ class CommunityHypergraph {
       this->_hg._current_num_hyperedges += res.first;
       this->_hg._current_num_pins += res.second;
     }
+    _is_initialized = false;
   }
 
 
@@ -740,6 +820,9 @@ class CommunityHypergraph {
   Hypergraph& _hg;
   const Context& _context;
   ThreadPool& _pool;
+  std::atomic<HypernodeID> _current_num_nodes;
+  std::vector<Mutex>  _community_num_nodes_mutex;
+  std::vector<HypernodeID> _community_num_nodes;
   bool _is_initialized;
 };
 

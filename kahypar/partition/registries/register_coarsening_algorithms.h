@@ -25,8 +25,9 @@
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
-#include "kahypar/partition/coarsening/parallel_ml_coarsener.h"
+#include "kahypar/partition/coarsening/parallel_ml_lock_based_coarsener.h"
 #include "kahypar/partition/coarsening/parallel_ml_community_coarsener.h"
+#include "kahypar/partition/coarsening/parallel_ml_community_lock_based_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -102,7 +103,7 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.fixed_vertex_acceptance_policy));
 
-REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_parallel,
+REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_parallel_lock_based,
                               ParallelMLCoarseningDispatcher,
                               meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
                                 context.coarsening.rating.rating_function),
@@ -119,6 +120,21 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_parallel,
 
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_parallel_community,
                               ParallelMLCommunityCoarseningDispatcher,
+                              meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
+                                context.coarsening.rating.rating_function),
+                              meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.heavy_node_penalty_policy),
+                              meta::PolicyRegistry<CommunityPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.community_policy),
+                              meta::PolicyRegistry<RatingPartitionPolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.partition_policy),
+                              meta::PolicyRegistry<AcceptancePolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.acceptance_policy),
+                              meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
+                                context.coarsening.rating.fixed_vertex_acceptance_policy));
+
+REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_parallel_community_lock_based,
+                              ParallelMLCommunityLockBasedCoarseningDispatcher,
                               meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
                                 context.coarsening.rating.rating_function),
                               meta::PolicyRegistry<HeavyNodePenaltyPolicy>::getInstance().getPolicy(

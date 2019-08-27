@@ -83,6 +83,7 @@ class VertexPairRater {
   VertexPairRater(HypergraphT& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
+    _community_id(context.coarsening.community_contraction_target),
     _hn_mapping(nullptr),
     _tmp_ratings(_hg.initialNumNodes()),
     _already_matched(_hg.initialNumNodes()) { }
@@ -92,6 +93,7 @@ class VertexPairRater {
                   const HypernodeMapping hn_mapping) :
     _hg(hypergraph),
     _context(context),
+    _community_id(context.coarsening.community_contraction_target),
     _hn_mapping(hn_mapping),
     _tmp_ratings(_hn_mapping->size()),
     _already_matched(_hn_mapping->size()) { }
@@ -110,8 +112,8 @@ class VertexPairRater {
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
       //ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
-        const RatingType score = ScorePolicy::score(_hg, he, _context);
-        for (const HypernodeID& v : _hg.pins(he, _context.coarsening.community_contraction_target)) {
+        const RatingType score = ScorePolicy::score(_hg, he, _context, _community_id);
+        for (const HypernodeID& v : _hg.pins(he, _community_id)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               RatingPartitionPolicy::accept(_hg, _context, u, v)) {
             _tmp_ratings[_hg.communityNodeID(v)] += score;
@@ -185,6 +187,7 @@ class VertexPairRater {
 
   HypergraphT& _hg;
   const Context& _context;
+  const PartitionID _community_id;
   const HypernodeMapping _hn_mapping;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   ds::FastResetFlagArray<> _already_matched;

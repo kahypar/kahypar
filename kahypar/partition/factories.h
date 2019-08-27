@@ -28,6 +28,8 @@
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/ml_coarsener.h"
 #include "kahypar/partition/coarsening/parallel_ml_community_coarsener.h"
+#include "kahypar/partition/coarsening/parallel_ml_lock_based_coarsener.h"
+#include "kahypar/partition/coarsening/parallel_ml_community_lock_based_coarsener.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_heavy_node_penalty_policy.h"
@@ -58,13 +60,18 @@ using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolic
 using MLCoarseningDispatcher = meta::StaticMultiDispatchFactory<MLCoarsener,
                                                                 ICoarsener,
                                                                 RatingPolicies>;
-using ParallelMLCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCoarsener,
+using ParallelMLCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLLockBasedCoarsener,
                                                                         ICoarsener,
                                                                         RatingPolicies>;
 
 using ParallelMLCommunityCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCommunityCoarsener,
                                                                                  ICoarsener,
                                                                                  RatingPolicies>;
+
+
+using ParallelMLCommunityLockBasedCoarseningDispatcher = meta::StaticMultiDispatchFactory<ParallelMLCommunityLockBasedCoarsener,
+                                                                                          ICoarsener,
+                                                                                          RatingPolicies>;
 
 /*using FullCoarseningDispatcher = meta::StaticMultiDispatchFactory<FullVertexPairCoarsener,
                                                                   ICoarsener,

@@ -70,7 +70,6 @@ class ALockBasedHypergraph : public ::testing::TestWithParam<size_t> {
     pool(nullptr) { 
     context.shared_memory.num_threads = GetParam();
     context.shared_memory.working_packages = GetParam();
-    lock_based_hypergraph.disableDeferredLocks();
     lock_based_hypergraph.unmarkActiveAfterContractions();
     pool = std::make_unique<ThreadPool>(context);
   }

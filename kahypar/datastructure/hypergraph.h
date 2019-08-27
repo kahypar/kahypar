@@ -884,6 +884,16 @@ class GenericHypergraph {
     return pins(e);
   }
 
+  void sortPins(const HyperedgeID e) {
+    ASSERT(!hyperedge(e).isDisabled(), "Hyperedge" << e << "is disabled");
+    std::sort(_incidence_array.begin() + hyperedge(e).firstEntry(), 
+              _incidence_array.begin() + hyperedge(e).firstInvalidEntry());
+  }
+
+  void sortPins(const HyperedgeID e, const PartitionID) {
+    sortPins(e);
+  }
+
   /*!
    * Returns a for-each iterator-pair to loop over the set of all hypernodes.
    * Since the iterator just skips over disabled hypernodes, iteration always
@@ -1603,6 +1613,10 @@ class GenericHypergraph {
   // ! Returns the number of communities
   PartitionID numCommunities()  const {
     return _num_communities;
+  }
+
+  HypernodeID currentCommunityNumNodes(const PartitionID) const {
+    return 0;
   }
 
   /*!

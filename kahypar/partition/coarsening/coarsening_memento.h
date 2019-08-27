@@ -21,12 +21,15 @@
 #pragma once
 
 #include "kahypar/definitions.h"
+#include "kahypar/datastructure/community_hypergraph.h"
 #include "kahypar/datastructure/lock_based_hypergraph.h"
 
 namespace kahypar {
 class CoarseningMemento {
  using Memento = typename Hypergraph::ContractionMemento;
  using LockBasedMemento = typename kahypar::ds::LockBasedHypergraph<Hypergraph>::LockBasedContractionMemento;
+ using CommunityHypergraph = kahypar::ds::CommunityHypergraph<Hypergraph>;
+ using CommunityLockBasedMemento = typename kahypar::ds::LockBasedHypergraph<CommunityHypergraph>::LockBasedContractionMemento;
  
  public:
   CoarseningMemento() :
@@ -63,6 +66,18 @@ class CoarseningMemento {
   explicit CoarseningMemento(const PartitionID thread_id_,
                              const LockBasedMemento& contraction_memento_) :
     community_id(-1),
+    thread_id(thread_id_),
+    contraction_index(contraction_memento_.contraction_id),
+    one_pin_hes_begin(0),
+    one_pin_hes_size(0),
+    parallel_hes_begin(0),
+    parallel_hes_size(0),
+    contraction_memento(contraction_memento_.memento) { }
+
+  explicit CoarseningMemento(const PartitionID community_id_,
+                             const PartitionID thread_id_,
+                             const CommunityLockBasedMemento& contraction_memento_) :
+    community_id(community_id_),
     thread_id(thread_id_),
     contraction_index(contraction_memento_.contraction_id),
     one_pin_hes_begin(0),
