@@ -346,7 +346,12 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
     
     start = std::chrono::high_resolution_clock::now();
+    std::vector<HypernodeID> hypernodes;
     for ( const HypernodeID& hn : _hg.nodes() ) {
+      hypernodes.push_back(hn);
+    }
+    Randomize::instance().shuffleVector(hypernodes, hypernodes.size());
+    for ( const HypernodeID& hn : hypernodes ) {
       PartitionID community = _hg.communityID(hn);
       _work_stealing.push(community, 0, hn);
     }

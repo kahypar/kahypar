@@ -309,7 +309,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     }
 
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    DBG << "Finish coarsening of community" << community_id
+    LOG << "Finish coarsening of community" << community_id
         << "( initial_num_nodes = " << community_hns->size()
         << V(current_num_nodes) << ","
         << V(community_context.coarsening.contraction_limit)

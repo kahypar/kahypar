@@ -159,7 +159,12 @@ class ParallelMLLockBasedCoarsener final : public ICoarsener,
 
     // Enqueue batches of hypernode in global queue
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    std::vector<HypernodeID> hypernodes;
     for ( const HypernodeID& hn : _hg.nodes() ) {
+      hypernodes.push_back(hn);
+    }
+    Randomize::instance().shuffleVector(hypernodes, hypernodes.size());
+    for ( const HypernodeID& hn : hypernodes ) {
       _queue.push(0, hn);
     }
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
