@@ -268,6 +268,10 @@ class LockBasedHypergraph {
     return _hg.nodeWeight(u);
   }
 
+  HyperedgeID nodeDegree(const HypernodeID u) const {
+    return _hg.nodeDegree(u);
+  }
+
   bool nodeIsEnabled(const HypernodeID u) const {
     return _hg.nodeIsEnabled(u);
   }
@@ -287,6 +291,18 @@ class LockBasedHypergraph {
       return _current_num_nodes;
     }
   }
+  
+  HypernodeID initialNumNodes() const {
+    return _hg.initialNumNodes();
+  }
+
+  HypernodeID initialNumPins() const {
+    return _hg.initialNumPins();
+  }
+
+  HyperedgeID initialNumEdges() const {
+    return _hg.initialNumEdges();
+  }
 
   size_t numCommunitiesInHyperedge(const HypernodeID he) const {
     return _hg.numCommunitiesInHyperedge(he);
@@ -294,6 +310,10 @@ class LockBasedHypergraph {
 
   HypernodeID currentCommunityNumNodes(const PartitionID community) const {
     return _hg.currentCommunityNumNodes(community);
+  }
+
+  HypernodeID communityNodeID(const HypernodeID u) const {
+    return _hg.communityNodeID(u);
   }
 
   HypernodeID numContractions() const {

@@ -39,8 +39,12 @@ int main(int argc, char* argv[]) {
   if ( context.shared_memory.community_file != "" ) {
     std::vector<kahypar::PartitionID> communities;
     kahypar::io::readPartitionFile(context.shared_memory.community_file, communities);
+    kahypar::PartitionID num_communities = 0;
+    for ( kahypar::PartitionID community : communities ) {
+      num_communities = std::max(num_communities, community);
+    }
     hypergraph.setCommunities(std::move(communities));
-    hypergraph.setNumCommunities(128);
+    hypergraph.setNumCommunities(num_communities + 1);
     context.preprocessing.enable_community_detection = false;
   }
 

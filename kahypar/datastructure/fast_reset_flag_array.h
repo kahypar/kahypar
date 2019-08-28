@@ -87,6 +87,10 @@ class FastResetFlagArray {
     memset(_v.get(), (initialiser ? 1 : 0), size * sizeof(UnderlyingType));
   }
 
+  size_t size() const {
+    return _size;
+  }
+
  private:
   bool isSet(size_t i) const {
     return _v[i] == _threshold;

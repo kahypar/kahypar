@@ -266,6 +266,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
           current_hns.push_back(hn);
         }
       }
+
       if ( _enableRandomization ) {
         Randomize::instance().shuffleVector(current_hns, current_hns.size());
       }

@@ -93,7 +93,7 @@ class LockBasedVertexPairRater {
     _hg(hypergraph),
     _context(context),
     _community_id(-1),
-    _tmp_ratings(MAP_SIZE),
+    _tmp_ratings(hypergraph.initialNumNodes()),
     _hn_mutex(hn_mutex),
     _he_mutex(he_mutex) { }
 
@@ -121,7 +121,7 @@ class LockBasedVertexPairRater {
         const RatingType score = ScorePolicy::score(_hg, he, _context, _community_id); 
         for (const HypernodeID& v : _hg.pins(he, _community_id)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) ) {
-            _tmp_ratings.update(v, score);
+            _tmp_ratings[v] += score;
           }
         }
       }
@@ -129,6 +129,7 @@ class LockBasedVertexPairRater {
 
     RatingType max_rating = std::numeric_limits<RatingType>::min();
     HypernodeID target = std::numeric_limits<HypernodeID>::max();
+    HypernodeID community_target = std::numeric_limits<HypernodeID>::max();
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       ASSERT(_hg.nodeIsEnabled(u), "Hypernode" << u << "is disabled");
@@ -138,17 +139,18 @@ class LockBasedVertexPairRater {
                                                                 target_weight);
       penalty = penalty == 0 ? std::max(std::max(weight_u, target_weight), 1) : penalty;
       const RatingType tmp_rating = it->value / static_cast<double>(penalty);
-      DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
       if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
           AcceptancePolicy::acceptRating(tmp_rating, max_rating,
-                                        target, tmp_target,
-                                        already_matched) &&
+                                          community_target, 
+                                          _hg.communityNodeID(tmp_target),
+                                          already_matched) &&
           RatingPartitionPolicy::accept(_hg, _context, u, tmp_target) /*&&
           FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)*/) {
         max_rating = tmp_rating;
         target = tmp_target;
+        community_target = _hg.communityNodeID(tmp_target);
       }
-      _tmp_ratings.remove_last_entry();
+      // _tmp_ratings.remove_last_entry();
     }
 
     VertexPairRating ret;
@@ -178,7 +180,7 @@ class LockBasedVertexPairRater {
             const RatingType score = ScorePolicy::score(_hg, he, _context, _community_id); 
             for (const HypernodeID& v : _hg.pins(he, _community_id)) {
               if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) ) {
-                _tmp_ratings.update(v, score);
+                _tmp_ratings[v] += score;
               }
             }
           }
@@ -206,18 +208,19 @@ class LockBasedVertexPairRater {
         DBG << "r(" << u << "," << tmp_target << ")=" << tmp_rating;
         if (CommunityPolicy::sameCommunity(_hg.communities(), u, tmp_target) &&
             AcceptancePolicy::acceptRating(tmp_rating, max_rating,
-                                          target, tmp_target,
+                                          _hg.communityNodeID(target), 
+                                          _hg.communityNodeID(tmp_target),
                                           already_matched) &&
             RatingPartitionPolicy::accept(_hg, _context, u, tmp_target) /*&&
             FixedVertexPolicy::acceptContraction(_hg, _context, u, tmp_target)*/) {
           max_rating = tmp_rating;
           target = tmp_target;
         }
-        _tmp_ratings.remove_last_entry();
+        // _tmp_ratings.remove_last_entry();
       } else if ( !_hg.nodeIsEnabled(u) ) {
         max_rating = std::numeric_limits<RatingType>::min();
         target = std::numeric_limits<HypernodeID>::max();
-        _tmp_ratings.remove_last_entry();
+        // _tmp_ratings.remove_last_entry();
         break;
       }
     }
@@ -250,7 +253,7 @@ class LockBasedVertexPairRater {
   HypergraphT& _hg;
   const Context& _context;
   PartitionID _community_id;
-  ds::ProbabilisticSparseMap<HypernodeID, RatingType> _tmp_ratings;
+  ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   MutexVector<HypernodeID>& _hn_mutex;
   MutexVector<HyperedgeID>& _he_mutex;  
 };

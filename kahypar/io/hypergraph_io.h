@@ -394,6 +394,23 @@ static inline void writePartitionFile(const Hypergraph& hypergraph, const std::s
   }
 }
 
+static inline void writeCommunityFile(const Hypergraph& hypergraph, const std::string& filename) {
+  if (filename.empty()) {
+    LOG << "No filename for partition file specified";
+  } else {
+    std::ofstream out_stream(filename.c_str());
+    std::unordered_map<PartitionID, PartitionID> remap_community;
+    PartitionID current_community = 0;
+    for (const PartitionID& community : hypergraph.communities()) {
+      if ( remap_community.find(community) == remap_community.end() ) {
+        remap_community[community] = current_community++;
+      }
+      out_stream << remap_community[community] << std::endl;
+    }
+    out_stream.close();
+  }
+}
+
 static inline void readFixedVertexFile(Hypergraph& hypergraph, const std::string& filename) {
   ASSERT(!filename.empty(), "No filename for partition file specified");
   std::ifstream file(filename);
