@@ -119,6 +119,10 @@ class ConcurrentBatchQueue {
     }
   }
 
+  void update_batch_size(const size_t batch_size) {
+    _batch_size = batch_size;
+  }
+
   size_t round() const {
     return _round;
   }
@@ -149,7 +153,7 @@ class ConcurrentBatchQueue {
   }
 
   const size_t _num_threads;
-  const size_t _batch_size;
+  size_t _batch_size;
   size_t _round;
 
   // Each thread contains its own batch queues

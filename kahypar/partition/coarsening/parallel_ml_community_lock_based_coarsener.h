@@ -26,6 +26,7 @@
 #include <vector>
 #include <unordered_map>
 #include <chrono>
+#include <condition_variable>
 #include <sched.h>
 #include <numa.h>
 
@@ -63,6 +64,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
  private:
   static constexpr bool debug = false;
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
+  static constexpr HypernodeID BASE_CASE_NODE_LIMIT = 5000;
+  static constexpr HypernodeID BATCH_SIZE_FACTOR = 50;
 
   using Base = VertexPairCoarsenerBase;
   using CommunityHypergraph = kahypar::ds::CommunityHypergraph<Hypergraph>;
@@ -116,12 +119,16 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       struct CommunityData {
         explicit CommunityData() :
           mutex(),
+          cv(),
+          finished_contractions(false),
           state(CommunityState::WAITING),
           threads_in_community(0),
           contraction_limit(0),
           round(1) { }
 
         Mutex mutex;
+        std::condition_variable_any cv;
+        bool finished_contractions;
         CommunityState state;
         size_t threads_in_community;
         HypernodeID contraction_limit;
@@ -131,10 +138,12 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       struct ThreadData {
         explicit ThreadData() :
           state(ThreadState::IDLE),
-          current_community(-1) { }
+          current_community(-1),
+          tmp_contractions() { }
 
         ThreadState state;
         PartitionID current_community;
+        std::vector<Memento> tmp_contractions;
       };
 
     public:
@@ -144,9 +153,11 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         _assign_mutex(),
         _community_data(num_communities),
         _thread_data(num_threads),
-        _community_queues() { 
+        _community_queues(),
+        _running(),
+        _waiting() { 
         for ( PartitionID i = 0; i < num_communities; ++i ) {
-          _community_queues.emplace_back(num_threads, 1000);
+          _community_queues.emplace_back(num_threads, 5000);
         }
       }
 
@@ -156,46 +167,45 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       WorkStealing(WorkStealing&&) = delete;
       WorkStealing& operator= (WorkStealing&&) = delete;
 
-      PartitionID assignWork(const size_t thread_id) {        
+      PartitionID assignWork(const CommunityHypergraph& community_hypergraph,
+                             const size_t thread_id) {        
         std::unique_lock<Mutex> assign_lock(_assign_mutex);
+        ASSERT(thread(thread_id).current_community == -1, "Thread" << thread_id << "is already assigned to community"
+          << thread(thread_id).current_community);
 
-        if ( thread(thread_id).state == ThreadState::MAIN ) {
-          return thread(thread_id).current_community;
-        }
-
-        PartitionID assigned_community = thread(thread_id).current_community;
-        size_t max_num_nodes = 0;
-        CommunityState max_state = CommunityState::SINGLE_THREADED;
-        for ( PartitionID community_id = 0; community_id < _num_communities; ++community_id ) {
-          CommunityState state = community(community_id).state;
-          if ( ( max_state == CommunityState::WAITING && state != max_state ) ||
-                 state == CommunityState::COMPLETED ||
-               ( state != CommunityState::WAITING && _community_queues[community_id].unsafe_size() < 500 ) ) {
-            continue;
-          } else if ( state == CommunityState::WAITING && state != max_state ) {
-            assigned_community = community_id;
-            max_num_nodes = _community_queues[community_id].unsafe_size();;
-            max_state = state;
-          } else {
-            size_t num_nodes = _community_queues[community_id].unsafe_size();
-            if ( max_num_nodes < num_nodes ) {
-              assigned_community = community_id;
-              max_num_nodes = num_nodes;
-              max_state = state;
+        PartitionID assigned_community = -1;
+        CommunityState state = CommunityState::COMPLETED;
+        if ( !_waiting.empty() ) {
+          assigned_community = _waiting.front();
+          state = community(assigned_community).state;
+          _waiting.pop();
+        } else if ( _running.size() > 0 ) {
+          size_t min_num_threads_in_community = std::numeric_limits<size_t>::max();
+          HypernodeID max_num_nodes = 0;
+          for ( const PartitionID& community_id : _running ) {
+            HypernodeID community_num_nodes = community_hypergraph.currentCommunityNumNodes(community_id);
+            if (  community_num_nodes >= BASE_CASE_NODE_LIMIT &&
+                 _community_queues[community_id].unsafe_size() >= 5000 ) {
+              size_t num_threads_in_community = community(community_id).threads_in_community;
+              bool has_more_nodes = ( 1.1 * max_num_nodes < community_num_nodes );
+              bool has_less_threads = ( 1.1 * community_num_nodes > max_num_nodes && num_threads_in_community < min_num_threads_in_community );
+              if ( has_more_nodes || has_less_threads ) {
+                min_num_threads_in_community = num_threads_in_community;
+                max_num_nodes = community_num_nodes;
+                assigned_community = community_id;
+                state = community(community_id).state;
+              }
             }
           }
         }
 
-        max_state = assigned_community != -1 ? community(assigned_community).state : CommunityState::COMPLETED;
-        if ( max_num_nodes == 0 || max_state == CommunityState::COMPLETED ) {
-          assigned_community = -1;
-        }
-
         if ( assigned_community != -1 ) {
-          if ( max_state == CommunityState::WAITING ) {
+          ASSERT(community(assigned_community).state != CommunityState::COMPLETED);
+          if ( state == CommunityState::WAITING ) {
             community(assigned_community).state = CommunityState::SINGLE_THREADED;
             thread(thread_id).state = ThreadState::MAIN;
-          } else if ( max_state == CommunityState::SINGLE_THREADED ) {
+            _running.push_back(assigned_community);
+          } else if ( state == CommunityState::SINGLE_THREADED ) {
             community(assigned_community).state = CommunityState::MULTI_THREADED;
             thread(thread_id).state = ThreadState::JOINED;
           } else {
@@ -208,38 +218,119 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         return assigned_community;
       }
 
-      void completeWork(const size_t thread_id, const PartitionID community_id) {
+      void completeWork(const CommunityHypergraph& community_hypergraph,
+                        const size_t thread_id, 
+                        const PartitionID community_id) {
         ASSERT(community(community_id).threads_in_community > 0);
         std::unique_lock<Mutex> assign_lock(_assign_mutex);
         if ( thread(thread_id).state == ThreadState::MAIN ) {
           DBG << "Main thread completed community" << community_id;
           community(community_id).state = CommunityState::COMPLETED;
+          size_t community_pos = std::numeric_limits<size_t>::max();
+          for ( size_t pos = 0; pos < _running.size(); ++pos) {
+            if ( _running[pos] == community_id ) {
+              community_pos = pos;
+              break;
+            }
+          }
+          ASSERT(community_pos != std::numeric_limits<size_t>::max());
+          std::swap(_running[community_pos], _running.back());
+          _running.pop_back();
         }
         thread(thread_id).state = ThreadState::IDLE;
         thread(thread_id).current_community = -1;
         --community(community_id).threads_in_community;
+        if ( community(community_id).threads_in_community == 1 &&
+             community_hypergraph.currentCommunityNumNodes(community_id) < BASE_CASE_NODE_LIMIT ) {
+          community(community_id).state = CommunityState::SINGLE_THREADED;
+        }
+      }
+
+      bool eligibleReturnToSingleThreaded(CommunityHypergraph& community_hypergraph,
+                                          const size_t thread_id, 
+                                          const PartitionID community_id) {
+        std::unique_lock<Mutex> assign_lock(_assign_mutex);
+        if ( thread(thread_id).state == ThreadState::MAIN &&
+             community(community_id).threads_in_community == 1 &&
+             community_hypergraph.currentCommunityNumNodes(community_id) < BASE_CASE_NODE_LIMIT ) {
+          community(community_id).state = CommunityState::SINGLE_THREADED;
+          return true;
+        } else {
+          return false;
+        }
       }
 
       void initializeCommunitySizesAndContractionLimits(CommunityHypergraph& community_hypergraph,
                                                         const HypernodeID limit) {
+        std::vector<HypernodeID> community_sizes(_num_communities, 0);    std::vector<HypernodeID> hypernodes;
+        for ( const HypernodeID& hn : community_hypergraph.nodes() ) {
+          hypernodes.push_back(hn);
+          ++community_sizes[community_hypergraph.communityID(hn)];
+        }
+        Randomize::instance().shuffleVector(hypernodes, hypernodes.size());
+
+        std::vector<PartitionID> communities;
         for ( PartitionID community_id = 0; community_id < _num_communities; ++community_id ) {
-          HypernodeID community_num_nodes = _community_queues[community_id].unsafe_size();
+          communities.push_back(community_id);
+          HypernodeID community_num_nodes = community_sizes[community_id];
           community_hypergraph.setCommunityNumNodes(community_id, community_num_nodes);
           community(community_id).contraction_limit = 
             std::ceil((((double) community_num_nodes) / community_hypergraph.totalWeight()) * limit);
+          updateQueueBatchSize(community_hypergraph, community_id);
         }
+
+        for ( const HypernodeID& hn : hypernodes ) {
+          push(community_hypergraph.communityID(hn), 0, hn);
+        }
+
+        std::sort(communities.begin(), communities.end(), 
+          [&](const PartitionID& lhs, const PartitionID& rhs) {
+            return community_hypergraph.currentCommunityNumNodes(lhs) > community_hypergraph.currentCommunityNumNodes(rhs);
+        });
+        for ( const PartitionID community_id : communities ) {
+          _waiting.push(community_id);
+        }
+      }
+
+      void updateQueueBatchSize(CommunityHypergraph& community_hypergraph, const PartitionID community_id) {
+        ASSERT(community_id < _num_communities);
+        HypernodeID community_num_nodes = community_hypergraph.currentCommunityNumNodes(community_id);
+        _community_queues[community_id].update_batch_size(std::max( community_num_nodes / BATCH_SIZE_FACTOR , 100U ));
       }
 
       Mutex& communityMutex(const PartitionID community_id) {
         return community(community_id).mutex;
       }
 
+
+      std::condition_variable_any& communityConditionVariable(const PartitionID community_id) {
+        return community(community_id).cv;
+      }
+
+      bool& communityFinishedContractions(const PartitionID community_id) {
+        return community(community_id).finished_contractions;
+      }
+
       CommunityState communityState(const PartitionID community_id) {
         return community(community_id).state;
       }
 
+      std::vector<size_t> allThreadsAssignedToCommunity(const PartitionID community_id) {
+        std::vector<size_t> threads;
+        for ( size_t thread_id = 0; thread_id < _thread_data.size(); ++thread_id ) {
+          if ( thread(thread_id).current_community == community_id ) {
+            threads.push_back(thread_id);
+          }
+        }
+        return threads;
+      }
+
       ThreadState threadState(const size_t thread_id) {
         return thread(thread_id).state;
+      }
+
+      std::vector<Memento> & contractions(const size_t thread_id) {
+        return thread(thread_id).tmp_contractions;
       }
 
       void push( const PartitionID community_id, const size_t thread_id, const HypernodeID hn ) {
@@ -298,6 +389,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       std::vector<CommunityData> _community_data;
       std::vector<ThreadData> _thread_data;
       std::vector<ConcurrentBatchQueue> _community_queues;
+      std::vector<PartitionID> _running;
+      std::queue<PartitionID> _waiting;
   };
 
  public:
@@ -346,15 +439,6 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
     
     start = std::chrono::high_resolution_clock::now();
-    std::vector<HypernodeID> hypernodes;
-    for ( const HypernodeID& hn : _hg.nodes() ) {
-      hypernodes.push_back(hn);
-    }
-    Randomize::instance().shuffleVector(hypernodes, hypernodes.size());
-    for ( const HypernodeID& hn : hypernodes ) {
-      PartitionID community = _hg.communityID(hn);
-      _work_stealing.push(community, 0, hn);
-    }
     _work_stealing.initializeCommunitySizesAndContractionLimits(community_hypergraph, limit);
     for ( PartitionID community = 0; community < _hg.numCommunities(); ++community ) {
       _already_matched.emplace_back(_work_stealing.unsafe_size(community));
@@ -404,24 +488,25 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
                                               const size_t thread_id) {
     ParallelCoarseningResult result(thread_id);
     Rater rater(lock_based_hypergraph, _context, _hn_mutex, _he_mutex);
-    PartitionID community_id = _work_stealing.assignWork(thread_id);
+    PartitionID community_id = _work_stealing.assignWork(community_hypergraph, thread_id);
+    ds::FastResetFlagArray<> tmp_disabled_hypernodes(community_hypergraph.initialNumNodes());
     while ( community_id != -1 ) {
 
       switch ( _work_stealing.communityState(community_id) ) {
         case CommunityState::SINGLE_THREADED:
           singleThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph,
-            result, rater, community_id, thread_id, _work_stealing.contractionLimit(community_id));
+            result, rater, community_id, thread_id, _work_stealing.contractionLimit(community_id), tmp_disabled_hypernodes);
           break;
         case CommunityState::MULTI_THREADED:
-          multiThreadedCommunityCoarsening(lock_based_hypergraph, result, rater,
-            community_id, thread_id, _work_stealing.contractionLimit(community_id));
+          multiThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph, result, rater,
+            community_id, thread_id, _work_stealing.contractionLimit(community_id), tmp_disabled_hypernodes);
           break;
         default:
           break;
       }
 
-      _work_stealing.completeWork(thread_id, community_id);
-      community_id = _work_stealing.assignWork(thread_id);
+      _work_stealing.completeWork(community_hypergraph, thread_id, community_id);
+      community_id = _work_stealing.assignWork(community_hypergraph, thread_id);
     }
     return result;
   }
@@ -432,11 +517,13 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
                                          Rater& rater,
                                          const PartitionID community_id,
                                          const size_t thread_id,
-                                         const HypernodeID limit) {
+                                         const HypernodeID limit,
+                                         ds::FastResetFlagArray<>& tmp_disabled_hypernodes) {
     std::unique_lock<Mutex> community_lock(_work_stealing.communityMutex(community_id), std::defer_lock);
     if ( !community_lock.try_lock() ) {
       ASSERT(_work_stealing.communityState(community_id) == CommunityState::MULTI_THREADED);
-      multiThreadedCommunityCoarsening(lock_based_hypergraph, result, rater, community_id, thread_id, limit);
+      multiThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph, 
+        result, rater, community_id, thread_id, limit, tmp_disabled_hypernodes);
       return;
     }
 
@@ -462,12 +549,13 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           HypernodeID target = rating.target;
 
           if ( target != std::numeric_limits<HypernodeID>::max() ) {
+            HypernodeID community_target = community_hypergraph.communityNodeID(target);
             LockBasedMemento lock_based_memento(
               community_hypergraph.contract(hn, target), 
               lock_based_hypergraph.drawContractionId());
             result.history.emplace_back(community_id, thread_id, std::move(lock_based_memento)); 
             _already_matched[community_id].set(community_hypergraph.communityNodeID(hn), true);
-            _already_matched[community_id].set(community_hypergraph.communityNodeID(target), true);
+            _already_matched[community_id].set(community_target, true);
             _pruner[thread_id].removeSingleNodeHyperedges(community_hypergraph, result.history.back());
             _pruner[thread_id].removeParallelHyperedges(community_hypergraph, result.history.back());
             num_contractions++;
@@ -491,7 +579,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
             }
           }
           community_lock.unlock();
-          multiThreadedCommunityCoarsening(lock_based_hypergraph, result, rater, community_id, thread_id, limit);
+          multiThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph, 
+            result, rater, community_id, thread_id, limit, tmp_disabled_hypernodes);
           return;
         }
       }
@@ -505,6 +594,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         if ( num_contractions == 0 ) {
           break;
         }
+
+        _work_stealing.updateQueueBatchSize(community_hypergraph, community_id);
         round = _work_stealing.round(community_id);
         _work_stealing.updateRound(community_id);
         num_contractions = 0;
@@ -513,20 +604,24 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
     }
   }
 
-  void multiThreadedCommunityCoarsening(LockBasedCommunityHypergraph& lock_based_hypergraph,
+  void multiThreadedCommunityCoarsening(CommunityHypergraph& community_hypergraph,
+                                        LockBasedCommunityHypergraph& lock_based_hypergraph,
                                         ParallelCoarseningResult& result,
                                         Rater& rater,
                                         const PartitionID community_id,
                                         const size_t thread_id,
-                                        const HypernodeID limit) {
+                                        const HypernodeID limit,
+                                        ds::FastResetFlagArray<>& tmp_disabled_hypernodes) {
     std::shared_lock<Mutex> community_lock(_work_stealing.communityMutex(community_id));
     LOG << "Thread" << thread_id << "process community" << community_id 
         << "in multi-threaded mode (Contraction Limit =" << limit << ", Thread State ="
         << threadState(_work_stealing.threadState(thread_id)) << ", Community State ="
-        << communityState(_work_stealing.communityState(community_id)) << ")";
+        << communityState(_work_stealing.communityState(community_id)) << ", Num Nodes =" 
+        << community_hypergraph.currentCommunityNumNodes(community_id) << ")";
 
     size_t round = _work_stealing.round(community_id);
     size_t num_contractions = 0;
+    size_t tried_contractions = 0;
     _pruner[thread_id].setCommunity(community_id);
     rater.setCommunity(community_id);
     while ( lock_based_hypergraph.currentCommunityNumNodes(community_id) > limit && !_work_stealing.empty(community_id) ) {
@@ -534,36 +629,65 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       std::vector<HypernodeID> batch = _work_stealing.pop_batch(community_id);
       Randomize::instance().shuffleVector(batch, batch.size());
 
-      size_t batch_pos = 0;
+      std::vector<Memento>& contractions = _work_stealing.contractions(thread_id);
+      ASSERT(contractions.empty(), "Contractions of thread" << thread_id << "are not empty");
       for ( const HypernodeID& hn : batch ) {
-        ++batch_pos;
-        if ( lock_based_hypergraph.nodeIsEnabled(hn) ) {
-          Rating rating = rater.rateLockBased(hn, _already_matched[community_id]);
-          HypernodeID target = rating.target;
+        if ( community_hypergraph.nodeIsEnabled(hn) &&
+             !tmp_disabled_hypernodes[hn] ) {
+          Rating rating = rater.rateSingleThreaded(hn, _already_matched[community_id]);
+        
+          if ( rating.target != std::numeric_limits<HypernodeID>::max() ) {
+            ASSERT(community_hypergraph.nodeIsEnabled(rating.target), "Hypernode" << rating.target << "is disabled");
+            contractions.emplace_back(Memento {hn, rating.target});
+            tmp_disabled_hypernodes.set(rating.target, true);
+          }
+        }
+      }
+      tmp_disabled_hypernodes.reset();
 
-          if ( target != std::numeric_limits<HypernodeID>::max() ) {
-            LockBasedMemento memento = lock_based_hypergraph.contract(hn, target);
-            if ( memento.memento.u == hn && 
-                 memento.memento.v == target ) {
-              result.history.emplace_back(community_id, thread_id, std::move(memento));
-              _pruner[thread_id].removeLockBasedSingleNodeHyperedges(lock_based_hypergraph, result.history.back());
-              _pruner[thread_id].removeLockBasedParallelHyperedges(lock_based_hypergraph, result.history.back());
-              _already_matched[community_id].set(lock_based_hypergraph.communityNodeID(hn), true);
-              _already_matched[community_id].set(lock_based_hypergraph.communityNodeID(target), true);
-              lock_based_hypergraph.unmarkAsActive(hn);
-              lock_based_hypergraph.unmarkAsActive(target);
+      _work_stealing.communityFinishedContractions(community_id) = false;
+      if ( _work_stealing.threadState(thread_id) == ThreadState::MAIN ) {
+        community_lock.unlock();
+        std::unique_lock<Mutex> lock(_work_stealing.communityMutex(community_id));
+        std::vector<size_t> threads = _work_stealing.allThreadsAssignedToCommunity(community_id);
+        for ( const size_t thread : threads ) {
+          std::vector<Memento>& thread_contractions = _work_stealing.contractions(thread);
+          while ( !thread_contractions.empty() ) {
+            HypernodeID representative = thread_contractions.back().u;
+            HypernodeID target = thread_contractions.back().v;
+            thread_contractions.pop_back();
+            ++tried_contractions;
+            if ( community_hypergraph.nodeIsEnabled(representative) &&
+                 community_hypergraph.nodeIsEnabled(target) ) {
+              HypernodeID community_target = community_hypergraph.communityNodeID(target);
+              LockBasedMemento lock_based_memento(
+                community_hypergraph.contract(representative, target), 
+                lock_based_hypergraph.drawContractionId());
+              result.history.emplace_back(community_id, thread_id, std::move(lock_based_memento)); 
+              _already_matched[community_id].set(community_hypergraph.communityNodeID(representative), true);
+              _already_matched[community_id].set(community_target, true);
+              _pruner[thread_id].removeSingleNodeHyperedges(community_hypergraph, result.history.back());
+              _pruner[thread_id].removeParallelHyperedges(community_hypergraph, result.history.back());
               num_contractions++;
             }
-          }
 
-          if ( lock_based_hypergraph.nodeIsEnabled(hn) && lock_based_hypergraph.nodeDegree(hn) > 0 ) {
-            _work_stealing.push(community_id, thread_id, hn);
+            if ( community_hypergraph.currentCommunityNumNodes(community_id) <= limit ) {
+              break;
+            }
+
+            if ( community_hypergraph.nodeIsEnabled(representative) ) {
+              _work_stealing.push(community_id, thread_id, representative);
+            }
           }
         }
-
-        if ( lock_based_hypergraph.currentCommunityNumNodes(community_id) <= limit ) {
-          break;
-        }
+        
+        lock.unlock();
+        community_lock.lock();
+        _work_stealing.communityFinishedContractions(community_id) = true;
+        _work_stealing.communityConditionVariable(community_id).notify_all();
+      } else if ( !_work_stealing.communityFinishedContractions(community_id) ) {
+        _work_stealing.communityConditionVariable(community_id).wait(community_lock, 
+          [this, &community_id]() { return this->_work_stealing.communityFinishedContractions(community_id); });
       }
 
       if ( lock_based_hypergraph.currentCommunityNumNodes(community_id) <= limit ) {
@@ -576,8 +700,17 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           break;
         }
 
+        if ( _work_stealing.eligibleReturnToSingleThreaded(community_hypergraph, thread_id, community_id) ) {
+          community_lock.unlock();
+          singleThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph, 
+            result, rater, community_id, thread_id, limit, tmp_disabled_hypernodes);
+          return;
+        }
+
+        _work_stealing.updateQueueBatchSize(community_hypergraph, community_id);
         round = _work_stealing.round(community_id);
         num_contractions = 0;
+        tried_contractions = 0;
         if ( _work_stealing.communityRound(community_id) < _work_stealing.round(community_id) ) {
           _work_stealing.updateRound(community_id);
           _already_matched[community_id].reset();
