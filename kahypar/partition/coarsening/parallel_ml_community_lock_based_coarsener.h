@@ -65,7 +65,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
   static constexpr bool debug = false;
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
   static constexpr HypernodeID BASE_CASE_NODE_LIMIT = 5000;
-  static constexpr HypernodeID BATCH_SIZE_FACTOR = 50;
+  static constexpr HypernodeID BATCH_SIZE_FACTOR = 10;
 
   using Base = VertexPairCoarsenerBase;
   using CommunityHypergraph = kahypar::ds::CommunityHypergraph<Hypergraph>;
@@ -295,7 +295,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       void updateQueueBatchSize(CommunityHypergraph& community_hypergraph, const PartitionID community_id) {
         ASSERT(community_id < _num_communities);
         HypernodeID community_num_nodes = community_hypergraph.currentCommunityNumNodes(community_id);
-        _community_queues[community_id].update_batch_size(std::max( community_num_nodes / BATCH_SIZE_FACTOR , 100U ));
+        _community_queues[community_id].update_batch_size(std::max( community_num_nodes / (_num_threads * BATCH_SIZE_FACTOR ) , 100UL ));
       }
 
       Mutex& communityMutex(const PartitionID community_id) {
