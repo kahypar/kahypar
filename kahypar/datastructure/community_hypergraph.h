@@ -441,6 +441,7 @@ class CommunityHypergraph {
             std::forward_as_tuple(community_id),
             std::forward_as_tuple(start, (end - start), this->_hg.edgeWeight(he))
           );
+          this->_hg._hyperedges[he].initial_size.push_back(end - start);
 
           // Compute edge hash for pins in community
           hyperedge(he, community_id).hash = Hypergraph::kEdgeHashSeed;

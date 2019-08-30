@@ -2276,6 +2276,9 @@ class GenericHypergraph {
   friend class CommunityHypergraph;
 
   template <typename Hypergraph>
+  friend class NumaAwareCommunityHypergraph;
+
+  template <typename Hypergraph>
   friend class LockBasedHypergraph;
 
   template <typename Hypergraph>

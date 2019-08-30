@@ -123,6 +123,10 @@ class ConcurrentBatchQueue {
     _batch_size = batch_size;
   }
 
+  size_t batch_size() const {
+    return _batch_size;
+  }
+
   size_t round() const {
     return _round;
   }

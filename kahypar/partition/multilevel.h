@@ -116,7 +116,7 @@ static inline void partition(Hypergraph& hypergraph,
   }
 
   start = std::chrono::high_resolution_clock::now();
-  // coarsener.uncoarsen(refiner);
+  coarsener.uncoarsen(refiner);
   end = std::chrono::high_resolution_clock::now();
 
   Timer::instance().add(context, Timepoint::local_search,

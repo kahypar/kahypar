@@ -64,7 +64,14 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
  private:
   static constexpr bool debug = false;
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
+  // In case the number of nodes in a community drops below 5000, we fall back
+  // to single threaded coarsening inside that community
   static constexpr HypernodeID BASE_CASE_NODE_LIMIT = 5000;
+  // In parallel coarsening each thread process a batch of hypernodes at once.
+  // The size of that batch is determined by this batch factor
+  // => BATCH SIZE = NUM_NODES_IN_COMMUNITY / ( NUM_THREADS * BATCH_SIZE_FACTOR )
+  // The batch factor is adjusted dynamically, which means that if the hypergraph
+  // gets smaller, than also the batch sizes
   static constexpr HypernodeID BATCH_SIZE_FACTOR = 10;
 
   using Base = VertexPairCoarsenerBase;
@@ -116,6 +123,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
   class WorkStealing {
     private:
+
+      // ! Represents data for a community shared by different threads
       struct CommunityData {
         explicit CommunityData() :
           mutex(),
@@ -124,15 +133,21 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           state(CommunityState::WAITING),
           threads_in_community(0),
           contraction_limit(0),
-          round(1) { }
+          pass(1) { }
 
+        // ! Synchronization between threads in multi-threading community coarsening
         Mutex mutex;
         std::condition_variable_any cv;
         bool finished_contractions;
+        // ! State of community
         CommunityState state;
+        // ! Number of threads working on community
         size_t threads_in_community;
+        // ! Contraction Limit for community
         HypernodeID contraction_limit;
-        size_t round;
+        // ! Coarsening Pass, 
+        // ! pass is incremented if all nodes are processed
+        size_t pass;
       };
 
       struct ThreadData {
@@ -141,8 +156,13 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           current_community(-1),
           tmp_contractions() { }
 
+        // ! State of thread
         ThreadState state;
+        // ! Community thread is currently assigned to
         PartitionID current_community;
+        // ! In case, of multi threading coarsening each threads
+        // ! stores it temporary contractions here, which will
+        // ! then be executed sequential
         std::vector<Memento> tmp_contractions;
       };
 
@@ -150,6 +170,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       WorkStealing(const PartitionID num_communities, const size_t num_threads) :
         _num_communities(num_communities),
         _num_threads(num_threads),
+        _max_community_size(0),
         _assign_mutex(),
         _community_data(num_communities),
         _thread_data(num_threads),
@@ -176,16 +197,23 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         PartitionID assigned_community = -1;
         CommunityState state = CommunityState::COMPLETED;
         if ( !_waiting.empty() ) {
+          // We first assign waiting communities to threads
+          // Note, communities are ordered in decreasing order of their size
           assigned_community = _waiting.front();
           state = community(assigned_community).state;
           _waiting.pop();
         } else if ( _running.size() > 0 ) {
+          // If there are no waiting communities, we assign the thread to the community
+          // with the most nodes. In case all communities are roughly equal sized (10% deviation)
+          // we assign the thread to the community with the least number of threads.
           size_t min_num_threads_in_community = std::numeric_limits<size_t>::max();
           HypernodeID max_num_nodes = 0;
           for ( const PartitionID& community_id : _running ) {
             HypernodeID community_num_nodes = community_hypergraph.currentCommunityNumNodes(community_id);
+            // Only allowed to join, if the number of nodes is above the base case limit and if there are enough
+            // work left inside the batch queue.
             if (  community_num_nodes >= BASE_CASE_NODE_LIMIT &&
-                 _community_queues[community_id].unsafe_size() >= 5000 ) {
+                 _community_queues[community_id].unsafe_size() >= 2 * _community_queues[community_id].batch_size() ) {
               size_t num_threads_in_community = community(community_id).threads_in_community;
               bool has_more_nodes = ( 1.1 * max_num_nodes < community_num_nodes );
               bool has_less_threads = ( 1.1 * community_num_nodes > max_num_nodes && num_threads_in_community < min_num_threads_in_community );
@@ -200,6 +228,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         }
 
         if ( assigned_community != -1 ) {
+          // Change community and thread state
           ASSERT(community(assigned_community).state != CommunityState::COMPLETED);
           if ( state == CommunityState::WAITING ) {
             community(assigned_community).state = CommunityState::SINGLE_THREADED;
@@ -218,13 +247,15 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         return assigned_community;
       }
 
-      void completeWork(const CommunityHypergraph& community_hypergraph,
-                        const size_t thread_id, 
+      void completeWork(const size_t thread_id, 
                         const PartitionID community_id) {
         ASSERT(community(community_id).threads_in_community > 0);
         std::unique_lock<Mutex> assign_lock(_assign_mutex);
         if ( thread(thread_id).state == ThreadState::MAIN ) {
           DBG << "Main thread completed community" << community_id;
+          // In case main thread completes it work on the community,
+          // we mark the community as completed and remove the community
+          // from the list of running threads
           community(community_id).state = CommunityState::COMPLETED;
           size_t community_pos = std::numeric_limits<size_t>::max();
           for ( size_t pos = 0; pos < _running.size(); ++pos) {
@@ -237,19 +268,30 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           std::swap(_running[community_pos], _running.back());
           _running.pop_back();
         }
+
+        // Set thread state to idle and revert assignment to
+        // corresponding community
         thread(thread_id).state = ThreadState::IDLE;
         thread(thread_id).current_community = -1;
         --community(community_id).threads_in_community;
-        if ( community(community_id).threads_in_community == 1 &&
-             community_hypergraph.currentCommunityNumNodes(community_id) < BASE_CASE_NODE_LIMIT ) {
-          community(community_id).state = CommunityState::SINGLE_THREADED;
-        }
       }
 
+      /**
+       * Checks, if a thread working multi-threaded on a community is eligible
+       * to return to single-threaded coarsening for that community.
+       * 
+       * A thread is eligible to return to single-threaded coarsening, if ...
+       *   1.) ... it is the main thread responsible for the community
+       *   2.) ... the number of nodes inside that community is smaller than
+       *       the BASE_CASE_NODE_LIMIT
+       *   3.) ... it is the only thread left working on that community 
+       */
       bool eligibleReturnToSingleThreaded(CommunityHypergraph& community_hypergraph,
                                           const size_t thread_id, 
                                           const PartitionID community_id) {
         std::unique_lock<Mutex> assign_lock(_assign_mutex);
+        ASSERT(thread(thread_id).current_community == community_id);
+        ASSERT(community(community_id).state == CommunityState::MULTI_THREADED);
         if ( thread(thread_id).state == ThreadState::MAIN &&
              community(community_id).threads_in_community == 1 &&
              community_hypergraph.currentCommunityNumNodes(community_id) < BASE_CASE_NODE_LIMIT ) {
@@ -260,32 +302,44 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         }
       }
 
-      void initializeCommunitySizesAndContractionLimits(CommunityHypergraph& community_hypergraph,
-                                                        const HypernodeID limit) {
-        std::vector<HypernodeID> community_sizes(_num_communities, 0);    std::vector<HypernodeID> hypernodes;
+      void initializeCommunities(CommunityHypergraph& community_hypergraph,
+                                 const HypernodeID limit) {
+        // Compute number of nodes of communities
+        std::vector<HypernodeID> hypernodes;
+        std::vector<HypernodeID> community_sizes(_num_communities, 0);   
         for ( const HypernodeID& hn : community_hypergraph.nodes() ) {
           hypernodes.push_back(hn);
           ++community_sizes[community_hypergraph.communityID(hn)];
         }
+        // Permutate Hypernodes
         Randomize::instance().shuffleVector(hypernodes, hypernodes.size());
 
         std::vector<PartitionID> communities;
         for ( PartitionID community_id = 0; community_id < _num_communities; ++community_id ) {
           communities.push_back(community_id);
+          // Set number of hypernodes of community in community hypergraph
           HypernodeID community_num_nodes = community_sizes[community_id];
+          _max_community_size = std::max(community_num_nodes, _max_community_size);
           community_hypergraph.setCommunityNumNodes(community_id, community_num_nodes);
+          // Compute Contraction Limit for community
           community(community_id).contraction_limit = 
             std::ceil((((double) community_num_nodes) / community_hypergraph.totalWeight()) * limit);
+          // Update batch size for community, which depends on the 
+          // number of nodes inside the community
           updateQueueBatchSize(community_hypergraph, community_id);
         }
 
+        // Push hypernodes into concurrent batch queues
         for ( const HypernodeID& hn : hypernodes ) {
           push(community_hypergraph.communityID(hn), 0, hn);
         }
 
+        // Sort community sizes in decreasing order of their size and
+        // fill waiting task queue.
         std::sort(communities.begin(), communities.end(), 
           [&](const PartitionID& lhs, const PartitionID& rhs) {
-            return community_hypergraph.currentCommunityNumNodes(lhs) > community_hypergraph.currentCommunityNumNodes(rhs);
+            return community_hypergraph.currentCommunityNumNodes(lhs) > 
+              community_hypergraph.currentCommunityNumNodes(rhs);
         });
         for ( const PartitionID community_id : communities ) {
           _waiting.push(community_id);
@@ -295,7 +349,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       void updateQueueBatchSize(CommunityHypergraph& community_hypergraph, const PartitionID community_id) {
         ASSERT(community_id < _num_communities);
         HypernodeID community_num_nodes = community_hypergraph.currentCommunityNumNodes(community_id);
-        _community_queues[community_id].update_batch_size(std::max( community_num_nodes / (_num_threads * BATCH_SIZE_FACTOR ) , 100UL ));
+        _community_queues[community_id].update_batch_size(
+          std::max( community_num_nodes / (_num_threads * BATCH_SIZE_FACTOR ) , 100UL ));
       }
 
       Mutex& communityMutex(const PartitionID community_id) {
@@ -313,6 +368,10 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
       CommunityState communityState(const PartitionID community_id) {
         return community(community_id).state;
+      }
+
+      HypernodeID maxCommunitySize() const {
+        return _max_community_size;
       }
 
       std::vector<size_t> allThreadsAssignedToCommunity(const PartitionID community_id) {
@@ -355,11 +414,11 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
       }
 
       size_t communityRound(const PartitionID community_id) {
-        return community(community_id).round;
+        return community(community_id).pass;
       }
 
       void updateRound(const PartitionID community_id) {
-        community(community_id).round = round(community_id);
+        community(community_id).pass = round(community_id);
       }
 
       size_t unsafe_size(const PartitionID community_id) const {
@@ -385,6 +444,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
       const PartitionID _num_communities;
       const size_t _num_threads;
+      HypernodeID _max_community_size;
       Mutex _assign_mutex;
       std::vector<CommunityData> _community_data;
       std::vector<ThreadData> _thread_data;
@@ -404,13 +464,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
     _he_mutex(_hg.initialNumEdges()),
     _already_matched(),
     _active(_hg.initialNumNodes()),
-    _last_touched(_hg.initialNumEdges(), 0) { 
-    
-    for ( size_t i = 0; i < context.shared_memory.num_threads; ++i ) {
-      _pruner.emplace_back(_hg.initialNumNodes(), _hn_mutex, _he_mutex, _last_touched);
-    }
-
-  }
+    _last_touched(_hg.initialNumEdges(), 0) { }
 
   ~ParallelMLCommunityLockBasedCoarsener() override = default;
 
@@ -423,7 +477,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
  private:
   void coarsenImpl(const HypernodeID limit) override final {
     ASSERT(_context.shared_memory.pool, "Thread pool not initialized");
-    //HighResClockTimepoint global_start = std::chrono::high_resolution_clock::now();
+    
     ThreadPool& pool = *_context.shared_memory.pool;
     CommunityHypergraph community_hypergraph(_hg, _context, pool);
     LockBasedCommunityHypergraph lock_based_hypergraph(community_hypergraph, 
@@ -439,9 +493,15 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
     
     start = std::chrono::high_resolution_clock::now();
-    _work_stealing.initializeCommunitySizesAndContractionLimits(community_hypergraph, limit);
+    _work_stealing.initializeCommunities(community_hypergraph, limit);
+    // Initialize bit vector for each thread to mark all already matched nodes
     for ( PartitionID community = 0; community < _hg.numCommunities(); ++community ) {
       _already_matched.emplace_back(_work_stealing.unsafe_size(community));
+    }
+    // Initialize hypergraph pruner for each thread 
+    // => Responsible for detecting single-pin and parallel hyperedges
+    for ( size_t i = 0; i < _context.shared_memory.num_threads; ++i ) {
+      _pruner.emplace_back(_work_stealing.maxCommunitySize(), 0);
     }
     end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::compute_community_sizes,
@@ -505,7 +565,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           break;
       }
 
-      _work_stealing.completeWork(community_hypergraph, thread_id, community_id);
+      // Mark work of thread for community as completed and ask for new work
+      _work_stealing.completeWork(thread_id, community_id);
       community_id = _work_stealing.assignWork(community_hypergraph, thread_id);
     }
     return result;
@@ -520,6 +581,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
                                          const HypernodeID limit,
                                          ds::FastResetFlagArray<>& tmp_disabled_hypernodes) {
     std::unique_lock<Mutex> community_lock(_work_stealing.communityMutex(community_id), std::defer_lock);
+    // Try to get unique lock here, because it can happen that some threads already hold
+    // shared lock required for starting multi-threaded community coarsening
     if ( !community_lock.try_lock() ) {
       ASSERT(_work_stealing.communityState(community_id) == CommunityState::MULTI_THREADED);
       multiThreadedCommunityCoarsening(community_hypergraph, lock_based_hypergraph, 
@@ -530,17 +593,23 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
     LOG << "Thread" << thread_id << "process community" << community_id 
         << "in single-threaded mode (Contraction Limit =" << limit << ", Thread State ="
         << threadState(_work_stealing.threadState(thread_id)) << ", Community State ="
-        << communityState(_work_stealing.communityState(community_id)) << ")";
+        << communityState(_work_stealing.communityState(community_id)) << ", Num Nodes =" 
+        << community_hypergraph.currentCommunityNumNodes(community_id) << ")";
 
     _pruner[thread_id].setCommunity(community_id);
     rater.setCommunity(community_id);
-    size_t round = 1;
+    // TODO(heuer): rename round to pass
+    size_t local_pass = 1;
     size_t num_contractions = 0;
     while ( community_hypergraph.currentCommunityNumNodes(community_id) > limit && !_work_stealing.empty(community_id) ) {
 
       std::vector<HypernodeID> batch = _work_stealing.pop_batch(community_id);
       Randomize::instance().shuffleVector(batch, batch.size());
 
+      // Pointer to position of current processed hypernode in current batch
+      // => if thread recognize that it have to change into multi-threaded community
+      // coarsening, than all non-processed hypernodes of that batch are inserted into
+      // queue again
       size_t batch_pos = 0;
       for ( const HypernodeID& hn : batch ) {
         ++batch_pos;
@@ -550,6 +619,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
           if ( target != std::numeric_limits<HypernodeID>::max() ) {
             HypernodeID community_target = community_hypergraph.communityNodeID(target);
+            // TODO(heuer): Replace LockBasedMemento with a community memento also storing
+            // contraction id
             LockBasedMemento lock_based_memento(
               community_hypergraph.contract(hn, target), 
               lock_based_hypergraph.drawContractionId());
@@ -571,6 +642,8 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
           break;
         }
 
+        // In case, state of community changed to multi-threaded, we immediatly terminate
+        // single-threaded mode and insert all non-processed hypernodes into queue
         if ( _work_stealing.communityState(community_id) == CommunityState::MULTI_THREADED ) {
           for ( size_t i = batch_pos; i < batch.size(); ++i ) {
             HypernodeID hn = batch[i];
@@ -590,13 +663,13 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
         break;
       }
 
-      if ( round < _work_stealing.round(community_id) ) {
+      if ( local_pass < _work_stealing.round(community_id) ) {
         if ( num_contractions == 0 ) {
           break;
         }
 
         _work_stealing.updateQueueBatchSize(community_hypergraph, community_id);
-        round = _work_stealing.round(community_id);
+        local_pass = _work_stealing.round(community_id);
         _work_stealing.updateRound(community_id);
         num_contractions = 0;
         _already_matched[community_id].reset();
@@ -742,13 +815,13 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
 
   void restoreParallelHyperedges() override {
     PartitionID thread_id = _history.back().thread_id;
-    CommunityLockBasedHypergraphPruner& pruner = _pruner[thread_id];
+    CommunityHypergraphPruner& pruner = _pruner[thread_id];
     pruner.restoreParallelHyperedges(_hg, _history.back());
   }
 
   void restoreSingleNodeHyperedges() override {
     PartitionID thread_id = _history.back().thread_id;
-    CommunityLockBasedHypergraphPruner& pruner = _pruner[thread_id];
+    CommunityHypergraphPruner& pruner = _pruner[thread_id];
     pruner.restoreSingleNodeHyperedges(_hg, _history.back());
   }
 
@@ -779,7 +852,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
   const HypernodeWeight _weight_of_heaviest_node;
 
   WorkStealing _work_stealing;
-  std::vector<CommunityLockBasedHypergraphPruner> _pruner;
+  std::vector<CommunityHypergraphPruner> _pruner;
 
   // Vectors to lock hypernodes an hyperedges
   MutexVector<HypernodeID> _hn_mutex;
