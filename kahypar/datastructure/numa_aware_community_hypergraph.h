@@ -69,12 +69,10 @@ class NumaAwareCommunityHypergraph {
     _hg(hypergraph),
     _context(context),
     _node(node),
-    _node_allocator(node, _hg.initialNumPins()),
-    _vector_allocator(node, _hg.initialNumNodes()),
-    _incidence_array(_hg.initialNumPins(), 0, _node_allocator),
-    _incident_nets(_hg.initialNumNodes(), std::vector<HyperedgeID>(), _vector_allocator) { 
-    // Copy incidence array of hypergraph to numa node
-    memcpy(_incidence_array.data(), _hg._incidence_array.data(), _hg.initialNumPins() * sizeof(HypernodeID));
+    _node_allocator(node),
+    _vector_allocator(node),
+    _incidence_array(_node_allocator),
+    _incident_nets(_vector_allocator) { 
   }
 
   NumaAwareCommunityHypergraph(NumaAwareCommunityHypergraph&& other) = default;
@@ -84,6 +82,13 @@ class NumaAwareCommunityHypergraph {
   NumaAwareCommunityHypergraph& operator= (const NumaAwareCommunityHypergraph&) = delete;
 
   ~NumaAwareCommunityHypergraph() = default;
+
+  void initialize() {
+    _incidence_array.resize(_hg.initialNumPins());
+    _incident_nets.resize(_hg.initialNumNodes());
+    // Copy incidence array of hypergraph to numa node
+    memcpy(_incidence_array.data(), _hg._incidence_array.data(), _hg.initialNumPins() * sizeof(HypernodeID));
+  }
 
   // ! Returns a for-each iterator-pair to loop over the set of incident hyperedges of hypernode u.
   std::pair<IncidenceIterator, IncidenceIterator> incidentEdges(const HypernodeID u) const {
@@ -523,8 +528,8 @@ class NumaAwareCommunityHypergraph {
   const Context& _context;
   const int _node;
 
-  const NumaAllocator<HypernodeID> _node_allocator;
-  const NumaAllocator<std::vector<HyperedgeID>> _vector_allocator;
+  NumaAllocator<HypernodeID> _node_allocator;
+  NumaAllocator<std::vector<HyperedgeID>> _vector_allocator;
 
   NumaVector<HypernodeID> _incidence_array;
   NumaVector<std::vector<HyperedgeID>> _incident_nets;

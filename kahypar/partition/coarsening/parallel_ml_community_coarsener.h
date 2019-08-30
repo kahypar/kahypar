@@ -143,6 +143,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     std::vector<NumaAwareCommunityHypergraph> numa_hypergraphs;
     for ( int node = 0; node < numa_num_configured_nodes(); ++node ) {
       numa_hypergraphs.emplace_back(_hg, _context, node);
+      numa_hypergraphs.back().initialize();
     }
     end = std::chrono::high_resolution_clock::now();
     LOG << "Initialize Numa Hypergraphs = " << std::chrono::duration<double>(end - start).count() << "s";

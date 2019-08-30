@@ -17,21 +17,18 @@ class NumaAllocator {
   typedef std::true_type propagate_on_container_move_assignment;
   typedef std::true_type is_always_equal;
 
-  NumaAllocator(int node, const size_t chunk_size ) noexcept : 
+  NumaAllocator(int node) noexcept : 
     _node(node),
-    _chunk_size(chunk_size),
+    _chunk_size(0),
     _chunk_pos(0),
-    _memory() {
-    allocate_new_chunk();
-  }
-
-  ~NumaAllocator() {
-    for ( T* p : _memory ) {
-      numa_free(p, _chunk_size * sizeof(T));
-    }
-  }
+    _memory() { }
 
   T* allocate (size_t num) {
+    if ( _chunk_size == 0 ) {
+      _chunk_size = num;
+      allocate_new_chunk();
+    }
+    
     if ( num > _chunk_size ) {
       throw std::bad_alloc();
     } else if ( _chunk_pos + num > _chunk_size ) {
@@ -44,8 +41,18 @@ class NumaAllocator {
     return ret;
   }
 
-  void deallocate (T*, size_t) noexcept {
-    // NO-OP
+  void deallocate (T* p, size_t num) {
+    if ( num != _chunk_size )
+      throw std::bad_alloc();
+
+    for ( T* mem : _memory ) {
+      if ( p == mem ) {
+        numa_free(p, _chunk_size * sizeof(T));
+        return;
+      }
+    }
+
+    throw std::bad_alloc();
   }
 
  private:
@@ -57,7 +64,7 @@ class NumaAllocator {
     _memory.emplace_back(reinterpret_cast<T*>(ret));
   }
 
-  const int _node;
+  int _node;
   size_t _chunk_size;
   size_t _chunk_pos;
   std::vector<T*> _memory;
