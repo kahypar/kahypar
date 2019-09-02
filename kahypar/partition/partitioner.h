@@ -218,6 +218,8 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, const Context& conte
       // since each sparsification call might return a different hypergraph.
       detectCommunities(hypergraph, context);
       context.evolutionary.communities = hypergraph.communities();
+      kahypar::io::writeCommunityFile(hypergraph, context.partition.graph_filename + ".community");
+      exit(-1);
     } else {
       ASSERT(hypergraph.currentNumNodes() == context.getCommunities().size());
       hypergraph.setCommunities(context.getCommunities());

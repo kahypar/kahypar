@@ -28,7 +28,8 @@
 namespace kahypar {
 class NormalPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph& hypergraph,
+  template <typename HypergraphT>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const HypergraphT& hypergraph,
                                                             const Context&,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {
@@ -38,7 +39,8 @@ class NormalPartitionPolicy final : public meta::PolicyBase {
 
 class EvoPartitionPolicy final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const Hypergraph&,
+  template <typename HypergraphT>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool accept(const HypergraphT&,
                                                             const Context& context,
                                                             const HypernodeID& u,
                                                             const HypernodeID& v) {

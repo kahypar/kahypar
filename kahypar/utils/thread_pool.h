@@ -96,7 +96,7 @@ private:
     std::atomic<bool> terminate_;
 
     //! Number of working packages in parallel for
-    const size_t working_packages_;
+    size_t working_packages_;
 
 public:
     //! Construct running thread pool of num_threads
@@ -180,6 +180,10 @@ public:
       }
 
       return results;
+    }
+
+    void set_working_packages(const size_t working_packages) {
+      working_packages_ = working_packages;
     }
 
     //! Loop until no more jobs are in the queue AND all threads are idle. When

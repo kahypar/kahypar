@@ -27,7 +27,6 @@
 
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_map.h"
-#include "kahypar/datastructure/fast_hash_table.h"
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
@@ -46,7 +45,8 @@ template <class ScorePolicy = HeavyEdgeScore,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingWithTieBreaking<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
-          typename RatingType = RatingType>
+          typename RatingType = RatingType,
+          typename HypergraphT = Hypergraph>
 class VertexPairRater {
  private:
   static constexpr bool debug = false;
@@ -79,25 +79,22 @@ class VertexPairRater {
  public:
   using Rating = VertexPairRating;
   using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
-  using HashTable = kahypar::ds::FastHashTable<>;
-  using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
 
-  VertexPairRater(Hypergraph& hypergraph, const Context& context) :
+  VertexPairRater(HypergraphT& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
+    _community_id(context.coarsening.community_contraction_target),
     _hn_mapping(nullptr),
-    _reverse_hn_mapping(nullptr),
     _tmp_ratings(_hg.initialNumNodes()),
     _already_matched(_hg.initialNumNodes()) { }
 
-  VertexPairRater(Hypergraph& hypergraph,
+  VertexPairRater(HypergraphT& hypergraph,
                   const Context& context,
-                  const HypernodeMapping hn_mapping,
-                  const ReverseHypernodeMapping reverse_hn_mapping) :
+                  const HypernodeMapping hn_mapping) :
     _hg(hypergraph),
     _context(context),
+    _community_id(context.coarsening.community_contraction_target),
     _hn_mapping(hn_mapping),
-    _reverse_hn_mapping(reverse_hn_mapping),
     _tmp_ratings(_hn_mapping->size()),
     _already_matched(_hn_mapping->size()) { }
 
@@ -113,13 +110,13 @@ class VertexPairRater {
     DBG << "Calculating rating for HN" << u;
     const HypernodeWeight weight_u = _hg.nodeWeight(u);
     for (const HyperedgeID& he : _hg.incidentEdges(u)) {
-      ASSERT(_hg.edgeSize(he) > 1, V(he));
+      //ASSERT(_hg.edgeSize(he) > 1, V(he));
       if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
-        const RatingType score = ScorePolicy::score(_hg, he, _context);
-        for (const HypernodeID& v : _hg.pins(he, _context.coarsening.community_contraction_target)) {
+        const RatingType score = ScorePolicy::score(_hg, he, _context, _community_id);
+        for (const HypernodeID& v : _hg.pins(he, _community_id)) {
           if (v != u && belowThresholdNodeWeight(weight_u, _hg.nodeWeight(v)) &&
               RatingPartitionPolicy::accept(_hg, _context, u, v)) {
-            _tmp_ratings[mapToCommunityHypergraph(v)] += score;
+            _tmp_ratings[_hg.communityNodeID(v)] += score;
           }
         }
       }
@@ -188,19 +185,10 @@ class VertexPairRater {
     return (*_hn_mapping)[hn];
   }
 
-  inline HypernodeID mapToCommunityHypergraph(const HypernodeID hn) {
-    if ( !_reverse_hn_mapping ) {
-      return hn;
-    }
-    ASSERT(_reverse_hn_mapping->find(hn) != _reverse_hn_mapping->end(),
-           "There exists no mapping for hypernode " << hn);
-    return (*_reverse_hn_mapping)[hn];
-  }
-
-  Hypergraph& _hg;
+  HypergraphT& _hg;
   const Context& _context;
+  const PartitionID _community_id;
   const HypernodeMapping _hn_mapping;
-  const ReverseHypernodeMapping _reverse_hn_mapping;
   ds::SparseMap<HypernodeID, RatingType> _tmp_ratings;
   ds::FastResetFlagArray<> _already_matched;
 };

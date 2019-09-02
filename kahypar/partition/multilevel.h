@@ -121,6 +121,10 @@ static inline void partition(Hypergraph& hypergraph,
 
   Timer::instance().add(context, Timepoint::local_search,
                         std::chrono::duration<double>(end - start).count());
+                        
+  if (context.partition.verbose_output && context.type == ContextType::main) {
+    io::printHypergraphInfo(hypergraph, "Uncoarsened Hypergraph");
+  }
 
   io::printLocalSearchResults(context, hypergraph);
 }

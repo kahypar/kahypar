@@ -65,6 +65,7 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
                         std::chrono::duration<double>(end - start).count());
 
   io::printLocalSearchResults(context, hypergraph);
+
   return improved_quality;
 }
 

@@ -31,8 +31,8 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
-#include "kahypar/datastructure/parallel_hypergraph.h"
-#include "kahypar/datastructure/fast_hash_table.h"
+#include "kahypar/datastructure/community_hypergraph.h"
+#include "kahypar/datastructure/numa_aware_community_hypergraph.h"
 #include "kahypar/utils/timer.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
@@ -44,7 +44,7 @@
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
-#include "kahypar/partition/coarsening/parallel_hypergraph_pruner.h"
+#include "kahypar/partition/coarsening/hypergraph_pruner.h"
 
 namespace kahypar {
 
@@ -62,13 +62,16 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
 
   using Base = VertexPairCoarsenerBase;
+  using CommunityHypergraph = kahypar::ds::CommunityHypergraph<Hypergraph>;
+  using NumaAwareCommunityHypergraph = kahypar::ds::NumaAwareCommunityHypergraph<Hypergraph>;
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
                                 RatingPartitionPolicy,
                                 AcceptancePolicy,
                                 FixedVertexPolicy,
-                                RatingType>;
+                                RatingType,
+                                NumaAwareCommunityHypergraph>;
   using Rating = typename Rater::Rating;
   using CurrentMaxNodeWeight = typename CoarsenerBase::CurrentMaxNodeWeight;
 
@@ -77,9 +80,6 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   using History = std::vector<CoarseningMemento>;
   using Hierarchy = std::vector<typename Hypergraph::ContractionMemento>;
   using HypernodeMapping = std::shared_ptr<std::vector<HypernodeID>>;
-  using HashTable = typename Rater::HashTable;
-  using ReverseHypernodeMapping = std::shared_ptr<HashTable>;
-  using ParallelHyperedge = typename ParallelHypergraphPruner::ParallelHE;
 
   struct ParallelCoarseningResult {
 
@@ -87,22 +87,18 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
                              const size_t num_nodes) :
       community_id(community_id),
       history(),
-      pruner(community_id, num_nodes),
+      pruner(num_nodes, community_id),
       max_hn_weights(),
       start(std::chrono::high_resolution_clock::now()),
       end(),
-      num_hypernodes(0),
-      total_vertex_degree(0),
       numa_node(-1) { }
 
     PartitionID community_id;
     History history;
-    ParallelHypergraphPruner pruner;
+    NumaAwareCommunityHypergraphPruner pruner;
     std::vector<CurrentMaxNodeWeight> max_hn_weights;
     HighResClockTimepoint start;
     HighResClockTimepoint end;
-    HypernodeID num_hypernodes;
-    HyperedgeID total_vertex_degree;
     int numa_node;
   };
 
@@ -130,23 +126,27 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
  private:
   void coarsenImpl(const HypernodeID limit) override final {
     ASSERT(_context.shared_memory.pool, "Thread pool not initialized");
-    ThreadPool& pool = *_context.shared_memory.pool;
     HighResClockTimepoint global_start = std::chrono::high_resolution_clock::now();
-
+    ThreadPool& pool = *_context.shared_memory.pool;
+    CommunityHypergraph community_hypergraph(_hg, _context, pool);
 
     // Setup internal structures in hypergraph such that
     // parallel contractions are possible
-    kahypar::ds::CommunityHyperedgeStats<Hypergraph> comm_hyperedge_stats(0);
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    if ( _context.shared_memory.cache_friendly_coarsening ) {
-      prepareForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg);
-    } else {
-      comm_hyperedge_stats = prepareForParallelCommunityAwareCoarsening(pool, _hg, false);
-    }
-    pool.loop_until_empty();
+    community_hypergraph.initialize();
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::hypergraph_preparation,
                           std::chrono::duration<double>(end - start).count());
+
+
+    start = std::chrono::high_resolution_clock::now();
+    std::vector<NumaAwareCommunityHypergraph> numa_hypergraphs;
+    for ( int node = 0; node < numa_num_configured_nodes(); ++node ) {
+      numa_hypergraphs.emplace_back(_hg, _context, node);
+      numa_hypergraphs.back().initialize();
+    }
+    end = std::chrono::high_resolution_clock::now();
+    LOG << "Initialize Numa Hypergraphs = " << std::chrono::duration<double>(end - start).count() << "s";
 
     // Compute hypernodes per community and community sizes. Community sizes
     // are used to sort communities in decreasing order and hypernodes per
@@ -161,6 +161,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       }
       community_to_hns[community]->push_back(hn);
     }
+
     std::vector<CommunitySize> community_sizes;
     for ( const auto& community : community_to_hns ) {
       community_sizes.push_back(std::make_pair(community.first, community.second->size()));
@@ -185,7 +186,8 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       HypernodeMapping community_hns = community_to_hns[community_id];
       DBG << "Enqueue parallel contraction job of community" << community_id
           << "of size" << size;
-      results.push_back(pool.enqueue([this, community_id, limit, size, community_hns]() {
+      results.push_back(pool.enqueue([this, &community_hypergraph, 
+        &numa_hypergraphs, community_id, limit, size, community_hns]() {
         // Since we coarsen only on a subhypergraph of the original hypergraph
         // we have to recalculate the contraction limit for coarsening
         DBG << "Start coarsening of community" << community_id
@@ -196,7 +198,13 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
         community_context.coarsening.contraction_limit = contraction_limit;
         community_context.coarsening.community_contraction_target = community_id;
 
-        return this->communityCoarsening(community_context, community_id, community_hns);
+        // Initialize incident nets on numa node
+        int node = numa_node_of_cpu(sched_getcpu());
+        NumaAwareCommunityHypergraph& numa_hypergraph = numa_hypergraphs[node];
+        numa_hypergraph.initializeIncidentNets(*community_hns, community_id);
+
+        return this->parallelCoarsening(numa_hypergraph,
+          community_context, community_id, community_hns);
       }));
     }
     pool.loop_until_empty();
@@ -204,7 +212,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     Timer::instance().add(_context, Timepoint::parallel_coarsening,
                           std::chrono::duration<double>(end - start).count());
 
-        // Create structures relevant for uncontractions
+    // Create structures relevant for uncontractions
     start = std::chrono::high_resolution_clock::now();
     std::vector<ParallelCoarseningResult> coarsening_results;
     for ( std::future<ParallelCoarseningResult>& fut : results ) {
@@ -221,10 +229,6 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
                 << " seed=" << _context.partition.seed
                 << " num_threads=" << _context.shared_memory.num_threads
                 << " community=" << result.community_id
-                << " num_hypernodes=" << result.num_hypernodes
-                << " total_vertex_degree=" << result.total_vertex_degree
-                << " num_hyperedges=" << comm_hyperedge_stats.num_hyperedges[result.community_id]
-                << " num_pins=" << comm_hyperedge_stats.num_pins[result.community_id]
                 << " start=" << std::chrono::duration<double>(result.start - global_start).count()
                 << " end=" << std::chrono::duration<double>(result.end - global_start).count()
                 << " duration=" << std::chrono::duration<double>(result.end - result.start).count()
@@ -236,11 +240,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     // prepareForParallelCommunityAwareCoarsening(...) such that
     // hypergraph can be again used in a sequential setting
     start = std::chrono::high_resolution_clock::now();
-    if ( _context.shared_memory.cache_friendly_coarsening ) {
-      kahypar::ds::undoPreparationForCacheFriendlyParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
-    } else {
-      kahypar::ds::undoPreparationForParallelCommunityAwareCoarsening(pool, _hg, hierarchy);
-    }
+    community_hypergraph.undo(hierarchy);
     end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::undo_preparation,
                           std::chrono::duration<double>(end - start).count());
@@ -249,15 +249,14 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   /**
    * Implements ml_style coarsening within one community (ml_coarsener.h).
    */
-  ParallelCoarseningResult communityCoarsening(const Context& community_context,
-                                               const PartitionID community_id,
-                                               const HypernodeMapping community_hns) {
-                                                 
+  ParallelCoarseningResult parallelCoarsening(NumaAwareCommunityHypergraph& numa_hypergraph,
+                                              const Context& community_context,
+                                              const PartitionID community_id,
+                                              const HypernodeMapping community_hns) {
     ParallelCoarseningResult result(community_id, community_hns->size());
     result.numa_node = numa_node_of_cpu(sched_getcpu());
     result.max_hn_weights.emplace_back(
       CurrentMaxNodeWeight { 0, _weight_of_heaviest_node } );
-    result.num_hypernodes = community_hns->size();
 
     // Since internal coarsening structures sometimes allocate for some
     // internal data structures memory that is proportional to the intial
@@ -266,14 +265,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
     // by those structures is proportional to the number of nodes in the community
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     size_t current_num_nodes = community_hns->size();
-    ReverseHypernodeMapping reverse_mapping =
-      std::make_shared<HashTable>(current_num_nodes);
-    for ( HypernodeID hn = 0; hn < community_hns->size(); ++hn ) {
-      (*reverse_mapping)[(*community_hns)[hn]] = hn;
-      result.total_vertex_degree += _hg.nodeDegree(hn);
-    }
-
-    Rater rater(_hg, community_context, community_hns, reverse_mapping);
+    Rater rater(numa_hypergraph, community_context, community_hns);
 
     int pass_nr = 0;
     HypernodeID contraction_idx = 0;
@@ -286,31 +278,32 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       current_hns.clear();
       size_t num_hns_before_pass = current_num_nodes;
       for (const HypernodeID& hn : *community_hns) {
-        if ( _hg.nodeIsEnabled(hn) ) {
+        if ( numa_hypergraph.nodeIsEnabled(hn) && numa_hypergraph.nodeDegree(hn) > 0 ) {
           current_hns.push_back(hn);
         }
       }
+
       if ( _enableRandomization ) {
         Randomize::instance().shuffleVector(current_hns, current_hns.size());
       }
 
       for ( const HypernodeID& hn : current_hns ) {
-        if ( _hg.nodeIsEnabled(hn) ) {
-          ASSERT(_hg.communityID(hn) == community_id, "Hypernode " << hn << " is not in community "
-                                                                   << community_id);
+        if ( numa_hypergraph.nodeIsEnabled(hn) ) {
+          ASSERT(numa_hypergraph.communityID(hn) == community_id, 
+            "Hypernode " << hn << " is not in community " << community_id);
           const Rating rating = rater.rate(hn);
 
           if ( rating.target != kInvalidTarget ) {
-            ASSERT(_hg.communityID(rating.target) == community_id, "Contraction target " << rating.target
+            ASSERT(numa_hypergraph.communityID(rating.target) == community_id, "Contraction target " << rating.target
               << " is not in same community");
-            rater.markAsMatched((*reverse_mapping)[hn]);
-            rater.markAsMatched((*reverse_mapping)[rating.target]);
+            rater.markAsMatched(numa_hypergraph.communityNodeID(hn));
+            rater.markAsMatched(numa_hypergraph.communityNodeID(rating.target));
 
             DBG << "Contract (" << hn << "," << rating.target << ")";
             result.history.emplace_back(community_id,
-              _hg.parallelContract(community_id, hn, rating.target));
-            result.pruner.removeSingleNodeHyperedges(_hg, result.history.back());
-            result.pruner.removeParallelHyperedges(_hg, result.history.back(), reverse_mapping);
+              numa_hypergraph.contract(hn, rating.target));
+            result.pruner.removeSingleNodeHyperedges(numa_hypergraph, result.history.back());
+            result.pruner.removeParallelHyperedges(numa_hypergraph, result.history.back());
             if ( result.max_hn_weights.back().max_weight < _hg.nodeWeight(hn) ) {
               result.max_hn_weights.emplace_back(
                 CurrentMaxNodeWeight { contraction_idx, _hg.nodeWeight(hn) } );
@@ -331,8 +324,10 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       ++pass_nr;
     }
 
+    numa_hypergraph.copyBack(*community_hns, community_id);
+
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    DBG << "Finish coarsening of community" << community_id
+    LOG << "Finish coarsening of community" << community_id
         << "( initial_num_nodes = " << community_hns->size()
         << V(current_num_nodes) << ","
         << V(community_context.coarsening.contraction_limit)
@@ -394,13 +389,13 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
 
   void restoreParallelHyperedges() override {
     PartitionID community_id = _history.back().community_id;
-    ParallelHypergraphPruner& pruner = _pruner[_community_to_pruner[community_id]];
+    NumaAwareCommunityHypergraphPruner& pruner = _pruner[_community_to_pruner[community_id]];
     pruner.restoreParallelHyperedges(_hg, _history.back());
   }
 
   void restoreSingleNodeHyperedges() override {
     PartitionID community_id = _history.back().community_id;
-    ParallelHypergraphPruner& pruner = _pruner[_community_to_pruner[community_id]];
+    NumaAwareCommunityHypergraphPruner& pruner = _pruner[_community_to_pruner[community_id]];
     pruner.restoreSingleNodeHyperedges(_hg, _history.back());
   }
 
@@ -409,7 +404,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
   using Base::_context;
   using Base::_history;
   using Base::_max_hn_weights;
-  std::vector<ParallelHypergraphPruner> _pruner;
+  std::vector<NumaAwareCommunityHypergraphPruner> _pruner;
   std::unordered_map<PartitionID, size_t> _community_to_pruner;
   const HypernodeWeight _weight_of_heaviest_node;
   bool _enableRandomization;

@@ -28,18 +28,22 @@
 namespace kahypar {
 class HeavyEdgeScore final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph,
+  template <typename HypergraphT>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const HypergraphT& hypergraph,
                                                                  const HyperedgeID he,
-                                                                 const Context&) {
-    return static_cast<RatingType>(hypergraph.edgeWeight(he)) / (hypergraph.edgeSize(he) - 1);
+                                                                 const Context&,
+                                                                 const PartitionID& community_id) {
+    return static_cast<RatingType>(hypergraph.edgeWeight(he, community_id)) / (hypergraph.edgeSize(he) - 1);
   }
 };
 
 class EdgeFrequencyScore final : public meta::PolicyBase {
  public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const Hypergraph& hypergraph,
+  template <typename HypergraphT>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline RatingType score(const HypergraphT& hypergraph,
                                                                  const HyperedgeID he,
-                                                                 const Context& context) {
+                                                                 const Context& context,
+                                                                 const PartitionID&) {
     return static_cast<RatingType>(exp(-context.evolutionary.gamma *
                                        context.evolutionary.edge_frequency[he]) /
                                    hypergraph.edgeSize(he));

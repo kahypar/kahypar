@@ -47,6 +47,7 @@ class BestRatingPreferringUnmatched final : public meta::PolicyBase {
                                                                   const HypernodeID old_target,
                                                                   const HypernodeID new_target,
                                                                   const ds::FastResetFlagArray<>& already_matched) {
+    ASSERT(new_target < already_matched.size(), "Out of bounds -" << V(new_target) << V(already_matched.size()));
     return max_rating < tmp ||
            ((max_rating == tmp) &&
             ((already_matched[old_target] && !already_matched[new_target]) ||
