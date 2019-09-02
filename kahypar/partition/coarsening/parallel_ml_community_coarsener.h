@@ -186,8 +186,7 @@ class ParallelMLCommunityCoarsener final : public ICoarsener,
       HypernodeMapping community_hns = community_to_hns[community_id];
       DBG << "Enqueue parallel contraction job of community" << community_id
           << "of size" << size;
-      results.push_back(pool.enqueue([this, &community_hypergraph, 
-        &numa_hypergraphs, community_id, limit, size, community_hns]() {
+      results.push_back(pool.enqueue([this, &numa_hypergraphs, community_id, limit, size, community_hns]() {
         // Since we coarsen only on a subhypergraph of the original hypergraph
         // we have to recalculate the contraction limit for coarsening
         DBG << "Start coarsening of community" << community_id

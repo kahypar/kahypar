@@ -373,7 +373,7 @@ class CommunityHypergraph {
   }
 
   HypernodeID currentCommunityNumNodes(const PartitionID community) const {
-    ASSERT(community < _community_num_nodes.size());
+    ASSERT(community >= 0 && static_cast<size_t>(community) < _community_num_nodes.size());
     return _community_num_nodes[community];
   }
 

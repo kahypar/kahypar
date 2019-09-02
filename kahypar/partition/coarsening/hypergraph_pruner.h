@@ -597,7 +597,6 @@ class LockBasedHypergraphPruner final : public HypergraphPrunerBase<Hypergraph,
   LockBasedHypergraphPruner& operator= (const LockBasedHypergraphPruner&) = delete;
 
   LockBasedHypergraphPruner(LockBasedHypergraphPruner&&) = default;
-  LockBasedHypergraphPruner& operator= (LockBasedHypergraphPruner&&) = default;
 
   virtual ~LockBasedHypergraphPruner() = default;
 

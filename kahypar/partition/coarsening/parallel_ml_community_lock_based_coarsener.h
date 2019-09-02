@@ -513,7 +513,7 @@ class ParallelMLCommunityLockBasedCoarsener final : public ICoarsener,
     std::vector<std::future<ParallelCoarseningResult>> results;
     for ( size_t thread = 0; thread < _context.shared_memory.num_threads; ++thread ) {
       results.emplace_back(
-        pool.enqueue([this, &community_hypergraph, &lock_based_hypergraph, thread, limit]() {
+        pool.enqueue([this, &community_hypergraph, &lock_based_hypergraph, thread]() {
           return parallelCoarsening(community_hypergraph, lock_based_hypergraph, thread);
         }));
     }      
