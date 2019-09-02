@@ -68,7 +68,7 @@ public:
 	//static constexpr double resolutionGamma = 1.0;
 	//static constexpr int resolutionGamma = 1;
 
-	explicit PLM(size_t numNodes) : clusterVolumes(numNodes), ets_incidentClusterWeights(numNodes, 0) { }
+	explicit PLM(size_t numNodes) : clusterVolumes(numNodes), ets_incidentClusterWeights(numNodes, 0), tr() { }
 
 
 	bool localMoving(Graph& G, Clustering& C) {

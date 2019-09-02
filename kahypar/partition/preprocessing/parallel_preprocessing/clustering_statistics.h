@@ -9,6 +9,8 @@ namespace parallel {
 
 class TimeReporter {
 public:
+	TimeReporter() : times() { }
+
 	using Interval = tbb::tick_count::interval_t;
 
 	void report(const std::string& category, Interval elapsed_time) {

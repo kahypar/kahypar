@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <stdatomic.h>
 
 namespace kahypar {
 namespace parallel {
