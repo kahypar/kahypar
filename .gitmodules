@@ -1,6 +1,3 @@
 [submodule "external_tools/googletest"]
 	path = external_tools/googletest
 	url = https://github.com/google/googletest.git
-[submodule "external_tools/growt"]
-	path = external_tools/growt
-	url = https://github.com/TooBiased/growt.git
