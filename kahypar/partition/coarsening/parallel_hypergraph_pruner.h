@@ -43,12 +43,14 @@ class ParallelHypergraphPruner {
     size_t hash;
   };
 
+public: //declaring ParallelHE public is a quick fix to a compiler error!
   struct ParallelHE {
     HyperedgeID representative_id;
     HyperedgeID removed_id;
     size_t removed_old_size;
   };
 
+private:
   static constexpr HyperedgeID kInvalidID = std::numeric_limits<HyperedgeID>::max();
 
   using HypernodeMapping = std::shared_ptr<ds::FastHashTable<>>;
@@ -66,7 +68,9 @@ class ParallelHypergraphPruner {
   ParallelHypergraphPruner& operator= (const ParallelHypergraphPruner&) = delete;
 
   ParallelHypergraphPruner(ParallelHypergraphPruner&&) = default;
-  ParallelHypergraphPruner& operator= (ParallelHypergraphPruner&&) = default;
+
+  //default move assignment makes no sense with const members
+  //ParallelHypergraphPruner& operator= (ParallelHypergraphPruner&&) = default;
 
   ~ParallelHypergraphPruner() = default;
 

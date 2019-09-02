@@ -48,7 +48,9 @@ struct RollbackElement {
   RollbackElement& operator= (const RollbackElement&) = delete;
 
   RollbackElement(RollbackElement&&) = default;
-  RollbackElement& operator= (RollbackElement&&) = default;
+
+  //default move assignment makes no sense with const members
+  //RollbackElement& operator= (RollbackElement&&) = default;
 
   ~RollbackElement() = default;
 };

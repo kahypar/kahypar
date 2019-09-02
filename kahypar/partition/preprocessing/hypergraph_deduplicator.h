@@ -46,11 +46,11 @@ class HypergraphDeduplicator {
   ~HypergraphDeduplicator() = default;
 
   void removeParallelHyperedges(Hypergraph& hypergraph) {
-    _removed_parallel_hes = std::move(kahypar::ds::removeParallelHyperedges(hypergraph));
+    _removed_parallel_hes = kahypar::ds::removeParallelHyperedges(hypergraph);
   }
 
   void removeIdenticalVertices(Hypergraph& hypergraph) {
-    _removed_identical_nodes = std::move(kahypar::ds::removeIdenticalNodes(hypergraph));
+    _removed_identical_nodes = kahypar::ds::removeIdenticalNodes(hypergraph);
   }
 
   void deduplicate(Hypergraph& hypergraph, const Context& context) {

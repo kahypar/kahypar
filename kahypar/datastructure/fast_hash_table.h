@@ -73,6 +73,9 @@ struct murmur2_hasher
 
 	const unsigned char * data2 = (const unsigned char*)data;
 
+//fix implicit fallthrough warnings, as they seem quite intentional here. Option 2) [[fallthrough]] in every case
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 	switch(len & 7)
 	{
 	case 7: h ^= uint64_t(data2[6]) << 48;
@@ -84,6 +87,7 @@ struct murmur2_hasher
 	case 1: h ^= uint64_t(data2[0]);
 	        h *= m;
 	};
+#pragma GCC diagnostic pop
 
 	h ^= h >> r;
 	h *= m;

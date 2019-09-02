@@ -39,7 +39,9 @@ struct Move {
   Move& operator= (const Move&) = delete;
 
   Move(Move&&) = default;
-  Move& operator= (Move&&) = default;
+
+  //default move assignment makes no sense with const members
+  //Move& operator= (Move&&) = default;
 
   ~Move() = default;
 };

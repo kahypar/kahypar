@@ -124,7 +124,6 @@ public:
 
 private:
 	double augs;
-	double paugs;
 	double growthS;
 	double growthT;
 	double orphans;

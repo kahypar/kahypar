@@ -44,7 +44,6 @@ class QuotientGraphBlockScheduler {
  public:
   QuotientGraphBlockScheduler(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
-    _context(context),
     _quotient_graph(),
     _block_pair_cut_he(context.partition.k,
                        std::vector<std::vector<HyperedgeID> >(context.partition.k,
@@ -162,7 +161,6 @@ class QuotientGraphBlockScheduler {
   }
 
   Hypergraph& _hg;
-  const Context& _context;
   std::vector<edge> _quotient_graph;
 
   // Contains the cut hyperedges for each pair of blocks.

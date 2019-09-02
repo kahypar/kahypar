@@ -32,7 +32,7 @@ namespace kahypar {
 namespace ds {
 // Base-Traits for binary heap
 template <typename Derived>
-struct BinaryHeapTraits;
+class BinaryHeapTraits;
 
 template <class Derived>
 class BinaryHeapBase {

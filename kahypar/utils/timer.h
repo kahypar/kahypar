@@ -152,7 +152,6 @@ class Timer {
 
  private:
   Timer() :
-    _current_timing(),
     _start(),
     _end(),
     _timings(),
@@ -268,7 +267,6 @@ class Timer {
     _result.total_postprocessing = _result.post_sparsifier_restore;
   }
 
-  Timepoint _current_timing;
   HighResClockTimepoint _start;
   HighResClockTimepoint _end;
   std::vector<Timing> _timings;
