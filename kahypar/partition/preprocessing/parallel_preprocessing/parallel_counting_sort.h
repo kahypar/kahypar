@@ -5,12 +5,14 @@
 #include <iostream>
 #include <numeric>
 #include <functional>
+#include <kahypar/macros.h>
 #include "parallel_prefix_sum.h"
 
 namespace kahypar {
 namespace parallel {
 class ParallelCountingSort {
 public:
+	static constexpr bool debug = false;
 
 	//KeyFunc must be thread safe
 	template<class T, class KeyFunc>
@@ -66,12 +68,12 @@ public:
 
 			});
 
-			std::cout << "local counting " << (t_local_bucket_ranges - t_local_counting).seconds() << " [s]" << std::endl;
-			std::cout << "local bucket ranges " << (t_copy_last_task_buckets - t_local_bucket_ranges).seconds() << " [s]" << std::endl;
-			std::cout << "copy last task buckets " << (t_prefix_sum - t_copy_last_task_buckets).seconds() << " [s]" << std::endl;
-			std::cout << "prefix sum " << (t_thread_local_bucket_element_assignment - t_prefix_sum).seconds() << " [s]" << std::endl;
-			std::cout << "assignment " << (tbb::tick_count::now() - t_thread_local_bucket_element_assignment).seconds() << " [s]" << std::endl;
-			std::cout << "total counting sort " << (tbb::tick_count::now() - t_local_counting).seconds() << " [s]" << std::endl;
+			DBG << "local counting " << (t_local_bucket_ranges - t_local_counting).seconds() << " [s]";
+			DBG << "local bucket ranges " << (t_copy_last_task_buckets - t_local_bucket_ranges).seconds() << " [s]";
+			DBG << "copy last task buckets " << (t_prefix_sum - t_copy_last_task_buckets).seconds() << " [s]" <<;
+			DBG << "prefix sum " << (t_thread_local_bucket_element_assignment - t_prefix_sum).seconds() << " [s]";
+			DBG << "assignment " << (tbb::tick_count::now() - t_thread_local_bucket_element_assignment).seconds() << " [s]";
+			DBG << "total counting sort " << (tbb::tick_count::now() - t_local_counting).seconds() << " [s]";
 		}
 		else {
 			auto time = tbb::tick_count::now();
@@ -83,7 +85,7 @@ public:
 			for (const T& t: r)
 				sorted[ bucketBegin[getBucket(t) ]++ ] = t;
 
-			std::cout << "sequential counting sort " << (tbb::tick_count::now() - time).seconds() << " [s]" << std::endl;
+			DBG << "sequential counting sort " << (tbb::tick_count::now() - time).seconds() << " [s]";
 		}
 
 		return sorted;

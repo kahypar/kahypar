@@ -94,7 +94,8 @@ public:
 		size_t chunkSize = n / chunks;
 
 		//if (tasks <= 2 || chunkSize <= 1)    //has to scan twice, so anything with less than three threads is worse than sequential. switch to sequential if less than 2000 entries.
-		//	return sequential(first, last, d, neutralElement, f);
+		if (chunkSize <= 1)						//leave it like this for further performance testing
+			return sequential(first, last, d, neutralElement, f);
 
 		std::vector<size_t> chunkEnds = Chunking::getChunkEnds(n, chunks);
 		std::vector<T> chunkEndSums(tasks);    //last chunk doesn't get an end sum
