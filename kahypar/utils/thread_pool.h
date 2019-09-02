@@ -126,12 +126,12 @@ public:
 
     void setupAndPinThreads(const kahypar::Context& context) {
         // immediately construct worker threads
-        threads_.reserve(std::max(context.shared_memory.num_threads, static_cast<size_t>(1)));
+        size_t num_threads = std::max(context.shared_memory.num_threads, static_cast<size_t>(1));
+        threads_.resize(num_threads);
         size_t hardware_threads = std::thread::hardware_concurrency();
-        size_t num_threads = threads_.size();
         for (size_t i = 0; i < num_threads; ++i) {
-            threads_[i] = std::thread(&ThreadPool::worker, this);
-            // Set CPU affinity to exactly ONE CPU
+        	threads_[i] = std::thread(&ThreadPool::worker, this);
+			// Set CPU affinity to exactly ONE CPU
             cpu_set_t cpu_set;
             CPU_ZERO(&cpu_set);
             CPU_SET(i % hardware_threads, &cpu_set);
