@@ -35,6 +35,9 @@
 #include "kahypar/utils/stats.h"
 #include "kahypar/utils/timer.h"
 
+#include "parallel_preprocessing/parallel_louvain.h"
+#include <tbb/task_scheduler_init.h>
+
 static constexpr bool debug = false;
 
 namespace kahypar {
@@ -255,7 +258,7 @@ class Louvain {
 };
 
 namespace internal {
-inline std::vector<ClusterID> detectCommunities(Hypergraph& hypergraph,
+inline std::vector<ClusterID> detectCommunitiesSequentially(Hypergraph& hypergraph,
                                                 const Context& context) {
   const bool verbose_output = (context.type == ContextType::main &&
                                context.partition.verbose_output) ||
@@ -265,24 +268,13 @@ inline std::vector<ClusterID> detectCommunities(Hypergraph& hypergraph,
     LOG << "Performing community detection:";
   }
 
-  Louvain<Modularity> louvain(hypergraph, context);
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+
+  Louvain<Modularity> louvain(hypergraph, context);   //count louvain initialization towards time measurement
   const EdgeWeight quality = louvain.run();
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end - start;
-  Timer::instance().add(context, Timepoint::pre_community_detection,
-                        std::chrono::duration<double>(end - start).count());
-  if (context.type == ContextType::main) {
-    context.stats.set(StatTag::Preprocessing, "Communities", louvain.numCommunities());
-    context.stats.set(StatTag::Preprocessing, "Modularity", quality);
-  }
 
-  if (verbose_output) {
-    LOG << "  # communities         =" << louvain.numCommunities();
-    LOG << "  modularity            =" << quality;
-  }
-
-  std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);
+  std::vector<ClusterID> communities(hypergraph.initialNumNodes(), -1);               //move everything into time measurement!
   ClusterID max_cluster_id = 0;
   for (const HypernodeID& hn : hypergraph.nodes()) {
     communities[hn] = louvain.hypernodeClusterID(hn);
@@ -292,10 +284,55 @@ inline std::vector<ClusterID> detectCommunities(Hypergraph& hypergraph,
   hypergraph.setNumCommunities(max_cluster_id);
   ASSERT(std::none_of(communities.cbegin(), communities.cend(),
                       [](ClusterID i) {
-        return i == -1;
-      }));
+                          return i == -1;
+                      }));
+
+  Timer::instance().add(context, Timepoint::pre_community_detection,
+                        std::chrono::duration<double>(end - start).count());
+  if (context.type == ContextType::main) {
+    context.stats.set(StatTag::Preprocessing, "Communities", louvain.numCommunities());
+    context.stats.set(StatTag::Preprocessing, "Modularity", quality);
+  }
+
+  LOG << Timer::instance().result().pre_community_detection << "time";
+
+  if (verbose_output) {
+    LOG << "  # communities         =" << louvain.numCommunities();
+    LOG << "  modularity            =" << quality;
+  }
+
+
   return communities;
 }
+
+inline std::vector<ClusterID> detectCommunitiesParallel(Hypergraph& hypergraph, const Context& context) {
+  context.shared_memory.pool->stopExecutionAndDestroyThreads();   //deactivate thread pool and destroy threads.
+  size_t numTasks = context.shared_memory.num_threads;
+  tbb::task_scheduler_init scheduler(static_cast<int>(numTasks));
+
+  HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+  parallel::AdjListStarExpansion starExpansion(hypergraph, context);
+  parallel::Clustering C = parallel::ParallelModularityLouvain::run(starExpansion.G);   //TODO(lars): give switch for PLM/SLM
+  starExpansion.restrictClusteringToHypernodes(C);
+
+  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+  Timer::instance().add(context, Timepoint::pre_community_detection,
+                        std::chrono::duration<double>(end - start).count());
+
+  context.shared_memory.pool->setupAndPinThreads(context);      //reactivate thread pool, create threads and pin them.
+  return std::move(C);   //compiler says we should move here, even though it looks like a pessimizing move
+}
+
+
+//parallel switch
+inline std::vector<ClusterID> detectCommunities(Hypergraph& hypergraph,
+                                                const Context& context) {
+  if (context.shared_memory.num_threads >= 1)
+    return detectCommunitiesParallel(hypergraph, context);
+  else
+    return detectCommunitiesSequentially(hypergraph, context);
+}
+
 }  // namespace internal
 
 inline void detectCommunities(Hypergraph& hypergraph, const Context& context) {
