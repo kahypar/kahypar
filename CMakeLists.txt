@@ -21,6 +21,10 @@ include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOU
 include_directories(external_tools/maximum_flow)
 include_directories(external_tools/growt)
 
+#find TBB
+find_package(TBB REQUIRED)
+include_directories(SYSTEM ${TBB_INCLUDE_DIRS})
+
 option(KAHYPAR_USE_MINIMAL_BOOST
   "Download boost automatically and compile required libraries." OFF)
 
@@ -160,6 +164,10 @@ ELSE ()
     MESSAGE(STATUS "Try: 'sudo yum install numactl numactl-devel' (or sudo apt-get install libnuma libnuma-dev)")
 ENDIF ()
 
+
+#link against TBB
+link_libraries(${TBB_LIBRARIES})
+
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
@@ -196,6 +204,7 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wuninitialized")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfatal-errors")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-qual")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Woverloaded-virtual")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wredundant-decls")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winit-self")
@@ -223,6 +232,7 @@ if(NOT MSVC)
   endif()
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3")
+  set(CMAKE_CXX_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ") 
 
@@ -291,3 +301,4 @@ add_subdirectory(kahypar/application)
 add_subdirectory(tools)
 add_subdirectory(lib)
 add_subdirectory(tests)
+add_subdirectory(kahypar/partition/preprocessing/parallel_preprocessing)
