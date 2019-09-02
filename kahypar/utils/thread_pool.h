@@ -103,42 +103,56 @@ public:
     explicit ThreadPool(const kahypar::Context& context)
       : jobs_(),
         mutex_(),
-        threads_(std::max(context.shared_memory.num_threads, static_cast<size_t>(1))),
+        threads_(),
         cv_jobs_(),
         cv_finished_(),
         busy_(0),
         idle_(0),
         done_(0),
         terminate_(false),
-        working_packages_(context.shared_memory.working_packages) {
-      // immediately construct worker threads
-      size_t hardware_threads = std::thread::hardware_concurrency();
-      size_t num_threads = threads_.size();
-      for (size_t i = 0; i < num_threads; ++i) {
-        threads_[i] = std::thread(&ThreadPool::worker, this);
-        // Set CPU affinity to exactly ONE CPU
-        cpu_set_t cpu_set;
-        CPU_ZERO(&cpu_set);
-        CPU_SET(i % hardware_threads, &cpu_set);
-        pthread_setaffinity_np(threads_[i].native_handle(), sizeof(cpu_set), &cpu_set);
-      }
+        working_packages_(context.shared_memory.working_packages)
+    {
+        setupAndPinThreads(context);
     }
 
-    ThreadPool(const ThreadPool&) = default;
-    ThreadPool& operator = (const ThreadPool&) = default;
+    //ThreadPool should not have copy ctor or assignment operator, as the mutex and atomics don't have them
+    //ThreadPool(const ThreadPool&) = default;
+    //ThreadPool& operator = (const ThreadPool&) = default;
 
     //! Stop processing jobs, terminate threads.
     ~ThreadPool() {
-      std::unique_lock<std::mutex> lock(mutex_);
-      // set stop-condition
-      terminate_ = true;
-      cv_jobs_.notify_all();
-      lock.unlock();
+      stopExecutionAndDestroyThreads();
+    }
 
-      // all threads terminate, then we're done
-      for (size_t i = 0; i < threads_.size(); ++i) {
-          threads_[i].join();
-      }
+    void setupAndPinThreads(const kahypar::Context& context) {
+        // immediately construct worker threads
+        threads_.reserve(std::max(context.shared_memory.num_threads, static_cast<size_t>(1)));
+        size_t hardware_threads = std::thread::hardware_concurrency();
+        size_t num_threads = threads_.size();
+        for (size_t i = 0; i < num_threads; ++i) {
+            threads_[i] = std::thread(&ThreadPool::worker, this);
+            // Set CPU affinity to exactly ONE CPU
+            cpu_set_t cpu_set;
+            CPU_ZERO(&cpu_set);
+            CPU_SET(i % hardware_threads, &cpu_set);
+            pthread_setaffinity_np(threads_[i].native_handle(), sizeof(cpu_set), &cpu_set);
+        }
+    }
+
+    void stopExecutionAndDestroyThreads() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        // set stop-condition
+        terminate_ = true;
+        cv_jobs_.notify_all();
+        lock.unlock();
+
+        // all threads terminate, then we're done
+        for (size_t i = 0; i < threads_.size(); ++i) {
+            threads_[i].join();
+        }
+
+        //destroy threads, without destroying the ThreadPool object
+        threads_.clear();
     }
 
     //! enqueue a Job, pass parameters in capture
