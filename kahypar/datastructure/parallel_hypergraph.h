@@ -653,6 +653,9 @@ void undoPreparationForParallelCommunityAwareCoarsening(kahypar::parallel::Threa
         std::sort(hypergraph._incidence_array.begin() + invalid_pins_start,
                   hypergraph._incidence_array.begin() + invalid_pins_end,
                   [&contraction_index, &he](const HypernodeID& u, const HypernodeID& v) {
+                    #ifdef NDEBUG
+                      (void) he;
+                    #endif
                     ASSERT(contraction_index[u] != -1, "Hypernode" << u << "should be not in invalid part of HE" << he);
                     ASSERT(contraction_index[v] != -1, "Hypernode" << v << "should be not in invalid part of HE" << he);
                     return contraction_index[u] > contraction_index[v];
