@@ -30,7 +30,8 @@ int main(int argc, char* argv[]) {
 
   kahypar::processCommandLineInput(context, argc, argv);
 
-  context.shared_memory.pool = std::make_shared<kahypar::parallel::ThreadPool>(context); 
+  //TODO(lars) we should let every part that uses the thread pool initialize and destroys this themselves. In community detection I currently just deactivate and reactivate the thread pool.
+  context.shared_memory.pool = std::make_shared<kahypar::parallel::ThreadPool>(context);
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
