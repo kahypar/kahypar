@@ -294,8 +294,6 @@ inline std::vector<ClusterID> detectCommunitiesSequentially(Hypergraph& hypergra
     context.stats.set(StatTag::Preprocessing, "Modularity", quality);
   }
 
-  LOG << Timer::instance().result().pre_community_detection << "time";
-
   if (verbose_output) {
     LOG << "  # communities         =" << louvain.numCommunities();
     LOG << "  modularity            =" << quality;
