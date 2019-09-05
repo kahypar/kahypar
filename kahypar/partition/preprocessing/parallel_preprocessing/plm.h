@@ -60,7 +60,7 @@ private:
 	tbb::enumerable_thread_specific<IncidentClusterWeights> ets_incidentClusterWeights;
 
 public:
-	static constexpr bool debug = false;
+	static constexpr bool debug = true;
 
 	TimeReporter tr;
 
@@ -71,16 +71,28 @@ public:
 	explicit PLM(size_t numNodes) : clusterVolumes(numNodes), ets_incidentClusterWeights(numNodes, 0), tr() { }
 
 
+
+	/*
+	 * TODO
+	 * degree stats
+	 * try with OpenMP (0.3s gap between locally measured and globally measured). hold team over multiple rounds without reallocating ets_incidentClusterWeights?
+	 * try creating work packages, spawn tasks and pull from work queue --> could also try thread_pool.enqueue() then. --> disable any TBB code in the vicinity
+	 *
+	 * do not parallelize any init stuff. that makes it easier to just tune local moving. enable their parallelization afterwards
+	 */
+
 	bool localMoving(Graph& G, Clustering& C) {
 		//initialization
 		reciprocalTotalVolume = 1.0 / G.totalVolume;
 		totalVolume = G.totalVolume;
 		volMultiplierDivByNodeVol = reciprocalTotalVolume;		// * resolutionGamma;
 
-		auto t_init = tbb::tick_count::now();
-
 		std::vector<NodeID> nodes(G.numNodes());
-		for (NodeID u : G.nodes()) { nodes[u] = u; clusterVolumes[u].store(G.nodeVolume(u)); }
+		for (NodeID u : G.nodes()) {
+			nodes[u] = u;
+			clusterVolumes[u].store(G.nodeVolume(u));
+			//clusterVolumes[u] = G.nodeVolume(u);
+		}
 		/*
 		tbb::parallel_for(G.nodesParallelCoarseChunking(), [&](const NodeID u) {		//set coarse grain size
 			clusterVolumes[u] = G.nodeVolume(u);
@@ -89,27 +101,24 @@ public:
 		*/
 		C.assignSingleton();
 
-
-		tr.report("Local Moving Init", tbb::tick_count::now() - t_init);
-
-
 		//local moving
 		bool clusteringChanged = false;
-		std::atomic<size_t> nodesMovedThisRound(G.numNodes());		//TODO let every thread aggregate its own. no need for atomics here
-		for (int currentRound = 0; nodesMovedThisRound.load(std::memory_order_relaxed) >= 0.01 * G.numNodes() && currentRound < 16; currentRound++) {
+		size_t nodesMovedThisRound = G.numNodes();
+		for (int currentRound = 0; nodesMovedThisRound >= 0.01 * G.numNodes() && currentRound < 16; currentRound++) {
 		//for (int currentRound = 0; nodesMovedThisRound.load(std::memory_order_relaxed) > 0 && currentRound < 16; currentRound++) {
-			nodesMovedThisRound.store(0, std::memory_order_relaxed);
-
-			//do active node set in later moving rounds.
-
 			auto t_shuffle = tbb::tick_count::now();
 			std::shuffle(nodes.begin(), nodes.end(), Randomize::instance().getGenerator());		//parallelize. starts becoming competitive with sequential shuffle at four cores... :(
 			tr.report("Shuffle", tbb::tick_count::now() - t_shuffle);
 			DBG << "Shuffle " << (tbb::tick_count::now() - t_shuffle).seconds() << "[s]";
 
-			size_t nodeCounter = 0;
+			tbb::enumerable_thread_specific<size_t> ets_nodesMovedThisRound(0);
+
+			tbb::enumerable_thread_specific<tbb::tick_count::interval_t> ts_runtime(0.0);
+			tbb::enumerable_thread_specific<size_t> ts_deg(0);		//to measure potential imbalance. measurements don't show any imbalance
 
 			auto moveNode = [&](const NodeID u) {	//get rid of named lambda after testing?
+				auto t_node_move = tbb::tick_count::now();
+
 				IncidentClusterWeights& incidentClusterWeights = ets_incidentClusterWeights.local();
 				for (Arc& arc : G.arcsOf(u))
 					incidentClusterWeights.add(C[arc.head], arc.weight);
@@ -123,12 +132,9 @@ public:
 
 				const double volMultiplier = volMultiplierDivByNodeVol * volU;
 
-
 				//double bestGain = 0.0;												//basic gain adjustment
-				//if constexpr (advancedGainAdjustment)
 				double bestGain = weightFrom + volMultiplier * (volFrom - volU);		//advanced gain adjustment
-				//
-				//int64_t bestGain = 0;
+
 				for (PartitionID to : incidentClusterWeights.keys()) {
 					if (from == to)		//if from == to, we would have to remove volU from volTo as well. just skip it. it has (adjusted) gain zero.
 						continue;
@@ -136,10 +142,8 @@ public:
 					const ArcWeight volTo = clusterVolumes[to],
 									weightTo = incidentClusterWeights[to];
 
-
 					//double gain = modularityGain(weightFrom, weightTo, volFrom, volTo, volU);
 					double gain = modularityGain(weightTo, volTo, volMultiplier);
-					//int64_t gain = integerModGain(weightFrom, weightTo, volFrom, volTo, volU);
 
 					if (gain > bestGain) {
 						bestCluster = to;
@@ -148,22 +152,19 @@ public:
 				}
 
 
-#ifndef NDEBUG
-				if (!verifyGain(G, C, u, bestCluster, bestGain, incidentClusterWeights)) {
-					DBG << V(currentRound) << V(nodesMovedThisRound) << V(nodeCounter) << V(u);
-				}
-#endif
+				assert(verifyGain(G, C, u, bestCluster, bestGain, incidentClusterWeights));
+
 				incidentClusterWeights.clear();
 
 				if (bestCluster != from) {
 					clusterVolumes[bestCluster] += volU;
 					clusterVolumes[from] -= volU;
 					C[u] = bestCluster;
-					clusteringChanged = true;
-					nodesMovedThisRound++;
+					ets_nodesMovedThisRound.local()++;
 				}
-				nodeCounter++;
 
+				ts_deg.local() += G.degree(u);
+				ts_runtime.local() += (tbb::tick_count::now() - t_node_move);
 			};
 
 			auto t_move = tbb::tick_count::now();
@@ -173,8 +174,24 @@ public:
 			tbb::parallel_for_each(nodes, moveNode);
 #endif
 
+
+			nodesMovedThisRound = ets_nodesMovedThisRound.combine(std::plus<size_t>());
+			clusteringChanged |= nodesMovedThisRound > 0;
+
+			std::stringstream os;
+			os << "thread local runtime : ";
+			for (auto& t : ts_runtime)
+				os << t.seconds() << " ";
+			os << std::endl << "thread local degree sum: ";
+			for (auto& d : ts_deg)
+				os << d << " ";
+
+			DBG << os.str();
+
 			tr.report("Local Moving Round", tbb::tick_count::now() - t_move);
-			DBG << V(currentRound) << V(nodesMovedThisRound.load()) << (tbb::tick_count::now() - t_move).seconds() << "[s]";
+			DBG << V(currentRound) << V(nodesMovedThisRound) << (tbb::tick_count::now() - t_move).seconds() << "[s]";
+
+
 		}
 		return clusteringChanged;
 	}
