@@ -36,6 +36,7 @@
 #include "kahypar/utils/timer.h"
 
 #include "parallel_preprocessing/parallel_louvain.h"
+#include "parallel_preprocessing/tbb_thread_pinning.h"
 #include <tbb/task_scheduler_init.h>
 
 static constexpr bool debug = false;
@@ -306,7 +307,10 @@ inline std::vector<ClusterID> detectCommunitiesSequentially(Hypergraph& hypergra
 inline std::vector<ClusterID> detectCommunitiesParallel(Hypergraph& hypergraph, const Context& context) {
   context.shared_memory.pool->stopExecutionAndDestroyThreads();   //deactivate thread pool and destroy threads.
   size_t numTasks = context.shared_memory.num_threads;
+
   tbb::task_scheduler_init scheduler(static_cast<int>(numTasks));
+  parallel::pinning_observer pinner;
+  pinner.observe(true);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   parallel::AdjListStarExpansion starExpansion(hypergraph, context);
