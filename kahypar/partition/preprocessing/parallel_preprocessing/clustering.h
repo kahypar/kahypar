@@ -20,7 +20,7 @@ public:
 	const PartitionID& operator()(const size_t x) const { return operator[](x); }
 	PartitionID& operator()(const size_t x) { return operator[](x); }
 
-	void assignSingleton(bool parallel = true) {
+	void assignSingleton(bool parallel = false) {
 		if (parallel) {
 			tbb::parallel_for(PartitionID(0), static_cast<PartitionID>(size()), [&](PartitionID i) { (*this)[i] = i; } );
 		}

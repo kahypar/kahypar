@@ -17,7 +17,7 @@ public:
 
 	static AdjListGraph contract(const AdjListGraph& GFine, Clustering& C) {
 		auto t_compactify = tbb::tick_count::now();
-		size_t numClusters= C.compactify(); //(static_cast<PartitionID>(GFine.numNodes() - 1));
+		size_t numClusters = C.compactify(); //(static_cast<PartitionID>(GFine.numNodes() - 1));
 		DBG << "compactify" << (tbb::tick_count::now() - t_compactify).seconds() << "[s]";
 		std::vector<std::vector<NodeID>> fineNodesInCluster(numClusters);
 
