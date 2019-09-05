@@ -2,7 +2,7 @@
 #include <random>
 #include <tbb/task_scheduler_init.h>
 #include <cassert>
-
+#include <execution>
 #include "parallel_prefix_sum.h"
 #include "parallel_counting_sort.h"
 
@@ -63,27 +63,52 @@ namespace parallel {
 	}
 
 
+	template<class T = int32_t>
 	void benchCountingSort(int num_threads) {
+
+
 		size_t num_tasks = static_cast<size_t>(num_threads);
 		std::cout << "Bench counting sort" << std::endl;
 
+		size_t num_buckets = 1000;
 
-		size_t num_buckets = 300000;
-		std::mt19937 rng(420);
-		std::uniform_int_distribution<int64_t> dis(0, num_buckets - 1);
+		uint32_t seed = 500;
+		std::mt19937 rng(seed);
+		std::uniform_int_distribution<T> dis(0, static_cast<T>(num_buckets - 1));
 
 		size_t setSize = 100000000;
-		std::vector<int64_t> vec(setSize);
+		std::vector<T> vec(setSize);
 		for (auto& c : vec)
 			c = dis(rng);
 
-		auto id = [](int64_t x) { return x; };
+		tbb::task_scheduler_init task_scheduler(num_threads);
+
+		auto id = [](const T x) { return x; };
 
 		auto sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, num_tasks);
+		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
 		assert(std::is_sorted(sorted_vec.begin(), sorted_vec.end()));
 
 		sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, 0);
+		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
 		assert(std::is_sorted(sorted_vec.begin(), sorted_vec.end()));
+
+		sorted_vec = vec;
+		if (std::is_sorted(sorted_vec.begin(), sorted_vec.end()))
+			std::cout << "input for std::sort is already sorted" << std::endl;
+		auto t_stl_sort = tbb::tick_count::now();
+		std::sort(sorted_vec.begin(), sorted_vec.end());
+		std::cout << "stl sort " << (tbb::tick_count::now() - t_stl_sort).seconds() << " [s]" << std::endl;
+		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
+
+		sorted_vec = vec;
+		if (std::is_sorted(sorted_vec.begin(), sorted_vec.end()))
+			std::cout << "input for parallel std::sort is already sorted" << std::endl;
+		auto t_parallel_stl_sort = tbb::tick_count::now();
+		std::sort(std::execution::par, sorted_vec.begin(), sorted_vec.end());
+		std::cout << "parallel stl sort " << (tbb::tick_count::now() - t_parallel_stl_sort).seconds() << " [s]" << std::endl;
+		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
+
 	}
 
 }
@@ -98,6 +123,9 @@ int main(int argc, char* argv[]) {
 
 	int num_threads = std::stoi(argv[1]);
 	//kahypar::parallel::benchPrefixSums(num_threads);
-	kahypar::parallel::benchCountingSort(num_threads);
+	std::cout << "Bench Counting Sort int32_t" << std::endl;
+	kahypar::parallel::benchCountingSort<int32_t>(num_threads);
+	//std::cout << "Bench Counting Sort int64_t" << std::endl;
+	//kahypar::parallel::benchCountingSort<int64_t>(num_threads);
 	return 0;
 }
