@@ -314,7 +314,7 @@ inline std::vector<ClusterID> detectCommunitiesParallel(Hypergraph& hypergraph, 
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
   parallel::AdjListStarExpansion starExpansion(hypergraph, context);
-  parallel::Clustering C = parallel::ParallelModularityLouvain::run(starExpansion.G);   //TODO(lars): give switch for PLM/SLM
+  parallel::Clustering C = parallel::ParallelModularityLouvain::run(starExpansion.G, numTasks);   //TODO(lars): give switch for PLM/SLM
   starExpansion.restrictClusteringToHypernodes(C);
 
   HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
