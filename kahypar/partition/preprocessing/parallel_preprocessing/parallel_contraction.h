@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "clustering.h"
 #include "clearlist.h"
+#include "parallel_counting_sort.h"
 #include <tbb/enumerable_thread_specific.h>
 
 namespace kahypar {
@@ -15,19 +16,14 @@ public:
 	using ArcWeight = AdjListGraph::ArcWeight;
 	using IncidentClusterWeights = ClearListMap<PartitionID, ArcWeight>;
 
-	static AdjListGraph contract(const AdjListGraph& GFine, Clustering& C) {
+	static AdjListGraph contract(const AdjListGraph &GFine, Clustering &C, size_t numTasks) {
 		auto t_compactify = tbb::tick_count::now();
 		size_t numClusters = C.compactify();
 		DBG << "compactify" << (tbb::tick_count::now() - t_compactify).seconds() << "[s]";
-		std::vector<std::vector<NodeID>> fineNodesInCluster(numClusters);
 
-		/* two ways to do this in parallel:
-		 * 1) sort by cluster ID : parallel std::iota + parallel sort which shouldn't be faster, or parallel counting sort which isn't faster either for less than 4 cores
-		 * 2) Every thread accumulates buckets on its own range. In the contraction loop we iterate over the cluster-buckets of all threads.
-		 */
 		auto t_bucket_assignment = tbb::tick_count::now();
-		for (NodeID u : GFine.nodes())
-			fineNodesInCluster[C[u]].push_back(u);
+		auto nodes = boost::irange(NodeID(0), static_cast<NodeID>(GFine.numNodes()));
+		auto [nodesSortedByCluster, clusterBegin] = ParallelCountingSort::sort(nodes, numClusters, C, numTasks);		//pretty fast!
 		DBG << "bucket assignment" << (tbb::tick_count::now() - t_bucket_assignment).seconds() << "[s]";
 
 		auto t_edge_accumulation = tbb::tick_count::now();
@@ -41,7 +37,7 @@ public:
 
 		AdjListGraph GCoarse(numClusters);
 		tbb::parallel_for_each(GCoarse.nodes(), [&](const NodeID coarseNode) {
-		//std::for_each(GCoarse.nodes().begin(), GCoarse.nodes().end(), [&](const NodeID coarseNode) {
+			//std::for_each(GCoarse.nodes().begin(), GCoarse.nodes().end(), [&](const NodeID coarseNode) {
 			//if calls to .local() are too expensive, we could implement range-based ourselves. or use task_arena::thread_id() and OMP style allocation. I think .local() hashes thread IDs for some reason
 			auto t_handle_cluster = tbb::tick_count::now();
 			size_t& fineDegree = ts_deg.local();
@@ -50,7 +46,9 @@ public:
 			ArcWeight coarseNodeVolume = 0;
 
 			/* accumulate weights to incident coarse nodes */
-			for (NodeID fineNode : fineNodesInCluster[coarseNode]) {
+			size_t firstNext = clusterBegin[coarseNode+1];
+			for (size_t i = clusterBegin[coarseNode]; i < firstNext; ++i) {
+				const NodeID fineNode = nodesSortedByCluster[i];
 				fineDegree += GFine.degree(fineNode);
 				for (auto& arc : GFine.arcsOf(fineNode)) {
 					incidentClusterWeights.add(C[arc.head], arc.weight);
@@ -90,6 +88,10 @@ public:
 
 		return GCoarse;
 	}
+
+
+
+
 };
 
 //TODO Parallel Contraction for CSR with ParallelCounting Sort. Single Pass Michi Style with indirections.

@@ -11,7 +11,7 @@ namespace parallel {
 	private:
 		static constexpr bool debug = false;
 
-		static Clustering localMovingContractRecurse(AdjListGraph& GFine, PLM& mlv) {
+		static Clustering localMovingContractRecurse(AdjListGraph& GFine, PLM& mlv, size_t numTasks) {
 			Clustering C(GFine.numNodes());
 
 			DBG << "Start Local Moving";
@@ -31,7 +31,7 @@ namespace parallel {
 				DBG << "Contract";
 
 				auto t_contract = tbb::tick_count::now();
-				AdjListGraph GCoarse = ParallelClusteringContractionAdjList::contract(GFine, C);
+				AdjListGraph GCoarse = ParallelClusteringContractionAdjList::contract(GFine, C, numTasks);
 				mlv.tr.report("Contraction", tbb::tick_count::now() - t_contract);
 
 #ifndef NDEBUG
@@ -43,7 +43,7 @@ namespace parallel {
 				ClusteringStatistics::printLocalMovingStats(GFine, C, mlv.tr);
 
 				//recurse
-				Clustering coarseC = localMovingContractRecurse(GCoarse, mlv);
+				Clustering coarseC = localMovingContractRecurse(GCoarse, mlv, numTasks);
 
 				auto t_prolong = tbb::tick_count::now();
 				//prolong clustering
@@ -56,9 +56,9 @@ namespace parallel {
 			return C;
 		}
 	public:
-		static Clustering run(AdjListGraph& graph) {
+		static Clustering run(AdjListGraph& graph, size_t numTasks) {
 			PLM mlv(graph.numNodes());
-			Clustering C = localMovingContractRecurse(graph, mlv);
+			Clustering C = localMovingContractRecurse(graph, mlv, numTasks);
 			ClusteringStatistics::printLocalMovingStats(graph, C, mlv.tr);
 			return C;
 		}
