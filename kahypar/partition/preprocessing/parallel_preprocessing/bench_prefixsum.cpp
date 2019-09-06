@@ -85,11 +85,11 @@ namespace parallel {
 
 		auto id = [](const T x) { return x; };
 
-		auto sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, num_tasks);
+		auto sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, num_tasks).first;
 		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
 		assert(std::is_sorted(sorted_vec.begin(), sorted_vec.end()));
 
-		sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, 0);
+		sorted_vec = ParallelCountingSort::sort(vec, num_buckets, id, 0).first;
 		//std::cout << "create side effect " << sorted_vec[0] << std::endl;
 		assert(std::is_sorted(sorted_vec.begin(), sorted_vec.end()));
 
