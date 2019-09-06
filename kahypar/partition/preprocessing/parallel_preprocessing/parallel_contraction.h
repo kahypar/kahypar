@@ -10,14 +10,14 @@ namespace parallel {
 
 class ParallelClusteringContractionAdjList {
 private:
-	static constexpr bool debug = false;
+	static constexpr bool debug = true;
 public:
 	using ArcWeight = AdjListGraph::ArcWeight;
 	using IncidentClusterWeights = ClearListMap<PartitionID, ArcWeight>;
 
 	static AdjListGraph contract(const AdjListGraph& GFine, Clustering& C) {
 		auto t_compactify = tbb::tick_count::now();
-		size_t numClusters = C.compactify(); //(static_cast<PartitionID>(GFine.numNodes() - 1));
+		size_t numClusters = C.compactify();
 		DBG << "compactify" << (tbb::tick_count::now() - t_compactify).seconds() << "[s]";
 		std::vector<std::vector<NodeID>> fineNodesInCluster(numClusters);
 
@@ -34,16 +34,24 @@ public:
 		tbb::enumerable_thread_specific<IncidentClusterWeights> ets_incidentClusterWeights(numClusters, 0);
 		tbb::enumerable_thread_specific<size_t> ets_nArcs(0);
 
+		//measure edge accumulation load balancing
+		tbb::enumerable_thread_specific<tbb::tick_count::interval_t> ts_runtime(0.0);
+		tbb::enumerable_thread_specific<size_t> ts_deg(0);
+
+
 		AdjListGraph GCoarse(numClusters);
 		tbb::parallel_for_each(GCoarse.nodes(), [&](const NodeID coarseNode) {
 		//std::for_each(GCoarse.nodes().begin(), GCoarse.nodes().end(), [&](const NodeID coarseNode) {
 			//if calls to .local() are too expensive, we could implement range-based ourselves. or use task_arena::thread_id() and OMP style allocation. I think .local() hashes thread IDs for some reason
+			auto t_handle_cluster = tbb::tick_count::now();
+			size_t& fineDegree = ts_deg.local();
+
 			IncidentClusterWeights& incidentClusterWeights = ets_incidentClusterWeights.local();
 			ArcWeight coarseNodeVolume = 0;
+
 			/* accumulate weights to incident coarse nodes */
-			//can also parallelize this for better load balance by merging multiple ClearListMaps at the end.
-			//with TBB these would get inserted into the thread-local task-queues at the end, and thus get stolen only if no parallel_for loop blocks are available
 			for (NodeID fineNode : fineNodesInCluster[coarseNode]) {
+				fineDegree += GFine.degree(fineNode);
 				for (auto& arc : GFine.arcsOf(fineNode)) {
 					incidentClusterWeights.add(C[arc.head], arc.weight);
 				}
@@ -61,21 +69,24 @@ public:
 				nArcs -= 1;
 
 			incidentClusterWeights.clear();
+
+			ts_runtime.local() += (tbb::tick_count::now() - t_handle_cluster);
 		});
 
 		GCoarse.numArcs = 0;
 		ets_nArcs.combine_each([&](size_t& localNArcs) { GCoarse.numArcs += localNArcs; });
 		GCoarse.totalVolume = GFine.totalVolume;
 
-		DBG << V(numClusters) <<  V(GCoarse.numNodes()) << V(GCoarse.numArcs) << V(GCoarse.totalVolume) << "edge accumulation time: " << (tbb::tick_count::now() - t_edge_accumulation).seconds() << "[s]";
+		DBG << "edge accumulation time: " << (tbb::tick_count::now() - t_edge_accumulation).seconds() << "[s]";
 
-#ifndef NDEBUG
-		ArcWeight tVol = 0;
-		for (NodeID u : GFine.nodes())
-			tVol += GFine.nodeVolume(u);
-		assert(tVol == GFine.totalVolume);
-#endif
-		//GCoarse.finalize(); Do not call finalize. We set number of arcs and volumes manually
+		std::stringstream os;
+		os << "edge accumulation thread degrees ";
+		for (auto& d : ts_deg)
+			os << d << " ";
+		os << "\nedge accumulation thread runtimes ";
+		for (auto& t : ts_runtime)
+			os << t.seconds() << " ";
+		DBG << os.str();
 
 		return GCoarse;
 	}
