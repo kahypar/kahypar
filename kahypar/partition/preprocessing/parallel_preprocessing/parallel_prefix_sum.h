@@ -64,7 +64,6 @@ public:
 		return sequential(range.begin(), range.end(), d, neutralElement, f);
 	}
 
-
 	/*
 	 *	Requires InIt and OutIt to support random access
 	 *
@@ -93,8 +92,7 @@ public:
 		size_t chunks = tasks + 1;
 		size_t chunkSize = n / chunks;
 
-		//if (tasks <= 2 || chunkSize <= 1)    //has to scan twice, so anything with less than three threads is worse than sequential. switch to sequential if less than 2000 entries.
-		if (chunkSize <= 1)						//leave it like this for further performance testing
+		if (tasks <= 2 || chunkSize <= 1)    //has to scan twice, so anything with less than three threads is worse than sequential. switch to sequential if less than 2000 entries.
 			return sequential(first, last, d, neutralElement, f);
 
 		std::vector<size_t> chunkEnds = Chunking::getChunkEnds(n, chunks);
@@ -112,7 +110,6 @@ public:
 			sequential(first, first + chunkEnds[0], d, neutralElement, f);
 			chunkEndSums[0] = *(d + chunkEnds[0] - 1);		//last element in chunk
 		});
-
 
 		sequential(chunkEndSums, chunkEndSums.begin(), neutralElement, f);
 
