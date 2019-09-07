@@ -71,8 +71,7 @@ public:
 			ts_runtime.local() += (tbb::tick_count::now() - t_handle_cluster);
 		});
 
-		GCoarse.numArcs = 0;
-		ets_nArcs.combine_each([&](size_t& localNArcs) { GCoarse.numArcs += localNArcs; });
+		GCoarse.numArcs = ets_nArcs.combine(std::plus<size_t>());
 		GCoarse.totalVolume = GFine.totalVolume;
 
 		DBG << "edge accumulation time: " << (tbb::tick_count::now() - t_edge_accumulation).seconds() << "[s]";
