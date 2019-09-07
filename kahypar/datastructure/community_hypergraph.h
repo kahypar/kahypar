@@ -646,7 +646,7 @@ class CommunityHypergraph {
           size_t invalid_pins_end = this->_hg._hyperedges[he + 1].firstEntry();
           std::sort(this->_hg._incidence_array.begin() + invalid_pins_start,
                     this->_hg._incidence_array.begin() + invalid_pins_end,
-                    [this](const HypernodeID& u, const HypernodeID& v) {
+                    [this, &he](const HypernodeID& u, const HypernodeID& v) {
                       ASSERT(this->_hg._hypernodes[u].contraction_index != -1, 
                              "Hypernode" << u << "should be not in invalid part of HE" << he);
                       ASSERT(this->_hg._hypernodes[v].contraction_index != -1, 
