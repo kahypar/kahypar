@@ -46,11 +46,14 @@ matrix:
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
       os: osx
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
 
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COV="OFF"
       os: osx
-
-
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+      
 install:
   - DEPS_DIR="${HOME}/deps"
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
