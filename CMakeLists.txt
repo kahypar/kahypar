@@ -44,7 +44,7 @@ endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
 find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-if (CMAKE_CXX_CPPCHECK)
+if(CMAKE_CXX_CPPCHECK)
     list(
         APPEND CMAKE_CXX_CPPCHECK 
             "--enable=all"
@@ -52,7 +52,7 @@ if (CMAKE_CXX_CPPCHECK)
             "--force" 
             "--inline-suppr"
     )
-endif()
+endif(CMAKE_CXX_CPPCHECK)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)

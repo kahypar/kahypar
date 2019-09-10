@@ -24,6 +24,7 @@ matrix:
             - libboost-program-options1.55-dev
             - lcov
             - gcovr
+            - cppcheck
         sonarcloud:
           organization: "sebastianschlag-github"
 
