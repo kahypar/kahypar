@@ -1,3 +1,7 @@
+queries:
+  - exclude: 
+    - external_tools/
+    - codestyle/
 extraction:
   cpp:
     prepare:    # Customizable step used by all languages.
