@@ -16,6 +16,7 @@ extraction:
       - export GTEST_DIR=$LGTM_SRC/googletest
     index:    # Customizable step used by all languages.
       build_command:
+        - cd $LGTM_SRC
         - mkdir build; cd build
         - cmake -DCMAKE_BUILD_TYPE="RELWITHDEBINFO"
         - $GNU_MAKE -j2 -s 
