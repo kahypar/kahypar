@@ -11,7 +11,7 @@ extraction:
 #      - export PATH=$LGTM_WORKSPACE/latest-gcc-symlinks:$PATH
 #      - export GNU_MAKE=make
 #      - export GIT=true
-    before_index:    # Customizable step used by all languages.
+#    before_index:    # Customizable step used by all languages.
 #      - export BOOST_DIR=$LGTM_SRC/boost
 #      - export GTEST_DIR=$LGTM_SRC/googletest
     index:    # Customizable step used by all languages.
