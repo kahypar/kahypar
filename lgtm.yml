@@ -3,8 +3,7 @@ extraction:
     prepare:    # Customizable step used by all languages.
       packages:
         - g++-6
-        - libboost-program-options1.55.0
-        - libboost-program-options1.55-dev
+        - libboost-all-dev
     after_prepare:    # Customizable step used by all languages.
       - mkdir -p $LGTM_WORKSPACE/latest-gcc-symlinks
       - ln -s /usr/bin/g++-6 $LGTM_WORKSPACE/latest-gcc-symlinks/g++
