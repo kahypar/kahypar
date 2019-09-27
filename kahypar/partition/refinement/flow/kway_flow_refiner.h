@@ -106,10 +106,10 @@ class KWayFlowRefiner final : public IRefiner,
     std::vector<bool> active_blocks(_context.partition.k, true);
     size_t current_round = 1;
     while (active_block_exist) {
-      scheduler.randomShuffleQoutientEdges();
+      scheduler.randomShuffleQuotientEdges();
       std::vector<bool> tmp_active_blocks(_context.partition.k, false);
       active_block_exist = false;
-      for (const auto& e : scheduler.qoutientGraphEdges()) {
+      for (const auto& e : scheduler.quotientGraphEdges()) {
         const PartitionID block_0 = e.first;
         const PartitionID block_1 = e.second;
 

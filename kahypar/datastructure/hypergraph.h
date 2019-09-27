@@ -1653,6 +1653,18 @@ class GenericHypergraph {
     return _pins_in_part[static_cast<size_t>(he) * _k + id];
   }
 
+  bool inPart(const HypernodeID hn, const PartitionID b) const {
+  	return partID(hn) == b;
+  }
+
+  bool hasPinsInPart(const HyperedgeID he, const PartitionID b) const {
+  	return pinCountInPart(he, b) > 0;
+  }
+
+  bool hasPinsInOtherBlocks(const HyperedgeID he, const PartitionID b0, const PartitionID b1) const {
+  	return pinCountInPart(he, b0) + pinCountInPart(he, b1) < edgeSize(he);
+  }
+
   // ! Returns the number of blocks a hyperedge connects
   PartitionID connectivity(const HyperedgeID he) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
