@@ -82,7 +82,6 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                        kahypar_context_t* kahypar_context,
                        kahypar_partition_id_t* partition) {
   kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
-  context.partition.verbose_output = true;
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
   context.partition.quiet_mode = true;
