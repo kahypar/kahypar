@@ -32,8 +32,7 @@
 #include "flow_refiner_base.h"
 
 #include "whfc_flow_hypergraph_extraction.h"
-
-//#include "WHFC/algorithm/hyperflowcutter.h"
+#include "WHFC/algorithm/hyperflowcutter.h"
 
 namespace kahypar {
 template <class FlowExecutionPolicy = Mandatory>
@@ -46,30 +45,16 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
 		Base(hypergraph, context),
-		_quotient_graph(nullptr),
-		b0(0),
-		b1(1),
-		_ignore_flow_execution_policy(false),
-		extractor(hypergraph, context) { }
+		extractor(hypergraph, context),
+		hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0]) ),
+		_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1) { }
 
 	TwoWayHyperFlowCutterRefiner(const TwoWayHyperFlowCutterRefiner&) = delete;
 	TwoWayHyperFlowCutterRefiner(TwoWayHyperFlowCutterRefiner&&) = delete;
 	TwoWayHyperFlowCutterRefiner& operator= (const TwoWayHyperFlowCutterRefiner&) = delete;
 	TwoWayHyperFlowCutterRefiner& operator= (TwoWayHyperFlowCutterRefiner&&) = delete;
 
-	/*
-	* The 2way flow refiner can be used in combination with other
-	* refiners.
-	*
-	* k-Way Flow Refiner:
-	* Performs active block scheduling on the quotient graph. Therefore
-	* the quotient graph is already initialized and we have to pass
-	* the two blocks which are selected for a pairwise refinement.
-	*/
-	void updateConfiguration(const PartitionID block0,
-						   const PartitionID block1,
-						   QuotientGraphBlockScheduler* quotientGraph,
-						   bool ignoreFlowExecutionPolicy) {
+	void updateConfiguration(const PartitionID block0, const PartitionID block1, QuotientGraphBlockScheduler* quotientGraph, bool ignoreFlowExecutionPolicy) {
 		b0 = block0;
 		b1 = block1;
 		_quotient_graph = quotientGraph;
@@ -82,11 +67,9 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	}
 
 	bool refineImpl(std::vector<HypernodeID>&, const std::array<HypernodeWeight, 2>&,
-				  const UncontractionGainChanges&, Metrics& best_metrics) override final {
-
-		if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
+				  const UncontractionGainChanges&, Metrics&) override final {
+		if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy)
 			return false;
-		}
 
 		if (_hg.containsFixedVertices())
 			throw std::runtime_error("TwoWayHyperFlowCutter: managing fixed vertices currently not implemented.");
@@ -97,17 +80,14 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		// Store original partition for rollback, because we have to update
 		// gain cache of twoway fm refiner
 		if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
-		  Base::storeOriginalPartitionIDs();
+			Base::storeOriginalPartitionIDs();
 		}
 
-		// Construct quotient graph, if it is not set before
-
-		//NOTE: This is absurdly weird. I'm assuming this is only for bisection mode. Hopefully
 		bool delete_quotientgraph_after_flow = false;
 		if (!_quotient_graph) {
-		  delete_quotientgraph_after_flow = true;
-		  _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
-		  _quotient_graph->buildQuotientGraph();
+			delete_quotientgraph_after_flow = true;
+			_quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
+			_quotient_graph->buildQuotientGraph();
 		}
 
 		DBG << V(metrics::imbalance(_hg, _context))
@@ -119,51 +99,48 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		LOG << "2-Way Hyperflow Cutter";
 
 		bool improved = false;
-		bool currentRoundImproved = true;
-
-		while (currentRoundImproved) {
-
+		bool should_continue = true;
+		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
-
-			//Still need: parameter to determine FlowHypergraph Size
-
-			//Extract FlowHypergraph. Function should return: FlowHypergraph, Node ID mappings (two_way_flow_hg_to_current_hg suffices to assign new partition IDs)
 			auto& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1);
 
-			//TODO write filler for hfc
+			//Heuristic (gottesbueren): break instead of continue. Skip this part pair, if one flow network extraction says there is nothing to gain
+			if (STF.cutAtStake == STF.baseCut)
+				break;
+
+			hfc.reset();
+			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
+			hfc.initialize(STF.source, STF.target);
 			hfc.runUntilBalanced();
-			HyperedgeWeight newMetric = STF.baseCut + hfc.cs.flowValue;
-			currentRoundImproved = hfc.cs.hasCut && (newMetric < STF.cutAtStake || (newMetric == STF.cutAtStake && previousBlockWeightDiff > hfc.cs.maxBlockWeightDiff()));
-
-			//Call HyperFlowCutter. Interface should be: new cut value between block0 and block1, maybe even cut hyperedges
-			//This would allow updating quotient_scheduler more efficiently (change this in kway_hyperflowcutter_refiner.h)
-			//Interface should also include easy way to assign nodes. figure out appropriate representation
-			//Function should take: FlowHypergraph, and an external bound on flow, i.e. the current cut
-			//Function should return: node assignment, cut hyperedges, flow value, is it balanced, is a cut available (in case we stopped early because flow bound exceeded)
-			//If solution is more balanced --> changeNodePart in _hg immediately, because the surrounding infrastructure relies on it
-
+			hfc.cs.outputMostBalancedPartition();
+			HyperedgeWeight newCut = STF.baseCut + hfc.cs.flowValue;
+			HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
+			const bool should_update = hfc.cs.hasCut && (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
+			
+			//If HFC interface includes cut hyperedges, we could update quotient_scheduler more efficiently (change this in kway_hyperflowcutter_refiner.h)
 			//assign new partition IDs
-			if (currentRoundImproved) {
+			if (should_update) {
 				improved = true;
-				//exposing iterator is nasty since the source and target node are mixed into the mapping.
-				extractor.forZippedGlobalAndLocalNodes([&](const HypernodeID uGlobal, const whfc::Node uLocal) {
+				for (const whfc::Node uLocal : extractor.localNodeIDs()) {
+					if (uLocal == STF.source || uLocal == STF.target)
+						continue;
+					const HypernodeID uGlobal = extractor.local2global(uLocal);
 					PartitionID from = _hg.partID(uGlobal);
 					Assert(from == b0 || from == b1);
-					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;
-					if (from != to) {
+					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;		//TODO this interface isn't that nice
+					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
-					}
-				});
-
+				}
 			}
-
+			
+			should_continue = should_update && (!_context.local_search.flow.use_adaptive_alpha_stopping_rule || newCut < STF.cutAtStake);
 		}
 
 		// Delete quotient graph
 		if (delete_quotientgraph_after_flow) {
-		  delete _quotient_graph;
-		  _quotient_graph = nullptr;
+			delete _quotient_graph;
+			_quotient_graph = nullptr;
 		}
 
 		return improved;
@@ -178,17 +155,19 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		return _hg.currentNumNodes() == _hg.initialNumNodes();
 	}
 
-	HyperFlowCutter::FlowHypergraphExtractor extractor;
-	whfc::HyperFlowCutter<whfc::BasicEdmondsKarp> hfc;
 
 	using IRefiner::_is_initialized;
 	using Base::_hg;
 	using Base::_context;
 	using Base::_original_part_id;
 	using Base::_flow_execution_policy;
+	
+	whfcInterface::FlowHypergraphExtractor extractor;
+	whfc::HyperFlowCutter<whfc::BasicEdmondsKarp> hfc;
 	QuotientGraphBlockScheduler* _quotient_graph;
+	bool _ignore_flow_execution_policy;
 	PartitionID b0;
 	PartitionID b1;
-	bool _ignore_flow_execution_policy;
+	
 };
 }  // namespace kahypar
