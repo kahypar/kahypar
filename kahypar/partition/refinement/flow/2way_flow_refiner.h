@@ -152,7 +152,7 @@ class TwoWayFlowRefiner final : public IRefiner,
       //            in the quotient graph with a small cut
       if (_context.local_search.flow.ignore_small_hyperedge_cut &&
           cut_weight <= 10 && !isRefinementOnLastLevel()) {
-        return improvement;
+        return improvement;   //Note (gottesbueren) this is clearly a memory leak if delete_quotientgraph_after_flow == true
       }
 
       // If cut is 0 no improvement is possible
