@@ -537,6 +537,8 @@ static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type
     return CoarseningAlgorithm::heavy_lazy;
   } else if (type == "ml_style") {
     return CoarseningAlgorithm::ml_style;
+  } else if (type == "do_nothing") {
+    return CoarseningAlgorithm::do_nothing;
   }
   LOG << "Illegal option:" << type;
   exit(0);
