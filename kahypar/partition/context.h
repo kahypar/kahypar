@@ -321,7 +321,7 @@ struct PartitioningParameters {
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;
   std::vector<HypernodeWeight> max_part_weights;
-  HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
+  HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
 
   bool verbose_output = false;
   bool quiet_mode = false;

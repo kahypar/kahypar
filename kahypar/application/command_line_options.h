@@ -77,12 +77,7 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     po::value<std::string>(&context.partition.input_partition_filename)->value_name("<string>"),
     "Input Partition filename. The input partition is then refined using direct k-way V-cycles.")
     ("cmaxnet",
-    po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<int>")->notifier(
-      [&](const HyperedgeID) {
-      if (context.partition.hyperedge_size_threshold == -1) {
-        context.partition.hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
-      }
-    }),
+    po::value<HyperedgeID>(&context.partition.hyperedge_size_threshold)->value_name("<uint32_t>"),
     "Hyperedges larger than cmaxnet are ignored during partitioning process.")
     ("vcycles",
     po::value<uint32_t>(&context.partition.global_search_iterations)->value_name("<uint32_t>"),
