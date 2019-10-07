@@ -35,6 +35,8 @@ namespace kahypar {
 namespace whfcInterface {
 	class FlowHypergraphExtractor {
 	public:
+		static constexpr bool debug = true;
+		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
 		static constexpr HyperedgeID invalid_hyperedge = std::numeric_limits<HyperedgeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
@@ -45,21 +47,17 @@ namespace whfcInterface {
 		//Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
 		FlowHypergraphExtractor(const Hypergraph& hg, const Context& ) :
 				flow_hg_builder(hg.initialNumNodes(), hg.initialNumEdges(), hg.initialNumPins()),
-				nodeIDMap(hg.initialNumNodes(), whfc::invalidNode), visitedNode(hg.initialNumNodes()), visitedHyperedge(hg.initialNumEdges()),
+				nodeIDMap(hg.initialNumNodes() + 2, whfc::invalidNode), visitedNode(hg.initialNumNodes() + 2), visitedHyperedge(hg.initialNumEdges()),
 				queue(hg.initialNumNodes() + 2) { }
 
 		struct AdditionalData {
 			whfc::Node source;
 			whfc::Node target;
-			whfc::Flow baseCut;
+			whfc::Flow baseCut;					//amount of flow between hyperedges that already join source and target
 			whfc::Flow cutAtStake;				//Compare this to the flow value, to determine whether an improvement was found
 												//If metric == cut, this value does not contain the weight of hyperedges with pins in other blocks than b0 and b1
 		};
 
-		/*
-		 * Fill flow_hg and return source, target and base flow.
-		 * Base flow is the weight of the hyperedges that already join the source and target nodes
-		 */
 		AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
 						   const PartitionID _b0, const PartitionID _b1) {
 
@@ -71,7 +69,7 @@ namespace whfcInterface {
 					maxW1 = alpha * context.partition.max_part_weights[b1];
 			HypernodeWeight w0 = 0, w1 = 0;
 			std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
-
+			
 			//collect b0
 			result.source = whfc::Node::fromOtherValueType(queue.queueEnd());
 			queue.push(globalSourceID);	//we abuse the queue as local2global ID mapper. --> assign a local ID for global source node
@@ -125,9 +123,16 @@ namespace whfcInterface {
 				}
 			}
 
+			DBG << "before assignment" << V(flow_hg_builder.nodeWeight(result.source)) << V(flow_hg_builder.nodeWeight(result.target));
+			
 			flow_hg_builder.nodeWeight(result.source) = whfc::NodeWeight(hg.partWeight(b0) - w0);
 			flow_hg_builder.nodeWeight(result.target) = whfc::NodeWeight(hg.partWeight(b1) - w1);
+			
 			flow_hg_builder.finalize();
+			
+			DBG << V(hg.partWeight(b0)) << V(hg.partWeight(b1));
+			DBG << V(result.baseCut) << V(result.cutAtStake) << V(result.source) << V(result.target);
+			DBG << V(flow_hg_builder.numNodes()) << V(flow_hg_builder.numHyperedges()) << V(flow_hg_builder.numPins()) << V(flow_hg_builder.totalNodeWeight()) << V(hg.totalWeight());
 
 			return result;
 		}
@@ -204,6 +209,7 @@ namespace whfcInterface {
 
 		void reset(const Hypergraph& hg, const PartitionID _b0, const PartitionID _b1) {
 			b0 = _b0; b1 = _b1;
+			flow_hg_builder.clear();
 			visitedNode.reset();
 			visitedHyperedge.reset();
 			queue.clear();

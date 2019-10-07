@@ -40,7 +40,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 										   private FlowRefinerBase<FlowExecutionPolicy>{
 	using Base = FlowRefinerBase<FlowExecutionPolicy>;
 	private:
-	static constexpr bool debug = false;
+	static constexpr bool debug = true;
 
 	public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -95,22 +95,27 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 			<< V(metrics::objective(_hg, _context.partition.objective));
 		DBG << "Refine " << V(b0) << "and" << V(b1);
 
-		LOG << "Refine " << V(b0) << "and" << V(b1);
 		LOG << "2-Way Hyperflow Cutter";
 
 		bool improved = false;
 		bool should_continue = true;
+		
+		DBG << V(extractor.flow_hg_builder.numNodes()) << V(extractor.flow_hg_builder.numHyperedges()) << V(extractor.flow_hg_builder.numPins()) << V(extractor.flow_hg_builder.totalNodeWeight());
+		
 		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
 			auto& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1);
 
-			//Heuristic (gottesbueren): break instead of continue. Skip this part pair, if one flow network extraction says there is nothing to gain
+			//TODO maybe output the extracted hypergraphs for testing purposes somewhere
+			
+			//Heuristic (gottesbueren): break instead of continue. Skip this block pair, if one flow network extraction says there is nothing to gain
 			if (STF.cutAtStake == STF.baseCut)
 				break;
 
 			hfc.reset();
 			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
+			DBG << V(hfc.upperFlowBound);
 			hfc.initialize(STF.source, STF.target);
 			hfc.runUntilBalanced();
 			hfc.cs.outputMostBalancedPartition();
@@ -118,7 +123,6 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 			HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
 			const bool should_update = hfc.cs.hasCut && (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			
-			//If HFC interface includes cut hyperedges, we could update quotient_scheduler more efficiently (change this in kway_hyperflowcutter_refiner.h)
 			//assign new partition IDs
 			if (should_update) {
 				improved = true;
@@ -128,7 +132,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 					const HypernodeID uGlobal = extractor.local2global(uLocal);
 					PartitionID from = _hg.partID(uGlobal);
 					Assert(from == b0 || from == b1);
-					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;		//TODO this interface isn't that nice
+					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;		//Note(gottesbueren) this interface isn't that nice
 					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
