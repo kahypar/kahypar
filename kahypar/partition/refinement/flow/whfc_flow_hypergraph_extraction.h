@@ -64,9 +64,13 @@ namespace whfcInterface {
 			AdditionalData result = { whfc::invalidNode, whfc::invalidNode , 0 , 0 };
 			reset(hg, _b0, _b1);
 			removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
-			//TODO adapt weight so that the smaller block frees up fewer vertices.
+			
 			double  maxW0 = alpha * context.partition.max_part_weights[b0],
 					maxW1 = alpha * context.partition.max_part_weights[b1];
+			
+			//TODO adapt weight so that the smaller block frees up fewer vertices. Like so.
+			//double maxW0 = alpha * hg.partWeight(b0), maxW1 = alpha * hg.partWeight(b1);
+			
 			HypernodeWeight w0 = 0, w1 = 0;
 			std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
 			
@@ -123,16 +127,13 @@ namespace whfcInterface {
 				}
 			}
 
-			DBG << "before assignment" << V(flow_hg_builder.nodeWeight(result.source)) << V(flow_hg_builder.nodeWeight(result.target));
 			
 			flow_hg_builder.nodeWeight(result.source) = whfc::NodeWeight(hg.partWeight(b0) - w0);
 			flow_hg_builder.nodeWeight(result.target) = whfc::NodeWeight(hg.partWeight(b1) - w1);
 			
 			flow_hg_builder.finalize();
 			
-			DBG << V(hg.partWeight(b0)) << V(hg.partWeight(b1));
 			DBG << V(result.baseCut) << V(result.cutAtStake) << V(result.source) << V(result.target);
-			DBG << V(flow_hg_builder.numNodes()) << V(flow_hg_builder.numHyperedges()) << V(flow_hg_builder.numPins()) << V(flow_hg_builder.totalNodeWeight()) << V(hg.totalWeight());
 
 			return result;
 		}

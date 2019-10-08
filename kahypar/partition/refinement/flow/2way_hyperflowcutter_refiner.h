@@ -25,6 +25,8 @@
 #include <kahypar/partition/refinement/i_refiner.h>
 #include <WHFC/algorithm/hyperflowcutter.h>
 #include <WHFC/algorithm/ford_fulkerson.h>
+#include <WHFC/io/whfc_io.h>
+#include <WHFC/io/hmetis_io.h>
 
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
@@ -100,14 +102,21 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		bool improved = false;
 		bool should_continue = true;
 		
-		DBG << V(extractor.flow_hg_builder.numNodes()) << V(extractor.flow_hg_builder.numHyperedges()) << V(extractor.flow_hg_builder.numPins()) << V(extractor.flow_hg_builder.totalNodeWeight());
-		
 		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
 			auto& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1);
 
-			//TODO maybe output the extracted hypergraphs for testing purposes somewhere
+			if (write_hg) {
+				DBG << V(extractor.flow_hg_builder.numNodes()) << V(extractor.flow_hg_builder.numHyperedges()) << V(extractor.flow_hg_builder.numPins()) << V(extractor.flow_hg_builder.totalNodeWeight());
+				whfc::WHFC_IO::WHFCInformation i = { whfc::NodeWeight(_context.partition.max_part_weights[b0]), STF.cutAtStake - STF.baseCut, STF.source, STF.target };
+				std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
+										  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
+										  + ".snapshot" + std::to_string(instance_counter++);
+				whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
+				whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
+				return false;
+			}
 			
 			//Heuristic (gottesbueren): break instead of continue. Skip this block pair, if one flow network extraction says there is nothing to gain
 			if (STF.cutAtStake == STF.baseCut)
@@ -115,13 +124,16 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 
 			hfc.reset();
 			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
-			DBG << V(hfc.upperFlowBound);
-			hfc.initialize(STF.source, STF.target);
-			hfc.runUntilBalanced();
-			hfc.cs.outputMostBalancedPartition();
+			bool flowcutter_succeeded = hfc.runUntilBalancedOrFlowBoundExceeded(STF.source, STF.target);
 			HyperedgeWeight newCut = STF.baseCut + hfc.cs.flowValue;
-			HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
-			const bool should_update = hfc.cs.hasCut && (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
+			DBG << V(hfc.cs.flowValue) << V(hfc.upperFlowBound) << V(newCut) << V(STF.cutAtStake);
+			
+			bool should_update = false;
+			if (flowcutter_succeeded) {
+				hfc.cs.outputMostBalancedPartition();
+				HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
+				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
+			}
 			
 			//assign new partition IDs
 			if (should_update) {
@@ -166,6 +178,8 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	using Base::_original_part_id;
 	using Base::_flow_execution_policy;
 	
+	bool write_hg = true;
+	size_t instance_counter = 0;
 	whfcInterface::FlowHypergraphExtractor extractor;
 	whfc::HyperFlowCutter<whfc::BasicEdmondsKarp> hfc;
 	QuotientGraphBlockScheduler* _quotient_graph;
