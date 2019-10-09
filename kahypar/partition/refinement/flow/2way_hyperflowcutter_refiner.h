@@ -44,12 +44,14 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	private:
 	static constexpr bool debug = true;
 
-	public:
+public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
-		Base(hypergraph, context),
-		extractor(hypergraph, context),
-		hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0]) ),
-		_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1) { }
+			Base(hypergraph, context), extractor(hypergraph, context),
+			hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0])),
+			_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1)
+	{
+		hfc.piercer.useDistancesFromCut = context.local_search.hyperflowcutter.use_distances_from_cut;
+	}
 
 	TwoWayHyperFlowCutterRefiner(const TwoWayHyperFlowCutterRefiner&) = delete;
 	TwoWayHyperFlowCutterRefiner(TwoWayHyperFlowCutterRefiner&&) = delete;
@@ -63,7 +65,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		_ignore_flow_execution_policy = ignoreFlowExecutionPolicy;
 	}
 
-	private:
+private:
 	std::vector<Move> rollbackImpl() override final {
 		return Base::rollback();
 	}
@@ -95,9 +97,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		DBG << V(metrics::imbalance(_hg, _context))
 			<< V(_context.partition.objective)
 			<< V(metrics::objective(_hg, _context.partition.objective));
-		DBG << "Refine " << V(b0) << "and" << V(b1);
-
-		LOG << "2-Way Hyperflow Cutter";
+		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 
 		bool improved = false;
 		bool should_continue = true;
@@ -105,7 +105,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
 			auto& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
-			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1);
+			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.piercer.distanceFromCut);
 
 			if (write_hg) {
 				DBG << V(extractor.flow_hg_builder.numNodes()) << V(extractor.flow_hg_builder.numHyperedges()) << V(extractor.flow_hg_builder.numPins()) << V(extractor.flow_hg_builder.totalNodeWeight());
@@ -134,6 +134,10 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 				HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
+
+#ifndef NDEBUG
+			HyperedgeWeight old_objective = metrics::objective(_hg, _context.partition.objective);
+#endif
 			
 			//assign new partition IDs
 			if (should_update) {
@@ -148,9 +152,18 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
+				LOG << "HFC improved";
 			}
+			else {
+				LOG << "HFC did not improve";
+			}
+
+#ifndef NDEBUG
+			HyperedgeWeight new_objective = metrics::objective(_hg, _context.partition.objective);
+			Assert(new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut);
+#endif
 			
-			should_continue = should_update && (!_context.local_search.flow.use_adaptive_alpha_stopping_rule || newCut < STF.cutAtStake);
+			should_continue = should_update && newCut < STF.cutAtStake;
 		}
 
 		// Delete quotient graph
@@ -178,7 +191,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	using Base::_original_part_id;
 	using Base::_flow_execution_policy;
 	
-	bool write_hg = true;
+	bool write_hg = false;
 	size_t instance_counter = 0;
 	whfcInterface::FlowHypergraphExtractor extractor;
 	whfc::HyperFlowCutter<whfc::BasicEdmondsKarp> hfc;

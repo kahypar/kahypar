@@ -202,8 +202,14 @@ struct LocalSearchParameters {
     bool use_improvement_history = false;
   };
 
+  struct HyperFlowCutter {
+      bool use_distances_from_cut = true;
+      double snapshot_scaling = 0.2;
+  };
+  
   FM fm { };
   Flow flow { };
+  HyperFlowCutter hyperflowcutter { };
   RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
   int iterations_per_level = std::numeric_limits<int>::max();
 };

@@ -33,6 +33,7 @@
 
 namespace kahypar {
 namespace whfcInterface {
+	
 	class FlowHypergraphExtractor {
 	public:
 		static constexpr bool debug = true;
@@ -41,7 +42,6 @@ namespace whfcInterface {
 		static constexpr HyperedgeID invalid_hyperedge = std::numeric_limits<HyperedgeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
 
-		static constexpr double alpha = 0.2;
 		
 
 		//Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
@@ -59,17 +59,14 @@ namespace whfcInterface {
 		};
 
 		AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
-						   const PartitionID _b0, const PartitionID _b1) {
+						   const PartitionID _b0, const PartitionID _b1, std::vector<whfc::HopDistance>& distanceFromCut) {
 
 			AdditionalData result = { whfc::invalidNode, whfc::invalidNode , 0 , 0 };
 			reset(hg, _b0, _b1);
 			removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
 			
-			double  maxW0 = alpha * context.partition.max_part_weights[b0],
-					maxW1 = alpha * context.partition.max_part_weights[b1];
-			
-			//TODO adapt weight so that the smaller block frees up fewer vertices. Like so.
-			//double maxW0 = alpha * hg.partWeight(b0), maxW1 = alpha * hg.partWeight(b1);
+			const double alpha = context.local_search.hyperflowcutter.snapshot_scaling;
+			const double maxW0 = alpha * hg.partWeight(b0), maxW1 = alpha * hg.partWeight(b1);
 			
 			HypernodeWeight w0 = 0, w1 = 0;
 			std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
@@ -79,14 +76,14 @@ namespace whfcInterface {
 			queue.push(globalSourceID);	//we abuse the queue as local2global ID mapper. --> assign a local ID for global source node
 			queue.reinitialize();		//and kill the queue
 			flow_hg_builder.addNode( whfc::NodeWeight(0) );		//dummy weight for source. set at the end
-			BreadthFirstSearch(hg, b0, b1, cut_hes, w0, maxW0, result.source);
+			BreadthFirstSearch(hg, b0, b1, cut_hes, w0, maxW0, result.source, -1, distanceFromCut);
 
 			//collect b1
 			result.target = whfc::Node::fromOtherValueType(queue.queueEnd());
 			queue.push(globalTargetID);
 			queue.reinitialize();
 			flow_hg_builder.addNode( whfc::NodeWeight(0) );
-			BreadthFirstSearch(hg, b1, b0, cut_hes, w1, maxW1, result.target);
+			BreadthFirstSearch(hg, b1, b0, cut_hes, w1, maxW1, result.target, 1, distanceFromCut);
 			
 			//collect cut hyperedges and their pins
 			for (const HyperedgeID e : cut_hes) {
@@ -127,9 +124,11 @@ namespace whfcInterface {
 				}
 			}
 
-			
-			flow_hg_builder.nodeWeight(result.source) = whfc::NodeWeight(hg.partWeight(b0) - w0);
-			flow_hg_builder.nodeWeight(result.target) = whfc::NodeWeight(hg.partWeight(b1) - w1);
+			whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
+			if (ws == 0 || wt == 0)
+				throw std::runtime_error("Entire block extracted");
+			flow_hg_builder.nodeWeight(result.source) = ws;
+			flow_hg_builder.nodeWeight(result.target) = wt;
 			
 			flow_hg_builder.finalize();
 			
@@ -158,16 +157,23 @@ namespace whfcInterface {
 
 		void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock, const PartitionID otherBlock,
 								const std::vector<HyperedgeID>& cut_hes, HypernodeWeight& w,
-								double sizeConstraint, const whfc::Node myTerminal)
+								double sizeConstraint, const whfc::Node myTerminal,
+								whfc::HopDistance d_delta, std::vector<whfc::HopDistance>& distanceFromCut)
 		{
-			//TODO assign distances to local IDs for piercing decisions.
+			whfc::HopDistance d = d_delta;
 			
 			for (const HyperedgeID e : cut_hes)
 				for (const HypernodeID u: hg.pins(e))
-					if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint)
+					if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint) {
 						visitNode(u, hg, w);
+						distanceFromCut[nodeIDMap[u]] = d;
+					}
 			
 			while (!queue.empty()) {
+				if (queue.currentLayerEmpty()) {
+					queue.finishNextLayer();
+					d += d_delta;
+				}
 				HypernodeID u = queue.pop();
 				for (const HyperedgeID e : hg.incidentEdges(u)) {
 					if (!hg.hasPinsInPart(e, otherBlock)			//cut hyperedges are collected later
@@ -180,8 +186,10 @@ namespace whfcInterface {
 						bool connectToTerminal = false;
 						for (const HypernodeID v : hg.pins(e)) {
 							if (hg.inPart(v, myBlock)) {
-								if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint)
+								if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint) {
 									visitNode(v, hg, w);
+									distanceFromCut[nodeIDMap[v]] = d;
+								}
 								
 								if (visitedNode[v])
 									flow_hg_builder.addPin( nodeIDMap[v] );
@@ -194,6 +202,9 @@ namespace whfcInterface {
 					}
 				}
 			}
+			
+			d += d_delta;
+			distanceFromCut[myTerminal] = d;
 		}
 		
 	public:
