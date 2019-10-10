@@ -121,7 +121,7 @@ class ExponentialFlowExecution : public FlowExecutionPolicy<ExponentialFlowExecu
 };
 
 
-using FlowExecutionPolicyClasses = meta::Typelist<ConstantFlowExecution,
+using FlowExecutionPolicyClasses = meta::Typelist<//ConstantFlowExecution,
                                                   MultilevelFlowExecution,
                                                   ExponentialFlowExecution>;
 }  // namespace kahypar

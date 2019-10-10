@@ -53,8 +53,10 @@
   })
 
 namespace kahypar {
+
 REGISTER_COARSENER(CoarseningAlgorithm::do_nothing, DoNothingCoarsener);
 
+/*
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_lazy,
                               LazyCoarseningDispatcher,
                               meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(
@@ -84,7 +86,7 @@ REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::heavy_full,
                                 context.coarsening.rating.acceptance_policy),
                               meta::PolicyRegistry<FixVertexContractionAcceptancePolicy>::getInstance().getPolicy(
                                 context.coarsening.rating.fixed_vertex_acceptance_policy));
-
+*/
 REGISTER_DISPATCHED_COARSENER(CoarseningAlgorithm::ml_style,
                               MLCoarseningDispatcher,
                               meta::PolicyRegistry<RatingFunction>::getInstance().getPolicy(

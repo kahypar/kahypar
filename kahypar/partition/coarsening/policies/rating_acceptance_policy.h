@@ -57,6 +57,6 @@ class BestRatingPreferringUnmatched final : public meta::PolicyBase {
   }
 };
 
-using AcceptancePolicies = meta::Typelist<BestRatingWithTieBreaking<>,
+using AcceptancePolicies = meta::Typelist<//BestRatingWithTieBreaking<>,
                                           BestRatingPreferringUnmatched<> >;
 }  // namespace kahypar

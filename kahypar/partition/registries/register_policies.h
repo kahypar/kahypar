@@ -64,6 +64,7 @@ REGISTER_POLICY(HeavyNodePenaltyPolicy, HeavyNodePenaltyPolicy::edge_frequency_p
 
 REGISTER_POLICY(RatingFunction, RatingFunction::heavy_edge,
                 HeavyEdgeScore);
+
 REGISTER_POLICY(RatingFunction, RatingFunction::edge_frequency,
                 EdgeFrequencyScore);
 
@@ -92,20 +93,23 @@ REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::simple,
                 NumberOfFruitlessMovesStopsSearch);
 REGISTER_POLICY(RefinementStoppingRule, RefinementStoppingRule::adaptive_opt,
                 AdvancedRandomWalkModelStopsSearch);
-
+/*
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::constant,
                 ConstantFlowExecution);
-REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
+*/
+ REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
                 MultilevelFlowExecution);
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
                 ExponentialFlowExecution);
 
+/*
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
                 LawlerNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
                 HeuerNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
                 WongNetworkPolicy);
+*/
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
                 HybridNetworkPolicy);
 }  // namespace kahypar

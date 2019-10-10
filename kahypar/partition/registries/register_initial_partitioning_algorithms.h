@@ -72,6 +72,7 @@ using GHGInitialPartitionerBFS_MAXN_RND =
   GreedyHypergraphGrowingInitialPartitioner<BFSStartNodeSelectionPolicy<>,
                                             MaxNetGainComputationPolicy,
                                             RoundRobinQueueSelectionPolicy>;
+/*
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::random,
                              RandomInitialPartitioner);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::bfs, BFSInitialPartitionerBFS);
@@ -94,5 +95,6 @@ REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_global_maxnet,
                              GHGInitialPartitionerBFS_MAXN_GLO);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_round_maxnet,
                              GHGInitialPartitionerBFS_MAXN_RND);
+*/
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::pool, PoolInitialPartitioner);
 }  // namespace kahypar
