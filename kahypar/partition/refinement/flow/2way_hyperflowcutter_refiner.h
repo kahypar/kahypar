@@ -51,6 +51,7 @@ public:
 			_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1)
 	{
 		hfc.piercer.useDistancesFromCut = context.local_search.hyperflowcutter.use_distances_from_cut;
+		hfc.timer.active = false;
 	}
 
 	TwoWayHyperFlowCutterRefiner(const TwoWayHyperFlowCutterRefiner&) = delete;
@@ -135,9 +136,9 @@ private:
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 			HyperedgeWeight old_objective = metrics::objective(_hg, _context.partition.objective);
-#endif
+//#endif
 			
 			//assign new partition IDs
 			if (should_update) {
@@ -158,10 +159,14 @@ private:
 				LOG << "HFC did not improve";
 			}
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 			HyperedgeWeight new_objective = metrics::objective(_hg, _context.partition.objective);
-			Assert(new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut);
-#endif
+			if (!((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded)) {
+				LOG << V(new_objective) << V(old_objective) << V(STF.cutAtStake) << V(STF.baseCut) << V(newCut);
+				throw std::runtime_error("This shouldn't happen");
+			}
+			Assert((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded);
+//#endif
 			
 			should_continue = should_update && newCut < STF.cutAtStake;
 		}
