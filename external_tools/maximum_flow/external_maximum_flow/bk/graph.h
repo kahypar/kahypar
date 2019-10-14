@@ -946,8 +946,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	if (a0->sister->r_cap)
 	{
 		j = a0 -> head;
-		if (!j->is_sink && (a=j->parent)) // lgtm[external/cwe/cwe-481]
-		{ // lgtm[external/cwe/cwe-481]
+		if (!j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+		{ // lgtm[cpp/assign-where-compare-meant]
 			/* checking the origin of j */
 			d = 0;
 			while ( 1 )
@@ -1001,8 +1001,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 		for (a0=i->first; a0; a0=a0->next)
 		{
 			j = a0 -> head;
-			if (!j->is_sink && (a=j->parent)) // lgtm[external/cwe/cwe-481]
-			{ // lgtm[external/cwe/cwe-481]
+			if (!j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+			{ // lgtm[cpp/assign-where-compare-meant]
 				if (a0->sister->r_cap) set_active(j);
 				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
 				{
@@ -1025,8 +1025,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	if (a0->r_cap)
 	{
 		j = a0 -> head;
-		if (j->is_sink && (a=j->parent)) // lgtm[external/cwe/cwe-481]
-		{ // lgtm[external/cwe/cwe-481]
+		if (j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+		{ // lgtm[cpp/assign-where-compare-meant]
 			/* checking the origin of j */
 			d = 0;
 			while ( 1 )
@@ -1082,8 +1082,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 		for (a0=i->first; a0; a0=a0->next)
 		{
 			j = a0 -> head;
-			if (j->is_sink && (a=j->parent)) // lgtm[external/cwe/cwe-481]
-			{ // lgtm[external/cwe/cwe-481]
+			if (j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+			{ // lgtm[cpp/assign-where-compare-meant]
 				if (a0->r_cap) set_active(j);
 				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
 				{
