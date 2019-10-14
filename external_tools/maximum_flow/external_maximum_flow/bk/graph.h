@@ -425,8 +425,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	arc *a = arc_last ++;
 	arc *a_rev = arc_last ++;
 
-	node* i = nodes + _i;
-	node* j = nodes + _j;
+	node* i = nodes + _i; // lgtm[cpp/declaration-hides-parameter]
+	node* j = nodes + _j; // lgtm[cpp/declaration-hides-parameter]
 
 	a -> sister = a_rev;
 	a_rev -> sister = a;
