@@ -275,7 +275,7 @@ public:
 	//  - If the next call to maxflow() does not use option reuse_trees, then calling remove_from_changed_list()
 	//    is not necessary. ("changed_list->Reset()" or "delete changed_list" should still be called, though).
 	void remove_from_changed_list(node_id i) 
-	{ 
+	{
 		assert(i>=0 && i<node_num && nodes[i].is_in_changed_list); 
 		nodes[i].is_in_changed_list = 0;
 	}
@@ -301,9 +301,9 @@ public:
 								//   (or to itself if it is the last node in the list)
 		int			TS;			// timestamp showing when DIST was computed
 		int			DIST;		// distance to the terminal
-		int			is_sink : 1;	// lgtm[external/cwe/cwe-190] flag showing whether the node is in the source or in the sink tree (if parent!=NULL)
-		int			is_marked : 1;	// lgtm[external/cwe/cwe-190] set by mark_node()
-		int			is_in_changed_list : 1; // lgtm[external/cwe/cwe-190] set by maxflow if 
+		int			is_sink : 1;	// lgtm[cpp/ambiguously-signed-bit-field] flag showing whether the node is in the source or in the sink tree (if parent!=NULL)
+		int			is_marked : 1;	// lgtm[cpp/ambiguously-signed-bit-field] set by mark_node()
+		int			is_in_changed_list : 1; // lgtm[cpp/ambiguously-signed-bit-field] set by maxflow if 
 
 		tcaptype	tr_cap;		// if tr_cap > 0 then tr_cap is residual capacity of the arc SOURCE->node
 								// otherwise         -tr_cap is residual capacity of the arc node->SINK 
