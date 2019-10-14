@@ -192,16 +192,16 @@ public:
 	{
 		Node*		head;
 		Arc*		rev;
-		int			isRevResidual :1;
-		int			rCap :31;
+		int			isRevResidual :1; // lgtm[external/cwe/cwe-190]
+		int			rCap :31; // lgtm[external/cwe/cwe-190]
 		FlowEdge*   flowEdge;
 	};
 
 	struct Node
 	{
-		int			lastAugTimestamp:30;
-		int			isParentCurr:1;
-		int			isIncremental:1;
+		int			lastAugTimestamp:30; // lgtm[external/cwe/cwe-190]
+		int			isParentCurr:1; // lgtm[external/cwe/cwe-190]
+		int			isIncremental:1; // lgtm[external/cwe/cwe-190]
 		Arc			*firstArc;
 		Arc			*parent;
 		Node		*firstSon;
