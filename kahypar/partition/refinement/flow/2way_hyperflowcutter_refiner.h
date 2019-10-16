@@ -43,7 +43,8 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 										   private FlowRefinerBase<FlowExecutionPolicy>{
 	using Base = FlowRefinerBase<FlowExecutionPolicy>;
 	private:
-	static constexpr bool debug = true;
+	
+	static constexpr bool debug = false;
 
 public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -130,7 +131,6 @@ private:
 			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
 			bool flowcutter_succeeded = hfc.runUntilBalancedOrFlowBoundExceeded(STF.source, STF.target);
 			HyperedgeWeight newCut = STF.baseCut + hfc.cs.flowValue;
-			DBG << V(hfc.cs.flowValue) << V(hfc.upperFlowBound) << V(newCut) << V(STF.cutAtStake);
 			
 			bool should_update = false;
 			if (flowcutter_succeeded) {
@@ -156,10 +156,6 @@ private:
 					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
-				LOG << "HFC improved";
-			}
-			else {
-				LOG << "HFC did not improve";
 			}
 
 //#ifndef NDEBUG

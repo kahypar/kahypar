@@ -36,7 +36,7 @@ namespace whfcInterface {
 	
 	class FlowHypergraphExtractor {
 	public:
-		static constexpr bool debug = true;
+		static constexpr bool debug = false;
 		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
 		static constexpr HyperedgeID invalid_hyperedge = std::numeric_limits<HyperedgeID>::max();
