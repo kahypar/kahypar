@@ -264,6 +264,7 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
       }
     }
     LOG << "  + Local Search                   =" << timings.total_local_search << "s";
+    LOG << "           | flow refinement" << timings.total_flow_refinement << " s";
     if (context.partition.mode == Mode::recursive_bisection) {
       for (const auto& timing : timings.bisection_local_search) {
         LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk

@@ -28,6 +28,7 @@
 #include <WHFC/algorithm/dinic.h>
 #include <WHFC/io/whfc_io.h>
 #include <WHFC/io/hmetis_io.h>
+#include <kahypar/utils/timer.h>
 
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
@@ -120,9 +121,9 @@ private:
 				whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
 				return false;
 			}
-			
+
 			//Heuristic (gottesbueren): break instead of continue. Skip this block pair, if one flow network extraction says there is nothing to gain
-			if (STF.cutAtStake == STF.baseCut)
+			if (STF.cutAtStake - STF.baseCut <= 0)	//TODO change to 10 for the same effect as Tobi's heuristic
 				break;
 
 			hfc.reset();
@@ -170,6 +171,7 @@ private:
 			Assert((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded);
 //#endif
 			
+			// Heuristic (gottesbueren): if only balance was improved we don't continue
 			should_continue = should_update && newCut < STF.cutAtStake;
 		}
 
