@@ -25,6 +25,7 @@
 #include <kahypar/partition/refinement/i_refiner.h>
 #include <WHFC/algorithm/hyperflowcutter.h>
 #include <WHFC/algorithm/ford_fulkerson.h>
+#include <WHFC/algorithm/dinic.h>
 #include <WHFC/io/whfc_io.h>
 #include <WHFC/io/hmetis_io.h>
 
@@ -34,7 +35,6 @@
 #include "flow_refiner_base.h"
 
 #include "whfc_flow_hypergraph_extraction.h"
-#include "WHFC/algorithm/hyperflowcutter.h"
 
 namespace kahypar {
 template <class FlowExecutionPolicy = Mandatory>
@@ -80,7 +80,9 @@ private:
 			throw std::runtime_error("TwoWayHyperFlowCutter: managing fixed vertices currently not implemented.");
 		if (_context.partition.max_part_weights[b0] != _context.partition.max_part_weights[b1])
 			throw std::runtime_error("TwoWayHyperFlowCutter: Different max part weights currently not implemented.");
-
+		
+		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+		
 
 		// Store original partition for rollback, because we have to update
 		// gain cache of twoway fm refiner
@@ -105,7 +107,7 @@ private:
 		
 		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
-			auto& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
+			std::vector<HyperedgeID>& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.piercer.distanceFromCut);
 
 			if (write_hg) {
@@ -176,7 +178,10 @@ private:
 			delete _quotient_graph;
 			_quotient_graph = nullptr;
 		}
-
+		
+		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
+		
 		return improved;
 	}
 
@@ -199,7 +204,7 @@ private:
 	bool write_hg = false;
 	size_t instance_counter = 0;
 	whfcInterface::FlowHypergraphExtractor extractor;
-	whfc::HyperFlowCutter<whfc::BasicEdmondsKarp> hfc;
+	whfc::HyperFlowCutter<whfc::Dinic> hfc;
 	QuotientGraphBlockScheduler* _quotient_graph;
 	bool _ignore_flow_execution_policy;
 	PartitionID b0;

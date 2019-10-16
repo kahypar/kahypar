@@ -235,6 +235,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " coarseningTime=" << timings.total_coarsening
         << " initialPartitionTime=" << timings.total_initial_partitioning
         << " uncoarseningRefinementTime=" << timings.total_local_search
+        << " flowTime=" << timings.total_flow_refinement
         << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
 
     if (context.partition.global_search_iterations > 0) {

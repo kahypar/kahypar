@@ -26,6 +26,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <kahypar/utils/timer.h>
 
 #include "kahypar/datastructure/fast_reset_array.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
@@ -109,7 +110,9 @@ class TwoWayFlowRefiner final : public IRefiner,
     if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
       return false;
     }
-
+  
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    
     // Store original partition for rollback, because we have to update
     // gain cache of twoway fm refiner
     if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
@@ -253,7 +256,10 @@ class TwoWayFlowRefiner final : public IRefiner,
       delete _quotient_graph;
       _quotient_graph = nullptr;
     }
-
+    
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
+    
     return improvement;
   }
 
