@@ -46,5 +46,5 @@ class EdgeFrequencyScore final : public meta::PolicyBase {
   }
 };
 
-using RatingScorePolicies = meta::Typelist<HeavyEdgeScore>;//, EdgeFrequencyScore>;
+using RatingScorePolicies = meta::Typelist<HeavyEdgeScore, EdgeFrequencyScore>;
 }  // namespace kahypar

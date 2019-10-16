@@ -46,8 +46,6 @@ class EdgeFrequencyPenalty final : public meta::PolicyBase {
   }
 };
 
-using HeavyNodePenaltyPolicies = meta::Typelist<//MultiplicativePenalty,
-                                                NoWeightPenalty
-                                                //,EdgeFrequencyPenalty
-                                                    >;
+using HeavyNodePenaltyPolicies = meta::Typelist<MultiplicativePenalty,
+                                                NoWeightPenalty, EdgeFrequencyPenalty>;
 }  // namespace kahypar
