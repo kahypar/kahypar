@@ -39,8 +39,14 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
                              const size_t iteration = 0) {
   if (context.partition.sp_process_output) {
     const auto& timings = Timer::instance().result();
+    
+    const bool use_flowcutter = context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter ||
+                                context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1;
+    std::string algo_name = use_flowcutter ? "KaHyPar-HFC" : "KaHyPar-MF";  //TODO (gottesbueren) do this right
+    
     std::ostringstream oss;
     oss << "RESULT"
+        << " algorithm=" << algo_name
         << " graph=" << context.partition.graph_filename.substr(
       context.partition.graph_filename.find_last_of('/') + 1)
         << " numHNs=" << hypergraph.initialNumNodes()
