@@ -36,7 +36,7 @@ namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds,
-                             const size_t iteration = 0) {
+                             const size_t iteration = 0, bool timeout = false) {
   if (context.partition.sp_process_output) {
     const auto& timings = Timer::instance().result();
     
@@ -49,6 +49,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " algorithm=" << algo_name
         << " graph=" << context.partition.graph_filename.substr(
       context.partition.graph_filename.find_last_of('/') + 1)
+		<< " timeout=" << (timeout ? "yes" : "no")
         << " numHNs=" << hypergraph.initialNumNodes()
         << " numHEs=" << hypergraph.initialNumEdges()
         << " " << hypergraph.typeAsString();
@@ -230,20 +231,35 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     for (PartitionID i = 0; i != hypergraph.k(); ++i) {
       oss << " partWeight" << i << "=" << hypergraph.partWeight(i);
     }
-    oss << " cut=" << metrics::hyperedgeCut(hypergraph)
-        << " soed=" << metrics::soed(hypergraph)
-        << " km1=" << metrics::km1(hypergraph)
-        << " absorption=" << metrics::absorption(hypergraph)
-        << " imbalance=" << metrics::imbalance(hypergraph, context)
-        << " totalPartitionTime=" << elapsed_seconds.count()
-        << " minHashSparsifierTime=" << timings.pre_sparsifier
-        << " communityDetectionTime=" << timings.pre_community_detection
-        << " coarseningTime=" << timings.total_coarsening
-        << " initialPartitionTime=" << timings.total_initial_partitioning
-        << " uncoarseningRefinementTime=" << timings.total_local_search
-        << " flowTime=" << timings.total_flow_refinement
-        << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
 
+    if (!timeout) {
+		oss << " cut=" << metrics::hyperedgeCut(hypergraph)
+			<< " soed=" << metrics::soed(hypergraph)
+			<< " km1=" << metrics::km1(hypergraph)
+			<< " absorption=" << metrics::absorption(hypergraph)
+			<< " imbalance=" << metrics::imbalance(hypergraph, context);
+		
+		oss << " totalPartitionTime=" << elapsed_seconds.count();
+	}
+	else {	//don't know the state of the hypergraph
+    	const HyperedgeWeight m = std::numeric_limits<HyperedgeWeight>::max();
+		oss << " cut=" << m
+			<< " soed=" << m
+			<< " km1=" << m
+			<< " absorption=" << m
+			<< " imbalance=" << 1.0;
+		
+		oss << " totalPartitionTime=" << 28800;	//this is a 8 hour timelimit. TODO(gottesbueren) make generic
+    }
+	
+	oss	<< " minHashSparsifierTime=" << timings.pre_sparsifier
+		<< " communityDetectionTime=" << timings.pre_community_detection
+		<< " coarseningTime=" << timings.total_coarsening
+		<< " initialPartitionTime=" << timings.total_initial_partitioning
+		<< " uncoarseningRefinementTime=" << timings.total_local_search
+		<< " flowTime=" << timings.total_flow_refinement
+		<< " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
+    
     if (context.partition.global_search_iterations > 0) {
       int i = 1;
       for (const auto& timing : timings.v_cycle_coarsening) {

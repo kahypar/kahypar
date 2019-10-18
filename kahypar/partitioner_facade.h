@@ -39,6 +39,7 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
+
 class PartitionerFacade {
  public:
   void partition(Hypergraph& hypergraph, Context& context) {
