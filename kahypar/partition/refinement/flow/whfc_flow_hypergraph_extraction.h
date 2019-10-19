@@ -205,6 +205,7 @@ namespace whfcInterface {
 			
 			d += d_delta;
 			distanceFromCut[myTerminal] = d;
+			LOG << V(d);
 		}
 		
 	public:

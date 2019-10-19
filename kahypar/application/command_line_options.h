@@ -187,6 +187,23 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
     "(default: true)");
   return options;
 }
+    
+    po::options_description createHyperFlowCutterRefinementOptionsDescription(Context& context,
+                                                                   const int num_columns,
+                                                                   const bool initial_partitioning) {
+  po::options_description options(("HyperFlowCutter Refinement Options"), num_columns);
+      options.add_options()
+              ((initial_partitioning ? "i-r-hfc-scaling" : "r-hfc-scaling"),
+               po::value<double>(&context.local_search.hyperflowcutter.snapshot_scaling)->value_name("<double>"),
+               "Max size of flow networks for HFC refinement = scaling * (w(V_0) + w(V_1)) \n"
+               "(default: 0.2)")
+              ((initial_partitioning ? "i-r-hfc-distance-based-piercing" : "r-hfc-distance-based-piercing"),
+               po::value<bool>(&context.local_search.hyperflowcutter.use_distances_from_cut)->value_name("<bool>"),
+               "Preferably pierce vertices further away from the old cut \n"
+               "(default: true)");
+      return options;
+    }
+
 
 po::options_description createCoarseningOptionsDescription(Context& context,
                                                            const int num_columns,
@@ -353,6 +370,7 @@ po::options_description createRefinementOptionsDescription(Context& context,
     "Parameter alpha for adaptive stopping rule \n"
     "(infinity: -1)");
   options.add(createFlowRefinementOptionsDescription(context, num_columns, initial_partitioning));
+  options.add(createHyperFlowCutterRefinementOptionsDescription(context, num_columns, initial_partitioning));
   return options;
 }
 
