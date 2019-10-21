@@ -39,10 +39,7 @@ namespace whfcInterface {
 		static constexpr bool debug = false;
 		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
-		static constexpr HyperedgeID invalid_hyperedge = std::numeric_limits<HyperedgeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
-
-		
 
 		//Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
 		FlowHypergraphExtractor(const Hypergraph& hg, const Context& ) :
@@ -55,7 +52,6 @@ namespace whfcInterface {
 			whfc::Node target;
 			whfc::Flow baseCut;					//amount of flow between hyperedges that already join source and target
 			whfc::Flow cutAtStake;				//Compare this to the flow value, to determine whether an improvement was found
-												//If metric == cut, this value does not contain the weight of hyperedges with pins in other blocks than b0 and b1
 		};
 
 		AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
@@ -132,8 +128,6 @@ namespace whfcInterface {
 			
 			flow_hg_builder.finalize();
 			
-			DBG << V(result.baseCut) << V(result.cutAtStake) << V(result.source) << V(result.target);
-
 			return result;
 		}
 
@@ -205,7 +199,6 @@ namespace whfcInterface {
 			
 			d += d_delta;
 			distanceFromCut[myTerminal] = d;
-			LOG << V(d);
 		}
 		
 	public:
