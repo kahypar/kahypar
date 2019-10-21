@@ -58,7 +58,7 @@ class TwoWayFlowRefiner final : public IRefiner,
   using Base = FlowRefinerBase<FlowExecutionPolicy>;
 
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
  public:
   TwoWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -245,6 +245,7 @@ class TwoWayFlowRefiner final : public IRefiner,
       //              to the optimum and break the adaptive flow iterations.
       if (_context.local_search.flow.use_adaptive_alpha_stopping_rule &&
           !improvement && cut_flow_network_before == cut_flow_network_after) {
+      	DBG << "stop due to adaptive alpha";
         break;
       }
     } while (alpha > 1.0);

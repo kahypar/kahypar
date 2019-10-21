@@ -205,6 +205,7 @@ struct LocalSearchParameters {
   struct HyperFlowCutter {
       bool use_distances_from_cut = true;
       double snapshot_scaling = 0.2;
+      FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::part_weight_fraction;
   };
   
   FM fm { };

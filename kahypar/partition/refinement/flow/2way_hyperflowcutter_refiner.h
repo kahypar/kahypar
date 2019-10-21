@@ -44,7 +44,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	using Base = FlowRefinerBase<FlowExecutionPolicy>;
 	private:
 	
-	static constexpr bool debug = false;
+	static constexpr bool debug = true;
 
 public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -99,11 +99,9 @@ private:
 			_quotient_graph->buildQuotientGraph();
 		}
 
-		DBG << V(metrics::imbalance(_hg, _context))
-			<< V(_context.partition.objective)
-			<< V(metrics::objective(_hg, _context.partition.objective));
 		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
-
+		printMetric();
+		
 		bool improved = false;
 		bool should_continue = true;
 		
@@ -134,7 +132,7 @@ private:
 			
 			bool should_update = false;
 			if (flowcutter_succeeded) {
-				hfc.cs.outputMostBalancedPartition();
+				//hfc.cs.outputMostBalancedPartition(); Note(gottesbueren) HFC does this for us now.
 				HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
@@ -157,6 +155,8 @@ private:
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
 			}
+			
+			printMetric();
 
 //#ifndef NDEBUG
 			HyperedgeWeight new_objective = metrics::objective(_hg, _context.partition.objective);
@@ -171,6 +171,9 @@ private:
 			should_continue = should_update && newCut < STF.cutAtStake;
 		}
 
+		DBG << "HFC refinement done";
+		printMetric(true, true);
+		
 		// Delete quotient graph
 		if (delete_quotientgraph_after_flow) {
 			delete _quotient_graph;
@@ -191,8 +194,22 @@ private:
 	bool isRefinementOnLastLevel() {
 		return _hg.currentNumNodes() == _hg.initialNumNodes();
 	}
-
-
+	
+	
+	void printMetric(bool newline = false, bool endline = false) {
+		if (newline) {
+			DBG << "";
+		}
+		DBG << V(metrics::imbalance(_hg, _context))
+			<< V(_context.partition.objective)
+			<< V(metrics::objective(_hg, _context.partition.objective));
+		if (endline) {
+			DBG << "-------------------------------------------------------------";
+		}
+	}
+	
+	
+	
 	using IRefiner::_is_initialized;
 	using Base::_hg;
 	using Base::_context;

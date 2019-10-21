@@ -193,12 +193,46 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
                                                                    const bool initial_partitioning) {
   po::options_description options(("HyperFlowCutter Refinement Options"), num_columns);
       options.add_options()
+              ((initial_partitioning ? "i-r-hfc-size-constraint" : "r-hfc-size-constraint"),
+               po::value<std::string>()->value_name("<string>")->notifier([&context, initial_partitioning](const std::string& ftype) {
+                    FlowHypergraphSizeConstraint sc = FlowHypergraphSizeConstraint::part_weight_fraction;
+                    if (ftype == "mpw") {
+                      sc = FlowHypergraphSizeConstraint ::max_part_weight_fraction;
+                    }
+                    else if (ftype == "mf-style") {
+                      sc = FlowHypergraphSizeConstraint ::scaled_max_part_weight_fraction_minus_opposite_side;
+                      if (initial_partitioning) {
+                        if (context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
+                          context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling = 16.0;
+                        }
+                      }
+                      else {
+                        if (context.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
+                          context.local_search.hyperflowcutter.snapshot_scaling = 16.0;
+                        }
+                      }
+                    }
+                    else if (ftype != "pw") {
+                      throw std::runtime_error("Unknown option flow hypergraph size constraint option");
+                    }
+                    if (initial_partitioning) {
+                        context.initial_partitioning.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
+                    }
+                    else {
+                        context.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
+                    }
+              }),
+               "Size Constraints:\n"
+               " - mpw            : |N_0| <= max_part_weight[b0] * alpha \n"
+               " - pw             : |N_0| <= |V_0| * alpha \n"
+               " - mf-style       : |N_0| <= (1 + alpha * epsilon) * perfect_part_weight[b0] - |V_1|. Same as KaHyPar-MF. Default scaling is 16. \n"
+               "(default: pw)")
               ((initial_partitioning ? "i-r-hfc-scaling" : "r-hfc-scaling"),
-               po::value<double>(&context.local_search.hyperflowcutter.snapshot_scaling)->value_name("<double>"),
-               "Max size of flow networks for HFC refinement = scaling * (w(V_0) + w(V_1)) \n"
+               po::value<double>((initial_partitioning? &context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling: &context.local_search.hyperflowcutter.snapshot_scaling))->value_name("<double>"),
+               "Scaling parameter for flow hypergraph sizes for HFC refinement. see size constraints for semantics.\n"
                "(default: 0.2)")
               ((initial_partitioning ? "i-r-hfc-distance-based-piercing" : "r-hfc-distance-based-piercing"),
-               po::value<bool>(&context.local_search.hyperflowcutter.use_distances_from_cut)->value_name("<bool>"),
+               po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.use_distances_from_cut : &context.local_search.hyperflowcutter.use_distances_from_cut))->value_name("<bool>"),
                "Preferably pierce vertices further away from the old cut \n"
                "(default: true)");
       return options;

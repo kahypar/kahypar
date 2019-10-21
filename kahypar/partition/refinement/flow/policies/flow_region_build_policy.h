@@ -119,6 +119,9 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
       std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
                 * context.partition.perfect_balance_part_weights[0]
                 - hg.partWeight(block_0)), 0.0);
+    
+    static constexpr bool debug = true;
+    DBG << V(max_part_weight_0) << V(max_part_weight_1) << V(block_0) << V(block_1);
 
     const HypernodeID num_nodes_block_0 = FlowRegionBuildPolicy::bfs(hg, flow_network,
                                                                      start_nodes_block_0,

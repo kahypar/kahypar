@@ -239,6 +239,12 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
+enum class FlowHypergraphSizeConstraint : uint8_t {
+    part_weight_fraction,
+    max_part_weight_fraction,
+    scaled_max_part_weight_fraction_minus_opposite_side
+};
+
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
     case Mode::recursive_bisection: return os << "recursive";

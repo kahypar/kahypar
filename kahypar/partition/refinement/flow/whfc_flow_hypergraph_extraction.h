@@ -36,7 +36,7 @@ namespace whfcInterface {
 	
 	class FlowHypergraphExtractor {
 	public:
-		static constexpr bool debug = false;
+		static constexpr bool debug = true;
 		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
@@ -61,9 +61,7 @@ namespace whfcInterface {
 			reset(hg, _b0, _b1);
 			removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
 			
-			const double alpha = context.local_search.hyperflowcutter.snapshot_scaling;
-			const double maxW0 = alpha * hg.partWeight(b0), maxW1 = alpha * hg.partWeight(b1);
-			
+			auto [maxW0, maxW1] = flowHyperGraphPartSizes(context, hg);
 			HypernodeWeight w0 = 0, w1 = 0;
 			std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
 			
@@ -119,6 +117,8 @@ namespace whfcInterface {
 
 				}
 			}
+			
+			DBG << V(maxW0) << V(w0) << V(maxW1) << V(w1);
 
 			whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
 			if (ws == 0 || wt == 0)
@@ -136,6 +136,7 @@ namespace whfcInterface {
 		HypernodeID local2global(const whfc::Node x) const { return queue.elementAt(x); }
 		
 	private:
+		
 		bool canHyperedgeBeDropped(const Hypergraph& hg, const HyperedgeID e) {
 			return removeHyperedgesWithPinsOutsideRegion && hg.hasPinsInOtherBlocks(e, b0, b1);
 		}
@@ -152,10 +153,9 @@ namespace whfcInterface {
 		void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock, const PartitionID otherBlock,
 								const std::vector<HyperedgeID>& cut_hes, HypernodeWeight& w,
 								double sizeConstraint, const whfc::Node myTerminal,
-								whfc::HopDistance d_delta, std::vector<whfc::HopDistance>& distanceFromCut)
-		{
-			whfc::HopDistance d = d_delta;
+								whfc::HopDistance d_delta, std::vector<whfc::HopDistance>& distanceFromCut) {
 			
+			whfc::HopDistance d = d_delta;
 			for (const HyperedgeID e : cut_hes)
 				for (const HypernodeID u: hg.pins(e))
 					if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint) {
@@ -170,11 +170,9 @@ namespace whfcInterface {
 				}
 				HypernodeID u = queue.pop();
 				for (const HyperedgeID e : hg.incidentEdges(u)) {
-					if (!hg.hasPinsInPart(e, otherBlock)			//cut hyperedges are collected later
-						&& hg.pinCountInPart(e, myBlock) > 1 		//skip single pin hyperedges.
-						&& (!canHyperedgeBeDropped(hg, e))			//if objective==cut, we remove hyperedges with pins in other blocks. otherwise we keep them
-						&& !visitedHyperedge[e])					//already seen
-					{
+					if (!hg.hasPinsInPart(e, otherBlock) /* cut hyperedges are collected later */ && hg.pinCountInPart(e, myBlock) > 1
+						&& (!canHyperedgeBeDropped(hg, e)) && !visitedHyperedge[e])	{
+						
 						visitedHyperedge.set(e);
 						flow_hg_builder.startHyperedge(hg.edgeWeight(e));
 						bool connectToTerminal = false;
@@ -222,6 +220,33 @@ namespace whfcInterface {
 
 			globalSourceID = hg.initialNumNodes();
 			globalTargetID = hg.initialNumNodes() + 1;
+		}
+		
+		std::pair<double, double> flowHyperGraphPartSizes(const Context& context, const Hypergraph& hg) const {
+			double mw0 = 0.0, mw1 = 0.0;
+			double a = context.local_search.hyperflowcutter.snapshot_scaling;
+			
+			if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::part_weight_fraction) {
+				mw0 = a * hg.partWeight(b0);
+				mw1 = a * hg.partWeight(b0);
+			}
+			else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::max_part_weight_fraction) {
+				mw0 = a * context.partition.max_part_weights[b0];
+				mw1 = a * context.partition.max_part_weights[b1];
+			}
+			else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+				mw0 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b1);
+				mw1 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b0);
+			}
+			else {
+				throw std::runtime_error("Unknown flow hypergraph size constraint option");
+			}
+			
+			mw0 = std::min(mw0, hg.partWeight(b0) * 0.999);
+			mw0 = std::max(mw0, 0.0);
+			mw1 = std::min(mw1, hg.partWeight(b1) * 0.999);
+			mw1 = std::max(mw1, 0.0);
+			return std::make_pair(mw0, mw1);
 		}
 
 	};
