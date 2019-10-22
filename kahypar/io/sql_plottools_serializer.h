@@ -233,23 +233,20 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     }
 
     if (!timeout) {
-		oss << " cut=" << metrics::hyperedgeCut(hypergraph)
-			<< " soed=" << metrics::soed(hypergraph)
-			<< " km1=" << metrics::km1(hypergraph)
-			<< " absorption=" << metrics::absorption(hypergraph)
-			<< " imbalance=" << metrics::imbalance(hypergraph, context);
-		
-		oss << " totalPartitionTime=" << elapsed_seconds.count();
+	  oss << " cut=" << metrics::hyperedgeCut(hypergraph)
+	      << " soed=" << metrics::soed(hypergraph)
+		  << " km1=" << metrics::km1(hypergraph)
+		  << " absorption=" << metrics::absorption(hypergraph)
+		  << " imbalance=" << metrics::imbalance(hypergraph, context);
+	  oss << " totalPartitionTime=" << elapsed_seconds.count();
 	}
 	else {	//don't know the state of the hypergraph
-    	const HyperedgeWeight m = std::numeric_limits<HyperedgeWeight>::max();
-		oss << " cut=" << m
-			<< " soed=" << m
-			<< " km1=" << m
-			<< " absorption=" << m
-			<< " imbalance=" << 1.0;
-		
-		oss << " totalPartitionTime=" << 28800;	//this is a 8 hour timelimit. TODO(gottesbueren) make generic
+	  oss << " cut=" << std::numeric_limits<HyperedgeWeight>::max()
+		  << " soed=" << std::numeric_limits<HyperedgeWeight>::max()
+		  << " km1=" << std::numeric_limits<HyperedgeWeight>::max()
+		  << " absorption=" << std::numeric_limits<HyperedgeWeight>::max()
+		  << " imbalance=" << 1.0;
+	  oss << " totalPartitionTime=" << 28800;	//this is a 8 hour timelimit. TODO(gottesbueren) make generic
     }
 	
 	oss	<< " minHashSparsifierTime=" << timings.pre_sparsifier
