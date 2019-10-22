@@ -49,7 +49,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
 			Base(hypergraph, context), extractor(hypergraph, context),
-			hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0])),
+			hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0]), context.partition.seed),
 			_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1)
 	{
 		hfc.piercer.useDistancesFromCut = context.local_search.hyperflowcutter.use_distances_from_cut;
@@ -132,7 +132,6 @@ private:
 			
 			bool should_update = false;
 			if (flowcutter_succeeded) {
-				//hfc.cs.outputMostBalancedPartition(); Note(gottesbueren) HFC does this for us now.
 				HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
