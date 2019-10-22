@@ -68,10 +68,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
   using Base::kInvalidHN;
 
   struct PinState {
-    char one_pin_in_from_part_before : 1;
-    char one_pin_in_to_part_after : 1;
-    char two_pins_in_from_part_before : 1;
-    char two_pins_in_to_part_after : 1;
+    uint8_t one_pin_in_from_part_before : 1;
+    uint8_t one_pin_in_to_part_after : 1;
+    uint8_t two_pins_in_from_part_before : 1;
+    uint8_t two_pins_in_to_part_after : 1;
 
     PinState(const bool one_in_from_before, const bool one_in_to_after,
              const bool two_in_from_before, const bool two_in_to_after) :
