@@ -39,8 +39,6 @@ namespace kahypar {
 typedef std::pair<NodeID, Capacity> edge;
 
 using ds::LawlerNetwork;
-using ds::WongNetwork;
-using ds::HeuerNetwork;
 using ds::HybridNetwork;
 using ds::FlowEdge;
 
@@ -164,97 +162,6 @@ TEST_F(LawlerNetworkTest, SourceAndSinkSetup) {
   testSourcesAndSinks({ INCOMING(0), INCOMING(6) },
                       { OUTGOING(0), OUTGOING(5) });
 }
-
-// ###################### Heuer Flow Network Test ######################
-
-using HeuerNetworkTest = FlowNetworkTest<HeuerNetwork>;
-
-TEST_F(HeuerNetworkTest, NodesInFlowProblem) {
-  setupFlowNetwork();
-  std::set<NodeID> nodes = { 5, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
-  size_t num_nodes = 0;
-  for (const NodeID node : flowNetwork.nodes()) {
-    ASSERT_TRUE(nodes.find(node) != nodes.end());
-    num_nodes++;
-  }
-  ASSERT_EQ(num_nodes, nodes.size());
-}
-
-INSTANTIATE_TEST_CASE_P(HeuerNetworkStructure,
-                        HeuerNetworkTest,
-                        ::testing::Values(std::make_pair(10, std::set<edge>({ EDGE(17, 1) })),
-                                          std::make_pair(17, std::set<edge>({ EDGE(11, HeuerNetwork::kInfty) })),
-                                          std::make_pair(11, std::set<edge>({ EDGE(18, 1) })),
-                                          std::make_pair(5, std::set<edge>({ EDGE(11, HeuerNetwork::kInfty),
-                                                                             EDGE(12, HeuerNetwork::kInfty),
-                                                                             EDGE(13, HeuerNetwork::kInfty),
-                                                                             EDGE(14, HeuerNetwork::kInfty) })),
-                                          std::make_pair(21, std::set<edge>({ EDGE(5, HeuerNetwork::kInfty),
-                                                                              EDGE(12, HeuerNetwork::kInfty),
-                                                                              EDGE(13, HeuerNetwork::kInfty),
-                                                                              EDGE(15, HeuerNetwork::kInfty),
-                                                                              EDGE(16, HeuerNetwork::kInfty) })),
-                                          std::make_pair(22, std::set<edge>({ EDGE(12, HeuerNetwork::kInfty),
-                                                                              EDGE(14, HeuerNetwork::kInfty) }))));
-
-TEST_P(HeuerNetworkTest, IncidentEdgesOfANode) {
-  setupFlowNetwork();
-  NodeID node = GetParam().first;
-  std::set<edge> incidentEdges = GetParam().second;
-  testIncidentEdges(node, incidentEdges);
-}
-
-TEST_F(HeuerNetworkTest, SourceAndSinkSetup) {
-  setupFlowNetwork();
-  testSourcesAndSinks({ INCOMING(0), INCOMING(6) },
-                      { OUTGOING(0), OUTGOING(5) });
-}
-
-// ###################### Wong Flow Network Test ######################
-
-using WongNetworkTest = FlowNetworkTest<WongNetwork>;
-
-TEST_F(WongNetworkTest, NodesInFlowProblem) {
-  setupFlowNetwork();
-  std::set<NodeID> nodes = { 2, 3, 4, 5, 6, 7, 10, 14, 16, 17, 21, 22 };
-  size_t num_nodes = 0;
-  for (const NodeID node : flowNetwork.nodes()) {
-    ASSERT_TRUE(nodes.find(node) != nodes.end());
-    num_nodes++;
-  }
-  ASSERT_EQ(num_nodes, nodes.size());
-}
-
-INSTANTIATE_TEST_CASE_P(WongNetworkStructure,
-                        WongNetworkTest,
-                        ::testing::Values(std::make_pair(4, std::set<edge>({ EDGE(5, 1),
-                                                                             EDGE(10, WongNetwork::kInfty) })),
-                                          std::make_pair(5, std::set<edge>({ EDGE(4, 1),
-                                                                             EDGE(6, 1),
-                                                                             EDGE(7, 1),
-                                                                             EDGE(14, WongNetwork::kInfty) })),
-                                          std::make_pair(16, std::set<edge>({ EDGE(7, 1) })),
-                                          std::make_pair(17, std::set<edge>({ EDGE(2, WongNetwork::kInfty),
-                                                                              EDGE(3, WongNetwork::kInfty),
-                                                                              EDGE(4, WongNetwork::kInfty) })),
-                                          std::make_pair(21, std::set<edge>({ EDGE(5, WongNetwork::kInfty),
-                                                                              EDGE(6, WongNetwork::kInfty),
-                                                                              EDGE(7, WongNetwork::kInfty) }))));
-
-TEST_P(WongNetworkTest, IncidentEdgesOfANode) {
-  setupFlowNetwork();
-  NodeID node = GetParam().first;
-  std::set<edge> incidentEdges = GetParam().second;
-  testIncidentEdges(node, incidentEdges);
-}
-
-TEST_F(WongNetworkTest, SourceAndSinkSetup) {
-  setupFlowNetwork();
-  testSourcesAndSinks({ INCOMING(0), INCOMING(6) },
-                      { OUTGOING(0), OUTGOING(5) });
-}
-
-// ###################### Hybrid Flow Network Test ######################
 
 using HybridNetworkTest = FlowNetworkTest<HybridNetwork>;
 

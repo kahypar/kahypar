@@ -72,32 +72,14 @@ class AMaximumFlow : public Test {
 };
 
 template <class Network>
-using MaxFlowEdmondKarp = MaximumFlowTemplateStruct<Network, EdmondKarp<Network> >;
-
-template <class Network>
-using MaxFlowGoldbergTarjan = MaximumFlowTemplateStruct<Network, GoldbergTarjan<Network> >;
-
-template <class Network>
 using MaxFlowBoykovKolmogorov = MaximumFlowTemplateStruct<Network, BoykovKolmogorov<Network> >;
 
 template <class Network>
 using MaxFlowIBFS = MaximumFlowTemplateStruct<Network, IBFS<Network> >;
 
-typedef ::testing::Types<MaxFlowEdmondKarp<LawlerNetwork>,
-                         MaxFlowEdmondKarp<HeuerNetwork>,
-                         MaxFlowEdmondKarp<WongNetwork>,
-                         MaxFlowEdmondKarp<HybridNetwork>,
-                         MaxFlowGoldbergTarjan<LawlerNetwork>,
-                         MaxFlowGoldbergTarjan<HeuerNetwork>,
-                         MaxFlowGoldbergTarjan<WongNetwork>,
-                         MaxFlowGoldbergTarjan<HybridNetwork>,
-                         MaxFlowBoykovKolmogorov<LawlerNetwork>,
-                         MaxFlowBoykovKolmogorov<HeuerNetwork>,
-                         MaxFlowBoykovKolmogorov<WongNetwork>,
+typedef ::testing::Types<MaxFlowBoykovKolmogorov<LawlerNetwork>,
                          MaxFlowBoykovKolmogorov<HybridNetwork>,
                          MaxFlowIBFS<LawlerNetwork>,
-                         MaxFlowIBFS<HeuerNetwork>,
-                         MaxFlowIBFS<WongNetwork>,
                          MaxFlowIBFS<HybridNetwork> > MaximumFlowTestTemplates;
 
 TYPED_TEST_CASE(AMaximumFlow,

@@ -159,6 +159,24 @@ enum class EvoDecision :uint8_t {
   combine
 };
 
+enum class FlowAlgorithm : uint8_t {
+  boykov_kolmogorov,
+  ibfs,
+  UNDEFINED
+};
+
+enum class FlowNetworkType : uint8_t {
+  hybrid,
+  UNDEFINED
+};
+
+enum class FlowExecutionMode : uint8_t {
+  constant,
+  multilevel,
+  exponential,
+  UNDEFINED
+};
+
 
 std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
   switch (replace) {
@@ -210,29 +228,6 @@ std::ostream& operator<< (std::ostream& os, const RatingPartitionPolicy& policy)
   }
   return os << static_cast<uint8_t>(policy);
 }
-
-enum class FlowAlgorithm : uint8_t {
-  edmond_karp,
-  goldberg_tarjan,
-  boykov_kolmogorov,
-  ibfs,
-  UNDEFINED
-};
-
-enum class FlowNetworkType : uint8_t {
-  lawler,
-  heuer,
-  wong,
-  hybrid,
-  UNDEFINED
-};
-
-enum class FlowExecutionMode : uint8_t {
-  constant,
-  multilevel,
-  exponential,
-  UNDEFINED
-};
 
 std::ostream& operator<< (std::ostream& os, const Mode& mode) {
   switch (mode) {
@@ -398,8 +393,6 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
 
 std::ostream& operator<< (std::ostream& os, const FlowAlgorithm& algo) {
   switch (algo) {
-    case FlowAlgorithm::edmond_karp: return os << "edmond_karp";
-    case FlowAlgorithm::goldberg_tarjan: return os << "goldberg_tarjan";
     case FlowAlgorithm::boykov_kolmogorov: return os << "boykov_kolmogorov";
     case FlowAlgorithm::ibfs: return os << "ibfs";
     case FlowAlgorithm::UNDEFINED: return os << "UNDEFINED";
@@ -410,9 +403,6 @@ std::ostream& operator<< (std::ostream& os, const FlowAlgorithm& algo) {
 
 std::ostream& operator<< (std::ostream& os, const FlowNetworkType& type) {
   switch (type) {
-    case FlowNetworkType::lawler: return os << "lawler";
-    case FlowNetworkType::heuer: return os << "heuer";
-    case FlowNetworkType::wong: return os << "wong";
     case FlowNetworkType::hybrid: return os << "hybrid";
     case FlowNetworkType::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -641,11 +631,7 @@ static Mode modeFromString(const std::string& mode) {
 }
 
 static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
-  if (type == "edmond_karp") {
-    return FlowAlgorithm::edmond_karp;
-  } else if (type == "goldberg_tarjan") {
-    return FlowAlgorithm::goldberg_tarjan;
-  } else if (type == "boykov_kolmogorov") {
+  if (type == "boykov_kolmogorov") {
     return FlowAlgorithm::boykov_kolmogorov;
   } else if (type == "ibfs") {
     return FlowAlgorithm::ibfs;
@@ -656,13 +642,7 @@ static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
 }
 
 static FlowNetworkType flowNetworkFromString(const std::string& type) {
-  if (type == "lawler") {
-    return FlowNetworkType::lawler;
-  } else if (type == "heuer") {
-    return FlowNetworkType::heuer;
-  } else if (type == "wong") {
-    return FlowNetworkType::wong;
-  } else if (type == "hybrid") {
+  if (type == "hybrid") {
     return FlowNetworkType::hybrid;
   }
   LOG << "No valid flow network type.";
