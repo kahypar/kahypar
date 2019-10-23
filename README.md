@@ -165,8 +165,32 @@ The standalone program can be built via `make KaHyPar`. The binary will be locat
 
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
+
+#### Default / Most Recent Presets
+
+We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for 
+direct k-way partitioning (*k*KaHyPar).
+
+To start *k*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar_dissertation.ini
     
-Currently we provide nine different presets that correspond to the configurations used in the publications at
+To start *k*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kKaHyPar_dissertation.ini
+
+To start *r*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m recursive -p ../../../config/km1_rKaHyPar_dissertation.ini
+    
+To start *r*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_dissertation.ini
+
+
+#### Old Presets
+    
+Additionally, we provide nine different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
 our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872).
 
