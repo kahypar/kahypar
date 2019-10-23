@@ -31,24 +31,9 @@ struct FlowNetworkPolicy : meta::PolicyBase {
   FlowNetworkPolicy() = default;
 };
 
-struct LawlerNetworkPolicy : public FlowNetworkPolicy {
-  typedef ds::LawlerNetwork Network;
-};
-
-struct HeuerNetworkPolicy : public FlowNetworkPolicy {
-  typedef ds::HeuerNetwork Network;
-};
-
-struct WongNetworkPolicy : public FlowNetworkPolicy {
-  typedef ds::WongNetwork Network;
-};
-
 struct HybridNetworkPolicy : public FlowNetworkPolicy {
   typedef ds::HybridNetwork Network;
 };
 
-using FlowNetworkPolicyClasses = meta::Typelist<LawlerNetworkPolicy,
-                                                HeuerNetworkPolicy,
-                                                WongNetworkPolicy,
-                                                HybridNetworkPolicy>;
+using FlowNetworkPolicyClasses = meta::Typelist<HybridNetworkPolicy>;
 }  // namespace kahypar
