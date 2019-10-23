@@ -397,7 +397,7 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
     }
     
     
-    @articlebKaHyPar-MF-JEA,
+    @article{KaHyPar-MF-JEA,
       author = {Heuer, T. and Sanders, P. and Schlag, S.},
       title = {Network Flow-Based Refinement for Multilevel Hypergraph Partitioning},
       journal = {{ACM} Journal of Experimental Algorithmics (JEA)}},
