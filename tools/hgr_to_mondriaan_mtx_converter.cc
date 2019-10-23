@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "No hypergraph file specified" << std::endl;
   }
-  std::string hypergraph_filename(argv[1]);
-  std::string mtx_filename(hypergraph_filename + ".mondriaan.mtx");
+  const std::string hypergraph_filename(argv[1]);
+  const std::string mtx_filename(hypergraph_filename + ".mondriaan.mtx");
   LOG << "Converting hypergraph " << hypergraph_filename << "to mondriaan mtx format:"
       << mtx_filename << "...";
   kahypar::Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(hypergraph_filename, 2);
