@@ -396,6 +396,19 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      year ={2018}
     }
     
+    
+    @articlebKaHyPar-MF-JEA,
+      author = {Heuer, T. and Sanders, P. and Schlag, S.},
+      title = {Network Flow-Based Refinement for Multilevel Hypergraph Partitioning},
+      journal = {{ACM} Journal of Experimental Algorithmics (JEA)}},
+      volume = {24},
+      number = {1},
+      month = {09},
+      year = {2019},
+      pages = {2.3:1--2.3:36},
+      publisher = {ACM}
+    }
+    
     // KaHyPar-E (EvoHGP)
     @inproceedings{Andre:2018:MMH:3205455.3205475,
      author = {Robin Andre and Sebastian Schlag and Christian Schulz},
