@@ -110,16 +110,16 @@ In our experimental analysis, the performance profile plots are based on the *be
     some algorithms performed considerably worse than the best algorithm, instances for which algorithms produced infeasible solutions, and instances which could not be partitioned within
     the given time limit. The last segment uses a log-scale on the x-axis.
 
-In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
+In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD), [Mondriaan v.4.2.1](http://www.staff.science.uu.nl/~bisse101/Mondriaan/) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
 
   <p align="center">
-	<b>Connectivity Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839056-3bae0100-77c6-11e9-8692-708295bf107c.png" alt="Comparison" width="100%" height="50%">
+	<b>Solution Quality</b>
+<img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%" height="50%">
 	</p>
 
   <p align="center">
-	<b>Cut-Net Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839246-9f382e80-77c6-11e9-8c33-0a8b9d6a4a35.png" alt="Comparison" width="100%" height="50%">
+	<b>Running Time</b>
+<img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%" height="50%">
 	</p>
 
 #### Additional Resources
