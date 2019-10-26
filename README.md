@@ -114,7 +114,7 @@ instances that could not be partitioned within the time limit are shown implicit
 In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMETIS-K) and the recursive bisection variant (hMETIS-R) of hMETIS 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD), [Mondriaan v.4.2.1](http://www.staff.science.uu.nl/~bisse101/Mondriaan/) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
 
   <p align="center">
-	<b><font size="10">Solution Quality</font></b>
+	<b>Solution Quality</b>
 <img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%" height="50%">
 	</p>
 
