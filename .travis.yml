@@ -48,11 +48,13 @@ matrix:
       os: osx
       before_install:
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+        - brew upgrade ruby
 
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COV="OFF"
       os: osx
       before_install:
         - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+        - brew upgrade ruby
       
 install:
   - DEPS_DIR="${HOME}/deps"
@@ -113,9 +115,7 @@ after_success:
 
 language: ruby
 rvm:
-  - 2.3
-install:
-  - brew upgrade ruby
+  - 2.4
 script: 
   - "bundle install"
   - "bundle exec jekyll build"
