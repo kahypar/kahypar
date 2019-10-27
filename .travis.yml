@@ -114,6 +114,8 @@ after_success:
 language: ruby
 rvm:
   - 2.3
+install:
+  - brew upgrade ruby
 script: 
   - "bundle install"
   - "bundle exec jekyll build"
