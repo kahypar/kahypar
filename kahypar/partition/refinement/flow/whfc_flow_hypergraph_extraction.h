@@ -36,7 +36,7 @@ namespace whfcInterface {
 	
 	class FlowHypergraphExtractor {
 	public:
-		static constexpr bool debug = true;
+		static constexpr bool debug = false;
 		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
@@ -228,7 +228,7 @@ namespace whfcInterface {
 			
 			if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::part_weight_fraction) {
 				mw0 = a * hg.partWeight(b0);
-				mw1 = a * hg.partWeight(b0);
+				mw1 = a * hg.partWeight(b1);
 			}
 			else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::max_part_weight_fraction) {
 				mw0 = a * context.partition.max_part_weights[b0];

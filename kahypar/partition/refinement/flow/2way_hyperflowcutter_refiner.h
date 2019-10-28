@@ -44,7 +44,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 	using Base = FlowRefinerBase<FlowExecutionPolicy>;
 	private:
 	
-	static constexpr bool debug = true;
+	static constexpr bool debug = false;
 
 public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -110,17 +110,11 @@ private:
 			std::vector<HyperedgeID>& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.piercer.distanceFromCut);
 
-			if (write_hg) {
-				DBG << V(extractor.flow_hg_builder.numNodes()) << V(extractor.flow_hg_builder.numHyperedges()) << V(extractor.flow_hg_builder.numPins()) << V(extractor.flow_hg_builder.totalNodeWeight());
-				whfc::WHFC_IO::WHFCInformation i = { whfc::NodeWeight(_context.partition.max_part_weights[b0]), STF.cutAtStake - STF.baseCut, STF.source, STF.target };
-				std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
-										  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
-										  + ".snapshot" + std::to_string(instance_counter++);
-				whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
-				whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
+			if (should_write_snapshot) {
+				writeSnapshot(STF);
 				return false;
 			}
-
+			
 			//Heuristic (gottesbueren): break instead of continue. Skip this block pair, if one flow network extraction says there is nothing to gain
 			if (STF.cutAtStake - STF.baseCut <= 0)	//TODO change to 10 for the same effect as Tobi's heuristic
 				break;
@@ -136,9 +130,9 @@ private:
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 			HyperedgeWeight old_objective = metrics::objective(_hg, _context.partition.objective);
-//#endif
+#endif
 			
 			//assign new partition IDs
 			if (should_update) {
@@ -157,14 +151,10 @@ private:
 			
 			printMetric();
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 			HyperedgeWeight new_objective = metrics::objective(_hg, _context.partition.objective);
-			if (!((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded)) {
-				LOG << V(new_objective) << V(old_objective) << V(STF.cutAtStake) << V(STF.baseCut) << V(newCut);
-				throw std::runtime_error("This shouldn't happen");
-			}
 			Assert((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded);
-//#endif
+#endif
 			
 			// Heuristic (gottesbueren): if only balance was improved we don't continue
 			should_continue = should_update && newCut < STF.cutAtStake;
@@ -208,6 +198,16 @@ private:
 	}
 	
 	
+	void writeSnapshot(whfcInterface::FlowHypergraphExtractor::AdditionalData& STF) {
+		whfc::WHFC_IO::WHFCInformation i = { whfc::NodeWeight(_context.partition.max_part_weights[b0]), STF.cutAtStake - STF.baseCut, STF.source, STF.target };
+		//TODO remove
+		std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
+								  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
+								  + ".snapshot" + std::to_string(instance_counter++);
+		whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
+		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
+	}
+	
 	
 	using IRefiner::_is_initialized;
 	using Base::_hg;
@@ -215,7 +215,7 @@ private:
 	using Base::_original_part_id;
 	using Base::_flow_execution_policy;
 	
-	bool write_hg = false;
+	bool should_write_snapshot = false;
 	size_t instance_counter = 0;
 	whfcInterface::FlowHypergraphExtractor extractor;
 	whfc::HyperFlowCutter<whfc::Dinic> hfc;

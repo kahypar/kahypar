@@ -188,14 +188,14 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
   return options;
 }
     
-    po::options_description createHyperFlowCutterRefinementOptionsDescription(Context& context,
+po::options_description createHyperFlowCutterRefinementOptionsDescription(Context& context,
                                                                    const int num_columns,
                                                                    const bool initial_partitioning) {
   po::options_description options(("HyperFlowCutter Refinement Options"), num_columns);
       options.add_options()
               ((initial_partitioning ? "i-r-hfc-size-constraint" : "r-hfc-size-constraint"),
                po::value<std::string>()->value_name("<string>")->notifier([&context, initial_partitioning](const std::string& ftype) {
-                    FlowHypergraphSizeConstraint sc = FlowHypergraphSizeConstraint::part_weight_fraction;
+                    FlowHypergraphSizeConstraint sc = FlowHypergraphSizeConstraint::part_weight_fraction; // = "pw"
                     if (ftype == "mpw") {
                       sc = FlowHypergraphSizeConstraint ::max_part_weight_fraction;
                     }
@@ -235,8 +235,8 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
                po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.use_distances_from_cut : &context.local_search.hyperflowcutter.use_distances_from_cut))->value_name("<bool>"),
                "Preferably pierce vertices further away from the old cut \n"
                "(default: true)");
-      return options;
-    }
+  return options;
+}
 
 
 po::options_description createCoarseningOptionsDescription(Context& context,
