@@ -1,6 +1,3 @@
 [submodule "external_tools/googletest"]
 	path = external_tools/googletest
 	url = https://github.com/google/googletest.git
-[submodule "WHFC"]
-	path = WHFC
-	url = git@i11git.iti.kit.edu:/Mitarbeiter/Lars-Gottesbueren/WHFC.git
