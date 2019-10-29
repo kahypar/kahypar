@@ -1,8 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2018 Sebastian Schlag <sebastian.schlag@kit.edu>
- * Copyright (C) 2018 Tobias Heuer <tobias.heuer@live.com>
+ * Copyright (C) 2019 Sebastian Schlag <sebastian.schlag@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,21 +18,24 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include <iostream>
+#include <string>
 
-#include "kahypar/datastructure/flow_network.h"
-#include "kahypar/meta/policy_registry.h"
-#include "kahypar/meta/typelist.h"
+#include "kahypar/definitions.h"
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/macros.h"
+#include "tools/hgr_to_mtx_conversion.h"
 
-namespace kahypar {
-struct FlowNetworkPolicy : meta::PolicyBase {
- public:
-  FlowNetworkPolicy() = default;
-};
-
-struct HybridNetworkPolicy : public FlowNetworkPolicy {
-  typedef ds::HybridNetwork Network;
-};
-
-using FlowNetworkPolicyClasses = meta::Typelist<HybridNetworkPolicy>;
-}  // namespace kahypar
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    std::cout << "No hypergraph file specified" << std::endl;
+  }
+  const std::string hypergraph_filename(argv[1]);
+  const std::string mtx_filename(hypergraph_filename + ".mondriaan.mtx");
+  LOG << "Converting hypergraph " << hypergraph_filename << "to mondriaan mtx format:"
+      << mtx_filename << "...";
+  kahypar::Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(hypergraph_filename, 2);
+  kahypar::writeHypergraphInMatrixMarketFormat(input_hypergraph, mtx_filename);
+  LOG << "... done!";
+  return 0;
+}

@@ -32,23 +32,6 @@
   })
 
 namespace kahypar {
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::edmond_karp, EdmondKarp, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, WongNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::goldberg_tarjan, GoldbergTarjan, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, WongNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::boykov_kolmogorov, BoykovKolmogorov, HybridNetwork);
-
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, LawlerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HeuerNetwork);
-REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, WongNetwork);
 REGISTER_FLOW_ALGORITHM_FOR_NETWORK(FlowAlgorithm::ibfs, IBFS, HybridNetwork);
 }  // namespace kahypar

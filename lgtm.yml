@@ -1,22 +1,12 @@
+path_classifiers:
+  library:
+    - external_tools
+    - codestyle
 queries:
   - exclude: external_tools/
   - exclude: codestyle/
 extraction:
   cpp:
-    prepare:    # Customizable step used by all languages.
-      packages:
-        - g++-6
-        - libboost-all-dev
-#    after_prepare:    # Customizable step used by all languages.
-#      - mkdir -p $LGTM_WORKSPACE/latest-gcc-symlinks
-#      - ln -s /usr/bin/g++-6 $LGTM_WORKSPACE/latest-gcc-symlinks/g++
-#      - ln -s /usr/bin/gcc-6 $LGTM_WORKSPACE/latest-gcc-symlinks/gcc
-#      - export PATH=$LGTM_WORKSPACE/latest-gcc-symlinks:$PATH
-#      - export GNU_MAKE=make
-#      - export GIT=true
-#    before_index:    # Customizable step used by all languages.
-#      - export BOOST_DIR=$LGTM_SRC/boost
-#      - export GTEST_DIR=$LGTM_SRC/googletest
     index:    # Customizable step used by all languages.
       build_command:
         - cd $LGTM_SRC

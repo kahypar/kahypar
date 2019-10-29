@@ -100,12 +100,6 @@ REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
                 ExponentialFlowExecution);
 
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::lawler,
-                LawlerNetworkPolicy);
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::heuer,
-                HeuerNetworkPolicy);
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::wong,
-                WongNetworkPolicy);
 REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
                 HybridNetworkPolicy);
 }  // namespace kahypar

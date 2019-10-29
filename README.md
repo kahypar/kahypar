@@ -103,29 +103,30 @@ For connectivity optimization, the performance ratios are computed using the con
     
 In our experimental analysis, the performance profile plots are based on the *best* solutions (i.e., *minimum* connectivity/cut) each algorithm found for each instance.
     Furthermore, we choose parameters <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Binf%7D%7D%20%5Cgg%20r_%7Bp%2Ci%7D%24"/> for all <img src="https://latex.codecogs.com/gif.latex?%24p%2Ci%24"/> and <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Btimeout%7D%7D%20%5Cgg%20r_%7B%5Ctext%7Binf%7D%7D%24"/> such that a performance ratio <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Binf%7D%24"/> if and only if algorithm *p* computed an infeasible solution
-    for instance *i*, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance *i* within the given time limit.
+    for instance *i*, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance *i* within the given time limit. In our performance profile plots, performance ratios corresponding to *infeasible* solutions will be shown on the x-tick on the *x*-axis, while
+instances that could not be partitioned within the time limit are shown implicitly by a line that exits the plot below <img src="https://latex.codecogs.com/gif.latex?y%3D1"/>.
     Since the performance ratios are heavily right-skewed, the performance profile plots are divided into three segments with different ranges for parameter <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%24"/> to reflect various areas of interest.
     The first segment highlights small values (<img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%20%5Cleq%201.1%24"/>), while the second segment contains results for all instances
     that are up to a factor of <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%3D2%24"/> worse than the best possible ratio. The last segment  contains all remaining ratios, i.e., instances for which
     some algorithms performed considerably worse than the best algorithm, instances for which algorithms produced infeasible solutions, and instances which could not be partitioned within
-    the given time limit. The last segment uses a log-scale on the x-axis.
+    the given time limit.
 
-In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
+In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMETIS-K) and the recursive bisection variant (hMETIS-R) of hMETIS 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD), [Mondriaan v.4.2.1](http://www.staff.science.uu.nl/~bisse101/Mondriaan/) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
 
   <p align="center">
-	<b>Connectivity Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839056-3bae0100-77c6-11e9-8692-708295bf107c.png" alt="Comparison" width="100%" height="50%">
+	<b>Solution Quality</b>
+<img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%" height="50%">
 	</p>
 
   <p align="center">
-	<b>Cut-Net Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839246-9f382e80-77c6-11e9-8c33-0a8b9d6a4a35.png" alt="Comparison" width="100%" height="50%">
+	<b>Running Time</b>
+<img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%" height="50%">
 	</p>
 
 #### Additional Resources
 We provide additional resources for all KaHyPar-related publications:
 
-|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://github.com/SebastianSchlag/kahypar)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
+|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
 |:--|:--|:--:|:--:|:--:|:--:|
 |KaHyPar-E (EvoHGP)|GECCO'18|[Paper][GECCO'18]|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
 |KaHyPar-CA|SEA'17|[Paper][SEA'17]|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimental Results][SEA'17bench]|
@@ -165,10 +166,34 @@ The standalone program can be built via `make KaHyPar`. The binary will be locat
 
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
+
+#### Default / Most Recent Presets
+
+We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for 
+direct k-way partitioning (*k*KaHyPar).
+
+To start *k*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar_dissertation.ini
     
-Currently we provide nine different presets that correspond to the configurations used in the publications at
+To start *k*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kKaHyPar_dissertation.ini
+
+To start *r*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m recursive -p ../../../config/km1_rKaHyPar_dissertation.ini
+    
+To start *r*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_dissertation.ini
+
+
+#### Old Presets
+    
+Additionally, we provide nine different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
-our JEA journal paper (to appear).
+our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872).
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
@@ -369,6 +394,19 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
      pages ={1:1--1:19},
      year ={2018}
+    }
+    
+    
+    @article{KaHyPar-MF-JEA,
+      author = {Heuer, T. and Sanders, P. and Schlag, S.},
+      title = {Network Flow-Based Refinement for Multilevel Hypergraph Partitioning},
+      journal = {ACM Journal of Experimental Algorithmics (JEA)}},
+      volume = {24},
+      number = {1},
+      month = {09},
+      year = {2019},
+      pages = {2.3:1--2.3:36},
+      publisher = {ACM}
     }
     
     // KaHyPar-E (EvoHGP)

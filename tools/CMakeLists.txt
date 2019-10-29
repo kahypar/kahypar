@@ -50,6 +50,12 @@ set_property(TARGET DegreePinDistribution PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(ComputeNeighborHoodSizes compute_neighborhood_sizes.cc)
 set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD 14)
 set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(HgrToMondriaanMtx hgr_to_mondriaan_mtx_converter.cc)
+set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD 14)
+set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(EvaluateMondriaanPartition evaluate_mondriaan_partition.cc)
+set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD 14)
+set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 
@@ -60,6 +66,7 @@ add_gmock_test(mtx_to_hgr_converter_test mtx_to_hgr_converter_test.cc mtx_to_hgr
 add_gmock_test(cnf_to_hgr_converter_test cnf_to_hgr_converter_test.cc)
 add_gmock_test(hgr_to_edge_list_conversion_test hgr_to_edge_list_conversion_test.cc)
 add_gmock_test(repeats_to_hgr_conversion_test repeats_to_hgr_conversion_test.cc)
+add_gmock_test(hgr_to_mtx_test hgr_to_mtx_conversion_test.cc)
 
 
 #set_source_files_properties(hmetis_lib_test.cc PROPERTIES COMPILE_FLAGS -m32)

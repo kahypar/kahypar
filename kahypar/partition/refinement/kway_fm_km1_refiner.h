@@ -68,10 +68,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
   using Base::kInvalidHN;
 
   struct PinState {
-    char one_pin_in_from_part_before : 1;
-    char one_pin_in_to_part_after : 1;
-    char two_pins_in_from_part_before : 1;
-    char two_pins_in_to_part_after : 1;
+    uint8_t one_pin_in_from_part_before : 1;
+    uint8_t one_pin_in_to_part_after : 1;
+    uint8_t two_pins_in_from_part_before : 1;
+    uint8_t two_pins_in_to_part_after : 1;
 
     PinState(const bool one_in_from_before, const bool one_in_to_after,
              const bool two_in_from_before, const bool two_in_to_after) :
@@ -125,7 +125,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
-    // LOG << "=================================================";
     ASSERT(best_metrics.km1 == metrics::km1(_hg),
            V(best_metrics.km1) << V(metrics::km1(_hg)));
     ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
@@ -196,7 +195,6 @@ class KWayKMinusOneRefiner final : public IRefiner,
       ++touched_hns_since_last_improvement;
 
       if (Base::moveIsFeasible(max_gain_node, from_part, to_part)) {
-        // LOG << "performed MOVE:" << V(max_gain_node) << V(from_part) << V(to_part);
         Base::moveHypernode(max_gain_node, from_part, to_part);
 
         Base::updatePQpartState(from_part,
