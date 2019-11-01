@@ -42,10 +42,13 @@ namespace whfcInterface {
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
 
 		//Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
-		FlowHypergraphExtractor(const Hypergraph& hg, const Context& ) :
+		FlowHypergraphExtractor(const Hypergraph& hg, const Context& context) :
 				flow_hg_builder(hg.initialNumNodes(), hg.initialNumEdges(), hg.initialNumPins()),
 				nodeIDMap(hg.initialNumNodes() + 2, whfc::invalidNode), visitedNode(hg.initialNumNodes() + 2), visitedHyperedge(hg.initialNumEdges()),
-				queue(hg.initialNumNodes() + 2) { }
+				queue(hg.initialNumNodes() + 2)
+		{
+			removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
+		}
 
 		struct AdditionalData {
 			whfc::Node source;
@@ -55,11 +58,10 @@ namespace whfcInterface {
 		};
 
 		AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
-						   const PartitionID _b0, const PartitionID _b1, std::vector<whfc::HopDistance>& distanceFromCut) {
+						   const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
 
 			AdditionalData result = { whfc::invalidNode, whfc::invalidNode , 0 , 0 };
 			reset(hg, _b0, _b1);
-			removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
 			
 			auto [maxW0, maxW1] = flowHyperGraphPartSizes(context, hg);
 			HypernodeWeight w0 = 0, w1 = 0;
@@ -153,7 +155,7 @@ namespace whfcInterface {
 		void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock, const PartitionID otherBlock,
 								const std::vector<HyperedgeID>& cut_hes, HypernodeWeight& w,
 								double sizeConstraint, const whfc::Node myTerminal,
-								whfc::HopDistance d_delta, std::vector<whfc::HopDistance>& distanceFromCut) {
+								whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut) {
 			
 			whfc::HopDistance d = d_delta;
 			for (const HyperedgeID e : cut_hes)
