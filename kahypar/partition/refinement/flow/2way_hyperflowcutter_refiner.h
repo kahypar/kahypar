@@ -89,12 +89,9 @@ private:
 			throw std::runtime_error("TwoWayHyperFlowCutter: Different max part weights currently not implemented.");
 		
 		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-		
 
-		// Store original partition for rollback, because we have to update
-		// gain cache of twoway fm refiner
 		if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
-			Base::storeOriginalPartitionIDs();
+			Base::storeOriginalPartitionIDs();	// for updating fm gain caches, when only 2-way is used
 		}
 
 		bool delete_quotientgraph_after_flow = false;
@@ -112,21 +109,36 @@ private:
 		
 		while (should_continue) {
 			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
+			
 			std::vector<HyperedgeID>& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
-			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.piercer.distanceFromCut);
-
-			if (should_write_snapshot) {
-				writeSnapshot(STF);
-				return false;
+			
+			HyperedgeWeight cut_weight = 0;
+			for (HyperedgeID e : cut_hes) {
+				cut_weight += _hg.edgeWeight(e);
+				if (cut_weight > 10)
+					break;
 			}
 			
-			//Heuristic (gottesbueren): break instead of continue. Skip this block pair, if one flow network extraction says there is nothing to gain
-			if (STF.cutAtStake - STF.baseCut <= 0)	//TODO change to 10 for the same effect as Tobi's heuristic
+			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same as Tobi's heuristic. Use before flow hypergraph extraction, since that's the bottleneck
 				break;
+			}
+			
+			hfc.timer.start("Extract Flow Snapshot");
+			auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.cs.borderNodes.distance);
+			hfc.timer.stop("Extract Flow Snapshot");
+			
+			if (should_write_snapshot) {
+				writeSnapshot(STF);
+			}
+			
+			if (STF.cutAtStake - STF.baseCut <= 0) {
+				break;
+			}
 
 			hfc.reset();
 			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
 			bool flowcutter_succeeded = hfc.runUntilBalancedOrFlowBoundExceeded(STF.source, STF.target);
+			//hfc.timer.report(std::cout);
 			HyperedgeWeight newCut = STF.baseCut + hfc.cs.flowValue;
 			
 			bool should_update = false;
@@ -135,31 +147,24 @@ private:
 				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
 			}
 
-#ifndef NDEBUG
-			HyperedgeWeight old_objective = metrics::objective(_hg, _context.partition.objective);
-#endif
-			
 			//assign new partition IDs
 			if (should_update) {
-				improved = true;
+				improved = true;	// TODO maybe don't say we improved, if we only improved the balance. to avoid repeatedly running this block pair. or only consider it improved, if the largest overall block weight got smaller
+									// or maybe restrict this to all but the last level.
+				
+				hfc.timer.start("Change Node Part");
 				for (const whfc::Node uLocal : extractor.localNodeIDs()) {
 					if (uLocal == STF.source || uLocal == STF.target)
 						continue;
 					const HypernodeID uGlobal = extractor.local2global(uLocal);
 					PartitionID from = _hg.partID(uGlobal);
 					Assert(from == b0 || from == b1);
-					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;		//Note(gottesbueren) this interface isn't that nice
+					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;
 					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
+				hfc.timer.stop("Change Node Part");
 			}
-			
-			printMetric();
-
-#ifndef NDEBUG
-			HyperedgeWeight new_objective = metrics::objective(_hg, _context.partition.objective);
-			Assert((new_objective <= old_objective && old_objective - new_objective == STF.cutAtStake - newCut) || !flowcutter_succeeded);
-#endif
 			
 			// Heuristic (gottesbueren): if only balance was improved we don't continue
 			should_continue = should_update && newCut < STF.cutAtStake;
@@ -208,6 +213,7 @@ private:
 		std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
 								  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
 								  + ".snapshot" + std::to_string(instance_counter);
+		instance_counter++;
 		LOG << "Wrote snapshot: " << hg_filename;
 		whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
 		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
