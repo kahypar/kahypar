@@ -42,6 +42,8 @@
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/utils/randomize.h"
 
+#include <WHFC/util/timer.h>
+
 namespace kahypar {
 template <class Network = Mandatory>
 using FlowAlgorithmFactory = meta::Factory<FlowAlgorithm,
@@ -58,7 +60,7 @@ class TwoWayFlowRefiner final : public IRefiner,
   using Base = FlowRefinerBase<FlowExecutionPolicy>;
 
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   TwoWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
@@ -70,12 +72,17 @@ class TwoWayFlowRefiner final : public IRefiner,
     _visited(static_cast<size_t>(_hg.initialNumNodes()) + _hg.initialNumEdges()),
     _block0(0),
     _block1(1),
-    _ignore_flow_execution_policy(false) { }
+    _ignore_flow_execution_policy(false),
+    timer("Basic Max Flow Refinement") { }
 
   TwoWayFlowRefiner(const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner(TwoWayFlowRefiner&&) = delete;
   TwoWayFlowRefiner& operator= (const TwoWayFlowRefiner&) = delete;
   TwoWayFlowRefiner& operator= (TwoWayFlowRefiner&&) = delete;
+  
+  ~TwoWayFlowRefiner() {
+    timer.report(std::cout);
+  }
 
   /*
    * The 2way flow refiner can be used in combination with other
@@ -141,7 +148,8 @@ class TwoWayFlowRefiner final : public IRefiner,
       _flow_network.reset(_block0, _block1);
 
       DBG << "";
-      DBG << V(alpha);
+      DBG << V(alpha) << V(instance_counter);
+      instance_counter++;
 
       // Initialize set of cut hyperedges for blocks '_block0' and '_block1'
       std::vector<HyperedgeID> cut_hes;
@@ -155,7 +163,11 @@ class TwoWayFlowRefiner final : public IRefiner,
       //            in the quotient graph with a small cut
       if (_context.local_search.flow.ignore_small_hyperedge_cut &&
           cut_weight <= 10 && !isRefinementOnLastLevel()) {
-        return improvement;   //Note (gottesbueren) this is clearly a memory leak if delete_quotientgraph_after_flow == true
+      	
+      	  LOG << "cut weight <= 10 and refinement not on last level. exit early";
+		  HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		  Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
+        return improvement;
       }
 
       // If cut is 0 no improvement is possible
@@ -164,19 +176,18 @@ class TwoWayFlowRefiner final : public IRefiner,
         break;
       }
 
+      timer.start("Extract Flow Snapshot");
       std::shuffle(cut_hes.begin(), cut_hes.end(),Randomize::instance().getGenerator());
-
-      // Build Flow Problem
-      CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,
-                                       cut_hes, alpha, _block0, _block1,
-                                       _visited);
+      CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network, cut_hes, alpha, _block0, _block1, _visited);
       const HyperedgeWeight cut_flow_network_before = _flow_network.build(_block0, _block1);
+      timer.stop("Extract Flow Snapshot");
+      
       DBG << V(_flow_network.numNodes()) << V(_flow_network.numEdges());
 
       printMetric();
 
       // Find minimum (S,T)-bipartition
-      const HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1);
+      const HyperedgeWeight cut_flow_network_after = _maximum_flow->minimumSTCut(_block0, _block1, timer);
 
       // Maximum Flow algorithm returns infinity, if all
       // hypernodes contained in the flow problem are either
@@ -231,6 +242,7 @@ class TwoWayFlowRefiner final : public IRefiner,
       // Perform moves in quotient graph in order to update
       // cut hyperedges between adjacent blocks.
       if (current_improvement) {
+        timer.start("Change Node Part");
         for (const HypernodeID& hn : _flow_network.hypernodes()) {
           const PartitionID from = _hg.partID(hn);
           const PartitionID to = _maximum_flow->getOriginalPartition(hn);
@@ -238,6 +250,7 @@ class TwoWayFlowRefiner final : public IRefiner,
             _quotient_graph->changeNodePart(hn, from, to);
           }
         }
+        timer.stop("Change Node Part");
       }
 
       // Heuristic 2: If no improvement was found, but the cut before and
@@ -292,6 +305,7 @@ class TwoWayFlowRefiner final : public IRefiner,
   using Base::_original_part_id;
   using Base::_flow_execution_policy;
 
+  size_t instance_counter;
   Network _flow_network;
   std::unique_ptr<MaximumFlow<Network> > _maximum_flow;
   QuotientGraphBlockScheduler* _quotient_graph;
@@ -299,5 +313,6 @@ class TwoWayFlowRefiner final : public IRefiner,
   PartitionID _block0;
   PartitionID _block1;
   bool _ignore_flow_execution_policy;
+  whfc::TimeReporter timer;
 };
 }  // namespace kahypar

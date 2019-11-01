@@ -27,6 +27,8 @@
 #include <utility>
 #include <vector>
 
+#include <WHFC/util/timer.h>
+
 #include "external_maximum_flow/bk/graph.h"
 #include "external_maximum_flow/ibfs/ibfs.h"
 #include "kahypar/datastructure/fast_reset_array.h"
@@ -66,7 +68,7 @@ class MaximumFlow {
 
   virtual Flow maximumFlow() = 0;
 
-  HyperedgeWeight minimumSTCut(const PartitionID block_0, const PartitionID block_1) {
+  HyperedgeWeight minimumSTCut(const PartitionID block_0, const PartitionID block_1, whfc::TimeReporter& timer) {
     if (_flow_network.isTrivialFlow()) {
       return Network::kInfty;
     }
@@ -78,12 +80,18 @@ class MaximumFlow {
       moveHypernode(hn, default_part);
     }
 
+    timer.start("Flow");
     const HyperedgeWeight cut = maximumFlow();
-
+    
+    
     if (_context.local_search.flow.use_most_balanced_minimum_cut) {
+      timer.stop("Flow");
+      timer.start("MBMC");
       _mbmc.mostBalancedMinimumCut(block_0, block_1);
+      timer.stop("MBMC");
     } else {
       bfs<true>(block_0);
+      timer.stop("Flow");
     }
 
     return cut;
