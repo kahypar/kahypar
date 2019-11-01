@@ -52,10 +52,15 @@ public:
 			hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0]), context.partition.seed),
 			_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1)
 	{
-		hfc.piercer.useDistancesFromCut = context.local_search.hyperflowcutter.use_distances_from_cut;
-		hfc.timer.active = false;
+		//hfc.piercer.useDistancesFromCut = context.local_search.hyperflowcutter.use_distances_from_cut;
+		hfc.timer.active = true;
+		should_write_snapshot = context.local_search.hyperflowcutter.write_snapshot;
 	}
 
+	~TwoWayHyperFlowCutterRefiner() {
+		hfc.timer.report(std::cout);
+	}
+	
 	TwoWayHyperFlowCutterRefiner(const TwoWayHyperFlowCutterRefiner&) = delete;
 	TwoWayHyperFlowCutterRefiner(TwoWayHyperFlowCutterRefiner&&) = delete;
 	TwoWayHyperFlowCutterRefiner& operator= (const TwoWayHyperFlowCutterRefiner&) = delete;
@@ -200,10 +205,10 @@ private:
 	
 	void writeSnapshot(whfcInterface::FlowHypergraphExtractor::AdditionalData& STF) {
 		whfc::WHFC_IO::WHFCInformation i = { whfc::NodeWeight(_context.partition.max_part_weights[b0]), STF.cutAtStake - STF.baseCut, STF.source, STF.target };
-		//TODO remove
 		std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
 								  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
-								  + ".snapshot" + std::to_string(instance_counter++);
+								  + ".snapshot" + std::to_string(instance_counter);
+		LOG << "Wrote snapshot: " << hg_filename;
 		whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
 		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
 	}

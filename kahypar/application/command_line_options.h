@@ -670,6 +670,9 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
                                                                                    num_columns);
 
+  po::options_description write_snapshot("write snapshot", num_columns);
+  write_snapshot.add_options()
+          ("write-snapshot", po::value<bool>(&context.local_search.hyperflowcutter.write_snapshot)->value_name("<bool>"), "default false. enable to write flow hypergraph snapshots");
 
   po::options_description refinement_options =
     createRefinementOptionsDescription(context, num_columns, false);
@@ -686,7 +689,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   .add(coarsening_options)
   .add(ip_options)
   .add(refinement_options)
-  .add(evolutionary_options);
+  .add(evolutionary_options)
+  .add(write_snapshot);
 
   po::variables_map cmd_vm;
   po::store(po::parse_command_line(argc, argv, cmd_line_options), cmd_vm);
