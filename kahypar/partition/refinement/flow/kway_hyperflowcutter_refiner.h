@@ -84,6 +84,8 @@ private:
 		DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
 		printMetric();
 		
+		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+		
 		QuotientGraphBlockScheduler scheduler(_hg, _context);
 		scheduler.buildQuotientGraph();
 		
@@ -110,8 +112,8 @@ private:
 					_twoway_flow_refiner.updateConfiguration(block_0, block_1, &scheduler, true);
 					const bool improved = _twoway_flow_refiner.refine(refinement_nodes, max_allowed_part_weights, changes, best_metrics);
 					if (improved) {
-						DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
-						printMetric();
+						//DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
+						//printMetric();
 						improvement = true;
 						active_block_exist = true;
 						tmp_active_blocks[block_0] = true;
@@ -124,7 +126,10 @@ private:
   			std::swap(active_blocks, tmp_active_blocks);
 		}
 		
-		printMetric(true, true);
+		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+		DBG << V(current_round) << "time =" << std::chrono::duration<double>(end - start).count() << "s";
+		
+		//printMetric(true, true);
 		return improvement;
 	}
 
