@@ -84,8 +84,6 @@ private:
 		DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
 		printMetric();
 		
-		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-		
 		QuotientGraphBlockScheduler scheduler(_hg, _context);
 		scheduler.buildQuotientGraph();
 		
@@ -115,19 +113,21 @@ private:
 						//DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
 						//printMetric();
 						improvement = true;
-						active_block_exist = true;
-						tmp_active_blocks[block_0] = true;
-						tmp_active_blocks[block_1] = true;
-						_num_improvements[block_0][block_1]++;
+						if (_twoway_flow_refiner.refinement_result >= RefinementResult::GlobalBalanceImproved) {
+							// don't mark blocks as active, if cut stayed the same and global balance did not improve.
+							// haven't observed it yet, but only reducing the weight difference between block_0 and block_1
+							// might lead to an infinite loop for k > 2
+							active_block_exist = true;
+							tmp_active_blocks[block_0] = true;
+							tmp_active_blocks[block_1] = true;
+							_num_improvements[block_0][block_1]++;
+						}
 					}
 				}
 			}
 			current_round++;
   			std::swap(active_blocks, tmp_active_blocks);
 		}
-		
-		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-		DBG << V(current_round) << "time =" << std::chrono::duration<double>(end - start).count() << "s";
 		
 		//printMetric(true, true);
 		return improvement;
@@ -150,7 +150,7 @@ private:
 		_flow_execution_policy.initialize(_hg, _context);
 		_twoway_flow_refiner.initialize(max_gain);
 	}
-
+	
 	using IRefiner::_is_initialized;
 	
 	using Base::_hg;

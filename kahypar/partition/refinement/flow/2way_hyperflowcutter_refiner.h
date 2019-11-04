@@ -38,6 +38,15 @@
 #include "whfc_flow_hypergraph_extraction.h"
 
 namespace kahypar {
+
+enum class RefinementResult : uint8_t {
+	NoImprovement,
+	BlockWeightDifferenceImproved,
+	GlobalBalanceImproved,
+	MetricImproved
+};
+
+
 template <class FlowExecutionPolicy = Mandatory>
 class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 										   private FlowRefinerBase<FlowExecutionPolicy>{
@@ -72,6 +81,8 @@ public:
 		_quotient_graph = quotientGraph;
 		_ignore_flow_execution_policy = ignoreFlowExecutionPolicy;
 	}
+	
+	RefinementResult refinement_result = RefinementResult::NoImprovement;
 
 private:
 	std::vector<Move> rollbackImpl() override final {
@@ -80,8 +91,9 @@ private:
 
 	bool refineImpl(std::vector<HypernodeID>&, const std::array<HypernodeWeight, 2>&,
 				  const UncontractionGainChanges&, Metrics&) override final {
-		if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy)
+		if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
 			return false;
+		}
 
 		if (_hg.containsFixedVertices())
 			throw std::runtime_error("TwoWayHyperFlowCutter: managing fixed vertices currently not implemented.");
@@ -106,10 +118,9 @@ private:
 		
 		bool improved = false;
 		bool should_continue = true;
+		refinement_result = RefinementResult::NoImprovement;
 		
 		while (should_continue) {
-			HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
-			
 			std::vector<HyperedgeID>& cut_hes = _quotient_graph->exposeBlockPairCutHyperedges(b0, b1);
 			
 			HyperedgeWeight cut_weight = 0;
@@ -119,7 +130,7 @@ private:
 					break;
 			}
 			
-			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same as Tobi's heuristic. Use before flow hypergraph extraction, since that's the bottleneck
+			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same heuristic as KaHyPar-MF. Use before flow hypergraph extraction, since that's the bottleneck
 				break;
 			}
 			
@@ -138,20 +149,16 @@ private:
 			hfc.reset();
 			hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
 			bool flowcutter_succeeded = hfc.runUntilBalancedOrFlowBoundExceeded(STF.source, STF.target);
-			//hfc.timer.report(std::cout);
 			HyperedgeWeight newCut = STF.baseCut + hfc.cs.flowValue;
 			
 			bool should_update = false;
 			if (flowcutter_succeeded) {
-				HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
-				should_update = (newCut < STF.cutAtStake || (newCut == STF.cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff));
+				should_update = setRefinementResult(newCut, STF.cutAtStake);
 			}
 
 			//assign new partition IDs
 			if (should_update) {
-				improved = true;	// TODO maybe don't say we improved, if we only improved the balance. to avoid repeatedly running this block pair. or only consider it improved, if the largest overall block weight got smaller
-									// or maybe restrict this to all but the last level.
-				
+				improved = true;
 				hfc.timer.start("Change Node Part");
 				for (const whfc::Node uLocal : extractor.localNodeIDs()) {
 					if (uLocal == STF.source || uLocal == STF.target)
@@ -181,6 +188,8 @@ private:
 		
 		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 		Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
+		
+		Assert(improved == refinement_result >= RefinementResult::BlockWeightDifferenceImproved);
 		
 		return improved;
 	}
@@ -217,6 +226,42 @@ private:
 		LOG << "Wrote snapshot: " << hg_filename;
 		whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
 		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
+	}
+	
+	bool setRefinementResult(HyperedgeWeight newCut, HyperedgeWeight cutAtStake) {
+		HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
+		HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
+		
+		if (newCut < cutAtStake) {
+			refinement_result = std::max(refinement_result, RefinementResult::MetricImproved);
+			return true;
+		}
+		else if (newCut == cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff) {
+			HypernodeWeight previousMaxPartWeight = -1;
+			HypernodeWeight currentMaxPartWeight = -1;
+			
+			for (PartitionID i = 0; i < _context.partition.k; ++i) {
+				previousMaxPartWeight = std::max(_hg.partWeight(i), previousMaxPartWeight);
+				
+				if (i == b0)
+					currentMaxPartWeight = std::max(currentMaxPartWeight, HypernodeWeight(hfc.cs.n.sourceWeight));
+				else if (i == b1)
+					currentMaxPartWeight = std::max(currentMaxPartWeight, HypernodeWeight(hfc.cs.n.targetWeight));
+				else
+					currentMaxPartWeight = std::max(currentMaxPartWeight, _hg.partWeight(i));
+			}
+			
+			if (currentMaxPartWeight < previousMaxPartWeight) {
+				refinement_result = std::max(refinement_result, RefinementResult::GlobalBalanceImproved);
+			}
+			else {
+				refinement_result = std::max(refinement_result, RefinementResult::BlockWeightDifferenceImproved);
+			}
+			
+			return true;
+		}
+		
+		return false;
 	}
 	
 	
