@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 project(KaHyPar CXX C)
@@ -11,6 +11,8 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 find_package(Threads REQUIRED)
 message(STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}")
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
 
 #ensure that gmock is built before tests are executed
 add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)

@@ -18,6 +18,7 @@
  *
  ******************************************************************************/
 
+#include <mpi.h>
 
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
@@ -25,6 +26,7 @@
 #include "kahypar/partitioner_facade.h"
 
 int main(int argc, char* argv[]) {
+  MPI_Init(&argc, &argv);
   kahypar::Context context;
 
   kahypar::processCommandLineInput(context, argc, argv);
@@ -38,3 +40,4 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+

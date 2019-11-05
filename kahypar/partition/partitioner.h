@@ -68,7 +68,6 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
       } ());
   switch (context.partition.mode) {
     case Mode::recursive_bisection:
-
       recursive_bisection::partition(hypergraph, context);
 
       break;
@@ -84,7 +83,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 
 class Partitioner {
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
  public:
   Partitioner() :
@@ -265,7 +264,6 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
 
   setupContext(hypergraph, context);
   io::printInputInformation(context, hypergraph);
-
   io::printTopLevelPreprocessingBanner(context);
   if (context.preprocessing.enable_deduplication) {
     // deduplication needs to be called first, because the code
@@ -273,9 +271,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
     // exist (i.e., are enabled).
     _deduplicator.deduplicate(hypergraph, context);
   }
-
   sanitize(hypergraph, context);
-
   if (context.preprocessing.min_hash_sparsifier.is_active) {
     ALWAYS_ASSERT(!context.partition_evolutionary ||
                   context.evolutionary.action.decision() == EvoDecision::normal,

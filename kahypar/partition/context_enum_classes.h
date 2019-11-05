@@ -158,6 +158,11 @@ enum class EvoDecision :uint8_t {
   mutation,
   combine
 };
+enum class MPIPopulationSize : uint8_t {
+  equal_sequential_time,
+  equal_to_the_number_of_mpi_processes,
+  as_usual
+};
 
 enum class FlowAlgorithm : uint8_t {
   boykov_kolmogorov,
@@ -176,6 +181,16 @@ enum class FlowExecutionMode : uint8_t {
   exponential,
   UNDEFINED
 };
+
+std::ostream& operator<< (std::ostream& os, const MPIPopulationSize& mpipop) {
+  switch (mpipop) {
+    case MPIPopulationSize::equal_sequential_time: return os << "equal_sequential_time";
+    case MPIPopulationSize::equal_to_the_number_of_mpi_processes: return os << "equal_to_the_number_of_mpi_processes";
+    case MPIPopulationSize::as_usual: return os << "as_usual";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(mpipop);
+}
 
 
 std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
