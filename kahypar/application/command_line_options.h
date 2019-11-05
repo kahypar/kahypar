@@ -450,6 +450,9 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     ("partition-evolutionary",
     po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
     "Use memetic algorithm for partitioning")
+    ("partition-parallel",
+    po::value<bool>(&context.partition_parallel)->value_name("<bool>"),
+    "Use paralllel algorithm for partitioning")
     ("population-size",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& pop_size) {
@@ -535,6 +538,13 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "Whether combine operations should not be limited in contraction\n"
     "default: on)")
+    ("fast-initial-population",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& quick_start) {
+      context.evolutionary.parallel_partitioning_quick_start = quick_start;
+    }),
+    "Whether MPI should use quick intialisation\n"
+    "default: off)")
     ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {
