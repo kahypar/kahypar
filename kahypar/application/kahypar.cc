@@ -29,7 +29,12 @@ int main(int argc, char* argv[]) {
   MPI_Init(&argc, &argv);
   kahypar::Context context;
 
+
   kahypar::processCommandLineInput(context, argc, argv);
+  context.mpi.communicator = MPI_COMM_WORLD;
+  MPI_Comm_rank(context.mpi.communicator, &context.mpi.rank);
+  MPI_Comm_size(context.mpi.communicator, &context.mpi.size);
+  context.partition.seed = context.partition.seed + context.mpi.rank;
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
