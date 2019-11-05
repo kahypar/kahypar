@@ -276,7 +276,7 @@ class Exchanger {
   MPI_Datatype _MPI_Partition;
   MPI_Comm _m_communicator;
   
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
   
   inline std::string preface() {
        return "[MPI Rank " + std::to_string(_rank) + "] ";

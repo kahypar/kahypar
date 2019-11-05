@@ -179,9 +179,9 @@ class PartitionerFacade {
   
   
   void performParallelPartitioning(Hypergraph& hypergraph, Context& context) {
-    context.mpi.communicator = MPI_COMM_WORLD;
-    MPI_Comm_rank(context.mpi.communicator, &context.mpi.rank);
-    MPI_Comm_size(context.mpi.communicator, &context.mpi.size);
+
+
+         
     ParallelPartitioner parallel_partitioner(context);
     parallel_partitioner.partition(hypergraph, context);
     if(context.mpi.rank == 0) {
@@ -192,7 +192,11 @@ class PartitionerFacade {
         hypergraph.setNodePart(hn, best_partition[hn]);
       }
     }
+       
     MPI_Finalize();
+    if(context.mpi.rank != 0) {
+      return;
+    }
   }
   
   

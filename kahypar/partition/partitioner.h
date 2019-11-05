@@ -83,7 +83,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 
 class Partitioner {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   Partitioner() :

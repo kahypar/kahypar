@@ -157,8 +157,7 @@ class ParallelPartitioner {
         break;
       }
     }
-    DBG << preface() <<"HERE "<<applyPopulationSizeBounds(estimated_population_size);
-    DBG << preface() << "THERE";
+
     return applyPopulationSizeBounds(estimated_population_size);
 
     
@@ -185,6 +184,7 @@ class ParallelPartitioner {
       io::serializer::serializeEvolutionary(context, hg);
       
       context.evolutionary.population_size = determinePopulationSize(Timer::instance().evolutionaryResult().total_evolutionary, context);
+      DBG << preface() << context.evolutionary.population_size;
       MPI_Bcast(&context.evolutionary.population_size, 1, MPI_INT, 0, context.mpi.communicator);
 
       
