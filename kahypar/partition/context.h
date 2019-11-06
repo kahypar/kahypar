@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <mpi.h>
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
