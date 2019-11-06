@@ -13,6 +13,7 @@ find_package(Threads REQUIRED)
 message(STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}")
 find_package(MPI REQUIRED)
 include_directories(${MPI_INCLUDE_PATH})
+link_libraries(${MPI_LIBRARIES})
 
 #ensure that gmock is built before tests are executed
 add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)
