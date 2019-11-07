@@ -20,7 +20,7 @@
  ******************************************************************************/
 #pragma once
 
-#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "kahypar/macros.h"
@@ -29,14 +29,11 @@
 
 namespace kahypar {
 namespace ds {
-
 class CompactConnectivitySet {
-
   static constexpr bool debug = false;
 
   using Bitset = uint8_t;
   using PartitionID = int32_t;
-
 
  public:
   class CompactConnectivitySetIterator :
@@ -44,10 +41,8 @@ class CompactConnectivitySet {
                          PartitionID,                // value_type
                          std::ptrdiff_t,             // difference_type
                          const PartitionID*,         // pointer
-                         PartitionID> {              // reference
-
-   public:
-
+                         PartitionID>{              // reference
+ public:
     CompactConnectivitySetIterator() = default;
 
     CompactConnectivitySetIterator(const CompactConnectivitySetIterator& other) = default;
@@ -59,7 +54,7 @@ class CompactConnectivitySet {
     ~CompactConnectivitySetIterator() = default;
 
 
-    CompactConnectivitySetIterator(const std::vector<Bitset>& bitset) :
+    explicit CompactConnectivitySetIterator(const std::vector<Bitset>& bitset) :
       _bitset(bitset),
       _current_id(-1),
       _current_bitset_id(0),
@@ -68,8 +63,8 @@ class CompactConnectivitySet {
     }
 
     CompactConnectivitySetIterator(const std::vector<Bitset>& bitset,
-                            const PartitionID current_bitset_id,
-                            const uint8_t current_bitset) :
+                                   const PartitionID current_bitset_id,
+                                   const uint8_t current_bitset) :
       _bitset(bitset),
       _current_id(-1),
       _current_bitset_id(current_bitset_id),
@@ -96,10 +91,10 @@ class CompactConnectivitySet {
 
     // ! Convenience function for range-based for-loops
     friend CompactConnectivitySetIterator end(const std::pair<CompactConnectivitySetIterator,
-                                                      CompactConnectivitySetIterator>& iter_pair);
+                                                              CompactConnectivitySetIterator>& iter_pair);
     // ! Convenience function for range-based for-loops
     friend CompactConnectivitySetIterator begin(const std::pair<CompactConnectivitySetIterator,
-                                                         CompactConnectivitySetIterator>& iter_pair);
+                                                                CompactConnectivitySetIterator>& iter_pair);
 
     bool operator!= (const CompactConnectivitySetIterator& rhs) {
       return _current_bitset_id != rhs._current_bitset_id ||
@@ -111,13 +106,13 @@ class CompactConnectivitySet {
              _current_bitset == rhs._current_bitset;
     }
 
-   private:
+ private:
     void next() {
       ++_current_id;
-      while ( _current_id + 1 > utils::count[_current_bitset] ) {
+      while (_current_id + 1 > utils::count[_current_bitset]) {
         _current_id = 0;
         ++_current_bitset_id;
-        if ( _current_bitset_id < (PartitionID) _bitset.size() ) {
+        if (_current_bitset_id < (PartitionID)_bitset.size()) {
           _current_bitset = _bitset[_current_bitset_id];
         } else {
           _current_bitset = 0;
@@ -133,10 +128,10 @@ class CompactConnectivitySet {
     uint8_t _current_bitset;
   };
 
-  CompactConnectivitySet(const PartitionID k) :
+  explicit CompactConnectivitySet(const PartitionID k) :
     _connectivity(0),
     _bitset() {
-    size_t num_entries = k / 8 + ( k % 8 > 0 ? 1 : 0 );
+    size_t num_entries = k / 8 + (k % 8 > 0 ? 1 : 0);
     _bitset.assign(num_entries, Bitset(0));
   }
 
@@ -149,25 +144,25 @@ class CompactConnectivitySet {
   ~CompactConnectivitySet() = default;
 
   std::pair<CompactConnectivitySetIterator, CompactConnectivitySetIterator> connectivitySet() const {
-    return std::make_pair( CompactConnectivitySetIterator(_bitset),
-                           CompactConnectivitySetIterator(_bitset, _bitset.size(), 0) );
+    return std::make_pair(CompactConnectivitySetIterator(_bitset),
+                          CompactConnectivitySetIterator(_bitset, _bitset.size(), 0));
   }
 
   bool contains(const PartitionID id) const {
-    ASSERT(id >= 0 && id <  ( (PartitionID) ( 8 * _bitset.size() ) ) );
+    ASSERT(id >= 0 && id < ((PartitionID)(8 * _bitset.size())));
     size_t entry = id / 8;
-    size_t offset = ( id % 8 ) + 1;
+    size_t offset = (id % 8) + 1;
     return _bitset[entry] & utils::bitmask[offset];
   }
 
   void add(const PartitionID id) {
-    ASSERT(id >= 0 && id <  ( (PartitionID) ( 8 * _bitset.size() ) ) );
+    ASSERT(id >= 0 && id < ((PartitionID)(8 * _bitset.size())));
     ++_connectivity;
     XOR(id);
   }
 
   void remove(const PartitionID id) {
-    ASSERT(id >= 0 && id <  ( (PartitionID) ( 8 * _bitset.size() ) ) );
+    ASSERT(id >= 0 && id < ((PartitionID)(8 * _bitset.size())));
     --_connectivity;
     XOR(id);
   }
@@ -187,7 +182,7 @@ class CompactConnectivitySet {
    */
   void clear() {
     _connectivity = 0;
-    for ( size_t i = 0; i < _bitset.size(); ++i ) {
+    for (size_t i = 0; i < _bitset.size(); ++i) {
       _bitset[i] &= utils::bitmask[0];
     }
   }
@@ -197,16 +192,15 @@ class CompactConnectivitySet {
   }
 
  private:
-
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void XOR(const PartitionID id) {
-    ASSERT(id >= 0 && id <  ( (PartitionID) ( 8 * _bitset.size() ) ) );
+    ASSERT(id >= 0 && id < ((PartitionID)(8 * _bitset.size())));
     size_t entry = id / 8;
-    size_t offset = ( id % 8 ) + 1;
+    size_t offset = (id % 8) + 1;
     _bitset[entry] ^= utils::bitmask[offset];
   }
 
   PartitionID _connectivity;
   std::vector<Bitset> _bitset;
 };
-} // namespace ds
-} // namespace kahypar
+}  // namespace ds
+}  // namespace kahypar

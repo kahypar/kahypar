@@ -42,9 +42,9 @@ class ConnectivitySets final {
   using ConnectivitySet = CompactConnectivitySet;
 
   explicit ConnectivitySets(const HyperedgeID num_hyperedges, const PartitionID k) :
-    _connectivity_sets() { 
-      _connectivity_sets.resize(num_hyperedges, k);
-    }
+    _connectivity_sets() {
+    initialize(num_hyperedges, k);
+  }
 
   ConnectivitySets() :
     _connectivity_sets() { }
@@ -60,7 +60,9 @@ class ConnectivitySets final {
   ConnectivitySets& operator= (ConnectivitySets&& other) = default;
 
   void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
-     _connectivity_sets.resize(num_hyperedges, k);
+    for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
+      _connectivity_sets.emplace_back(k);
+    }
   }
 
   void resize(const HyperedgeID num_hyperedges, const PartitionID k) {
