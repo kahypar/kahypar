@@ -1,4 +1,5 @@
 add_gmock_test(hypergraph_test hypergraph_test.cc)
+add_gmock_test(compact_connectivity_set_test compact_connectivity_set_test.cc)
 add_gmock_test(graph_test graph_test.cc)
 add_gmock_test(priority_queue_test priority_queue_test.cc)
 add_gmock_test(kway_priority_queue_test kway_priority_queue_test.cc)
