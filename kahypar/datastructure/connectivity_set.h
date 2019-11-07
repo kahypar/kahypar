@@ -27,8 +27,7 @@
 
 namespace kahypar {
 namespace ds {
-template <typename PartitionID = Mandatory,
-          typename HyperedgeID = Mandatory>
+template <typename PartitionID = Mandatory>
 class ConnectivitySet {
  public:
   explicit ConnectivitySet() :

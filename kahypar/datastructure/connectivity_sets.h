@@ -39,7 +39,7 @@ class ConnectivitySets final {
   using Byte = char;
 
  public:
-  using ConnectivitySet = ConnectivitySet<PartitionID, HyperedgeID>;
+  using ConnectivitySet = ConnectivitySet<PartitionID>;
 
   explicit ConnectivitySets(const HyperedgeID num_hyperedges) :
     _connectivity_sets(num_hyperedges) { }
