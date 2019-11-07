@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 
+#include "kahypar/datastructure/connectivity_set.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
@@ -38,62 +39,7 @@ class ConnectivitySets final {
   using Byte = char;
 
  public:
-  // Internal structure for connectivity sets.
-  // Each contains the size of the connectivity set as  the header
-  // and afterwards the _dense and sparse arrays and the partition pin counts.
-  // This memory is allocated outside the structure using a memory arena.
-  class ConnectivitySet {
- public:
-    explicit ConnectivitySet() :
-      _contained_parts() { }
-
-    ConnectivitySet(const ConnectivitySet&) = delete;
-    ConnectivitySet& operator= (const ConnectivitySet&) = delete;
-
-    ConnectivitySet(ConnectivitySet&&) = default;
-    ConnectivitySet& operator= (ConnectivitySets&) = delete;
-
-    ~ConnectivitySet() = default;
-
-    const PartitionID* begin()  const {
-      return _contained_parts.data();
-    }
-
-    const PartitionID* end() const {
-      return _contained_parts.data() + _contained_parts.size();
-    }
-
-    bool contains(const PartitionID value) const {
-      return std::find(_contained_parts.begin(), _contained_parts.end(), value) != _contained_parts.end();
-    }
-
-    void add(const PartitionID value) {
-      ASSERT(std::find(_contained_parts.begin(), _contained_parts.end(), value) == _contained_parts.end());
-      _contained_parts.push_back(value);
-    }
-
-    void remove(const PartitionID value) {
-      ASSERT(std::find(_contained_parts.begin(), _contained_parts.end(), value) != _contained_parts.end());
-      auto it = std::find(_contained_parts.begin(), _contained_parts.end(), value);
-
-      if (it != _contained_parts.end()) {
-        std::swap(*it, _contained_parts.back());
-      }
-      _contained_parts.pop_back();
-    }
-
-    void clear() {
-      _contained_parts.clear();
-    }
-
-    PartitionID size() const {
-      return _contained_parts.size();
-    }
-
- private:
-    std::vector<PartitionID> _contained_parts;
-  };
-
+  using ConnectivitySet = ConnectivitySet<PartitionID, HyperedgeID>;
 
   explicit ConnectivitySets(const HyperedgeID num_hyperedges) :
     _connectivity_sets(num_hyperedges) { }
