@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-#include "kahypar/datastructure/connectivity_set.h"
+#include "kahypar/datastructure/compact_connectivity_set.h"
 #include "kahypar/macros.h"
 #include "kahypar/meta/mandatory.h"
 
@@ -39,10 +39,12 @@ class ConnectivitySets final {
   using Byte = char;
 
  public:
-  using ConnectivitySet = ConnectivitySet<PartitionID>;
+  using ConnectivitySet = CompactConnectivitySet;
 
-  explicit ConnectivitySets(const HyperedgeID num_hyperedges) :
-    _connectivity_sets(num_hyperedges) { }
+  explicit ConnectivitySets(const HyperedgeID num_hyperedges, const PartitionID k) :
+    _connectivity_sets() { 
+      _connectivity_sets.resize(num_hyperedges, k);
+    }
 
   ConnectivitySets() :
     _connectivity_sets() { }
@@ -50,20 +52,20 @@ class ConnectivitySets final {
 
   ~ConnectivitySets() = default;
 
-  ConnectivitySets(const ConnectivitySets&) = delete;
+  ConnectivitySets(const ConnectivitySets&) = default;
   ConnectivitySets& operator= (const ConnectivitySets&) = delete;
 
   ConnectivitySets(ConnectivitySets&&) = default;
 
   ConnectivitySets& operator= (ConnectivitySets&& other) = default;
 
-  void initialize(const HyperedgeID num_hyperedges) {
-    _connectivity_sets.resize(num_hyperedges);
+  void initialize(const HyperedgeID num_hyperedges, const PartitionID k) {
+     _connectivity_sets.resize(num_hyperedges, k);
   }
 
-  void resize(const HyperedgeID num_hyperedges) {
+  void resize(const HyperedgeID num_hyperedges, const PartitionID k) {
     _connectivity_sets.clear();
-    initialize(num_hyperedges);
+    initialize(num_hyperedges, k);
   }
 
   const ConnectivitySet& operator[] (const HyperedgeID he) const {
