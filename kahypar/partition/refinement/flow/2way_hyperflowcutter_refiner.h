@@ -114,7 +114,7 @@ private:
 		}
 
 		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
-		printMetric();
+		//printMetric();
 		
 		bool improved = false;
 		bool should_continue = true;
@@ -171,6 +171,13 @@ private:
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
 				hfc.timer.stop("Change Node Part");
+				
+				DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
+				if (_hg.partWeight(b0) > _context.partition.max_part_weights[b0] || _hg.partWeight(b1) > _context.partition.max_part_weights[b1]) {
+					LOG << "Imbalance violated" << std::fixed << std::setprecision(12) << V(_context.partition.epsilon) << V(metrics::imbalance(_hg, _context));
+					LOG << V(_hg.partWeight(b0)) << V(_context.partition.max_part_weights[b0]) << V(_hg.partWeight(b1)) << V(_context.partition.max_part_weights[b1]);
+					throw std::runtime_error("imbalance violated");
+				}
 			}
 			
 			// Heuristic (gottesbueren): if only balance was improved we don't continue
@@ -178,7 +185,7 @@ private:
 		}
 
 		DBG << "HFC refinement done";
-		printMetric(true, true);
+		//printMetric(true, true);
 		
 		// Delete quotient graph
 		if (delete_quotientgraph_after_flow) {

@@ -25,7 +25,10 @@
 #include <kahypar/definitions.h>
 #include <kahypar/partition/context.h>
 #include <kahypar/utils/randomize.h>
+
 #include <WHFC/datastructure/flow_hypergraph_builder.h>
+#include <WHFC/datastructure/node_border.h>
+
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 
 #include "WHFC/datastructure/flow_hypergraph.h"
@@ -36,8 +39,6 @@ namespace whfcInterface {
 	
 	class FlowHypergraphExtractor {
 	public:
-		static constexpr bool debug = false;
-		
 		static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
 		static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
 
@@ -92,8 +93,9 @@ namespace whfcInterface {
 				visitedHyperedge.set(e);
 				flow_hg_builder.startHyperedge(hg.edgeWeight(e));
 				for (const HypernodeID v : hg.pins(e)) {
-					if (visitedNode[v])
+					if (visitedNode[v]) {
 						flow_hg_builder.addPin( nodeIDMap[v] );
+					}
 					else {
 						connectToSource |= hg.inPart(v, b0);
 						connectToTarget |= hg.inPart(v, b1);
@@ -120,8 +122,6 @@ namespace whfcInterface {
 				}
 			}
 			
-			DBG << V(maxW0) << V(w0) << V(maxW1) << V(w1);
-
 			whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
 			if (ws == 0 || wt == 0)
 				throw std::runtime_error("Entire block extracted");
