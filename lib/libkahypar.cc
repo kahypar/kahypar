@@ -82,6 +82,9 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                        kahypar_context_t* kahypar_context,
                        kahypar_partition_id_t* partition) {
   kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
+  ASSERT(!context.partition.use_individual_part_weights ||
+         !context.partition.max_part_weights.empty());
+
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
   context.partition.quiet_mode = true;
@@ -108,5 +111,38 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   context.partition.perfect_balance_part_weights.clear();
   context.partition.max_part_weights.clear();
   context.evolutionary.communities.clear();
+}
 
+void kahypar_partition_using_custom_block_weights(const kahypar_hypernode_id_t num_vertices,
+                                                  const kahypar_hyperedge_id_t num_hyperedges,
+                                                  const double epsilon,
+                                                  const kahypar_partition_id_t num_blocks,
+                                                  const kahypar_hypernode_weight_t* vertex_weights,
+                                                  const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                                  const size_t* hyperedge_indices,
+                                                  const kahypar_hyperedge_id_t* hyperedges,
+                                                  const kahypar_hypernode_weight_t* max_part_weights,
+                                                  kahypar_hyperedge_weight_t* objective,
+                                                  kahypar_context_t* kahypar_context,
+                                                  kahypar_partition_id_t* partition) {
+  ASSERT(max_part_weights != nullptr);
+
+  kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
+  context.partition.use_individual_part_weights = true;
+
+  for (kahypar_partition_id_t i = 0; i != num_blocks; ++i) {
+    context.partition.max_part_weights.push_back(max_part_weights[i]);
+  }
+
+  kahypar_partition(num_vertices,
+                    num_hyperedges,
+                    epsilon,
+                    num_blocks,
+                    vertex_weights,
+                    hyperedge_weights,
+                    hyperedge_indices,
+                    hyperedges,
+                    objective,
+                    reinterpret_cast<kahypar_context_t*>(&context),
+                    partition);
 }

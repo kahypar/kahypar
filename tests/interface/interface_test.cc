@@ -97,6 +97,67 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_context_free(context);
 }
 
+TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
+  kahypar_context_t* context = kahypar_context_new();
+  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+
+  reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
+
+  HypernodeID num_hypernodes = 0;
+  HyperedgeID num_hyperedges = 0;
+
+  size_t* index_ptr = nullptr;
+  kahypar_hypernode_id_t* hyperedges_ptr = nullptr;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+  kahypar_hypernode_weight_t* vertex_weights_ptr = nullptr;
+
+  const std::string filename("test_instances/ISPD98_ibm01.hgr");
+  kahypar_read_hypergraph_from_file(filename.c_str(),
+                                    &num_hypernodes,
+                                    &num_hyperedges,
+                                    &index_ptr,
+                                    &hyperedges_ptr,
+                                    &hyperedge_weights_ptr,
+                                    &vertex_weights_ptr);
+
+  const double imbalance = 0.0;
+  const kahypar_partition_id_t num_blocks = 6;
+  const std::array<kahypar_hypernode_weight_t, num_blocks> max_part_weights = { 2750, 1000, 3675, 2550, 2550, 250 };
+
+  kahypar_hyperedge_weight_t objective = 0;
+  std::vector<kahypar_partition_id_t> partition(num_hypernodes, -1);
+
+  kahypar_partition_using_custom_block_weights(num_hypernodes,
+                                               num_hyperedges,
+                                               imbalance,
+                                               num_blocks,
+                                               /*vertex_weights */ nullptr,
+                                               /*hyperedge_weights */ nullptr,
+                                               index_ptr,
+                                               hyperedges_ptr,
+                                               max_part_weights.data(),
+                                               &objective,
+                                               context,
+                                               partition.data());
+
+  Hypergraph verification_hypergraph(kahypar::io::createHypergraphFromFile(filename, num_blocks));
+
+  for (const HypernodeID& hn : verification_hypergraph.nodes()) {
+    verification_hypergraph.setNodePart(hn, partition[hn]);
+  }
+
+  ASSERT_LE(verification_hypergraph.partWeight(0), max_part_weights[0]);
+  ASSERT_LE(verification_hypergraph.partWeight(1), max_part_weights[1]);
+  ASSERT_LE(verification_hypergraph.partWeight(2), max_part_weights[2]);
+  ASSERT_LE(verification_hypergraph.partWeight(3), max_part_weights[3]);
+  ASSERT_LE(verification_hypergraph.partWeight(4), max_part_weights[4]);
+  ASSERT_LE(verification_hypergraph.partWeight(5), max_part_weights[5]);
+
+  ASSERT_EQ(objective, metrics::km1(verification_hypergraph));
+
+  kahypar_context_free(context);
+}
 namespace io {
 TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
   HypernodeID num_hypernodes = 0;
