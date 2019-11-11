@@ -393,7 +393,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
       if (likely(!_hg.isFixedVertex(pin))) {
         _pq.insert(pin, to_part, gain);
-        if (_hg.partWeight(to_part) < _context.partition.max_part_weights[0]) {
+        if (_hg.partWeight(to_part) < _context.partition.max_part_weights[to_part]) {
           _pq.enablePart(to_part);
         }
       }
@@ -691,14 +691,14 @@ class KWayKMinusOneRefiner final : public IRefiner,
                     LOG << "to part =" << part;
                     return false;
                   }
-                  if (_hg.partWeight(part) < _context.partition.max_part_weights[0] &&
+                  if (_hg.partWeight(part) < _context.partition.max_part_weights[part] &&
                       !_pq.isEnabled(part)) {
                     LOG << V(pin);
                     LOG << "key=" << expected_gain;
                     LOG << "Part" << part << "should be enabled as target part";
                     return false;
                   }
-                  if (_hg.partWeight(part) >= _context.partition.max_part_weights[0] &&
+                  if (_hg.partWeight(part) >= _context.partition.max_part_weights[part] &&
                       _pq.isEnabled(part)) {
                     LOG << V(pin);
                     LOG << "key=" << expected_gain;
@@ -795,7 +795,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       ASSERT(!_hg.marked(pin));
       ASSERT(_hg.active(pin));
       ASSERT(_hg.isBorderNode(pin));
-      ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[0] ?
+      ASSERT((_hg.partWeight(part) < _context.partition.max_part_weights[part] ?
               _pq.isEnabled(part) : !_pq.isEnabled(part)), V(part));
       // Assert that we only perform delta-gain updates on moves that are not stale!
       ASSERT(Base::hypernodeIsConnectedToPart(pin, part), V(pin) << V(part));
@@ -899,7 +899,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         ASSERT(Base::hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
         DBGC(hn == 12518) << "inserting" << V(hn) << V(part) << V(_gain_cache.entry(hn, part));
         _pq.insert(hn, part, _gain_cache.entry(hn, part));
-        if (_hg.partWeight(part) < _context.partition.max_part_weights[0]) {
+        if (_hg.partWeight(part) < _context.partition.max_part_weights[part]) {
           _pq.enablePart(part);
         }
       }
