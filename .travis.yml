@@ -83,9 +83,9 @@ before_script:
 script:
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
-      make clean all;
+      travis_wait 30 make clean all;
     elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
-      make clean all; 
+      travis_wait 30 make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
