@@ -182,7 +182,7 @@ class PartitionerFacade {
 
 
          
-    ParallelPartitioner parallel_partitioner(context);
+    ParallelPartitioner parallel_partitioner(hypergraph, context);
     parallel_partitioner.partition(hypergraph, context);
     if(context.mpi.rank == 0) {
       const std::vector<PartitionID> best_partition = parallel_partitioner.bestPartition();

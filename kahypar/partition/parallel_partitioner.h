@@ -46,10 +46,11 @@ class ParallelPartitioner {
   static constexpr bool debug = true;
 
  public:
-  explicit ParallelPartitioner(const Context& context) :
+  explicit ParallelPartitioner(const Hypergraph& hg, const Context& context) :
     _rank(context.mpi.rank),
     _timelimit(),
-    _population(context){
+    _population(context),
+    _exchanger(context.mpi.communicator, hg.initialNumNodes()) {
     _timelimit = context.partition.time_limit;
   }
   ParallelPartitioner(const ParallelPartitioner&) = delete;
@@ -68,7 +69,6 @@ class ParallelPartitioner {
     LOG << preface() << "seed: " << context.partition.seed;
     
     
-    Exchanger exchanger(context.mpi.communicator, hg.initialNumNodes());
     generateInitialPopulation(hg, context);
 
     while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
@@ -99,21 +99,21 @@ class ParallelPartitioner {
      
       for(unsigned i = 0; i < messages; ++i) {
 
-        exchanger.sendBestIndividual(_population);
-        exchanger.clearBuffer();
-        exchanger.receiveIndividual(context,hg, _population);
+        _exchanger.sendBestIndividual(_population);
+        _exchanger.clearBuffer();
+        _exchanger.receiveIndividual(context,hg, _population);
       }
       
     }
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     MPI_Barrier(MPI_COMM_WORLD);      
-    exchanger.receiveIndividual(context,hg, _population);  
+    _exchanger.receiveIndividual(context,hg, _population);  
      
     
     MPI_Barrier(MPI_COMM_WORLD);
     DBG << preface() << "After recieve Barrier"; 
-    exchanger.clearBuffer();
-    exchanger.collectBestPartition(_population, hg, context);    
+    _exchanger.clearBuffer();
+    _exchanger.collectBestPartition(_population, hg, context);    
     hg.reset();
     hg.setPartition(_population.individualAt(_population.best()).partition());
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
@@ -224,8 +224,7 @@ class ParallelPartitioner {
     }
     
     if(context.evolutionary.parallel_partitioning_quick_start) {
-      Exchanger exchanger(context.mpi.communicator, hg.initialNumNodes());
-      exchanger.exchangeInitialPopulations(_population, context, hg, desired_repetitions_for_initial_partitioning);
+      _exchanger.exchangeInitialPopulations(_population, context, hg, desired_repetitions_for_initial_partitioning);
     }
     
   }
@@ -299,6 +298,7 @@ class ParallelPartitioner {
   }
   int _rank;
   int _timelimit;
+  Exchanger _exchanger;
   Population _population;
   
 
