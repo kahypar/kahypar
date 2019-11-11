@@ -193,7 +193,6 @@ class PartitionerFacade {
       }
     }
        
-    MPI_Finalize();
     if(context.mpi.rank != 0) {
       return;
     }
