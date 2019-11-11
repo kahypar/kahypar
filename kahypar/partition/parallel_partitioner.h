@@ -69,9 +69,7 @@ class ParallelPartitioner {
     
     
     Exchanger exchanger(context.mpi.communicator, hg.initialNumNodes());
-    DBG << preface();
     generateInitialPopulation(hg, context);
-    DBG << preface();
 
     while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;

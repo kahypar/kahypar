@@ -47,11 +47,11 @@ class Exchanger {
       int flag;
       MPI_Status st;
       MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
-        
+      DBG << preface() << "DESTRUCTOR";  
       while(flag) {
         int message_length;
         MPI_Get_count(&st, MPI_INT, &message_length);
-                 
+        DBG << preface() << "Entering the fray";            
         int* partition_map = new int[message_length];
         MPI_Status rst;
         MPI_Recv( partition_map, message_length, MPI_INT, st.MPI_SOURCE, _rank, _m_communicator, &rst); 
@@ -209,10 +209,6 @@ class Exchanger {
     }
        
     std::vector<PartitionID> outgoing_partition = population.individualAt(population.randomIndividual()).partition();
-    int* outgoing_partition_map = new int[outgoing_partition.size()];
-    for(size_t i = 0; i < outgoing_partition.size(); ++i) {
-      outgoing_partition_map[i] = outgoing_partition[i];
-    }
     int* recieved_partition_pointer = new int[outgoing_partition.size()];
     DBG << preface() << "sending to " << sending_to << "quick_start";
     MPI_Status st;
@@ -227,7 +223,6 @@ class Exchanger {
     hg.setPartition(recieved_partition_vector);
     population.insert(Individual(hg, context), context);
     LOG << preface() << ":"  << "Population " << population << "exchange individuals l.227";
-    delete[] outgoing_partition_map;
     delete[] recieved_partition_pointer;
   }
   
@@ -276,7 +271,7 @@ class Exchanger {
   MPI_Datatype _MPI_Partition;
   MPI_Comm _m_communicator;
   
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
   
   inline std::string preface() {
        return "[MPI Rank " + std::to_string(_rank) + "] ";

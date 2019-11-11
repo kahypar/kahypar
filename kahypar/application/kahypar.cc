@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
-
+  
   kahypar::PartitionerFacade().partition(hypergraph, context);
-
+  MPI_Finalize();
 
   return 0;
 }
