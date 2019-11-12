@@ -187,8 +187,6 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   ASSERT_LE(verification_hypergraph.partWeight(1), max_part_weights[1]);
   ASSERT_LE(verification_hypergraph.partWeight(2), max_part_weights[2]);
   ASSERT_LE(verification_hypergraph.partWeight(3), max_part_weights[3]);
-  ASSERT_LE(verification_hypergraph.partWeight(4), max_part_weights[4]);
-  ASSERT_LE(verification_hypergraph.partWeight(5), max_part_weights[5]);
 
   ASSERT_EQ(objective, metrics::km1(verification_hypergraph));
 
