@@ -66,10 +66,6 @@ public:
 		should_write_snapshot = context.local_search.hyperflowcutter.write_snapshot;
 	}
 
-	~TwoWayHyperFlowCutterRefiner() {
-		hfc.timer.report(std::cout);
-	}
-	
 	TwoWayHyperFlowCutterRefiner(const TwoWayHyperFlowCutterRefiner&) = delete;
 	TwoWayHyperFlowCutterRefiner(TwoWayHyperFlowCutterRefiner&&) = delete;
 	TwoWayHyperFlowCutterRefiner& operator= (const TwoWayHyperFlowCutterRefiner&) = delete;
@@ -84,6 +80,10 @@ public:
 	
 	RefinementResult refinement_result = RefinementResult::NoImprovement;
 
+	void reportRunningTime() {
+		hfc.timer.report(std::cout);
+	}
+	
 private:
 	std::vector<Move> rollbackImpl() override final {
 		return Base::rollback();

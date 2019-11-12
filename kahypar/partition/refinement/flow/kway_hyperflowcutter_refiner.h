@@ -129,6 +129,9 @@ private:
   			std::swap(active_blocks, tmp_active_blocks);
 		}
 		
+		if (_hg.currentNumNodes() == _hg.initialNumNodes()) {        // on last level
+			_twoway_flow_refiner.reportRunningTime();
+		}
 		//printMetric(true, true);
 		return improvement;
 	}
