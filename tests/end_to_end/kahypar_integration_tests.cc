@@ -268,18 +268,19 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_hyperedge_weight_t objective = 0;
   std::vector<kahypar_partition_id_t> partition(num_hypernodes, -1);
 
-  kahypar_partition_using_custom_block_weights(num_hypernodes,
-                                               num_hyperedges,
-                                               imbalance,
-                                               num_blocks,
-                                               /*vertex_weights */ nullptr,
-                                               /*hyperedge_weights */ nullptr,
-                                               index_ptr,
-                                               hyperedges_ptr,
-                                               max_part_weights.data(),
-                                               &objective,
-                                               context,
-                                               partition.data());
+  kahypar_set_custom_target_block_weights(num_blocks, max_part_weights.data(), context);
+
+  kahypar_partition(num_hypernodes,
+                    num_hyperedges,
+                    imbalance,
+                    num_blocks,
+                    /*vertex_weights */ nullptr,
+                    /*hyperedge_weights */ nullptr,
+                    index_ptr,
+                    hyperedges_ptr,
+                    &objective,
+                    context,
+                    partition.data());
 
   Hypergraph verification_hypergraph(kahypar::io::createHypergraphFromFile(filename, num_blocks));
 

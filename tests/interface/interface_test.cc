@@ -106,7 +106,7 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   HypernodeID num_hypernodes = 7;
   HyperedgeID num_hyperedges = 4;
 
-    std::unique_ptr<size_t[]> hyperedge_indices =
+  std::unique_ptr<size_t[]> hyperedge_indices =
     std::make_unique<size_t[]>(5);
 
   hyperedge_indices[0] = 0;
@@ -147,26 +147,26 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   vertex_weights[6] = 250;
 
 
-
   const double imbalance = 0.0;
   const kahypar_partition_id_t num_blocks = 4;
-  const std::array<kahypar_hypernode_weight_t, num_blocks> max_part_weights = { 1000, 1000, 600, 750};
+  const std::array<kahypar_hypernode_weight_t, num_blocks> max_part_weights = { 1000, 1000, 600, 750 };
 
   kahypar_hyperedge_weight_t objective = 0;
   std::vector<kahypar_partition_id_t> partition(num_hypernodes, -1);
 
-  kahypar_partition_using_custom_block_weights(num_hypernodes,
-                                               num_hyperedges,
-                                               imbalance,
-                                               num_blocks,
-                                               vertex_weights.get(),
-                                               /*hyperedge_weights */ nullptr,
-                                               hyperedge_indices.get(),
-                                               hyperedges.get(),
-                                               max_part_weights.data(),
-                                               &objective,
-                                               context,
-                                               partition.data());
+  kahypar_set_custom_target_block_weights(num_blocks, max_part_weights.data(), context);
+
+  kahypar_partition(num_hypernodes,
+                    num_hyperedges,
+                    imbalance,
+                    num_blocks,
+                    vertex_weights.get(),
+                    /*hyperedge_weights */ nullptr,
+                    hyperedge_indices.get(),
+                    hyperedges.get(),
+                    &objective,
+                    context,
+                    partition.data());
 
   LOG << V(objective);
 
