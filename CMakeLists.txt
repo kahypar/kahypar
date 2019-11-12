@@ -32,6 +32,9 @@ option(KAHYPAR_DISABLE_ASSERTIONS
 option(KAHYPAR_USE_STANDARD_ASSERTIONS
   "Use standard C++ asserts instead of custom assertions." OFF)
 
+option(KAHYPAR_USE_CPPCHECK
+  "Enable static analysis via cppcheck" OFF)
+
 if(KAHYPAR_DISABLE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
 endif(KAHYPAR_DISABLE_ASSERTIONS)
@@ -43,16 +46,18 @@ endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
-# find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-# if(CMAKE_CXX_CPPCHECK)
-#     list(
-#         APPEND CMAKE_CXX_CPPCHECK 
-#             "--enable=all"
-#             "--inconclusive"
-#             "--force" 
-#             "--inline-suppr"
-#     )
-# endif(CMAKE_CXX_CPPCHECK)
+if(KAHYPAR_USE_CPPCHECK)
+  find_program(CMAKE_CXX_CPPCHECK cppcheck)
+  if(CMAKE_CXX_CPPCHECK)
+    list(
+      APPEND CMAKE_CXX_CPPCHECK 
+      "--enable=all"
+      "--inconclusive"
+      "--force" 
+      "--inline-suppr"
+      )
+  endif(CMAKE_CXX_CPPCHECK)
+endif(KAHYPAR_USE_CPPCHECK)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
