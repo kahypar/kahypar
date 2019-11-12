@@ -83,6 +83,21 @@ KAHYPAR_API void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                                    kahypar_context_t* kahypar_context,
                                    kahypar_partition_id_t* partition);
 
+
+KAHYPAR_API void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
+                                           const kahypar_hyperedge_id_t num_hyperedges,
+                                           const double epsilon,
+                                           const kahypar_partition_id_t num_blocks,
+                                           const kahypar_hypernode_weight_t* vertex_weights,
+                                           const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                           const size_t* hyperedge_indices,
+                                           const kahypar_hyperedge_id_t* hyperedges,
+                                           const kahypar_partition_id_t* input_partition,
+                                           const size_t num_improvement_iterations,
+                                           kahypar_hyperedge_weight_t* objective,
+                                           kahypar_context_t* kahypar_context,
+                                           kahypar_partition_id_t* improved_partition);
+
 #ifdef __cplusplus
 }
 #endif

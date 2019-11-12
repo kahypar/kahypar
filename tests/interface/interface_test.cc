@@ -97,6 +97,92 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_context_free(context);
 }
 
+
+TEST(KaHyPar, CanImprovePartitionsViaInterface) {
+  kahypar_context_t* context = kahypar_context_new();
+
+  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+
+  // lower contraction limit to enforce contractions
+  reinterpret_cast<kahypar::Context*>(context)->coarsening.contraction_limit_multiplier = 1;
+
+  const kahypar_hypernode_id_t num_vertices = 7;
+  const kahypar_hyperedge_id_t num_hyperedges = 4;
+
+  std::unique_ptr<size_t[]> hyperedge_indices =
+    std::make_unique<size_t[]>(5);
+
+  hyperedge_indices[0] = 0;
+  hyperedge_indices[1] = 2;
+  hyperedge_indices[2] = 6;
+  hyperedge_indices[3] = 9;
+  hyperedge_indices[4] = 12;
+
+  std::unique_ptr<kahypar_hypernode_id_t[]> hyperedges =
+    std::make_unique<kahypar_hypernode_id_t[]>(12);
+
+  // hypergraph from hMetis manual page 14
+  hyperedges[0] = 0;
+  hyperedges[1] = 2;
+  hyperedges[2] = 0;
+  hyperedges[3] = 1;
+  hyperedges[4] = 3;
+  hyperedges[5] = 4;
+  hyperedges[6] = 3;
+  hyperedges[7] = 4;
+  hyperedges[8] = 6;
+  hyperedges[9] = 2;
+  hyperedges[10] = 5;
+  hyperedges[11] = 6;
+
+  const double imbalance = 0.03;
+  const kahypar_partition_id_t k = 2;
+  kahypar_hyperedge_weight_t objective = 0;
+
+  std::unique_ptr<kahypar_hyperedge_weight_t[]> hyperedge_weights =
+    std::make_unique<kahypar_hyperedge_weight_t[]>(4);
+
+  // force the the current partition to be bad
+  hyperedge_weights[0] = 1000;
+  hyperedge_weights[1] = 1;
+  hyperedge_weights[2] = 1;
+  hyperedge_weights[3] = 1;
+
+  std::vector<kahypar_partition_id_t> input_partition(num_vertices, -1);
+  std::vector<kahypar_partition_id_t> improved_partition(num_vertices, -1);
+
+  input_partition[0] = 0;
+  input_partition[1] = 0;
+  input_partition[2] = 1;
+  input_partition[3] = 0;
+  input_partition[4] = 0;
+  input_partition[5] = 1;
+  input_partition[6] = 1;
+
+  kahypar_improve_partition(num_vertices, num_hyperedges,
+                            imbalance, k,
+                            /*vertex_weights */ nullptr,
+                            hyperedge_weights.get(),
+                            hyperedge_indices.get(),
+                            hyperedges.get(),
+                            input_partition.data(),
+                            1,
+                            &objective,
+                            context,
+                            improved_partition.data());
+
+  for (kahypar_hypernode_id_t i = 0; i != num_vertices; ++i) {
+    LOG << V(i) << V(improved_partition[i]);
+  }
+
+  std::vector<kahypar_partition_id_t> correct_solution({ 1, 0, 1, 0, 0, 1, 1 });
+  ASSERT_THAT(improved_partition, ::testing::ContainerEq(correct_solution));
+  ASSERT_EQ(objective, 2);
+
+  kahypar_context_free(context);
+}
+
+
 TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
   kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");

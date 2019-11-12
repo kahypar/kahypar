@@ -97,6 +97,7 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
   ASSERT(!context.partition.use_individual_part_weights ||
          !context.partition.max_part_weights.empty());
+  ASSERT(partition != nullptr);
 
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
@@ -111,12 +112,17 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                                  hyperedge_weights,
                                  vertex_weights);
 
+  if (context.partition.vcycle_refinement_for_input_partition) {
+    for (const auto hn : hypergraph.nodes()) {
+      hypergraph.setNodePart(hn, partition[hn]);
+    }
+  }
+
   kahypar::PartitionerFacade partitioner;
   partitioner.partition(hypergraph, context);
 
   *objective = kahypar::metrics::correctMetric(hypergraph, context);
 
-  ASSERT(partition != nullptr);
   for (const auto hn : hypergraph.nodes()) {
     partition[hn] = hypergraph.partID(hn);
   }
@@ -124,4 +130,56 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   context.partition.perfect_balance_part_weights.clear();
   context.partition.max_part_weights.clear();
   context.evolutionary.communities.clear();
+}
+
+
+void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
+                               const kahypar_hyperedge_id_t num_hyperedges,
+                               const double epsilon,
+                               const kahypar_partition_id_t num_blocks,
+                               const kahypar_hypernode_weight_t* vertex_weights,
+                               const kahypar_hyperedge_weight_t* hyperedge_weights,
+                               const size_t* hyperedge_indices,
+                               const kahypar_hyperedge_id_t* hyperedges,
+                               const kahypar_partition_id_t* input_partition,
+                               const size_t num_improvement_iterations,
+                               kahypar_hyperedge_weight_t* objective,
+                               kahypar_context_t* kahypar_context,
+                               kahypar_partition_id_t* improved_partition) {
+  kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
+  ALWAYS_ASSERT(context.partition.mode == kahypar::Mode::direct_kway,
+                "V-cycle refinement of input partitions is only possible in direct k-way mode");
+  ASSERT(*std::max_element(input_partition, input_partition + num_vertices) == num_blocks - 1);
+  ASSERT([&]() {
+    std::unordered_set<kahypar_partition_id_t> set(input_partition, input_partition + num_vertices);
+    LOG << V(set.size());
+    for (kahypar_partition_id_t i = 0; i < num_blocks; ++i) {
+      if (set.find(i) == set.end()) {
+        return false;
+      }
+    }
+    return true;
+  } (), "Partition is corrupted.");
+
+  // toggle v-cycle refinement
+  context.partition.vcycle_refinement_for_input_partition = true;
+  // perform one v-cycle
+  context.partition.global_search_iterations = num_improvement_iterations;
+  // sparsifier has to be disabled for v-cycle refinement
+  context.preprocessing.enable_min_hash_sparsifier = false;
+
+  // use improved_partition as temporary_input_partition
+  std::memcpy(improved_partition, input_partition, num_vertices * sizeof(kahypar_partition_id_t));
+
+  kahypar_partition(num_vertices,
+                    num_hyperedges,
+                    epsilon,
+                    num_blocks,
+                    vertex_weights,
+                    hyperedge_weights,
+                    hyperedge_indices,
+                    hyperedges,
+                    objective,
+                    kahypar_context,
+                    improved_partition);
 }
