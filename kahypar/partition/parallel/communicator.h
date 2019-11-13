@@ -1,10 +1,32 @@
-
 #pragma once
-#include <mpi.h>
-
-#include "kahypar/datastructure/hypergraph.h"
-
 namespace kahypar {
+
+
+#ifndef KAHYPAR_USE_MPI
+
+class Communicator {
+  public :
+  
+  explicit Communicator() { }
+
+  inline void init(int argc, char* argv[]) {
+  }
+  inline void finalize() {
+
+  }
+  int rank;
+  int size;
+  MPIPopulationSize population_size;
+  private : 
+
+};
+
+
+
+#else
+
+
+#include <mpi.h>
 
 
 class Communicator {
@@ -25,21 +47,6 @@ class Communicator {
   inline void finalize() {
     MPI_Finalize();
   }
-  inline void setSeed() {
-    
-  }
-
-  
-  
-  
-  
-  
-  
-  inline void broadcastPopulationSize() {
-  
-  }
-  
-
   //MPIParameters params;
   int rank;
   int size;
@@ -49,5 +56,7 @@ class Communicator {
   private : 
 
 };
+
+#endif
 
 }

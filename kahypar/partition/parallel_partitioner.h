@@ -208,6 +208,7 @@ class ParallelPartitioner {
       DBG << preface(context) << "Population " << _population;
     }
     
+
     if(context.evolutionary.parallel_partitioning_quick_start) {
       _exchanger.exchangeInitialPopulations(_population, context, hg, desired_repetitions_for_initial_partitioning);
     }

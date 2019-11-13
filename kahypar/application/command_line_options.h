@@ -545,13 +545,13 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "Whether MPI should use quick intialisation\n"
     "default: off)")
-    /*("initial-pop-strategy",
+    ("initial-pop-strategy",
     po::value<std::string>()->value_name("<std::string>")->notifier(
       [&](const std::string& popstrat) {
       context.communicator.population_size = kahypar::mpiPopulationSizeFromString(popstrat);
     }),
     "Which MPI population strategy\n"
-    "default: as_usual)")*/
+    "default: as_usual)")
     ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {
