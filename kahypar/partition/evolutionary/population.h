@@ -39,7 +39,7 @@ class Population {
   explicit Population(const Context& context) :
     _individuals(),
     _mpi_rank() { 
-      _mpi_rank = context.mpi.rank;
+      _mpi_rank = context.communicator.rank;
     }
 
   inline size_t insert(Individual&& individual, const Context& context) {

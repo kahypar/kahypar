@@ -18,30 +18,27 @@
  *
  ******************************************************************************/
 
-#include <mpi.h>
+
 
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partitioner_facade.h"
+#include "kahypar/partition/parallel/communicator.h"
 
 int main(int argc, char* argv[]) {
-  MPI_Init(&argc, &argv);
+  //MPI_Init(&argc, &argv);
   kahypar::Context context;
-
-
+  context.communicator.init(argc, argv);
   kahypar::processCommandLineInput(context, argc, argv);
-  context.mpi.communicator = MPI_COMM_WORLD;
-  MPI_Comm_rank(context.mpi.communicator, &context.mpi.rank);
-  MPI_Comm_size(context.mpi.communicator, &context.mpi.size);
-  context.partition.seed = context.partition.seed + context.mpi.rank;
+
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
   
   kahypar::PartitionerFacade().partition(hypergraph, context);
-  MPI_Finalize();
+  context.communicator.finalize();
 
   return 0;
 }

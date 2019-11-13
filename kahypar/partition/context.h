@@ -33,6 +33,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
+#include "kahypar/partition/parallel/communicator.h"
 #include "kahypar/utils/stats.h"
 
 namespace kahypar {
@@ -406,7 +407,7 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Parallel Population Generation      " << params.parallel_partitioning_quick_start << std::endl;
   return str;
 }
-struct MPIParameters {
+/*struct MPIParameters {
   MPI_Comm communicator;
   int rank;
   int size;
@@ -417,7 +418,7 @@ inline std::ostream& operator<< (std::ostream& str, const MPIParameters& params)
   str << "  rank                                " << params.rank << std::endl;
   str << "  size                                " << params.size << std::endl;
   return str;
-}
+}*/
 
 class Context {
  public:
@@ -429,7 +430,7 @@ class Context {
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   EvolutionaryParameters evolutionary { };
-  MPIParameters mpi{  };
+  Communicator communicator{  };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
   bool partition_evolutionary = false;
@@ -447,7 +448,7 @@ class Context {
     initial_partitioning(other.initial_partitioning),
     local_search(other.local_search),
     evolutionary(other.evolutionary),
-    mpi(other.mpi),
+    communicator(other.communicator),
     type(other.type),
     stats(*this, &other.stats.topLevel()),
     partition_evolutionary(other.partition_evolutionary) { }

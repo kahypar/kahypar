@@ -2,6 +2,7 @@
 
 
 #include "kahypar/partition/parallel/partition_buffer.h"
+#include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/utils/randomize.h"
 namespace kahypar {
 
@@ -10,7 +11,7 @@ class Exchanger {
   
 
  public: 
-  Exchanger(MPI_Comm communicator, size_t hypergraph_size) : 
+  Exchanger(size_t hypergraph_size) : 
     _current_best_fitness(std::numeric_limits<int>::max()),
     _maximum_allowed_pushes(),
     _number_of_pushes(),
@@ -18,7 +19,7 @@ class Exchanger {
     _individual_already_sent_to(),
     _partition_buffer(),
     _MPI_Partition(),
-    _m_communicator(communicator) {
+    _m_communicator(MPI_COMM_WORLD) {
     
       MPI_Comm_rank( _m_communicator, &_rank);
       int comm_size;
@@ -146,14 +147,14 @@ class Exchanger {
       LOG << preface() << "Population " << population << "receive individual";
     }
     
-    int recieved_fitness = population.individualAt(insertion_value).fitness();
+    int received_fitness = population.individualAt(insertion_value).fitness();
     
-    LOG << preface() << "Population " << "recieved Individual from" << st.MPI_SOURCE << "with fitness" << recieved_fitness;
+    LOG << preface() << "Population " << "received Individual from" << st.MPI_SOURCE << "with fitness" << received_fitness;
     
     LOG << preface() << " buffersize: " << _partition_buffer.size(); 
-    if(recieved_fitness < _current_best_fitness) {
+    if(received_fitness < _current_best_fitness) {
       
-      _current_best_fitness = recieved_fitness;
+      _current_best_fitness = received_fitness;
                        
       for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
         _individual_already_sent_to[i] = false;
@@ -200,30 +201,30 @@ class Exchanger {
     MPI_Bcast(permutation_of_mpi_process_numbers.data(), amount_of_mpi_processes, MPI_INT, 0, _m_communicator);
 
     int sending_to = permutation_of_mpi_process_numbers[_rank];
-    int recieving_from = 0;
+    int receiving_from = 0;
     for(unsigned i = 0; i < permutation_of_mpi_process_numbers.size(); ++i) {
       if (permutation_of_mpi_process_numbers[i] == _rank) {
-        recieving_from = i;
+        receiving_from = i;
         break;
       }
     }
        
     std::vector<PartitionID> outgoing_partition = population.individualAt(population.randomIndividual()).partition();
-    int* recieved_partition_pointer = new int[outgoing_partition.size()];
+    int* received_partition_pointer = new int[outgoing_partition.size()];
     DBG << preface() << "sending to " << sending_to << "quick_start";
     MPI_Status st;
     MPI_Sendrecv( outgoing_partition.data(), 1, _MPI_Partition, sending_to, 0, 
-                  recieved_partition_pointer, 1, _MPI_Partition, recieving_from, 0, _m_communicator, &st); 
+                  received_partition_pointer, 1, _MPI_Partition, receiving_from, 0, _m_communicator, &st); 
                   
 
-    std::vector<int> recieved_partition_vector(recieved_partition_pointer, recieved_partition_pointer + outgoing_partition.size());
+    std::vector<int> received_partition_vector(received_partition_pointer, received_partition_pointer + outgoing_partition.size());
     
     
     hg.reset();
-    hg.setPartition(recieved_partition_vector);
+    hg.setPartition(received_partition_vector);
     population.insert(Individual(hg, context), context);
     LOG << preface() << ":"  << "Population " << population << "exchange individuals l.227";
-    delete[] recieved_partition_pointer;
+    delete[] received_partition_pointer;
   }
   
   
@@ -235,6 +236,15 @@ class Exchanger {
   
   
   inline void collectBestPartition(Population& population, Hypergraph& hg, const Context& context) {
+  
+  
+    MPI_Barrier(MPI_COMM_WORLD);      
+    receiveIndividual(context,hg, population);  
+     
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+    DBG << preface() << "After recieve Barrier"; 
+    clearBuffer();
     DBG << preface() << "Collect Best Partition";
     std::vector<PartitionID> best_local_partition(population.individualAt(population.best()).partition());
     int best_local_objective = population.individualAt(population.best()).fitness();
@@ -257,6 +267,25 @@ class Exchanger {
     population.insert(Individual(hg, context), context);
   }
   
+  inline void sendMessages(const Context& context, Hypergraph& hg, Population& population) {
+  
+      unsigned messages = ceil(log(context.communicator.size));
+     
+      for(unsigned i = 0; i < messages; ++i) {
+
+        sendBestIndividual(population);
+        clearBuffer();
+        receiveIndividual(context,hg, population);
+      }
+
+  }
+  inline void broadcastPopulationSize(Context& context) {
+    MPI_Bcast(&context.evolutionary.population_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+      
+      
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 
   
  private: 
