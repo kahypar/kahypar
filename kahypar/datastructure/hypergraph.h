@@ -444,6 +444,11 @@ class GenericHypergraph {
       return _id != rhs._id;
     }
 
+    bool operator== (const HypergraphElementIterator& rhs) {
+      return _id == rhs._id;
+    }
+
+
  private:
     // Handle to the HypergraphElement the iterator currently points to
     IDType _id = 0;
