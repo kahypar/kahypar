@@ -24,7 +24,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partitioner_facade.h"
-#include "kahypar/partition/parallel/communicator.h"
+
 
 int main(int argc, char* argv[]) {
   //MPI_Init(&argc, &argv);

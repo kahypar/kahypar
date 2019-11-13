@@ -11,9 +11,6 @@ include_directories(${PROJECT_SOURCE_DIR})
 
 find_package(Threads REQUIRED)
 message(STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}")
-find_package(MPI REQUIRED)
-include_directories(${MPI_INCLUDE_PATH})
-link_libraries(${MPI_LIBRARIES})
 
 #ensure that gmock is built before tests are executed
 add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)
@@ -34,6 +31,13 @@ option(KAHYPAR_DISABLE_ASSERTIONS
 
 option(KAHYPAR_USE_STANDARD_ASSERTIONS
   "Use standard C++ asserts instead of custom assertions." OFF)
+option(KAHYPAR_USE_MPI
+  "Compile with MPI." OFF)
+if(KAHYPAR_USE_MPI) 
+  find_package(MPI REQUIRED)
+  include_directories(${MPI_INCLUDE_PATH})
+  link_libraries(${MPI_LIBRARIES})
+endif(KAHYPAR_USE_MPI) 
 
 option(KAHYPAR_USE_CPPCHECK
   "Enable static analysis via cppcheck" OFF)

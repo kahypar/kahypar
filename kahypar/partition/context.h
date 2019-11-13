@@ -28,7 +28,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <mpi.h>
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
@@ -407,18 +406,6 @@ inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters
   str << "  Parallel Population Generation      " << params.parallel_partitioning_quick_start << std::endl;
   return str;
 }
-/*struct MPIParameters {
-  MPI_Comm communicator;
-  int rank;
-  int size;
-  MPIPopulationSize population_size;
-};
-inline std::ostream& operator<< (std::ostream& str, const MPIParameters& params) {
-  str << "MPI Parameters:              " << std::endl;
-  str << "  rank                                " << params.rank << std::endl;
-  str << "  size                                " << params.size << std::endl;
-  return str;
-}*/
 
 class Context {
  public:
@@ -433,7 +420,8 @@ class Context {
   Communicator communicator{  };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
-  bool partition_evolutionary = false;
+  bool partition_evolutionary = false; 
+  //TODO REMOVE
   bool partition_parallel = false;
 
   Context() :
