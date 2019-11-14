@@ -25,6 +25,7 @@ matrix:
             - lcov
             - gcovr
             - cppcheck
+            - libpython3-all-dev
         sonarcloud:
           organization: "sebastianschlag-github"
 
