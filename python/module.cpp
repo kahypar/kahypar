@@ -27,12 +27,21 @@
 #include "kahypar/definitions.h"
 
 #include "kahypar/partition/context.h"
-
+#include "kahypar/io/hypergraph_io.h"
+#include "kahypar/partitioner_facade.h"
 #include "kahypar/application/command_line_options.h"
+#include "kahypar/datastructure/connectivity_sets.h"
+#include "kahypar/partition/metrics.h"
 
 void hello(const std::string& input) {
   std::cout << input << std::endl;
 }
+
+void partition(kahypar::Hypergraph& hypergraph,
+               kahypar::Context& context) {
+  kahypar::PartitionerFacade().partition(hypergraph, context);
+}
+
 
 namespace py = pybind11;
 
@@ -43,6 +52,7 @@ PYBIND11_MODULE(kahypar, m) {
   using kahypar::HyperedgeIndexVector;
   using kahypar::HyperedgeVector;
   using kahypar::PartitionID;
+  using ConnectivitySet = typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet;
 
   py::class_<Hypergraph>(
       m, "Hypergraph")
@@ -63,6 +73,7 @@ PYBIND11_MODULE(kahypar, m) {
       .def("numBlocks", &Hypergraph::k)
       .def("numPinsInBlock", &Hypergraph::pinCountInPart)
       .def("connectivity", &Hypergraph::connectivity)
+      .def("connectivitySet", &Hypergraph::connectivitySet, py::return_value_policy::reference_internal)
       .def("communities", &Hypergraph::communities)
       .def("blockWeight", &Hypergraph::partWeight)
       .def("blockSize", &Hypergraph::partSize)
@@ -77,10 +88,56 @@ PYBIND11_MODULE(kahypar, m) {
           return py::make_iterator(h.incidentEdges(hn).first,h.incidentEdges(hn).second);}, py::keep_alive<0, 1>());
 
 
+  py::class_<ConnectivitySet>(m,
+                              "Connectivity Set")
+      .def("contains",&ConnectivitySet::contains)
+      .def("__iter__",
+           [](const ConnectivitySet& con) {
+             return py::make_iterator(con.begin(),con.end());
+           },py::keep_alive<0, 1>());
+
+  m.def(
+      "createHypergraphFromFile", &kahypar::io::createHypergraphFromFile,
+      py::arg("filename"), py::arg("k"));
+
+
+  m.def(
+      "partition", &partition,
+      py::arg("hypergraph"), py::arg("context"));
+
+  m.def(
+      "cut", &kahypar::metrics::hyperedgeCut,
+      py::arg("hypergraph"));
+
+  m.def(
+      "soed", &kahypar::metrics::soed,
+      py::arg("hypergraph"));
+
+  m.def(
+      "connectivityMinusOne", &kahypar::metrics::km1,
+      py::arg("hypergraph"));
+
+    m.def(
+        "imbalance", &kahypar::metrics::imbalance,
+      py::arg("hypergraph"),py::arg("context"));
+
+
   using kahypar::Context;
   py::class_<Context>(
       m, "Context")
       .def(py::init<>())
+      .def("setK",[](Context& c, const PartitionID k) {
+          c.partition.k = k;
+        },py::arg("k"))
+      .def("setEpsilon",[](Context& c, const double eps) {
+          c.partition.epsilon = eps;
+        },py::arg("imbalance parameter epsilon"))
+      .def("setSeed",[](Context& c, const int seed) {
+          c.partition.seed = seed;
+        },py::arg("k"))
+      .def("suppressOutput",[](Context& c, const bool decision) {
+          c.partition.quiet_mode = decision;
+        },py::arg("imbalance parameter epsilon"))
       .def("loadINIconfiguration",
            [](Context& c, const std::string& path) {
              parseIniToContext(c, path);
