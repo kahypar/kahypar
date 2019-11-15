@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 project(KaHyPar CXX C)
@@ -31,12 +31,23 @@ option(KAHYPAR_DISABLE_ASSERTIONS
 
 option(KAHYPAR_USE_STANDARD_ASSERTIONS
   "Use standard C++ asserts instead of custom assertions." OFF)
+  
 option(KAHYPAR_USE_MPI
   "Compile with MPI." OFF)
+  
+
+
+if(KAHYPAR_DISABLE_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
+  
+endif(KAHYPAR_DISABLE_ASSERTIONS)
+
 if(KAHYPAR_USE_MPI) 
+  add_compile_definitions(KAHYPAR_USE_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_INCLUDE_PATH})
   link_libraries(${MPI_LIBRARIES})
+  
 endif(KAHYPAR_USE_MPI) 
 
 option(KAHYPAR_USE_CPPCHECK

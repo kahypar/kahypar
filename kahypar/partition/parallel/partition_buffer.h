@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "kahypar/macros.h"
+
 
 namespace kahypar {
   struct BufferElement{

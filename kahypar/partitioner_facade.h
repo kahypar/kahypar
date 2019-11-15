@@ -35,7 +35,6 @@
 #include "kahypar/kahypar.h"
 #include "kahypar/macros.h"
 #include "kahypar/partition/evo_partitioner.h"
-#include "kahypar/partition/parallel_partitioner.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"
 #include "kahypar/utils/randomize.h"
@@ -162,30 +161,19 @@ class PartitionerFacade {
     return iteration;
   }
 
+  
+  
+  
+  
+  
   void performEvolutionaryPartitioning(Hypergraph& hypergraph, Context& context) {
-    EvoPartitioner evo_partitioner(context);
-    evo_partitioner.partition(hypergraph, context);
-    const std::vector<PartitionID>& best_partition = evo_partitioner.bestPartition();
-
-    hypergraph.reset();
-    for (const auto& hn : hypergraph.nodes()) {
-      hypergraph.setNodePart(hn, best_partition[hn]);
-    }
-  }
-  
-  
-  
-  
-  
-  
-  void performParallelPartitioning(Hypergraph& hypergraph, Context& context) {
 
 
          
-    ParallelPartitioner parallel_partitioner(hypergraph, context);
-    parallel_partitioner.partition(hypergraph, context);
+    EvoPartitioner evo_partitioner(hypergraph, context);
+    evo_partitioner.partition(hypergraph, context);
     if(context.communicator.rank == 0) {
-      const std::vector<PartitionID> best_partition = parallel_partitioner.bestPartition();
+      const std::vector<PartitionID> best_partition = evo_partitioner.bestPartition();
       hypergraph.reset();
 
       for (const auto& hn : hypergraph.nodes()) {
@@ -208,10 +196,8 @@ class PartitionerFacade {
     const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
     if (context.partition.time_limit != 0 && !context.partition_evolutionary) {
       iteration = performTimeLimitedRepeatedPartitioning(hypergraph, context);
-    } else if (!context.partition_parallel &&context.partition_evolutionary && context.partition.time_limit != 0) {
+    } else if (context.partition_evolutionary && context.partition.time_limit != 0) {
       performEvolutionaryPartitioning(hypergraph, context);
-    } else if (context.partition_parallel && context.partition_evolutionary && context.partition.time_limit != 0) {
-      performParallelPartitioning(hypergraph, context);
     } else {
       Partitioner().partition(hypergraph, context);
     }

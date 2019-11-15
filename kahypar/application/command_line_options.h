@@ -35,7 +35,7 @@
 #include <vector>
 
 #include "kahypar/kahypar.h"
-
+#include "kahypar/macros.h"
 namespace po = boost::program_options;
 
 namespace kahypar {
@@ -450,9 +450,6 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     ("partition-evolutionary",
     po::value<bool>(&context.partition_evolutionary)->value_name("<bool>"),
     "Use memetic algorithm for partitioning")
-    ("partition-parallel",
-    po::value<bool>(&context.partition_parallel)->value_name("<bool>"),
-    "Use paralllel algorithm for partitioning")
     ("population-size",
     po::value<size_t>()->value_name("<size_t>")->notifier(
       [&](const size_t& pop_size) {
