@@ -25,9 +25,8 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partitioner_facade.h"
 
-
 int main(int argc, char* argv[]) {
-  //MPI_Init(&argc, &argv);
+  
   kahypar::Context context;
   context.communicator.init(argc, argv);
   kahypar::processCommandLineInput(context, argc, argv);

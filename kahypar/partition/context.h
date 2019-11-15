@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "kahypar/macros.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
@@ -421,8 +422,6 @@ class Context {
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
   bool partition_evolutionary = false; 
-  //TODO REMOVE
-  bool partition_parallel = false;
 
   Context() :
     stats(*this) { }

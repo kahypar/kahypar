@@ -1,8 +1,9 @@
 #pragma once
 
-namespace kahypar {
+
 
 #ifndef KAHYPAR_USE_MPI
+namespace kahypar {
 class Exchanger {
   
 
@@ -15,13 +16,18 @@ class Exchanger {
   inline void sendMessages(const Context& context, Hypergraph& hg, Population& population) { }
   inline void broadcastPopulationSize(Context& context) { }
 };
-#else
+} //namespace kahypar
+#else 
+
+
+
 #include "kahypar/partition/parallel/partition_buffer.h"
 #include "kahypar/partition/evolutionary/population.h"
 #include "kahypar/utils/randomize.h"
 
+#include <mpi.h>
 
-
+namespace kahypar {
 class Exchanger {
   
 
@@ -326,6 +332,8 @@ class Exchanger {
        return "[MPI Rank " + std::to_string(_rank) + "] ";
   }
 };
+}
+ //namespace kahypar
 #endif
 
 
@@ -333,5 +341,5 @@ class Exchanger {
 
 
 
-} //namespace kahypar
+
 

@@ -1,9 +1,9 @@
 #pragma once
-namespace kahypar {
+
 
 
 #ifndef KAHYPAR_USE_MPI
-
+namespace kahypar {
 class Communicator {
   public :
   
@@ -21,14 +21,14 @@ class Communicator {
 
 };
 
-
+} //namespace kahypar
 
 #else
 
 
 #include <mpi.h>
 
-
+namespace kahypar {
 class Communicator {
   public :
   
@@ -47,16 +47,16 @@ class Communicator {
   inline void finalize() {
     MPI_Finalize();
   }
-  //MPIParameters params;
+
   int rank;
   int size;
   MPIPopulationSize population_size;
 
-  //Exchanger exchanger;
+
   private : 
 
 };
-
+} //namespace kahpyar
 #endif
 
-}
+
