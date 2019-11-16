@@ -73,7 +73,7 @@ with open("README.md", "r") as fh:
 if __name__ == '__main__':
     setup(
         name='kahypar',
-        version='0.1.9',
+        version='0.2',
         description='Karlsruhe Hypergraph Partitioning Framework (KaHyPar)',
         long_description=long_description,
         long_description_content_type="text/markdown",
@@ -90,7 +90,6 @@ if __name__ == '__main__':
         classifiers=[
             "Development Status :: 4 - Beta",
             "Topic :: Scientific/Engineering :: Mathematics",
-            "Topic :: Utilities"
             "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
         ],
     )
