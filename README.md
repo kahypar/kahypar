@@ -316,6 +316,7 @@ To compile the Python interface, do the following:
 After that you can use the KaHyPar libary like this:
 
 ```py
+import os
 import kahypar as kahypar
 
 num_nodes = 7
@@ -331,7 +332,7 @@ hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedg
 mydir = os.path.dirname(os.path.realpath(__file__))
 
 context = kahypar.Context()
-context.loadINIconfiguration(mydir+"/../../config/km1_kKaHyPar_dissertation.ini")
+context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
 
 context.setK(2)
 context.setEpsilon(0.03)
@@ -339,6 +340,10 @@ context.setEpsilon(0.03)
 kahypar.partition(hypergraph, context)
 ```
 For more information about the python library functionality, please see: [module.cpp](https://github.com/SebastianSchlag/kahypar/blob/master/python/module.cpp)
+
+We also provide a precompiled python package via (PyPi)[https://pypi.org/project/kahypar/], which can be installed via:
+
+`python3 -m pip install --index-url https://pypi.org/simple/ --no-deps kahypar`
 
 #### The Julia Interface
 Thanks to Jordan Jalving ([@jalving]( https://github.com/jalving)) KaHyPar now also offers a Julia interface,
