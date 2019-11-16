@@ -60,65 +60,122 @@ PYBIND11_MODULE(kahypar, m) {
            const HyperedgeID,
            const HyperedgeIndexVector,
            const HyperedgeVector,
-           const PartitionID>())
-      .def("printGraphState", &Hypergraph::printGraphState)
-      .def("nodeDegree", &Hypergraph::nodeDegree)
-      .def("edgeSize", &Hypergraph::edgeSize)
-      .def("nodeWeight", &Hypergraph::nodeWeight)
-      .def("edgeWeight", &Hypergraph::edgeWeight)
-      .def("blockID", &Hypergraph::partID)
-      .def("numNodes", &Hypergraph::initialNumNodes)
-      .def("numEdges", &Hypergraph::initialNumEdges)
-      .def("numPins", &Hypergraph::initialNumPins)
-      .def("numBlocks", &Hypergraph::k)
-      .def("numPinsInBlock", &Hypergraph::pinCountInPart)
-      .def("connectivity", &Hypergraph::connectivity)
-      .def("connectivitySet", &Hypergraph::connectivitySet, py::return_value_policy::reference_internal)
-      .def("communities", &Hypergraph::communities)
-      .def("blockWeight", &Hypergraph::partWeight)
-      .def("blockSize", &Hypergraph::partSize)
-      .def("reset()", &Hypergraph::reset)
+           const PartitionID>(),R"pbdoc(
+Construct a hypergraph.
+
+:param HypernodeID num_nodes: Number of nodes
+:param HyperedgeID num_edges: Number of hyperedges
+:param HyperedgeIndexVector index_vector: Starting indices for each hyperedge
+:param HyperedgeVector edge_vector: Vector containing all hyperedges
+:param PartitionID k: Number of blocks in which the hypergraph should be partitioned
+
+          )pbdoc",
+           py::arg("num_nodes"),
+           py::arg("num_edges"),
+           py::arg("index_vector"),
+           py::arg("edge_vector"),
+           py::arg("k"))
+      .def("printGraphState", &Hypergraph::printGraphState,
+           "Print the hypergraph state (for debugging purposes)")
+      .def("nodeDegree", &Hypergraph::nodeDegree,
+           "Get the degree of the node",
+           py::arg("node"))
+      .def("edgeSize", &Hypergraph::edgeSize,
+           "Get the size of the hyperedge",
+           py::arg("hyperedge"))
+      .def("nodeWeight", &Hypergraph::nodeWeight,
+           "Get the weight of the node",
+           py::arg("node"))
+      .def("edgeWeight", &Hypergraph::edgeWeight,
+           "Get the weight of the hyperedge",
+           py::arg("hyperedge"))
+      .def("blockID", &Hypergraph::partID,
+           "Get the block of the node in the current hypergraph partition (before partitioning: -1)",
+           py::arg("node"))
+      .def("numNodes", &Hypergraph::initialNumNodes,
+           "Get the number of nodes")
+      .def("numEdges", &Hypergraph::initialNumEdges,
+           "Get the number of hyperedges")
+      .def("numPins", &Hypergraph::initialNumPins,
+           "Get the number of pins")
+      .def("numBlocks", &Hypergraph::k,
+           "Get the number of blocks")
+      .def("numPinsInBlock", &Hypergraph::pinCountInPart,
+           "Get the number of pins of the hyperedge that are assigned to corresponding block",
+           py::arg("hyperedge"),
+           py::arg("block"))
+      .def("connectivity", &Hypergraph::connectivity,
+           "Get the connecivity of the hyperedge (i.e., the number of blocks which contain at least one pin)",
+           py::arg("hyperedge"))
+      .def("connectivitySet", &Hypergraph::connectivitySet, py::return_value_policy::reference_internal,
+           "Get the connectivity set of the hyperedge",
+           py::arg("hyperedge"))
+      .def("communities", &Hypergraph::communities,
+           "Get the community structure")
+      .def("blockWeight", &Hypergraph::partWeight,
+      "Get the weight of the block",
+           py::arg("block"))
+      .def("blockSize", &Hypergraph::partSize,
+           "Get the number of vertices in the block",
+           py::arg("block"))
+      .def("reset()", &Hypergraph::reset,
+           "Reset the hypergraph to its initial state")
       .def("nodes", [](Hypergraph &h) {
-          return py::make_iterator(h.nodes().first,h.nodes().second);}, py::keep_alive<0, 1>())
+          return py::make_iterator(h.nodes().first,h.nodes().second);}, py::keep_alive<0, 1>(),
+        "Iterate over all nodes")
       .def("edges", [](Hypergraph &h) {
-          return py::make_iterator(h.edges().first,h.edges().second);}, py::keep_alive<0, 1>())
+          return py::make_iterator(h.edges().first,h.edges().second);}, py::keep_alive<0, 1>(),
+        "Iterate over all hyperedges")
       .def("pins", [](Hypergraph &h, HyperedgeID he) {
-          return py::make_iterator(h.pins(he).first,h.pins(he).second);}, py::keep_alive<0, 1>())
+          return py::make_iterator(h.pins(he).first,h.pins(he).second);}, py::keep_alive<0, 1>(),
+        "Iterate over all pins of the hyperedge",
+        py::arg("hyperedge"))
       .def("incidentEdges", [](Hypergraph &h, HypernodeID hn) {
-          return py::make_iterator(h.incidentEdges(hn).first,h.incidentEdges(hn).second);}, py::keep_alive<0, 1>());
+          return py::make_iterator(h.incidentEdges(hn).first,h.incidentEdges(hn).second);}, py::keep_alive<0, 1>(),
+        "Iterate over all incident hyperedges of the node",
+        py::arg("node"));
 
 
   py::class_<ConnectivitySet>(m,
                               "Connectivity Set")
-      .def("contains",&ConnectivitySet::contains)
+      .def("contains",&ConnectivitySet::contains,
+           "Check if the block is contained in the connectivity set of the hyperedge",
+           py::arg("block"))
       .def("__iter__",
            [](const ConnectivitySet& con) {
              return py::make_iterator(con.begin(),con.end());
-           },py::keep_alive<0, 1>());
+           },py::keep_alive<0, 1>(),
+           "Iterate over all blocks contained in the connectivity set of the hyperedge");
 
   m.def(
       "createHypergraphFromFile", &kahypar::io::createHypergraphFromFile,
+      "Construct a hypergraph from a file in hMETIS format",
       py::arg("filename"), py::arg("k"));
 
 
   m.def(
       "partition", &partition,
+      "Compute a k-way partition of the hypergraph",
       py::arg("hypergraph"), py::arg("context"));
 
   m.def(
       "cut", &kahypar::metrics::hyperedgeCut,
+      "Compute the cut-net metric for the partitioned hypergraph",
       py::arg("hypergraph"));
 
   m.def(
       "soed", &kahypar::metrics::soed,
+      "Compute the sum-of-extrnal-degrees metric for the partitioned hypergraph",
       py::arg("hypergraph"));
 
   m.def(
       "connectivityMinusOne", &kahypar::metrics::km1,
+      "Compute the connecivity metric for the partitioned hypergraph",
       py::arg("hypergraph"));
 
     m.def(
         "imbalance", &kahypar::metrics::imbalance,
+        "Compute the imbalance of the hypergraph partition",
       py::arg("hypergraph"),py::arg("context"));
 
 
@@ -128,20 +185,30 @@ PYBIND11_MODULE(kahypar, m) {
       .def(py::init<>())
       .def("setK",[](Context& c, const PartitionID k) {
           c.partition.k = k;
-        },py::arg("k"))
+        },
+        "Number of blocks the hypergraph should be partitioned into",
+        py::arg("k"))
       .def("setEpsilon",[](Context& c, const double eps) {
           c.partition.epsilon = eps;
-        },py::arg("imbalance parameter epsilon"))
+        },
+        "Allowed imbalance epsilon",
+        py::arg("imbalance parameter epsilon"))
       .def("setSeed",[](Context& c, const int seed) {
           c.partition.seed = seed;
-        },py::arg("k"))
+        },
+        "Seed for the random number generator",
+        py::arg("seed"))
       .def("suppressOutput",[](Context& c, const bool decision) {
           c.partition.quiet_mode = decision;
-        },py::arg("imbalance parameter epsilon"))
+        },
+        "Suppress partitioning output",
+        py::arg("bool"))
       .def("loadINIconfiguration",
            [](Context& c, const std::string& path) {
              parseIniToContext(c, path);
-           },py::arg("path")
+           },
+           "Read KaHyPar configuration from file",
+           py::arg("path-to-file")
            );
 
 
