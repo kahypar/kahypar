@@ -23,6 +23,7 @@ Table of Contents
    * [Running KaHyPar](#running-kahypar)
    * [Using the Library Interfaces](#using-the-library-interfaces)
      * [The C-Style Interface](#the-c-style-interface)
+     * [The Python Interface](#the-python-interface)
      * [The Julia Interface](#the-julia-interface)
    * [Bug Reports](#bug-reports)
    * [Licensing](#licensing)
@@ -303,6 +304,41 @@ To remove the library from your system use the provided uninstall target:
 ```sh
 make uninstall-kahypar
 ```
+#### The Python Interface
+To compile the Python interface, do the following:
+
+1. Create a build directory: `mkdir build && cd build`
+2. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
+3. Go to libary folder: `cd python`
+4. Compile the libarary: `make`
+5. Copy the libary to your site-packages directory: `cp kahypar.so <path-to-site-packages>`
+
+After that you can use the KaHyPar libary like this:
+
+```py
+import kahypar as kahypar
+
+num_nodes = 7
+num_nets = 4
+
+hyperedge_indices = [0,2,6,9,12]
+hyperedges = [0,2,0,1,3,4,3,4,6,2,5,6]
+
+k=2
+
+hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k)
+
+mydir = os.path.dirname(os.path.realpath(__file__))
+
+context = kahypar.Context()
+context.loadINIconfiguration(mydir+"/../../config/km1_kKaHyPar_dissertation.ini")
+
+context.setK(2)
+context.setEpsilon(0.03)
+
+kahypar.partition(hypergraph, context)
+```
+For more information about the python library functionality, please see: [module.cpp](https://github.com/SebastianSchlag/kahypar/blob/master/python/module.cpp)
 
 #### The Julia Interface
 Thanks to Jordan Jalving ([@jalving]( https://github.com/jalving)) KaHyPar now also offers a Julia interface,
