@@ -73,8 +73,8 @@ with open("README.md", "r") as fh:
 if __name__ == '__main__':
     setup(
         name='kahypar',
-        version='0.2',
-        description='Karlsruhe Hypergraph Partitioning Framework (KaHyPar)',
+        version='1.0',
+        description='Python Inferface for the Karlsruhe Hypergraph Partitioning Framework (KaHyPar)',
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://www.kahypar.org",
@@ -88,8 +88,9 @@ if __name__ == '__main__':
         # find test suite
         test_suite='setup.test_suite',
         classifiers=[
-            "Development Status :: 4 - Beta",
-            "Topic :: Scientific/Engineering :: Mathematics",
+            "Development Status :: 5 - Production/Stable",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Software Development :: Libraries :: Python Modules",
             "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
         ],
     )
