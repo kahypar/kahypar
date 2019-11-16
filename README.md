@@ -334,7 +334,7 @@ mydir = os.path.dirname(os.path.realpath(__file__))
 context = kahypar.Context()
 context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
 
-context.setK(2)
+context.setK(k)
 context.setEpsilon(0.03)
 
 kahypar.partition(hypergraph, context)
