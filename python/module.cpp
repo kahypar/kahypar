@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
@@ -118,8 +119,18 @@ Construct a hypergraph.
       .def("blockSize", &Hypergraph::partSize,
            "Get the number of vertices in the block",
            py::arg("block"))
-      .def("reset()", &Hypergraph::reset,
+      .def("reset", &Hypergraph::reset,
            "Reset the hypergraph to its initial state")
+      .def("fixNodeToBlock", &Hypergraph::setFixedVertex,
+        "Fix node to the cooresponding block",
+        py::arg("node"), py::arg("block"))
+      .def("numFixedNodes", &Hypergraph::numFixedVertices,
+        "Get the number of fixed nodes in the hypergraph")
+      .def("containsFixedNodex", &Hypergraph::containsFixedVertices,
+        "Return true if the hypergraph contains nodes fixed to a specific block")
+      .def("isFixedNode", &Hypergraph::isFixedVertex,
+        "Return true if the node is fixed to a block",
+        py::arg("node"))
       .def("nodes", [](Hypergraph &h) {
           return py::make_iterator(h.nodes().first,h.nodes().second);}, py::keep_alive<0, 1>(),
         "Iterate over all nodes")
