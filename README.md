@@ -341,7 +341,7 @@ kahypar.partition(hypergraph, context)
 ```
 For more information about the python library functionality, please see: [module.cpp](https://github.com/SebastianSchlag/kahypar/blob/master/python/module.cpp)
 
-We also provide a precompiled version as [![PyPI version](https://badge.fury.io/py/kahypar.svg)](https://badge.fury.io/py/kahypar) , which can be installed via:
+We also provide a precompiled version as a [![PyPI version](https://badge.fury.io/py/kahypar.svg)](https://badge.fury.io/py/kahypar) , which can be installed via:
 
 `python3 -m pip install --index-url https://pypi.org/simple/ --no-deps kahypar`
 
