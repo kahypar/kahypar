@@ -4,6 +4,7 @@ import sys
 import platform
 import subprocess
 import unittest
+import codecs
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
@@ -67,7 +68,7 @@ def test_suite():
     test_suite = test_loader.discover('python/tests', pattern='test_*.py')
     return test_suite
 
-with open("README.md", "r") as fh:
+with codecs.open('README.md', "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 if __name__ == '__main__':
