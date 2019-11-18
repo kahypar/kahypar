@@ -73,7 +73,7 @@ with open("README.md", "r") as fh:
 if __name__ == '__main__':
     setup(
         name='kahypar',
-        version='1.0.2',
+        version='1.0.3',
         description='Python Inferface for the Karlsruhe Hypergraph Partitioning Framework (KaHyPar)',
         long_description=long_description,
         long_description_content_type="text/markdown",

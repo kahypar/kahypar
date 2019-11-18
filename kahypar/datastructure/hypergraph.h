@@ -568,6 +568,38 @@ class GenericHypergraph {
     ASSERT(edge_vector.size() == index_vector[num_hyperedges]);
   }
 
+
+  /*!
+ * Construct a hypergraph using the index_vector/edge_vector representation that
+ * is also used by hMetis.
+ *
+ * \param num_hypernodes Number of hypernodes |V|
+ * \param num_hyperedges Number of hyperedges |E|
+ * \param index_vector For each hyperedge e, index_vector stores the index of the first pin in
+ * edge_vector that belongs to e. For example, the pins of hyperedge 2 are stored in
+ * edge_vector[index_vector[2]]..edge_vector[index_vector[3]]-1
+ * \param edge_vector Stores the pins of all hyperedges.
+ * \param k Number of blocks the hypergraph should be partitioned in
+ * \param hyperedge_weights Weight for each hyperedge
+ * \param hypernode_weights Weight for each hypernode
+ */
+  GenericHypergraph(const HypernodeID num_hypernodes,
+                    const HyperedgeID num_hyperedges,
+                    const HyperedgeIndexVector& index_vector,
+                    const HyperedgeVector& edge_vector,
+                    const PartitionID k,
+                    const HyperedgeWeightVector& hyperedge_weights,
+                    const HypernodeWeightVector& hypernode_weights) :
+    GenericHypergraph(num_hypernodes,
+                      num_hyperedges,
+                      index_vector.data(),
+                      edge_vector.data(),
+                      k,
+                      hyperedge_weights.empty() ? nullptr : hyperedge_weights.data(),
+                      hypernode_weights.empty() ? nullptr : hypernode_weights.data()) {
+    ASSERT(edge_vector.size() == index_vector[num_hyperedges]);
+  }
+
   GenericHypergraph(const HypernodeID num_hypernodes,
                     const HyperedgeID num_hyperedges,
                     const size_t* index_vector,

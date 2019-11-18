@@ -42,6 +42,34 @@ class MainTest(unittest.TestCase):
         self.assertEqual(hypergraph.numEdges(),4)
         self.assertEqual(hypergraph.numPins(),12)
 
+     # build a custom weighted hypergraph
+    def test_construct_weighted_hypergraph(self):
+        num_nodes = 7
+        num_nets = 4
+
+        hyperedge_indices = [0,2,6,9,12]
+        hyperedges = [0,2,0,1,3,4,3,4,6,2,5,6]
+
+        node_weights = [1,2,3,4,5,6,7]
+        edge_weights = [11,22,33,44]
+
+        k=2
+
+        hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k, edge_weights, node_weights)
+
+        self.assertEqual(hypergraph.nodeWeight(0),1)
+        self.assertEqual(hypergraph.nodeWeight(1),2)
+        self.assertEqual(hypergraph.nodeWeight(2),3)
+        self.assertEqual(hypergraph.nodeWeight(3),4)
+        self.assertEqual(hypergraph.nodeWeight(4),5)
+        self.assertEqual(hypergraph.nodeWeight(5),6)
+        self.assertEqual(hypergraph.nodeWeight(6),7)
+
+        self.assertEqual(hypergraph.edgeWeight(0),11)
+        self.assertEqual(hypergraph.edgeWeight(1),22)
+        self.assertEqual(hypergraph.edgeWeight(2),33)
+        self.assertEqual(hypergraph.edgeWeight(3),44)
+
 
     # construct hypergraph from file
     def test_construct_hypergraph_from_file(self):

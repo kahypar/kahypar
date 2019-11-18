@@ -52,6 +52,8 @@ PYBIND11_MODULE(kahypar, m) {
   using kahypar::HyperedgeID;
   using kahypar::HyperedgeIndexVector;
   using kahypar::HyperedgeVector;
+  using kahypar::HyperedgeWeightVector;
+  using kahypar::HypernodeWeightVector;
   using kahypar::PartitionID;
   using ConnectivitySet = typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet;
 
@@ -62,7 +64,7 @@ PYBIND11_MODULE(kahypar, m) {
            const HyperedgeIndexVector,
            const HyperedgeVector,
            const PartitionID>(),R"pbdoc(
-Construct a hypergraph.
+Construct an unweighted hypergraph.
 
 :param HypernodeID num_nodes: Number of nodes
 :param HyperedgeID num_edges: Number of hyperedges
@@ -76,6 +78,33 @@ Construct a hypergraph.
            py::arg("index_vector"),
            py::arg("edge_vector"),
            py::arg("k"))
+       .def(py::init<const HypernodeID,
+           const HyperedgeID,
+           const HyperedgeIndexVector,
+           const HyperedgeVector,
+           const PartitionID,
+           const HyperedgeWeightVector,
+           const HypernodeWeightVector>(),R"pbdoc(
+Construct a hypergraph with node and edge weights.
+
+If only one type of weights is required, the other argument has to be an empty list.
+
+:param HypernodeID num_nodes: Number of nodes
+:param HyperedgeID num_edges: Number of hyperedges
+:param HyperedgeIndexVector index_vector: Starting indices for each hyperedge
+:param HyperedgeVector edge_vector: Vector containing all hyperedges
+:param PartitionID k: Number of blocks in which the hypergraph should be partitioned
+:param HyperedgeWeightVector edge_weights: Weights of all hyperedges
+:param HypernodeWeightVector node_weights: Weights of all hypernodes
+
+          )pbdoc",
+           py::arg("num_nodes"),
+           py::arg("num_edges"),
+           py::arg("index_vector"),
+           py::arg("edge_vector"),
+           py::arg("k"),
+           py::arg("edge_weights"),
+           py::arg("node_weights"))
       .def("printGraphState", &Hypergraph::printGraphState,
            "Print the hypergraph state (for debugging purposes)")
       .def("nodeDegree", &Hypergraph::nodeDegree,
