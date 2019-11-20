@@ -320,6 +320,7 @@ struct PartitioningParameters {
   bool quiet_mode = false;
   bool sp_process_output = false;
   bool use_individual_part_weights = false;
+  bool use_max_imbalance_in_rb = false;
   bool vcycle_refinement_for_input_partition = false;
   bool write_partition_file = true;
 
@@ -349,6 +350,8 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
   str << "  use individual block weights:       " << std::boolalpha
       << params.use_individual_part_weights << std::endl;
+  str << "  use max. imbalance in RB:           " << std::boolalpha
+      << params.use_max_imbalance_in_rb << std::endl;
   if (params.use_individual_part_weights) {
     for (PartitionID i = 0; i < params.k; ++i) {
       str << "  L_opt" << i << ":                             " << params.perfect_balance_part_weights[i]
@@ -461,6 +464,16 @@ class Context {
                                            * partition.perfect_balance_part_weights[0]);
       for (PartitionID part = 1; part != partition.k; ++part) {
         partition.max_part_weights.push_back(partition.max_part_weights[0]);
+      }
+    }
+    if (partition.use_max_imbalance_in_rb) {
+      // Using the maximum allowed imbalance basically just boils down to
+      // partitioning with individual block weights using the max part
+      // weights as individual block weights.
+      partition.use_individual_part_weights = true;
+      partition.perfect_balance_part_weights.clear();
+      for (PartitionID part = 0; part != partition.k; ++part) {
+        partition.perfect_balance_part_weights.push_back(partition.max_part_weights[part]);
       }
     }
   }

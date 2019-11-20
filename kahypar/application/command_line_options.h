@@ -90,6 +90,9 @@ po::options_description createGeneralOptionsDescription(Context& context, const 
     ("use-individual-part-weights",
     po::value<bool>(&context.partition.use_individual_part_weights)->value_name("<bool>"),
     "# Use individual part weights specified with --partweights= option")
+    ("use-max_imbalance_in_rb",
+    po::value<bool>(&context.partition.use_max_imbalance_in_rb)->value_name("<bool>"),
+    "# Use maximum imbalance in RB")
     ("part-weights",
     po::value<std::vector<HypernodeWeight> >(&context.partition.max_part_weights)->multitoken(),
     "Individual target part weights")

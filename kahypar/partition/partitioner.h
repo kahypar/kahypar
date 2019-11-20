@@ -301,6 +301,16 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
 
   _deduplicator.restoreRedundancy(hypergraph);
 
+  // Reset to original part weights so that we calculate the correct final imbalance.
+  if (context.partition.use_max_imbalance_in_rb) {
+    // temporarily prevent max imbalance computation
+    context.partition.use_max_imbalance_in_rb = false;
+    context.partition.use_individual_part_weights = false;
+    context.setupPartWeights(hypergraph.totalWeight());
+    // reset
+    context.partition.use_max_imbalance_in_rb = true;
+  }
+
   ASSERT([&]() {
       for (const HypernodeID& hn : hypergraph.fixedVertices()) {
         if (hypergraph.partID(hn) != hypergraph.fixedVertexPartID(hn)) {
