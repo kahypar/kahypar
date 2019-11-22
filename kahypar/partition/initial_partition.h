@@ -54,25 +54,7 @@ static inline Context createContext(const Hypergraph& hg,
 
   context.initial_partitioning.k = context.partition.k;
 
-  context.initial_partitioning.perfect_balance_partition_weight.clear();
-  context.initial_partitioning.upper_allowed_partition_weight.clear();
-
-  if (context.partition.use_individual_part_weights) {
-    for (int i = 0; i < context.initial_partitioning.k; ++i) {
-      context.initial_partitioning.perfect_balance_partition_weight.push_back(
-        context.partition.perfect_balance_part_weights[i]);
-      context.initial_partitioning.upper_allowed_partition_weight.push_back(
-        context.initial_partitioning.perfect_balance_partition_weight.back());
-    }
-  } else {
-    for (int i = 0; i < context.initial_partitioning.k; ++i) {
-      context.initial_partitioning.perfect_balance_partition_weight.push_back(
-        context.partition.perfect_balance_part_weights[i]);
-      context.initial_partitioning.upper_allowed_partition_weight.push_back(
-        context.initial_partitioning.perfect_balance_partition_weight[i]
-        * (1.0 + context.partition.epsilon));
-    }
-  }
+  context.setupInitialPartitioningPartWeights();
 
   // Coarsening-Parameters
   context.coarsening = context.initial_partitioning.coarsening;
