@@ -111,12 +111,19 @@ class CutBuildPolicy : public FlowRegionBuildPolicy {
     }
     visited.reset();
 
+    // Epsilon is set to zero when using individual block weights.
+    // In order to still exploit differently-sized flow networks and the
+    // most balanced minimum cut heuristic, we use 3% imbalance for flow network
+    // construction in this case.
+    const double epsilon_to_use = context.partition.use_individual_part_weights ?
+                                  0.03 : context.partition.epsilon;
+
     const HypernodeWeight max_part_weight_0 =
-      std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
+      std::max(((1.0 + std::min(alpha * epsilon_to_use, 0.5))
                 * context.partition.perfect_balance_part_weights[1]
                 - hg.partWeight(block_1)), 0.0);
     const HypernodeWeight max_part_weight_1 =
-      std::max(((1.0 + std::min(alpha * context.partition.epsilon, 0.5))
+        std::max(((1.0 + std::min(alpha * epsilon_to_use, 0.5))
                 * context.partition.perfect_balance_part_weights[0]
                 - hg.partWeight(block_0)), 0.0);
 
