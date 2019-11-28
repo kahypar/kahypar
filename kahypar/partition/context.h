@@ -29,7 +29,6 @@
 #include <string>
 #include <vector>
 
-#include "kahypar/macros.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"

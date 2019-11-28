@@ -87,8 +87,7 @@ class Exchanger {
 
   
   
-    //inline void exchangeInitialPopulationse() {
-    //}
+
   
   inline void exchangeInitialPopulations(Population& population, const Context& context, Hypergraph& hg, const int& amount_of_individuals_already_generated) {
     int number_of_exchanges_required = context.evolutionary.population_size - amount_of_individuals_already_generated;
@@ -145,7 +144,7 @@ class Exchanger {
   
   inline void sendMessages(const Context& context, Hypergraph& hg, Population& population) {
   
-      unsigned messages = ceil(log(context.communicator.size));
+      unsigned messages = ceil(log(context.communicator.getSize()));
      
       for(unsigned i = 0; i < messages; ++i) {
 
@@ -165,80 +164,117 @@ class Exchanger {
 
   
  private: 
+   FRIEND_TEST(TheExchanger, DoesEverythingRight);
+   FRIEND_TEST(TheExchanger, BoldlySendsWhereNoThreadHasSendBefore);
    inline void clearBuffer() {
     _partition_buffer.releaseBuffer();
   }
+  
+ /*inline bool improvedSolution(const Population& population) {
+   
+ }*/
+ /*
+ This method resets the possible targets, since it is not clever to send to oneself 
+ the value of sending to oneself is set to true
+ */
+ inline void openAllTargets() {
+   for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
+     _individual_already_sent_to[i] = false;
+   }  
+   _individual_already_sent_to[_rank] = true;
+ }
+ inline void resetSendQuota() {
+   _number_of_pushes = 0;
+ }
+ inline bool hasOpenTargets() {
+   bool something_todo = false;
+   for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
+     if(!_individual_already_sent_to[i]) {
+       something_todo = true;
+       break;
+     }
+   }
+   return something_todo;
+ 
+ }
+ inline bool isWithinSendQuota() {
+   bool within_quota = true;
+   if(_number_of_pushes > _maximum_allowed_pushes) {
+     within_quota = false;
+   }
+   return within_quota;
+ }
+ 
+ /*TODO the return value for no possible target seems odd*/
+ inline int getRandomOpenTarget() {
+ 
+ 
+   std::vector<int> randomized_targets(_individual_already_sent_to.size());
+   std::iota(std::begin(randomized_targets), std::end(randomized_targets), 0);
+   Randomize::instance().shuffleVector(randomized_targets, randomized_targets.size());
+   
+   for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) { 
+     int current_target = randomized_targets[i];
+	   if(!_individual_already_sent_to[current_target]) {
+        return current_target;
+       }
+     }
+   return _rank;
+ }
+ inline void closeTarget(const int target) {
+   _individual_already_sent_to[target] = true;
+ }
+ inline void incrementSendQuota() {
+   _number_of_pushes++;
+ }
  inline void sendBestIndividual(const Population& population) {
 
     if(population.individualAt(population.best()).fitness() < _current_best_fitness) {
       
       _current_best_fitness = population.individualAt(population.best()).fitness();
-      
-      
-      for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
-        _individual_already_sent_to[i] = false;
-      }  
-      _individual_already_sent_to[_rank] = true;
-      _number_of_pushes = 0;
+      openAllTargets();
+      resetSendQuota();
     }
-    
-    bool something_todo = false;
-    for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
-      if(!_individual_already_sent_to[i]) {
-        something_todo = true;
-        break;
-      }
-    }
-    if(_number_of_pushes > _maximum_allowed_pushes) {
-      something_todo = false;
-    }
-    
-    if(something_todo) {
-      int new_target = _rank;
-      
-      
-      //Determining the target via randomization
-      std::vector<int> randomized_targets(_individual_already_sent_to.size());
-      std::iota(std::begin(randomized_targets), std::end(randomized_targets), 0);
-      Randomize::instance().shuffleVector(randomized_targets, randomized_targets.size());
-      
-      for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) { 
-        int current_target = randomized_targets[i];
-	      if(!_individual_already_sent_to[current_target]) {
-          new_target = current_target;
-	        break;
-        }
-      }
-      
 
-      
+    if(hasOpenTargets() && isWithinSendQuota()) {
+    
+      int new_target = getRandomOpenTarget();
+     
       DBG << preface() << " sending to " << new_target << "..."<< "fitness " << population.individualAt(population.best()).fitness();
       const std::vector<PartitionID>& partition_vector = population.individualAt(population.best()).partition();
 
       BufferElement ele = _partition_buffer.acquireBuffer(partition_vector);
       DBG << preface() << " buffersize: " << _partition_buffer.size();
       MPI_Isend(ele.partition, 1, _MPI_Partition, new_target, new_target, _m_communicator, ele.request);
-      _number_of_pushes++;
-      _individual_already_sent_to[new_target] = true;
-      //_partition_buffer.acquireBuffer(request, partition_map);
-    }
-    //_partition_buffer.releaseBuffer();
+      
+      incrementSendQuota();
+      closeTarget(new_target);
 
+    }
   }
+  //TODO
+ //inline bool hasInboundMessage() 
+   //return obj the relvant shite;
+   
+ 
  inline void receiveIndividual(const Context& context, Hypergraph& hg, Population& population) {
 
     int flag; 
     MPI_Status st;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
-    
+    DBG << preface() << "Receiving";
     while(flag) {
     int* partition_vector_pointer = new int[hg.initialNumNodes()];
+    std::vector<PartitionID> receive_vector;
+    receive_vector.resize(hg.initialNumNodes());
+    //TODO i completely ignore this bad boy, do i have to
     MPI_Status rst;
-    MPI_Recv(partition_vector_pointer, 1, _MPI_Partition, st.MPI_SOURCE, _rank, _m_communicator, &rst); 
+    MPI_Recv(&receive_vector[0], 1, _MPI_Partition, st.MPI_SOURCE, _rank, _m_communicator, &rst); 
+    //OLD: MPI_Recv(partition_vector_pointer, 1, _MPI_Partition, st.MPI_SOURCE, _rank, _m_communicator, &rst); 
     std::vector<PartitionID> result_individual_partition(partition_vector_pointer, partition_vector_pointer + hg.initialNumNodes());
     delete[] partition_vector_pointer;
     hg.reset();
-    hg.setPartition(result_individual_partition);
+    hg.setPartition(receive_vector);
     size_t insertion_value = population.insert(Individual(hg, context), context);
     if(insertion_value == std::numeric_limits<unsigned>::max()) {
       DBG << preface() << "INSERTION DISCARDED";
@@ -255,8 +291,7 @@ class Exchanger {
     LOG << preface() << " buffersize: " << _partition_buffer.size(); 
     if(received_fitness < _current_best_fitness) {
       
-      _current_best_fitness = received_fitness;
-                       
+      _current_best_fitness = received_fitness;                 
       for(unsigned i = 0; i < _individual_already_sent_to.size(); ++i) {
         _individual_already_sent_to[i] = false;
       }
@@ -313,10 +348,19 @@ class Exchanger {
     hg.reset();
     hg.setPartition(received_partition_vector);
     population.insert(Individual(hg, context), context);
-    LOG << preface() << ":"  << "Population " << population << "exchange individuals l.227";
+    LOG << preface() << ":"  << "Population " << population << "exchange individuals";
     delete[] received_partition_pointer;
   }
   
+  
+  
+  
+  
+  
+  
+  
+  
+  //TODO alias _rank == MYSELF
   HyperedgeWeight _current_best_fitness;
   int _maximum_allowed_pushes;
   int _number_of_pushes;
@@ -325,6 +369,9 @@ class Exchanger {
   PartitionBuffer _partition_buffer;
   MPI_Datatype _MPI_Partition;
   MPI_Comm _m_communicator;
+  
+
+  
   
   static constexpr bool debug = true;
   

@@ -33,13 +33,13 @@
 namespace kahypar {
 class Population {
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
  public:
   explicit Population(const Context& context) :
     _individuals(),
     _mpi_rank() { 
-      _mpi_rank = context.communicator.rank;
+      _mpi_rank = context.communicator.getRank();
     }
 
   inline size_t insert(Individual&& individual, const Context& context) {
