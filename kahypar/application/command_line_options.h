@@ -35,7 +35,7 @@
 #include <vector>
 
 #include "kahypar/kahypar.h"
-#include "kahypar/macros.h"
+
 namespace po = boost::program_options;
 
 namespace kahypar {
@@ -545,7 +545,7 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     ("initial-pop-strategy",
     po::value<std::string>()->value_name("<std::string>")->notifier(
       [&](const std::string& popstrat) {
-      context.communicator.population_size = kahypar::mpiPopulationSizeFromString(popstrat);
+      context.communicator.setPopulationSize(kahypar::mpiPopulationSizeFromString(popstrat));
     }),
     "Which MPI population strategy\n"
     "default: as_usual)")

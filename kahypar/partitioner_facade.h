@@ -172,7 +172,7 @@ class PartitionerFacade {
          
     EvoPartitioner evo_partitioner(hypergraph, context);
     evo_partitioner.partition(hypergraph, context);
-    if(context.communicator.rank == 0) {
+    if(context.communicator.getRank() == 0) {
       const std::vector<PartitionID> best_partition = evo_partitioner.bestPartition();
       hypergraph.reset();
 
@@ -181,7 +181,7 @@ class PartitionerFacade {
       }
     }
        
-    if(context.communicator.rank != 0) {
+    if(context.communicator.getRank() != 0) {
       return;
     }
   }
