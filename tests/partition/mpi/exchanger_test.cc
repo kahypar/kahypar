@@ -1,8 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2018 Sebastian Schlag <sebastian.schlag@kit.edu>
- * Copyright (C) 2018 Robin Andre <robinandre1995@web.de>
+ * Copyright (C) 2019 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2019 Robin Andre <robinandre1995@web.de>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
