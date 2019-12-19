@@ -536,16 +536,12 @@ static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
 }
 static MPIPopulationSize mpiPopulationSizeFromString(const std::string& mpipop) {
   if (mpipop == "as_usual") {
-  
     return MPIPopulationSize::as_usual;
-  }
-  else if (mpipop == "equal_sequential_time") {  
+  } else if (mpipop == "equal_sequential_time") {
     return MPIPopulationSize::equal_sequential_time;
-  }
-  else if (mpipop == "equal_to_the_number_of_mpi_processes") {
+  } else if (mpipop == "equal_to_the_number_of_mpi_processes") {
     return MPIPopulationSize::equal_to_the_number_of_mpi_processes;
   }
-  
 }
 
 static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type) {

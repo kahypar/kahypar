@@ -161,7 +161,7 @@ class TwoWayFlowRefiner final : public IRefiner,
         break;
       }
 
-      std::shuffle(cut_hes.begin(), cut_hes.end(),Randomize::instance().getGenerator());
+      std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
 
       // Build Flow Problem
       CutBuildPolicy::buildFlowNetwork(_hg, _context, _flow_network,

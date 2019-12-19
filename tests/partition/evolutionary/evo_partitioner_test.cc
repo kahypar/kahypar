@@ -40,25 +40,23 @@ using ::testing::Test;
 #ifdef KAHYPAR_USE_MPI
 #include <mpi.h>
 namespace kahypar {
-
 class TheEvoPartitioner : public Test {
- protected: 
- static void SetUpTestCase() {
-      int argc = 0;
-      char** argv = NULL;
-      MPI_Init(&argc, &argv);
- }
- static void TearDownTestCase() {
-   MPI_Finalize();
- }
+ protected:
+  static void SetUpTestCase() {
+    int argc = 0;
+    char** argv = NULL;
+    MPI_Init(&argc, &argv);
+  }
+  static void TearDownTestCase() {
+    MPI_Finalize();
+  }
+
  public:
   TheEvoPartitioner() :
     context(),
     hypergraph(6, 1, HyperedgeIndexVector { 0, 6 },
                HyperedgeVector { 0, 1, 2, 3, 4, 5 })
-  { 
-
-    
+  {
     hypergraph.changeK(2);
     parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 2;
@@ -83,7 +81,7 @@ class TheEvoPartitioner : public Test {
 };
 
 TEST_F(TheEvoPartitioner, IsCorrectlyDecidingTheActions) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
 
 
   const int nr_runs = 10;
@@ -108,7 +106,7 @@ TEST_F(TheEvoPartitioner, RespectsLimitsOfTheInitialPopulation) {
   ASSERT_EQ(evo_part._population.size(), 50);
 }
 TEST_F(TheEvoPartitioner, MaintainsPopulationBounds) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   unsigned absurd_population_size = 0;
   ASSERT_EQ(3, evo_part.applyPopulationSizeBounds(absurd_population_size));
   absurd_population_size = 9001;
@@ -123,7 +121,7 @@ TEST_F(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation) {
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
 
 
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   evo_part.generateInitialPopulation(hypergraph, context);
   ASSERT_EQ(evo_part._population.size(), std::min(50.0, std::max(3.0, std::round(context.evolutionary.dynamic_population_amount_of_time
                                                                                  * context.partition.time_limit
@@ -136,20 +134,19 @@ TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
 
 
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   evo_part.partition(hypergraph, context);
   std::vector<double> times = Timer::instance().evolutionaryResult().evolutionary;
   double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
   ASSERT_GT(total_time, context.partition.time_limit);
-  //TODO verify
+  // TODO verify
   double epsilon = 0.001;
   ASSERT_LT(total_time - times.at(times.size() - 1), context.partition.time_limit + epsilon);
 }
 TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
 
   context.evolutionary.dynamic_population_size = true;
-
 
 
   context.communicator.setSize(8);
@@ -157,34 +154,34 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
   context.communicator.setPopulationSize(MPIPopulationSize::as_usual);
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
   context.partition.time_limit = 10;
-  double theoretical_time_needed_for_one_partition = 0.2;  
-  /* Calculate without information about number of mpi processes: 
+  double theoretical_time_needed_for_one_partition = 0.2;
+  /* Calculate without information about number of mpi processes:
      TimeLimit * percentage_of_IP / time_of_partition_number_one
      expected should be in [3,50] because the bounds are already tested.
   */
   double expected = std::round(10 * 0.15 / 0.2);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  
+
   context.communicator.setSize(0);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  
+
   context.communicator.setSize(9001);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  
+
   context.communicator.setPopulationSize(MPIPopulationSize::equal_sequential_time);
   context.communicator.setSize(4);
-  /* Calculate with information about number of mpi processes: 
+  /* Calculate with information about number of mpi processes:
      TimeLimit * percentage_of_IP * number_of_mpi_processes / time_of_partition_number_one
      expected should be in [3,50] because the bounds are already tested.
   */
   expected = std::round(10 * 0.15 / 0.2 * 4);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  
+
   context.communicator.setPopulationSize(MPIPopulationSize::equal_to_the_number_of_mpi_processes);
   context.communicator.setSize(4);
   expected = 4;
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  
+
   context.communicator.setSize(19);
   expected = 19;
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
@@ -200,17 +197,13 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
 #else
 
 namespace kahypar {
-
 class TheEvoPartitioner : public Test {
-
  public:
   TheEvoPartitioner() :
     context(),
     hypergraph(6, 1, HyperedgeIndexVector { 0, 6 },
                HyperedgeVector { 0, 1, 2, 3, 4, 5 })
-  { 
-
-    
+  {
     hypergraph.changeK(2);
     parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
     context.partition.k = 2;
@@ -232,11 +225,10 @@ class TheEvoPartitioner : public Test {
   Hypergraph hypergraph;
 
  private:
-  
 };
 
 TEST_F(TheEvoPartitioner, IsCorrectlyDecidingTheActions) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
 
 
   const int nr_runs = 10;
@@ -261,7 +253,7 @@ TEST_F(TheEvoPartitioner, RespectsLimitsOfTheInitialPopulation) {
   ASSERT_EQ(evo_part._population.size(), 50);
 }
 TEST_F(TheEvoPartitioner, MaintainsPopulationBounds) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   unsigned absurd_population_size = 0;
   ASSERT_EQ(3, evo_part.applyPopulationSizeBounds(absurd_population_size));
   absurd_population_size = 9001;
@@ -276,7 +268,7 @@ TEST_F(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation) {
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
 
 
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   evo_part.generateInitialPopulation(hypergraph, context);
   ASSERT_EQ(evo_part._population.size(), std::min(50.0, std::max(3.0, std::round(context.evolutionary.dynamic_population_amount_of_time
                                                                                  * context.partition.time_limit
@@ -289,40 +281,37 @@ TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
 
 
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
   evo_part.partition(hypergraph, context);
   std::vector<double> times = Timer::instance().evolutionaryResult().evolutionary;
   double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
   ASSERT_GT(total_time, context.partition.time_limit);
-  //TODO verify
+  // TODO verify
   double epsilon = 0.001;
   ASSERT_LT(total_time - times.at(times.size() - 1), context.partition.time_limit + epsilon);
 }
 TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
-  EvoPartitioner evo_part(hypergraph,context);
+  EvoPartitioner evo_part(hypergraph, context);
 
   context.evolutionary.dynamic_population_size = true;
-
-
-
 
 
   context.communicator.setPopulationSize(MPIPopulationSize::as_usual);
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
   context.partition.time_limit = 10;
-  double theoretical_time_needed_for_one_partition = 0.2;  
-  /* Calculate without information about number of mpi processes: 
+  double theoretical_time_needed_for_one_partition = 0.2;
+  /* Calculate without information about number of mpi processes:
      TimeLimit * percentage_of_IP / time_of_partition_number_one
      expected should be in [3,50] because the bounds are already tested.
   */
   double expected = std::round(10 * 0.15 / 0.2);
-  //TODO Assert OK
+  // TODO Assert OK
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
   context.communicator.setPopulationSize(MPIPopulationSize::equal_sequential_time);
 
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
 
-  
+
   context.communicator.setPopulationSize(MPIPopulationSize::equal_to_the_number_of_mpi_processes);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
 }
@@ -330,5 +319,3 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
 
 
 #endif
-
-

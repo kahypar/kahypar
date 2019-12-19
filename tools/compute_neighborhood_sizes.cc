@@ -20,14 +20,14 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
+#include "kahypar/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/macros.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
 
 using namespace kahypar;
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   std::map<HypernodeID, size_t> neighborhood_sizes;
   ds::FastResetFlagArray<> seen_hns(hypergraph.initialNumNodes());
 
-  for (const auto hn : hypergraph.nodes()){
+  for (const auto hn : hypergraph.nodes()) {
     HypernodeID neighborhood_size = 0;
     seen_hns.reset();
     for (const HyperedgeID& he : hypergraph.incidentEdges(hn)) {
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
   std::ofstream out_stream(output_filename.c_str());
   out_stream << "hypergraph," << "size," << "count" << std::endl;
 
-  for (const auto& pair : neighborhood_sizes){
-    out_stream << instance_name <<  "," << pair.first << "," << pair.second << std::endl;
+  for (const auto& pair : neighborhood_sizes) {
+    out_stream << instance_name << "," << pair.first << "," << pair.second << std::endl;
   }
 
   out_stream.close();

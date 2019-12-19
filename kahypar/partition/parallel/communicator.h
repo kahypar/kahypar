@@ -1,26 +1,40 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2019 Sebastian Schlag <sebastian.schlag@kit.edu>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+******************************************************************************/
 #pragma once
-
 
 
 #ifndef KAHYPAR_USE_MPI
 namespace kahypar {
 class Communicator {
-  public :
-  
+ public:
   explicit Communicator() :
     _rank(0),
     _size(1),
-    _population_size(MPIPopulationSize::as_usual) { 
-    /* These values are fixed, if there is no MPI, the rank should be 0 (the main process) 
+    _population_size(MPIPopulationSize::as_usual) {
+    /* These values are fixed, if there is no MPI, the rank should be 0 (the main process)
     the size should be 1 (only one process) and the method for generating the population size
-    should be the method not pertaining information about the mpi status. */  
+    should be the method not pertaining information about the mpi status. */
   }
 
-  inline void init(int argc, char* argv[]) {
-  }
-  inline void finalize() {
-
-  }
+  inline void init(int argc, char* argv[]) { }
+  inline void finalize() { }
   inline int getRank() const {
     return _rank;
   }
@@ -30,18 +44,17 @@ class Communicator {
   inline MPIPopulationSize getPopulationSize() const {
     return _population_size;
   }
-  inline void setPopulationSize(const MPIPopulationSize &pop_size) {
+  inline void setPopulationSize(const MPIPopulationSize& pop_size) {
     /* This method is intentionally left blank, there is no reason to set any other
     MPI Population Size since this is compiled without MPI*/
   }
-  private : 
 
+ private:
   const int _rank;
   const int _size;
   const MPIPopulationSize _population_size;
 };
-
-} //namespace kahypar
+}  // namespace kahypar
 
 #else
 
@@ -50,14 +63,11 @@ class Communicator {
 
 namespace kahypar {
 class Communicator {
-  public :
-  
+ public:
   explicit Communicator() :
     _rank(),
     _size(),
-    _population_size() {
-     
-    }
+    _population_size() { }
 
   inline void init(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
@@ -78,14 +88,14 @@ class Communicator {
   inline MPIPopulationSize getPopulationSize() const {
     return _population_size;
   }
-  inline void setPopulationSize(const MPIPopulationSize &pop_size) {
+  inline void setPopulationSize(const MPIPopulationSize& pop_size) {
     _population_size = pop_size;
   }
-  inline MPI_Comm getCommunicator() const{
+  inline MPI_Comm getCommunicator() const {
     return communicator;
   }
-  private : 
-  
+
+ private:
   inline void setSize(int size) {
     _size = size;
   }
@@ -95,12 +105,8 @@ class Communicator {
   MPI_Comm communicator;
   friend class TheEvoPartitioner;
   FRIEND_TEST(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation);
-  FRIEND_TEST(TheEvoPartitioner, RespectsTheTimeLimit);  
-  FRIEND_TEST(TheEvoPartitioner, CalculatesTheRightPopulationSize); 
-  
- 
+  FRIEND_TEST(TheEvoPartitioner, RespectsTheTimeLimit);
+  FRIEND_TEST(TheEvoPartitioner, CalculatesTheRightPopulationSize);
 };
-} //namespace kahpyar
+}  // namespace kahpyar
 #endif
-
-

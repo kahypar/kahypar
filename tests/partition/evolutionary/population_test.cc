@@ -42,10 +42,9 @@ class APopulation : public Test {
     population(context),
     context(),
     hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 4, 7, 10,  /*sentinel*/ 15 },
-              HyperedgeVector { 0, 1, 4, 5, 1, 5, 6, 3, 6, 7, 0, 1, 2, 4, 5 }) { 
+               HyperedgeVector { 0, 1, 4, 5, 1, 5, 6, 3, 6, 7, 0, 1, 2, 4, 5 }) {
     hypergraph.changeK(4);
     context.partition.quiet_mode = true;
-
   }
   Population population;
   Context context;
