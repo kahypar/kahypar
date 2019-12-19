@@ -43,7 +43,7 @@ class FlowRegionBuildPolicy : public meta::PolicyBase {
                                 const HypernodeWeight max_part_weight,
                                 FastResetFlagArray<>& visited) {
     visited.reset();
-    std::shuffle(start_nodes.begin(), start_nodes.end(),Randomize::instance().getGenerator());
+    std::shuffle(start_nodes.begin(), start_nodes.end(), Randomize::instance().getGenerator());
     std::queue<HypernodeID> Q;
     HypernodeWeight queue_weight = 0;
     for (const HypernodeID& hn : start_nodes) {

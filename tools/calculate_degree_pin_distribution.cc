@@ -20,9 +20,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
@@ -43,11 +43,11 @@ int main(int argc, char* argv[]) {
   std::map<HyperedgeID, size_t> degree_distribution;
   std::map<HypernodeID, size_t> pin_distribution;
 
-  for (const auto hn : hypergraph.nodes()){
+  for (const auto hn : hypergraph.nodes()) {
     ++degree_distribution[hypergraph.nodeDegree(hn)];
   }
 
-  for (const auto he : hypergraph.edges()){
+  for (const auto he : hypergraph.edges()) {
     ++pin_distribution[hypergraph.edgeSize(he)];
   }
 
@@ -60,12 +60,12 @@ int main(int argc, char* argv[]) {
   std::ofstream out_stream(output_filename.c_str());
   out_stream << "hypergraph," << "type," << "size," << "count" << std::endl;
 
-  for (const auto& degree_count : degree_distribution){
-    out_stream << instance_name <<  "," << "degree," << degree_count.first << "," << degree_count.second << std::endl;
+  for (const auto& degree_count : degree_distribution) {
+    out_stream << instance_name << "," << "degree," << degree_count.first << "," << degree_count.second << std::endl;
   }
 
-  for (const auto& size_count : pin_distribution){
-    out_stream << instance_name <<  "," << "size," << size_count.first << "," << size_count.second << std::endl;
+  for (const auto& size_count : pin_distribution) {
+    out_stream << instance_name << "," << "size," << size_count.first << "," << size_count.second << std::endl;
   }
 
   out_stream.close();

@@ -65,7 +65,7 @@ static bool verify(const Matching& matching, const PartitionID k) {
 class BipartiteMaximumFlow {
  public:
   explicit BipartiteMaximumFlow(const AdjacencyMatrix& graph) :
-      _num_nodes(static_cast<size_t>(graph.size()) * 2 + 2),
+    _num_nodes(static_cast<size_t>(graph.size()) * 2 + 2),
     _residualGraph(_num_nodes, std::vector<HypernodeWeight>(_num_nodes, 0)),
     _visited(_num_nodes),
     _parent(_num_nodes, -1),

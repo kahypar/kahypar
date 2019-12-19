@@ -80,7 +80,7 @@ static inline double calculateRelaxedEpsilon(const HypernodeWeight original_hype
   double base = ceil(static_cast<double>(original_hypergraph_weight) / original_context.partition.k)
                 / ceil(static_cast<double>(current_hypergraph_weight) / k)
                 * (1.0 + original_context.partition.epsilon);
-  return std::min(0.99, std::max(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0,0.0));
+  return std::min(0.99, std::max(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0, 0.0));
 }
 
 static inline Context createCurrentBisectionContext(const Context& original_context,

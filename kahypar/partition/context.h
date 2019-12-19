@@ -417,10 +417,10 @@ class Context {
   InitialPartitioningParameters initial_partitioning { };
   LocalSearchParameters local_search { };
   EvolutionaryParameters evolutionary { };
-  Communicator communicator{  };
+  Communicator communicator{ };
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
-  bool partition_evolutionary = false; 
+  bool partition_evolutionary = false;
 
   Context() :
     stats(*this) { }

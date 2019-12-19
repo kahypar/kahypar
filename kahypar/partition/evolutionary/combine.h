@@ -49,7 +49,7 @@ Individual partitions(Hypergraph& hg,
         HyperedgeWeight metric = metrics::km1(hg);
         hg.reset();
         return metric;
-      })(hg,parents));
+      })(hg, parents));
   DBG << "initial" << V(metrics::km1(hg)) << V(metrics::imbalance(hg, context));
 
   ASSERT(parents.second.fitness() == ([](Hypergraph& hg, const Parents& parents) -> int {
@@ -57,7 +57,7 @@ Individual partitions(Hypergraph& hg,
         HyperedgeWeight metric = metrics::km1(hg);
         hg.reset();
         return metric;
-      })(hg,parents));
+      })(hg, parents));
 
 #endif
 
