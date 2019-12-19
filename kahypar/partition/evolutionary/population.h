@@ -33,7 +33,7 @@
 namespace kahypar {
 class Population {
  private:
-  static constexpr bool debug = true;
+  static constexpr bool debug = false;
 
  public:
   explicit Population(const Context& context) :

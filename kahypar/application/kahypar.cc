@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
-  
+  context.partition.seed = context.partition.seed + context.communicator.getRank();
   kahypar::PartitionerFacade().partition(hypergraph, context);
   context.communicator.finalize();
 
