@@ -219,11 +219,6 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
   endif()
 
-  include(FindAVX)
-  if( NOT AVX_FOUND )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-avx")
-  endif()
-
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag(-mcrc32 KAHYPAR_HAS_CRC32)
   if(KAHYPAR_HAS_CRC32)
