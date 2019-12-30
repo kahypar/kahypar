@@ -26,6 +26,8 @@
 #include <random>
 #include <vector>
 
+#include "kahypar/macros.h"
+
 namespace kahypar {
 class Randomize {
  public:
@@ -35,7 +37,11 @@ class Randomize {
   Randomize& operator= (Randomize&&) = delete;
 
   static Randomize & instance() {
+    #ifndef KAHYPAR_SHARED_MEMORY_MODE
     static Randomize instance;
+    #else
+    static thread_local Randomize instance;
+    #endif
     return instance;
   }
 

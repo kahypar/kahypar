@@ -41,6 +41,13 @@
 #define unlikely(x) x
 #endif
 
+// Define thread local storage macro
+#if defined (_MSC_VER)
+    #define thread_local __declspec( thread )
+#elif defined (__GNUC__)
+    #define thread_local __thread
+#endif
+
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 // http://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value#196093
