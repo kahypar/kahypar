@@ -104,9 +104,13 @@ class Timer {
   };
 
  public:
+  #ifndef KAHYPAR_SHARED_MEMORY_MODE
   void add(const Context& context, const Timepoint& timepoint, const double& time) {
     _timings.emplace_back(context, timepoint, time);
   }
+  #else
+  void add(const Context&, const Timepoint&, const double&) { }
+  #endif
 
   static Timer & instance() {
     static Timer instance;
@@ -114,9 +118,11 @@ class Timer {
   }
 
   void clear() {
+    #ifndef KAHYPAR_SHARED_MEMORY_MODE
     _timings.clear();
-    _evaluated = false;
     _result = Result{ };
+    #endif
+    _evaluated = false;
   }
 
 
@@ -127,6 +133,7 @@ class Timer {
     }
     return _result;
   }
+
   const Result & evolutionaryResult() {
     _result.total_evolutionary = 0;
     std::vector<double> time_vector;
@@ -136,7 +143,9 @@ class Timer {
         _result.total_evolutionary += timing.time;
       }
     }
+    #ifndef KAHYPAR_SHARED_MEMORY_MODE
     _result.evolutionary = time_vector;
+    #endif
     return _result;
   }
 
