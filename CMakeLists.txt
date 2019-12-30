@@ -217,7 +217,10 @@ if(NOT MSVC)
   include(CheckSSE4_2)
   if( BUILTIN_POPCNT )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
-  else()
+  endif()
+
+  include(FindAVX)
+  if( NOT AVX_FOUND )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-avx")
   endif()
 
