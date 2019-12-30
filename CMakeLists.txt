@@ -35,6 +35,9 @@ option(KAHYPAR_USE_STANDARD_ASSERTIONS
 option(KAHYPAR_USE_CPPCHECK
   "Enable static analysis via cppcheck" OFF)
 
+option(KAHYPAR_SHARED_MEMORY_MODE
+  "Thread-safe version of KaHyPar" OFF)
+
 if(KAHYPAR_DISABLE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
 endif(KAHYPAR_DISABLE_ASSERTIONS)
@@ -43,6 +46,10 @@ if(KAHYPAR_USE_STANDARD_ASSERTIONS)
   add_compile_definitions(KAHYPAR_USE_STANDARD_ASSERTIONS)
 endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
+if(KAHYPAR_SHARED_MEMORY_MODE)
+  add_compile_definitions(KAHYPAR_SHARED_MEMORY_MODE)
+endif(KAHYPAR_SHARED_MEMORY_MODE)
+
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
@@ -50,10 +57,10 @@ if(KAHYPAR_USE_CPPCHECK)
   find_program(CMAKE_CXX_CPPCHECK cppcheck)
   if(CMAKE_CXX_CPPCHECK)
     list(
-      APPEND CMAKE_CXX_CPPCHECK 
+      APPEND CMAKE_CXX_CPPCHECK
       "--enable=all"
       "--inconclusive"
-      "--force" 
+      "--force"
       "--inline-suppr"
       )
   endif(CMAKE_CXX_CPPCHECK)
@@ -224,7 +231,7 @@ if(NOT MSVC)
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ") 
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ")
 
   if(ENABLE_PROFILE MATCHES ON)
     message(STATUS "Profiling activated")
