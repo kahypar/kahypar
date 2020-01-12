@@ -21,8 +21,12 @@
 #pragma once
 
 
-#ifndef KAHYPAR_USE_MPI
+#ifdef KAHYPAR_USE_MPI
+#include <mpi.h>
+#endif
+
 namespace kahypar {
+#ifndef KAHYPAR_USE_MPI
 class Communicator {
  public:
   explicit Communicator() :
@@ -55,14 +59,9 @@ class Communicator {
   const int _size;
   const MPIPopulationSize _population_size;
 };
-}  // namespace kahypar
 
 #else
 
-
-#include <mpi.h>
-
-namespace kahypar {
 class Communicator {
  public:
   explicit Communicator() :
@@ -109,5 +108,5 @@ class Communicator {
   FRIEND_TEST(TheEvoPartitioner, RespectsTheTimeLimit);
   FRIEND_TEST(TheEvoPartitioner, CalculatesTheRightPopulationSize);
 };
-}  // namespace kahpyar
 #endif
+}  // namespace kahpyar
