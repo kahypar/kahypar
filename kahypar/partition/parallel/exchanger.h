@@ -20,6 +20,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <algorithm>
 
 #ifdef KAHYPAR_USE_MPI
 #include <mpi.h>
@@ -98,10 +99,7 @@ class Exchanger {
 
 
   inline void exchangeInitialPopulations(Population& population, const Context& context, Hypergraph& hg, const int& amount_of_individuals_already_generated) {
-    int number_of_exchanges_required = context.evolutionary.population_size - amount_of_individuals_already_generated;
-    if (number_of_exchanges_required < 0) {
-      number_of_exchanges_required = 0;
-    }
+    const size_t number_of_exchanges_required = std::max(context.evolutionary.population_size - amount_of_individuals_already_generated, static_cast<size_t>(0));
     for (int i = 0; i < number_of_exchanges_required; ++i) {
       exchangeIndividuals(population, context, hg);
       DBG << preface() << "Population " << population << " exchange individuals";
