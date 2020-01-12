@@ -21,8 +21,16 @@
 #pragma once
 
 
-#ifndef KAHYPAR_USE_MPI
+#ifdef KAHYPAR_USE_MPI
+#include <mpi.h>
+
+#include "kahypar/partition/evolutionary/population.h"
+#include "kahypar/utils/randomize.h"
+#endif
+
 namespace kahypar {
+#ifndef KAHYPAR_USE_MPI
+
 class Exchanger {
  public:
   Exchanger(size_t hypergraph_size) { }
@@ -33,15 +41,9 @@ class Exchanger {
   inline void sendMessages(const Context& context, Hypergraph& hg, Population& population) { }
   inline void broadcastPopulationSize(Context& context) { }
 };
-}  // namespace kahypar
+
 #else
 
-#include "kahypar/partition/evolutionary/population.h"
-#include "kahypar/utils/randomize.h"
-
-#include <mpi.h>
-
-namespace kahypar {
 class Exchanger {
  public:
   Exchanger(size_t hypergraph_size) :
@@ -326,6 +328,5 @@ class Exchanger {
     return "[MPI Rank " + std::to_string(_rank) + "] ";
   }
 };
-}
-// namespace kahypar
 #endif
+} // namespace kahypar
