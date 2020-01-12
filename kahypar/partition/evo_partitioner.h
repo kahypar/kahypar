@@ -263,8 +263,7 @@ class EvoPartitioner {
   }
   inline std::string preface(const Context& context) {
     return "[MPI Rank " + std::to_string(context.communicator.getRank()) + "] ";
-  }
-  inline void print(const Context& context) { }
+  } 
 
   int _timelimit;
   Exchanger _exchanger;
