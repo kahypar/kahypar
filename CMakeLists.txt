@@ -33,7 +33,7 @@ option(KAHYPAR_USE_STANDARD_ASSERTIONS
   "Use standard C++ asserts instead of custom assertions." OFF)
   
 option(KAHYPAR_USE_MPI
-  "Compile with MPI." OFF)
+  "Compile with MPI support for the memetic algorithm KaHyPar-E." OFF)
   
 
 
@@ -47,7 +47,6 @@ if(KAHYPAR_USE_MPI)
   find_package(MPI REQUIRED)
   include_directories(${MPI_INCLUDE_PATH})
   link_libraries(${MPI_LIBRARIES})
-  
 endif(KAHYPAR_USE_MPI) 
 
 option(KAHYPAR_USE_CPPCHECK
