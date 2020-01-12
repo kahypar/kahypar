@@ -53,10 +53,10 @@ class Exchanger {
     _rank(),
     _individual_already_sent_to(),
     _MPI_Partition(),
-    _m_communicator(MPI_COMM_WORLD) {
-    MPI_Comm_rank(_m_communicator, &_rank);
+    _communicator(MPI_COMM_WORLD) {
+    MPI_Comm_rank(_communicator, &_rank);
     int comm_size;
-    MPI_Comm_size(_m_communicator, &comm_size);
+    MPI_Comm_size(_communicator, &comm_size);
     if (comm_size > 2) {
       _maximum_allowed_pushes = ceil(log2(comm_size));
     } else {
@@ -75,11 +75,11 @@ class Exchanger {
   Exchanger& operator= (Exchanger&&) = delete;
 
   ~Exchanger() {
-    MPI_Barrier(_m_communicator);
+    MPI_Barrier(_communicator);
 
     int flag;
     MPI_Status st;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
     DBG << preface() << "DESTRUCTOR";
     while (flag) {
       int message_length;
@@ -87,13 +87,13 @@ class Exchanger {
       DBG << preface() << "Entering the fray";
       int* partition_map = new int[message_length];
       MPI_Status rst;
-      MPI_Recv(partition_map, message_length, MPI_INT, st.MPI_SOURCE, _rank, _m_communicator, &rst);
+      MPI_Recv(partition_map, message_length, MPI_INT, st.MPI_SOURCE, _rank, _communicator, &rst);
 
       delete[] partition_map;
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
     }
     MPI_Type_free(&_MPI_Partition);
-    MPI_Barrier(_m_communicator);
+    MPI_Barrier(_communicator);
   }
 
 
@@ -120,7 +120,7 @@ class Exchanger {
     int best_local_objective = population.individualAt(population.best()).fitness();
     int best_global_objective = 0;
 
-    MPI_Allreduce(&best_local_objective, &best_global_objective, 1, MPI_INT, MPI_MIN, _m_communicator);
+    MPI_Allreduce(&best_local_objective, &best_global_objective, 1, MPI_INT, MPI_MIN, _communicator);
 
     int broadcast_rank = std::numeric_limits<int>::max();
     int global_broadcaster = 0;
@@ -129,9 +129,9 @@ class Exchanger {
       broadcast_rank = _rank;
     }
 
-    MPI_Allreduce(&broadcast_rank, &global_broadcaster, 1, MPI_INT, MPI_MIN, _m_communicator);
+    MPI_Allreduce(&broadcast_rank, &global_broadcaster, 1, MPI_INT, MPI_MIN, _communicator);
     DBG << preface() << "Determine Broadcaster (MAXINT if NOT) " << broadcast_rank;
-    MPI_Bcast(best_local_partition.data(), hg.initialNumNodes(), MPI_INT, global_broadcaster, _m_communicator);
+    MPI_Bcast(best_local_partition.data(), hg.initialNumNodes(), MPI_INT, global_broadcaster, _communicator);
 
     hg.setPartition(best_local_partition);
     population.insert(Individual(hg, context), context);
@@ -171,7 +171,7 @@ class Exchanger {
       const std::vector<PartitionID>& partition_vector = population.individualAt(population.best()).partition();
 
       MPI_Request request;
-      MPI_Isend(&partition_vector[0], 1, _MPI_Partition, new_target, new_target, _m_communicator, &request);
+      MPI_Isend(&partition_vector[0], 1, _MPI_Partition, new_target, new_target, _communicator, &request);
       incrementSendQuota();
       closeTarget(new_target);
     }
@@ -180,13 +180,13 @@ class Exchanger {
   inline void receiveIndividual(const Context& context, Hypergraph& hg, Population& population) {
     int flag;
     MPI_Status st;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
+    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
     DBG << preface() << "Receiving";
     while (flag) {
       std::vector<PartitionID> receive_vector;
       receive_vector.resize(hg.initialNumNodes());
       MPI_Status rst;
-      MPI_Recv(&receive_vector[0], 1, _MPI_Partition, st.MPI_SOURCE, _rank, _m_communicator, &rst);
+      MPI_Recv(&receive_vector[0], 1, _MPI_Partition, st.MPI_SOURCE, _rank, _communicator, &rst);
       hg.reset();
       hg.setPartition(receive_vector);
 
@@ -206,7 +206,7 @@ class Exchanger {
         resetSendQuota();
       }
       closeTarget(st.MPI_SOURCE);  // We do not want to send the partition back
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _m_communicator, &flag, &st);
+      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
     }
   }
   inline void exchangeIndividuals(Population& population, const Context& context, Hypergraph& hg) {
@@ -218,7 +218,7 @@ class Exchanger {
       std::iota(std::begin(permutation_of_mpi_process_numbers), std::end(permutation_of_mpi_process_numbers), 0);
       degenerate(permutation_of_mpi_process_numbers);
     }
-    MPI_Bcast(permutation_of_mpi_process_numbers.data(), context.communicator.getSize(), MPI_INT, 0, _m_communicator);
+    MPI_Bcast(permutation_of_mpi_process_numbers.data(), context.communicator.getSize(), MPI_INT, 0, _communicator);
 
 
     int sending_to = permutation_of_mpi_process_numbers[_rank];
@@ -231,7 +231,7 @@ class Exchanger {
     MPI_Status st;
 
     MPI_Sendrecv(outgoing_partition.data(), 1, _MPI_Partition, sending_to, 0,
-                 &received_partition_vector[0], 1, _MPI_Partition, receiving_from, 0, _m_communicator, &st);
+                 &received_partition_vector[0], 1, _MPI_Partition, receiving_from, 0, _communicator, &st);
 
 
     hg.reset();
@@ -320,7 +320,7 @@ class Exchanger {
   int _rank;
   std::vector<bool> _individual_already_sent_to;
   MPI_Datatype _MPI_Partition;
-  MPI_Comm _m_communicator;
+  MPI_Comm _communicator;
 
   static constexpr bool debug = true;
 
