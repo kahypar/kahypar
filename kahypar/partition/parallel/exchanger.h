@@ -136,17 +136,15 @@ class Exchanger {
   }
 
   inline void sendMessages(const Context& context, Hypergraph& hg, Population& population) {
-    unsigned messages = ceil(log(context.communicator.getSize()));
+    const size_t messages = ceil(log(context.communicator.getSize()));
 
-    for (unsigned i = 0; i < messages; ++i) {
+    for (size_t i = 0; i < messages; ++i) {
       sendBestIndividual(population);
       receiveIndividual(context, hg, population);
     }
   }
   inline void broadcastPopulationSize(Context& context) {
     MPI_Bcast(&context.evolutionary.population_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
