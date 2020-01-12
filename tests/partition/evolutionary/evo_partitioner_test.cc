@@ -23,6 +23,9 @@
 #include <string>
 #include <vector>
 
+#ifdef KAHYPAR_USE_MPI
+#include <mpi.h>
+#endif
 
 #include "gmock/gmock.h"
 #include "kahypar/application/command_line_options.h"
@@ -38,7 +41,6 @@ using ::testing::Eq;
 using ::testing::Test;
 
 #ifdef KAHYPAR_USE_MPI
-#include <mpi.h>
 namespace kahypar {
 class TheEvoPartitioner : public Test {
  protected:
