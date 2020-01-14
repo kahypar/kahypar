@@ -121,19 +121,19 @@ class EvoPartitioner {
     int estimated_population_size;
     switch (context.communicator.getPopulationSize()) {
       LOG << preface(context) << "the chosen strategy " << context.communicator.getPopulationSize();
-      case MPIPopulationSize::equal_sequential_time:
-        LOG << preface(context) << "equal_seq";
+      case MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs:
+        LOG << preface(context) << "dynamic_percentage_of_total_time_times_num_procs";
         estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                                * context.partition.time_limit
                                                * context.communicator.getSize()
                                                / measured_time_for_one_partition);
         break;
       case MPIPopulationSize::equal_to_the_number_of_mpi_processes:
-        LOG << preface(context) << "equal_tothe";
+        LOG << preface(context) << "equal_to_the_number_of_mpi_processes";
         estimated_population_size = context.communicator.getSize();
         break;
-      case MPIPopulationSize::as_usual:
-        LOG << preface(context) << "as usual";
+      case MPIPopulationSize::dynamic_percentage_of_total_time:
+        LOG << preface(context) << "dynamic_percentage_of_total_time";
         estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                                * context.partition.time_limit
                                                / measured_time_for_one_partition);

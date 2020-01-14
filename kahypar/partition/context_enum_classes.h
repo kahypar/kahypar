@@ -158,10 +158,11 @@ enum class EvoDecision :uint8_t {
   mutation,
   combine
 };
+
 enum class MPIPopulationSize : uint8_t {
-  equal_sequential_time,
+  dynamic_percentage_of_total_time_times_num_procs,
   equal_to_the_number_of_mpi_processes,
-  as_usual
+  dynamic_percentage_of_total_time
 };
 
 enum class FlowAlgorithm : uint8_t {
@@ -184,9 +185,9 @@ enum class FlowExecutionMode : uint8_t {
 
 std::ostream& operator<< (std::ostream& os, const MPIPopulationSize& mpipop) {
   switch (mpipop) {
-    case MPIPopulationSize::equal_sequential_time: return os << "equal_sequential_time";
+    case MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs: return os << "dynamic_percentage_of_total_time_times_num_procs";
     case MPIPopulationSize::equal_to_the_number_of_mpi_processes: return os << "equal_to_the_number_of_mpi_processes";
-    case MPIPopulationSize::as_usual: return os << "as_usual";
+    case MPIPopulationSize::dynamic_percentage_of_total_time: return os << "dynamic_percentage_of_total_time";
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(mpipop);
@@ -535,10 +536,10 @@ static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
   return RefinementStoppingRule::simple;
 }
 static MPIPopulationSize mpiPopulationSizeFromString(const std::string& mpipop) {
-  if (mpipop == "as_usual") {
-    return MPIPopulationSize::as_usual;
-  } else if (mpipop == "equal_sequential_time") {
-    return MPIPopulationSize::equal_sequential_time;
+  if (mpipop == "dynamic_percentage_of_total_time") {
+    return MPIPopulationSize::dynamic_percentage_of_total_time;
+  } else if (mpipop == "dynamic_percentage_of_total_time_times_num_procs") {
+    return MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs;
   } else if (mpipop == "equal_to_the_number_of_mpi_processes") {
     return MPIPopulationSize::equal_to_the_number_of_mpi_processes;
   }

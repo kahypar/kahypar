@@ -32,7 +32,7 @@ class Communicator {
   explicit Communicator() :
     _rank(0),
     _size(1),
-    _population_size(MPIPopulationSize::as_usual) {
+    _population_size(MPIPopulationSize::dynamic_percentage_of_total_time) {
     /* These values are fixed, if there is no MPI, the rank should be 0 (the main process)
     the size should be 1 (only one process) and the method for generating the population size
     should be the method not pertaining information about the mpi status. */

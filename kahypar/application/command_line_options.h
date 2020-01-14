@@ -547,8 +547,11 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       [&](const std::string& popstrat) {
       context.communicator.setPopulationSize(kahypar::mpiPopulationSizeFromString(popstrat));
     }),
-    "Which MPI population strategy\n"
-    "default: as_usual)")
+    "Which formula should be used to determine population size. (Only relevant for MPI)\n"
+    "(NP := Number of MPI processes; t := value of --total-time; d:= value of --dynamic-population-time)\n" 
+    "-dynamic_percentage_of_total_time                 := d * t      (default 15% * t)\n"
+    "-dynamic_percentage_of_total_time_times_num_procs := d * t * NP \n"
+    "-equal_to_the_number_of_mpi_processes             := NP")
     ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {
