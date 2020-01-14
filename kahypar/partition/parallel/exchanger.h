@@ -109,7 +109,7 @@ class Exchanger {
 
   inline void collectBestPartition(Population& population, Hypergraph& hg, const Context& context) {
     MPI_Barrier(MPI_COMM_WORLD);
-    receiveIndividual(context, hg, population);
+    receiveIndividuals(context, hg, population);
 
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -140,12 +140,14 @@ class Exchanger {
 
     for (size_t i = 0; i < messages; ++i) {
       sendBestIndividual(population);
-      receiveIndividual(context, hg, population);
+      receiveIndividuals(context, hg, population);
     }
   }
   inline void broadcastPopulationSize(Context& context) {
     MPI_Bcast(&context.evolutionary.population_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    
     MPI_Barrier(MPI_COMM_WORLD);
+    DBG << preface() << context.evolutionary.population_size;
   }
 
  private:
@@ -173,12 +175,13 @@ class Exchanger {
     }
   }
 
-  inline void receiveIndividual(const Context& context, Hypergraph& hg, Population& population) {
+  inline void receiveIndividuals(const Context& context, Hypergraph& hg, Population& population) {
     int flag;
     MPI_Status st;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
     DBG << preface() << "Receiving";
     while (flag) {
+    DBG << preface() << "Attempting a receive";
       std::vector<PartitionID> receive_vector;
       receive_vector.resize(hg.initialNumNodes());
       MPI_Status rst;
