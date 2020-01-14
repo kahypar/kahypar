@@ -53,7 +53,9 @@ class Communicator {
     /* This method is intentionally left blank, there is no reason to set any other
     MPI Population Size since this is compiled without MPI*/
   }
-
+  inline std::string preface() const{
+    return "";
+  }
  private:
   const int _rank;
   const int _size;
@@ -61,7 +63,6 @@ class Communicator {
 };
 
 #else
-
 class Communicator {
  public:
   explicit Communicator() :
@@ -94,7 +95,9 @@ class Communicator {
   inline MPI_Comm getCommunicator() const {
     return communicator;
   }
-
+  inline std::string preface() const {
+    return "[MPI Rank " + std::to_string(_rank) + "] ";
+  }
  private:
   inline void setSize(int size) {
     _size = size;
