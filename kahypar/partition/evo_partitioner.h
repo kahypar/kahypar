@@ -61,7 +61,7 @@ class EvoPartitioner {
   inline void partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
 
-    LOG << preface(context) << "seed: " << context.partition.seed;
+    LOG << context.communicator.preface() << "seed: " << context.partition.seed;
 
 
     generateInitialPopulation(hg, context);
@@ -77,7 +77,7 @@ class EvoPartitioner {
 
 
       EvoDecision decision = decideNextMove(context);
-      DBG << preface(context) << V(decision);
+      DBG << context.communicator.preface() << V(decision);
       switch (decision) {
         case EvoDecision::mutation:
           performMutation(hg, context);
@@ -86,7 +86,7 @@ class EvoPartitioner {
           performCombine(hg, context);
           break;
         default:
-          LOG << preface(context) << "Error in evo_partitioner.h: Non-covered case in decision making";
+          LOG << context.communicator.preface() << "Error in evo_partitioner.h: Non-covered case in decision making";
           std::exit(EXIT_FAILURE);
       }
       _exchanger.sendMessages(context, hg, _population);
@@ -117,23 +117,23 @@ class EvoPartitioner {
   FRIEND_TEST(TheEvoPartitioner, RespectsTheTimeLimit);
 
   inline unsigned determinePopulationSize(double measured_time_for_one_partition, const Context& context) {
-    LOG << preface(context) << "MEASURED TIME " << measured_time_for_one_partition;
+    LOG << context.communicator.preface() << "MEASURED TIME " << measured_time_for_one_partition;
     int estimated_population_size;
     switch (context.communicator.getPopulationSize()) {
-      LOG << preface(context) << "the chosen strategy " << context.communicator.getPopulationSize();
+      LOG << context.communicator.preface() << "the chosen strategy " << context.communicator.getPopulationSize();
       case MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs:
-        LOG << preface(context) << "dynamic_percentage_of_total_time_times_num_procs";
+        LOG << context.communicator.preface() << "dynamic_percentage_of_total_time_times_num_procs";
         estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                                * context.partition.time_limit
                                                * context.communicator.getSize()
                                                / measured_time_for_one_partition);
         break;
       case MPIPopulationSize::equal_to_the_number_of_mpi_processes:
-        LOG << preface(context) << "equal_to_the_number_of_mpi_processes";
+        LOG << context.communicator.preface() << "equal_to_the_number_of_mpi_processes";
         estimated_population_size = context.communicator.getSize();
         break;
       case MPIPopulationSize::dynamic_percentage_of_total_time:
-        LOG << preface(context) << "dynamic_percentage_of_total_time";
+        LOG << context.communicator.preface() << "dynamic_percentage_of_total_time";
         estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
                                                * context.partition.time_limit
                                                / measured_time_for_one_partition);
@@ -152,7 +152,7 @@ class EvoPartitioner {
     if (context.evolutionary.dynamic_population_size) {
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
       _population.generateIndividual(hg, context);
-      DBG << preface(context) << "Population " << _population << " generateInitialPopulation";
+      DBG << context.communicator.preface() << "Population " << _population << " generateInitialPopulation";
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       Timer::instance().add(context, Timepoint::evolutionary,
                             std::chrono::duration<double>(end - start).count());
@@ -161,7 +161,7 @@ class EvoPartitioner {
       io::serializer::serializeEvolutionary(context, hg);
 
       context.evolutionary.population_size = determinePopulationSize(Timer::instance().evolutionaryResult().total_evolutionary, context);
-      LOG << preface(context) << context.evolutionary.population_size;
+      LOG << context.communicator.preface() << context.evolutionary.population_size;
 
       _exchanger.broadcastPopulationSize(context);
     }
@@ -171,27 +171,27 @@ class EvoPartitioner {
 
 
     size_t desired_repetitions_for_initial_partitioning;
-    DBG << preface(context) << " Quickstart? " << context.evolutionary.parallel_partitioning_quick_start;
+    DBG << context.communicator.preface() << " Quickstart? " << context.evolutionary.parallel_partitioning_quick_start;
 
     if (context.evolutionary.parallel_partitioning_quick_start) {
       desired_repetitions_for_initial_partitioning = ceil((float)context.evolutionary.population_size / context.communicator.getSize());
     } else {
       desired_repetitions_for_initial_partitioning = context.evolutionary.population_size;
     }
-    DBG << preface(context) << "desired_repetitions " << desired_repetitions_for_initial_partitioning;
-    DBG << preface(context) << "context.evolutionary.population_size " << context.evolutionary.population_size;
+    DBG << context.communicator.preface() << "desired_repetitions " << desired_repetitions_for_initial_partitioning;
+    DBG << context.communicator.preface() << "context.evolutionary.population_size " << context.evolutionary.population_size;
 
     while (_population.size() < desired_repetitions_for_initial_partitioning &&
            Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
       _population.generateIndividual(hg, context);
-      DBG << preface(context) << "Population " << _population << " generateInitialPopulation";
+      DBG << context.communicator.preface() << "Population " << _population << " generateInitialPopulation";
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
       Timer::instance().add(context, Timepoint::evolutionary,
                             std::chrono::duration<double>(end - start).count());
       io::serializer::serializeEvolutionary(context, hg);
-      DBG << preface(context) << "Population " << _population;
+      DBG << context.communicator.preface() << "Population " << _population;
     }
 
 
@@ -215,16 +215,16 @@ class EvoPartitioner {
     switch (context.evolutionary.combine_strategy) {
       case EvoCombineStrategy::basic: {
           size_t insert_position = _population.insert(combine::usingTournamentSelection(hg, context, _population), context);
-          DBG << preface(context) << "Population " << _population << " basic combine";
+          DBG << context.communicator.preface() << "Population " << _population << " basic combine";
           break;
         }
       case EvoCombineStrategy::edge_frequency: {
           size_t insert_position = _population.insert(combine::edgeFrequency(hg, context, _population), context);
-          DBG << preface(context) << "Population " << _population << " edge frequency combine";
+          DBG << context.communicator.preface() << "Population " << _population << " edge frequency combine";
           break;
         }
       case EvoCombineStrategy::UNDEFINED:
-        LOG << preface(context) << "Partitioner called without combine strategy";
+        LOG << context.communicator.preface() << "Partitioner called without combine strategy";
         std::exit(-1);
         // omit default case to trigger compiler warning for missing cases
     }
@@ -238,8 +238,8 @@ class EvoPartitioner {
     const size_t mutation_position = _population.randomIndividual();
     EvoMutateStrategy original_strategy = context.evolutionary.mutate_strategy;
     context.evolutionary.mutate_strategy = pick::appropriateMutateStrategy(context);
-    DBG << preface(context) << V(context.evolutionary.mutate_strategy);
-    DBG << preface(context) << V(mutation_position);
+    DBG << context.communicator.preface() << V(context.evolutionary.mutate_strategy);
+    DBG << context.communicator.preface() << V(mutation_position);
     switch (context.evolutionary.mutate_strategy) {
       case EvoMutateStrategy::new_initial_partitioning_vcycle:
 
@@ -247,23 +247,20 @@ class EvoPartitioner {
           mutate::vCycleWithNewInitialPartitioning(hg,
                                                    _population.individualAt(mutation_position),
                                                    context), context);
-        DBG << preface(context) << "Population " << _population << " vcyclenewIP mutation";
+        DBG << context.communicator.preface() << "Population " << _population << " vcyclenewIP mutation";
         break;
       case EvoMutateStrategy::vcycle:
         _population.insert(
           mutate::vCycle(hg, _population.individualAt(mutation_position), context), context);
-        DBG << preface(context) << "Population " << _population << " vcycle mutation";
+        DBG << context.communicator.preface() << "Population " << _population << " vcycle mutation";
         break;
       case EvoMutateStrategy::UNDEFINED:
-        LOG << preface(context) << "Partitioner called without mutation strategy";
+        LOG << context.communicator.preface() << "Partitioner called without mutation strategy";
         std::exit(-1);
         // omit default case to trigger compiler warning for missing cases
     }
     context.evolutionary.mutate_strategy = original_strategy;
   }
-  inline std::string preface(const Context& context) {
-    return "[MPI Rank " + std::to_string(context.communicator.getRank()) + "] ";
-  } 
 
   int _timelimit;
   Exchanger _exchanger;
