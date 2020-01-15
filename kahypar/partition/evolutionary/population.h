@@ -211,6 +211,12 @@ class Population {
       _individuals[i].printDebug();
     }
   }
+  inline std::string pointers() const {
+    std::string ret = "";
+    for (size_t i = 0; i < _individuals.size(); ++i) {
+      ret.append(std::to_string(individualAt(i).partition()[0]) + " ");
+    }
+  }
   inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
