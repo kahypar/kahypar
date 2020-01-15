@@ -101,7 +101,6 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
 
   context.partition.k = num_blocks;
   context.partition.epsilon = epsilon;
-  context.partition.quiet_mode = true;
   context.partition.write_partition_file = false;
 
   kahypar::Hypergraph hypergraph(num_vertices,
