@@ -82,6 +82,7 @@ before_script:
       $CMAKE_ARGS ..
 
 script:
+  - export TRAVIS_ENV=1
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
       travis_wait 30 make clean all;
