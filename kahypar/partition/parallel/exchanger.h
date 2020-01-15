@@ -76,25 +76,7 @@ class Exchanger {
   Exchanger& operator= (Exchanger&&) = delete;
 
   ~Exchanger() {
-    MPI_Barrier(_communicator);
-
-    int flag;
-    MPI_Status st;
-    MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
-    DBG << preface() << "DESTRUCTOR";
-    while (flag) {
-      int message_length;
-      MPI_Get_count(&st, MPI_INT, &message_length);
-      DBG << preface() << "Entering the fray";
-      int* partition_map = new int[message_length];
-      MPI_Status rst;
-      MPI_Recv(partition_map, message_length, MPI_INT, st.MPI_SOURCE, _rank, _communicator, &rst);
-
-      delete[] partition_map;
-      MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
-    }
     MPI_Type_free(&_MPI_Partition);
-    MPI_Barrier(_communicator);
   }
 
 
@@ -108,11 +90,12 @@ class Exchanger {
 
 
   inline void collectBestPartition(Population& population, Hypergraph& hg, const Context& context) {
-      DBG << preface() << "Starting Collect Best Partition";
+    DBG << preface() << "Starting Collect Best Partition";
+    //This Barrier exists to ensure that all processes have finished sending. 
     MPI_Barrier(MPI_COMM_WORLD);
     receiveIndividuals(context, hg, population);
 
-
+    //And this Barrier ensures that all the sent partitions are read in.
     MPI_Barrier(MPI_COMM_WORLD);
     DBG << preface() << " Second Collect Best Partition";
     std::vector<PartitionID> best_local_partition(population.individualAt(population.best()).partition());
