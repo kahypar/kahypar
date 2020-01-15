@@ -75,6 +75,7 @@ before_script:
   # configure
   - cd "${TRAVIS_BUILD_DIR}"
   - mkdir build; cp sonar-project.properties build; cd build
+  - export TRAVIS_ENV=1
   - cmake
       -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX" -DKAHYPAR_USE_GCOV="$COV"
@@ -82,7 +83,6 @@ before_script:
       $CMAKE_ARGS ..
 
 script:
-  - export TRAVIS_ENV=1
   - |
     if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
       travis_wait 30 make clean all;
