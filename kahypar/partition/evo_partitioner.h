@@ -97,7 +97,6 @@ class EvoPartitioner {
     _exchanger.collectBestPartition(_population, hg, context);
 
 
-    hg.reset();
     hg.setPartition(_population.individualAt(_population.best()).partition());
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(context, Timepoint::evolutionary,
