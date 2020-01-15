@@ -54,7 +54,7 @@ class Exchanger {
     _rank(),
     _individual_already_sent_to(),
     _MPI_Partition(),
-    _communicator(MPI_COMM_WORLD) {
+    _communicator(MPI_COMM_WORLD){
     MPI_Comm_rank(_communicator, &_rank);
     int comm_size;
     MPI_Comm_size(_communicator, &comm_size);
@@ -65,7 +65,7 @@ class Exchanger {
     }
 
     _individual_already_sent_to = std::vector<bool>(comm_size);
-
+    _receive_vector.resize(hypergraph_size);
     MPI_Type_contiguous(hypergraph_size, MPI_INT, &_MPI_Partition);
     MPI_Type_commit(&_MPI_Partition);
   }
@@ -108,12 +108,13 @@ class Exchanger {
 
 
   inline void collectBestPartition(Population& population, Hypergraph& hg, const Context& context) {
+      DBG << preface() << "Starting Collect Best Partition";
     MPI_Barrier(MPI_COMM_WORLD);
     receiveIndividuals(context, hg, population);
 
 
     MPI_Barrier(MPI_COMM_WORLD);
-    DBG << preface() << "Collect Best Partition";
+    DBG << preface() << " Second Collect Best Partition";
     std::vector<PartitionID> best_local_partition(population.individualAt(population.best()).partition());
     int best_local_objective = population.individualAt(population.best()).fitness();
     int best_global_objective = 0;
@@ -139,38 +140,41 @@ class Exchanger {
     const size_t messages = ceil(log(context.communicator.getSize()));
 
     for (size_t i = 0; i < messages; ++i) {
+      DBG << preface() << "Iteration Number: " <<i;
       sendBestIndividual(population);
+
       receiveIndividuals(context, hg, population);
     }
   }
   inline void broadcastPopulationSize(Context& context) {
     MPI_Bcast(&context.evolutionary.population_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    
-    MPI_Barrier(MPI_COMM_WORLD);
-    DBG << preface() << context.evolutionary.population_size;
   }
 
  private:
   FRIEND_TEST(TheBiggerExchanger, ProperlyExchangesIndividuals);
   FRIEND_TEST(TheBiggerExchanger, ProperlyExchangesInitialPopulations);
   FRIEND_TEST(TheBiggerExchanger, DoesNotCollapseIfMultipleProcessesAct);
+  std::vector<std::vector<PartitionID>> _send_partition_buffer;
 
   inline void sendBestIndividual(const Population& population) {
     if (population.individualAt(population.best()).fitness() < _current_best_fitness) {
       _current_best_fitness = population.individualAt(population.best()).fitness();
       openAllTargets();
       resetSendQuota();
+      updatePartitionBuffer(population);
+      DBG << preface() << " Improved Partition | SendbuffSize: " << _send_partition_buffer.size();
+
     }
 
     if (hasOpenTargets() && isWithinSendQuota()) {
       int new_target = getRandomOpenTarget();
 
-      DBG << preface() << " sending to " << new_target << "..." << "fitness " << population.individualAt(population.best()).fitness();
-      const std::vector<PartitionID>& partition_vector = population.individualAt(population.best()).partition();
+
+      DBG << preface() << " sending to " << new_target << "..." << "fitness " << population.individualAt(population.best()).fitness() << " position "  << population.best()   << " my pointer: "  << _send_partition_buffer.back().data() << " my size: " << _send_partition_buffer.size();
 
       MPI_Request request;
-      MPI_Isend(&partition_vector[0], 1, _MPI_Partition, new_target, new_target, _communicator, &request);
-      incrementSendQuota();
+      MPI_Isend(_send_partition_buffer.back().data(), 1, _MPI_Partition, new_target, new_target, _communicator, &request);
+      incrementSendQuotaCounter();
       closeTarget(new_target);
     }
   }
@@ -179,15 +183,11 @@ class Exchanger {
     int flag;
     MPI_Status st;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
-    DBG << preface() << "Receiving";
     while (flag) {
-    DBG << preface() << "Attempting a receive";
-      std::vector<PartitionID> receive_vector;
-      receive_vector.resize(hg.initialNumNodes());
       MPI_Status rst;
-      MPI_Recv(&receive_vector[0], 1, _MPI_Partition, st.MPI_SOURCE, _rank, _communicator, &rst);
-      hg.reset();
-      hg.setPartition(receive_vector);
+      MPI_Recv(_receive_vector.data(), 1, _MPI_Partition, st.MPI_SOURCE, _rank, _communicator, &rst);
+      DBG << preface() << "Attempting a receive: " << " from MPI: " << st.MPI_SOURCE;
+      hg.setPartition(_receive_vector);
 
       size_t insertion_value = population.insert(Individual(hg, context), context);
 
@@ -195,7 +195,7 @@ class Exchanger {
         DBG << preface() << "INSERTION DISCARDED";
         break;
       }
-      DBG << preface() << insertion_value;
+      DBG << preface() << "inserted at position " << insertion_value << " value: " << population.individualAt(insertion_value).fitness();
 
       int received_fitness = population.individualAt(insertion_value).fitness();
 
@@ -203,6 +203,7 @@ class Exchanger {
         _current_best_fitness = received_fitness;
         openAllTargets();
         resetSendQuota();
+        updatePartitionBuffer(population);
       }
       closeTarget(st.MPI_SOURCE);  // We do not want to send the partition back
       MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, _communicator, &flag, &st);
@@ -215,7 +216,7 @@ class Exchanger {
       in order for the exchange protocol to work*/
     if (_rank == 0) {
       std::iota(std::begin(permutation_of_mpi_process_numbers), std::end(permutation_of_mpi_process_numbers), 0);
-      degenerate(permutation_of_mpi_process_numbers);
+      Randomize::instance().shuffleVectorDegenerate(permutation_of_mpi_process_numbers);
     }
     MPI_Bcast(permutation_of_mpi_process_numbers.data(), context.communicator.getSize(), MPI_INT, 0, _communicator);
 
@@ -223,18 +224,14 @@ class Exchanger {
     int sending_to = permutation_of_mpi_process_numbers[_rank];
     int receiving_from = findCorrespondingSender(permutation_of_mpi_process_numbers);
 
-    std::vector<PartitionID> outgoing_partition = population.individualAt(population.randomIndividual()).partition();
-    std::vector<PartitionID> received_partition_vector;
-    received_partition_vector.resize(hg.initialNumNodes());
+    const std::vector<PartitionID>& outgoing_partition = population.individualAt(population.randomIndividual()).partition();
     DBG << preface() << "receiving from " << receiving_from << " sending to " << sending_to << "quick_start";
     MPI_Status st;
 
     MPI_Sendrecv(outgoing_partition.data(), 1, _MPI_Partition, sending_to, 0,
-                 &received_partition_vector[0], 1, _MPI_Partition, receiving_from, 0, _communicator, &st);
+                 _receive_vector.data(), 1, _MPI_Partition, receiving_from, 0, _communicator, &st);
 
-
-    hg.reset();
-    hg.setPartition(received_partition_vector);
+    hg.setPartition(_receive_vector);
     population.insert(Individual(hg, context), context);
     DBG << preface() << ":" << "Population " << population << "exchange individuals";
   }
@@ -266,15 +263,19 @@ class Exchanger {
     }
     return something_todo;
   }
+  inline void updatePartitionBuffer(const Population& population) {
+    _send_partition_buffer.push_back(population.individualAt(population.best()).partition());
+  }
+  //Question: This is as in KaHiP, but KaHiP runs in the problem that there will be 2 sends if the maximum is 1 ?
   inline bool isWithinSendQuota() {
-    bool within_quota = true;
-    if (_number_of_pushes > _maximum_allowed_pushes) {
-      within_quota = false;
-    }
-    return within_quota;
+    return (_number_of_pushes <= _maximum_allowed_pushes);
   }
 
-
+  /* This method will return the position of a random MPI process number which is allowed to receive from this
+     process (origin). Will return -1 as error if no suitable targets are found. (Reasons why a process is not a valid target:
+     target == origin (pointless operation); target already received from origin ; origin received their partition
+     from target.
+  */
   inline int getRandomOpenTarget() {
     std::vector<int> randomized_targets(_individual_already_sent_to.size());
     std::iota(std::begin(randomized_targets), std::end(randomized_targets), 0);
@@ -291,18 +292,10 @@ class Exchanger {
   inline void closeTarget(const int target) {
     _individual_already_sent_to[target] = true;
   }
-  inline void incrementSendQuota() {
+  inline void incrementSendQuotaCounter() {
     _number_of_pushes++;
   }
 
-
-  // Permutates the vector so that no element is left on the original position in the vector.
-  inline void degenerate(std::vector<int>& vector) {
-    for (unsigned i = 1; i < vector.size(); ++i) {
-      int random_int_smaller_than_i = Randomize::instance().getRandomInt(0, i - 1);
-      std::swap(vector[i], vector[random_int_smaller_than_i]);
-    }
-  }
   inline int findCorrespondingSender(const std::vector<int>& vector) {
     for (unsigned i = 0; i < vector.size(); ++i) {
       if (vector[i] == _rank) {
@@ -320,6 +313,7 @@ class Exchanger {
   std::vector<bool> _individual_already_sent_to;
   MPI_Datatype _MPI_Partition;
   MPI_Comm _communicator;
+  std::vector<PartitionID> _receive_vector;
 
   static constexpr bool debug = true;
 

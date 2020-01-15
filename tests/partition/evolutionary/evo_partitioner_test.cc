@@ -153,7 +153,7 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
 
   context.communicator.setSize(8);
 
-  context.communicator.setPopulationSize(MPIPopulationSize::as_usual);
+  context.communicator.setPopulationSize(MPIPopulationSize::dynamic_percentage_of_total_time);
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
   context.partition.time_limit = 10;
   double theoretical_time_needed_for_one_partition = 0.2;
@@ -170,7 +170,7 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
   context.communicator.setSize(9001);
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
 
-  context.communicator.setPopulationSize(MPIPopulationSize::equal_sequential_time);
+  context.communicator.setPopulationSize(MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs);
   context.communicator.setSize(4);
   /* Calculate with information about number of mpi processes:
      TimeLimit * percentage_of_IP * number_of_mpi_processes / time_of_partition_number_one
@@ -288,7 +288,6 @@ TEST_F(TheEvoPartitioner, RespectsTheTimeLimit) {
   std::vector<double> times = Timer::instance().evolutionaryResult().evolutionary;
   double total_time = Timer::instance().evolutionaryResult().total_evolutionary;
   ASSERT_GT(total_time, context.partition.time_limit);
-  // TODO verify
   double epsilon = 0.001;
   ASSERT_LT(total_time - times.at(times.size() - 1), context.partition.time_limit + epsilon);
 }
@@ -298,7 +297,7 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
   context.evolutionary.dynamic_population_size = true;
 
 
-  context.communicator.setPopulationSize(MPIPopulationSize::as_usual);
+  context.communicator.setPopulationSize(MPIPopulationSize::dynamic_percentage_of_total_time);
   context.evolutionary.dynamic_population_amount_of_time = 0.15;
   context.partition.time_limit = 10;
   double theoretical_time_needed_for_one_partition = 0.2;
@@ -307,9 +306,8 @@ TEST_F(TheEvoPartitioner, CalculatesTheRightPopulationSize) {
      expected should be in [3,50] because the bounds are already tested.
   */
   double expected = std::round(10 * 0.15 / 0.2);
-  // TODO Assert OK
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
-  context.communicator.setPopulationSize(MPIPopulationSize::equal_sequential_time);
+  context.communicator.setPopulationSize(MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs);
 
   ASSERT_EQ(evo_part.determinePopulationSize(theoretical_time_needed_for_one_partition, context), expected);
 

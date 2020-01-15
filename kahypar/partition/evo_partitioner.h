@@ -41,7 +41,7 @@
 namespace kahypar {
 class EvoPartitioner {
  private:
-  static constexpr bool debug = false;
+  static constexpr bool debug = true;
 
  public:
   explicit EvoPartitioner(const Hypergraph& hg, const Context& context) :
