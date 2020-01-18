@@ -57,6 +57,7 @@ class TwoWayFlowRefiner final : public IRefiner,
   using Base = FlowRefinerBase<FlowExecutionPolicy>;
 
  private:
+  static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;
 
  public:
@@ -187,7 +188,7 @@ class TwoWayFlowRefiner final : public IRefiner,
       ASSERT(cut_flow_network_before >= cut_flow_network_after,
              "Flow calculation should not increase cut!"
              << V(cut_flow_network_before) << V(cut_flow_network_after));
-      ASSERT(best_metrics.getMetric(_context.partition.mode, _context.partition.objective) - delta
+      HEAVY_REFINEMENT_ASSERT(best_metrics.getMetric(_context.partition.mode, _context.partition.objective) - delta
              == metrics::objective(_hg, _context.partition.objective),
              "Maximum Flow is not the minimum cut!"
              << V(_context.partition.objective)

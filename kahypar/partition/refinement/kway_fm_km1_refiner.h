@@ -53,6 +53,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
                                                          KWayKMinusOneRefiner<StoppingPolicy,
                                                                               FMImprovementPolicy> >{
  private:
+  static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;
   static constexpr HypernodeID hn_to_debug = 5589;
 
@@ -166,7 +167,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
           << V(_hg.partID(max_gain_node)) << V(to_part);
 
       ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
-      ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part),
+      HEAVY_REFINEMENT_ASSERT(max_gain == gainInducedByHypergraph(max_gain_node, to_part),
              V(max_gain) << "," << V(gainInducedByHypergraph(max_gain_node, to_part)));
       ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
       ASSERT(Base::hypernodeIsConnectedToPart(max_gain_node, to_part),
@@ -174,7 +175,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
       // Active nodes cannot be incident only to HEs larger than the threshold, because these
       // should never be activated.
-      ASSERT([&]() {
+      HEAVY_REFINEMENT_ASSERT([&]() {
           for (const HyperedgeID& he : _hg.incidentEdges(max_gain_node)) {
             if (_hg.edgeSize(he) <= _context.partition.hyperedge_size_threshold) {
               return true;
@@ -207,9 +208,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
         current_km1 -= max_gain;
         _stopping_policy.updateStatistics(max_gain);
 
-        ASSERT(current_km1 == metrics::km1(_hg),
+        HEAVY_REFINEMENT_ASSERT(current_km1 == metrics::km1(_hg),
                V(current_km1) << V(metrics::km1(_hg)));
-        ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
+        HEAVY_REFINEMENT_ASSERT(current_imbalance == metrics::imbalance(_hg, _context),
                V(current_imbalance) << V(metrics::imbalance(_hg, _context)));
 
         updateNeighbours(max_gain_node, from_part, to_part);
@@ -266,6 +267,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     ASSERT(best_metrics.km1 == metrics::km1(_hg));
     ASSERT(best_metrics.km1 <= initial_km1, V(initial_km1) << V(best_metrics.km1));
+
     return FMImprovementPolicy::improvementFound(best_metrics.km1, initial_km1,
                                                  best_metrics.imbalance, initial_imbalance,
                                                  _context.partition.epsilon);
@@ -385,7 +387,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       Gain gain = GainCache::kNotCached;
       if (_gain_cache.entryExists(pin, to_part)) {
         gain = _gain_cache.entry(pin, to_part);
-        ASSERT(gain == gainInducedByHypergraph(pin, to_part),
+        HEAVY_REFINEMENT_ASSERT(gain == gainInducedByHypergraph(pin, to_part),
                V(pin) << V(gain) << V(gainInducedByHypergraph(pin, to_part)));
       } else {
         gain = gainInducedByHypergraph(pin, to_part);
@@ -625,7 +627,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
       }
       _unremovable_he_parts.set(static_cast<size_t>(he) * _context.partition.k + to_part, 1);
 
-      ASSERT([&]() {
+      HEAVY_REFINEMENT_ASSERT([&]() {
           // Search parts of hyperedge he which are unremoveable
           std::vector<bool> ur_parts(_context.partition.k, false);
           for (const HypernodeID& pin : _hg.pins(he)) {
@@ -654,7 +656,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
     }
     _hns_to_activate.clear();
 
-    ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         if (only_update_cache) { return true; }
         // This lambda checks verifies the internal state of KFM for all pins that could
         // have been touched during updateNeighbours.
@@ -766,7 +768,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
         }
         return true;
       } (), V(moved_hn));
-    ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
           if (_hg.active(hn)) {
             bool valid = _hg.marked(hn) || !_hg.isBorderNode(hn);
@@ -812,7 +814,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   template <bool invalidate_hn = false>
   void activate(const HypernodeID hn) {
     ASSERT(!_hg.active(hn), V(hn));
-    ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         for (PartitionID part = 0; part < _context.partition.k; ++part) {
           ASSERT(!_pq.contains(hn, part), V(hn) << V(part));
         }
@@ -893,10 +895,10 @@ class KWayKMinusOneRefiner final : public IRefiner,
     if (likely(!_hg.isFixedVertex(hn))) {
       for (const PartitionID& part : _gain_cache.adjacentParts(hn)) {
         ASSERT(part != _hg.partID(hn), V(hn) << V(part) << V(_gain_cache.entry(hn, part)));
-        ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
+        HEAVY_REFINEMENT_ASSERT(_gain_cache.entry(hn, part) == gainInducedByHypergraph(hn, part),
                V(hn) << V(part) << V(_gain_cache.entry(hn, part)) <<
                V(gainInducedByHypergraph(hn, part)));
-        ASSERT(Base::hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
+        HEAVY_REFINEMENT_ASSERT(Base::hypernodeIsConnectedToPart(hn, part), V(hn) << V(part));
         DBGC(hn == 12518) << "inserting" << V(hn) << V(part) << V(_gain_cache.entry(hn, part));
         _pq.insert(hn, part, _gain_cache.entry(hn, part));
         if (_hg.partWeight(part) < _context.partition.max_part_weights[part]) {
@@ -907,7 +909,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
   }
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
-    ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
           ASSERT_THAT_CACHE_IS_VALID_FOR_HN(hn);
         }

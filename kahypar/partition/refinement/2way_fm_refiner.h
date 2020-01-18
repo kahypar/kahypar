@@ -665,7 +665,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
-    ASSERT([&]() {
+    HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
           if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
             LOG << V(hn);
