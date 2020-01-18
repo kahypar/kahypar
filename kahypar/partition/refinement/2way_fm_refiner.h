@@ -54,6 +54,7 @@ class TwoWayFMRefiner final : public IRefiner,
                                                     TwoWayFMRefiner<StoppingPolicy,
                                                                     FMImprovementPolicy> >{
  private:
+  static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;
 
   using HypernodeWeightArray = std::array<HypernodeWeight, 2>;
@@ -162,7 +163,7 @@ class TwoWayFMRefiner final : public IRefiner,
     for (const auto& move : moves) {
       _hg.changeNodePart(move.hn, move.from, move.to);
       const Gain temp = _gain_cache.value(move.hn);
-      ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
+      HEAVY_INITIAL_PARTITIONING_ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
       _gain_cache.setNotCached(move.hn);
       for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
         deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
@@ -253,7 +254,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       ASSERT(max_gain == computeGain(max_gain_node));
       ASSERT(max_gain == _gain_cache.value(max_gain_node));
-      ASSERT([&]() {
+      HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
           _hg.changeNodePart(max_gain_node, from_part, to_part);
           ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
                  "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
@@ -404,7 +405,7 @@ class TwoWayFMRefiner final : public IRefiner,
     // kkt_power.
     removeInternalizedHns();
 
-    ASSERT([&]() {
+    HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
         for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID& pin : _hg.pins(he)) {
             const PartitionID other_part = 1 - _hg.partID(pin);

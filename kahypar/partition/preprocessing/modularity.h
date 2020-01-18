@@ -31,10 +31,11 @@
 #include "kahypar/macros.h"
 
 namespace kahypar {
-static constexpr bool enable_heavy_assert = false;
 
 class Modularity {
  private:
+  static constexpr bool enable_heavy_assert = false;
+
   using Edge = ds::Edge;
   using Graph = ds::Graph;
 

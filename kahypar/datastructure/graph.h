@@ -41,7 +41,6 @@
 
 namespace kahypar {
 namespace ds {
-static constexpr bool enable_heavy_assert = false;
 
 struct Edge {
   NodeID target_node = 0;
@@ -60,6 +59,8 @@ struct IncidentClusterWeight {
 
 class Graph {
  private:
+  static constexpr bool enable_heavy_assert = false;
+
   class NodeIDIterator : public std::iterator<
                            std::forward_iterator_tag,  // iterator_category
                            NodeID,  // value_type
