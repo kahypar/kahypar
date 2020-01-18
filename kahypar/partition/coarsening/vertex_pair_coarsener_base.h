@@ -43,11 +43,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
  private:
   static constexpr bool debug = false;
 
- protected:
-  using CoarsenerBase::performLocalSearch;
-  using CoarsenerBase::initializeRefiner;
-  using CoarsenerBase::performContraction;
-
  public:
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
@@ -90,14 +85,14 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
                          current_metrics.imbalance);
     }
 
-    initializeRefiner(refiner);
+    CoarsenerBase::initializeRefiner(refiner);
     std::vector<HypernodeID> refinement_nodes(2, 0);
     UncontractionGainChanges changes;
     changes.representative.push_back(0);
     changes.contraction_partner.push_back(0);
     while (!_history.empty()) {
-      restoreParallelHyperedges();
-      restoreSingleNodeHyperedges();
+      CoarsenerBase::restoreParallelHyperedges();
+      CoarsenerBase::restoreSingleNodeHyperedges();
 
       DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
           << _history.back().contraction_memento.v << ")";
@@ -118,7 +113,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
         _hg.uncontract(_history.back().contraction_memento);
       }
 
-      performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
+      CoarsenerBase::performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
       _history.pop_back();

@@ -37,6 +37,8 @@ struct BinaryHeapTraits;
 template <class Derived>
 class BinaryHeapBase {
  private:
+  static constexpr bool enable_heavy_assert = false;
+
   using KeyType = typename BinaryHeapTraits<Derived>::KeyType;
   using IDType = typename BinaryHeapTraits<Derived>::IDType;
   using Comparator = typename BinaryHeapTraits<Derived>::Comparator;
@@ -241,7 +243,7 @@ class BinaryHeapBase {
     if (!empty()) {
       downHeap(1);
     }
-    ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   inline const IDType & top() const {
@@ -273,7 +275,7 @@ class BinaryHeapBase {
     _heap[heap_position].key = rising_key;
     _heap[heap_position].id = rising_id;
     _handles[rising_id] = heap_position;
-    ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void downHeap(size_t heap_position) {
@@ -304,7 +306,7 @@ class BinaryHeapBase {
     _heap[heap_position].key = dropping_key;
     _heap[heap_position].id = dropping_id;
     _handles[dropping_id] = heap_position;
-    ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   bool isHeap() const {
