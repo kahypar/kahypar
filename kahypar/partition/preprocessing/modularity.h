@@ -31,7 +31,7 @@
 #include "kahypar/macros.h"
 
 namespace kahypar {
-const bool dbg_modularity_function = false;
+static constexpr bool enable_heavy_assert = false;
 
 class Modularity {
  private:
@@ -71,8 +71,7 @@ class Modularity {
 
     _graph.setClusterID(node, new_cid);
 
-    ASSERT([&]() {
-        if (!dbg_modularity_function) return true;
+    HEAVY_PREPROCESSING_ASSERT([&]() {
         const EdgeWeight q = quality();
         return q < std::numeric_limits<EdgeWeight>::max();
       } (), "");
@@ -89,8 +88,7 @@ class Modularity {
 
     const EdgeWeight gain = incident_community_weight - totc * w_degree / m2;
 
-    ASSERT([&]() {
-        if (!dbg_modularity_function) return true;
+    HEAVY_PREPROCESSING_ASSERT([&]() {
         const EdgeWeight modularity_before = modularity();
         insert(node, cid, incident_community_weight);
         const EdgeWeight modularity_after = modularity();
@@ -119,7 +117,7 @@ class Modularity {
 
     q /= m2;
 
-    ASSERT(!dbg_modularity_function || std::abs(q - modularity()) < Graph::kEpsilon,
+    HEAVY_PREPROCESSING_ASSERT(std::abs(q - modularity()) < Graph::kEpsilon,
            "Calculated modularity (q=" << q << ") is not equal with the real modularity "
                                        << "(modularity=" << modularity() << ")!");
 

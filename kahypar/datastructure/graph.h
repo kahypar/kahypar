@@ -41,6 +41,8 @@
 
 namespace kahypar {
 namespace ds {
+static constexpr bool enable_heavy_assert = false;
+
 struct Edge {
   NodeID target_node = 0;
   EdgeWeight weight = 0.0;
@@ -308,7 +310,7 @@ class Graph {
 
     _cluster_id[node] = to;
 
-    ASSERT([&]() {
+    HEAVY_PREPROCESSING_ASSERT([&]() {
           std::set<ClusterID> distinct_comm;
           size_t from_size = 0;
           size_t to_size = 0;
@@ -374,7 +376,7 @@ class Graph {
       }
     }
 
-    ASSERT([&]() {
+    HEAVY_PREPROCESSING_ASSERT([&]() {
           const auto incident_cluster_weight_range =
             std::make_pair(_incident_cluster_weight.begin(),
                            _incident_cluster_weight.begin() + idx);
