@@ -126,9 +126,9 @@ class KWayKMinusOneRefiner final : public IRefiner,
                   const std::array<HypernodeWeight, 2>&,
                   const UncontractionGainChanges&,
                   Metrics& best_metrics) override final {
-    ASSERT(best_metrics.km1 == metrics::km1(_hg),
+    HEAVY_REFINEMENT_ASSERT(best_metrics.km1 == metrics::km1(_hg),
            V(best_metrics.km1) << V(metrics::km1(_hg)));
-    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
+    HEAVY_REFINEMENT_ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
@@ -265,7 +265,7 @@ class KWayKMinusOneRefiner final : public IRefiner,
 
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
-    ASSERT(best_metrics.km1 == metrics::km1(_hg));
+    HEAVY_REFINEMENT_ASSERT(best_metrics.km1 == metrics::km1(_hg));
     ASSERT(best_metrics.km1 <= initial_km1, V(initial_km1) << V(best_metrics.km1));
 
     return FMImprovementPolicy::improvementFound(best_metrics.km1, initial_km1,
