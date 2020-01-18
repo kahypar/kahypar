@@ -95,7 +95,7 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.active(hn), V(hn));
       ASSERT(!_hg.marked(hn), V(hn));
       ASSERT(!_pq.contains(hn, 1 - _hg.partID(hn)), V(hn));
-      ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
+      HEAVY_REFINEMENT_ASSERT(_gain_cache.value(hn) == computeGain(hn), V(hn)
              << V(_gain_cache.value(hn)) << V(computeGain(hn)));
 
       DBG << "inserting HN" << hn << "with gain "
@@ -163,7 +163,7 @@ class TwoWayFMRefiner final : public IRefiner,
     for (const auto& move : moves) {
       _hg.changeNodePart(move.hn, move.from, move.to);
       const Gain temp = _gain_cache.value(move.hn);
-      HEAVY_INITIAL_PARTITIONING_ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
+      HEAVY_REFINEMENT_ASSERT(-temp == computeGain(move.hn), V(move.hn) << V(-temp) << V(computeGain(move.hn)));
       _gain_cache.setNotCached(move.hn);
       for (const HyperedgeID& he : _hg.incidentEdges(move.hn)) {
         deltaUpdate<  /*update pq */ false>(move.from, move.to, he);
@@ -197,9 +197,9 @@ class TwoWayFMRefiner final : public IRefiner,
                   const UncontractionGainChanges& changes,
                   Metrics& best_metrics) override final {
     ASSERT(_is_initialized);
-    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
+    HEAVY_REFINEMENT_ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg),
            V(best_metrics.cut) << V(metrics::hyperedgeCut(_hg)));
-    ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
+    HEAVY_REFINEMENT_ASSERT(FloatingPoint<double>(best_metrics.imbalance).AlmostEquals(
              FloatingPoint<double>(metrics::imbalance(_hg, _context))),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
 
@@ -252,9 +252,9 @@ class TwoWayFMRefiner final : public IRefiner,
       ASSERT(!_hg.marked(max_gain_node), V(max_gain_node));
       ASSERT(_hg.isBorderNode(max_gain_node), V(max_gain_node));
 
-      ASSERT(max_gain == computeGain(max_gain_node));
+      HEAVY_REFINEMENT_ASSERT(max_gain == computeGain(max_gain_node));
       ASSERT(max_gain == _gain_cache.value(max_gain_node));
-      HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
+      HEAVY_REFINEMENT_ASSERT([&]() {
           _hg.changeNodePart(max_gain_node, from_part, to_part);
           ASSERT((current_cut - max_gain) == metrics::hyperedgeCut(_hg),
                  "cut=" << current_cut - max_gain << "!=" << metrics::hyperedgeCut(_hg));
@@ -277,7 +277,7 @@ class TwoWayFMRefiner final : public IRefiner,
       current_cut -= max_gain;
       _stopping_policy.updateStatistics(max_gain);
 
-      ASSERT(current_cut == metrics::hyperedgeCut(_hg),
+      HEAVY_REFINEMENT_ASSERT(current_cut == metrics::hyperedgeCut(_hg),
              V(current_cut) << V(metrics::hyperedgeCut(_hg)));
       _hg.mark(max_gain_node);
       updateNeighbours(max_gain_node, from_part, to_part, max_allowed_part_weights);
@@ -321,9 +321,9 @@ class TwoWayFMRefiner final : public IRefiner,
     rollback(_performed_moves.size() - 1, min_cut_index);
     _gain_cache.rollbackDelta();
 
-    ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
+    HEAVY_REFINEMENT_ASSERT(best_metrics.cut == metrics::hyperedgeCut(_hg));
     ASSERT(best_metrics.cut <= initial_cut, V(initial_cut) << V(best_metrics.cut));
-    ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
+    HEAVY_REFINEMENT_ASSERT(best_metrics.imbalance == metrics::imbalance(_hg, _context),
            V(best_metrics.imbalance) << V(metrics::imbalance(_hg, _context)));
     ASSERT_THAT_GAIN_CACHE_IS_VALID();
 
@@ -405,7 +405,7 @@ class TwoWayFMRefiner final : public IRefiner,
     // kkt_power.
     removeInternalizedHns();
 
-    HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         for (const HyperedgeID& he : _hg.incidentEdges(moved_hn)) {
           for (const HypernodeID& pin : _hg.pins(he)) {
             const PartitionID other_part = 1 - _hg.partID(pin);
@@ -665,7 +665,7 @@ class TwoWayFMRefiner final : public IRefiner,
   }
 
   void ASSERT_THAT_GAIN_CACHE_IS_VALID() {
-    HEAVY_INITIAL_PARTITIONING_ASSERT([&]() {
+    HEAVY_REFINEMENT_ASSERT([&]() {
         for (const HypernodeID& hn : _hg.nodes()) {
           if (_gain_cache.isCached(hn) && _gain_cache.value(hn) != computeGain(hn)) {
             LOG << V(hn);
