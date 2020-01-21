@@ -18,7 +18,7 @@
  * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-
+#pragma once
 
 namespace kahypar {
 // Actions encapsulate Requirements for the non-evolutionary

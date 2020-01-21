@@ -25,7 +25,7 @@
 #include <sstream>
 #include <string>
 
-#include "kahypar/partition/context_enum_classes.h"
+#include "kahypar/partition/context/context_enum_classes.h"
 
 namespace kahypar {
 enum class StatTag : uint8_t {

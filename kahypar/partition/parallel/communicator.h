@@ -27,6 +27,7 @@
 
 namespace kahypar {
 #ifndef KAHYPAR_USE_MPI
+#include "kahypar/partition/context/context_enum_classes.h"
 class Communicator {
  public:
   explicit Communicator() :

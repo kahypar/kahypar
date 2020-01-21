@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <string>
+#include "kahypar/macros.h"
 
 namespace kahypar {
 enum class ContextType : bool {
