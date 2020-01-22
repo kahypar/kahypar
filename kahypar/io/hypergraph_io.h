@@ -132,6 +132,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     }
     file.close();
   } else {
+
     std::cerr << "Error: File not found: " << std::endl;
   }
 }
@@ -378,7 +379,8 @@ static inline void readPartitionFile(const std::string& filename, std::vector<Pa
     }
     file.close();
   } else {
-    std::cerr << "Error: File not found: " << std::endl;
+        //TODO this Error message does not help at all @Robin find a good solution
+    //std::cerr << "Error: File not found: " << std::endl;
   }
 }
 

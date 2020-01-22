@@ -24,6 +24,7 @@ struct EvolutionaryParameters {
   bool unlimited_coarsening_contraction;
   bool random_vcycles;
   bool parallel_partitioning_quick_start;
+  int save_interval_seconds; // -1 disables saving
 };
 
 inline std::ostream& operator<< (std::ostream& str, const EvolutionaryParameters& params) {

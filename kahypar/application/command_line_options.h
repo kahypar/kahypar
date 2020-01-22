@@ -565,7 +565,14 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
       context.evolutionary.edge_frequency_chance = edge_chance;
     }),
     "The Chance of a mutation being selected as operation\n"
-    "default: 0.5)");
+    "default: 0.5)")
+    ("save-interval",
+    po::value<int>()->value_name("<int>")->notifier(
+      [&](const int& save_interval) {
+      context.evolutionary.save_interval_seconds = save_interval;
+    }),
+    "How frequently the partitions should be saved (in seconds)\n"
+    "(default: -1)(-1 disables)");
   return evolutionary_options;
 }
 

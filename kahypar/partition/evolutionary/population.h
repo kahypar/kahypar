@@ -48,7 +48,7 @@ class Population {
     DBG << _preface << context.evolutionary.replace_strategy;
     // New addition for quick initialization of population
     if (_individuals.size() < context.evolutionary.population_size) {
-      _individuals.emplace_back(std::move(individual));
+      placeInVector(std::move(individual));
       return _individuals.size();
     }
     switch (context.evolutionary.replace_strategy) {
@@ -67,12 +67,14 @@ class Population {
   inline size_t forceInsert(Individual&& individual, const size_t position) {
     DBG << _preface << V(position) << V(individual.fitness());
     _individuals[position] = std::move(individual);
+    _changed[position] = true;
     return position;
   }
   inline size_t forceInsertSaveBest(Individual&& individual, const size_t position) {
     DBG << _preface  << V(position) << V(individual.fitness());
     if (individual.fitness() <= _individuals[position].fitness() || position != best()) {
       _individuals[position] = std::move(individual);
+      _changed[position] = true;
     }
     return position;
   }
@@ -108,7 +110,7 @@ class Population {
     hg.reset();
     DBG << _preface  << "TRYING TO GENERATE AN INDIVIDUAL";
     partitioner.partition(hg, context);
-    _individuals.emplace_back(Individual(hg, context));
+    placeInVector(Individual(hg, context));
     if (_individuals.size() > context.evolutionary.population_size) {
       std::cout << "Error, tried to fill Population above limit" << std::endl;
       std::exit(1);
@@ -217,6 +219,52 @@ class Population {
       ret.append(std::to_string(individualAt(i).partition()[0]) + " ");
     }
   }
+
+  inline bool save(Hypergraph &hg, const Context& context) {
+   
+    for(unsigned i = 0; i < _individuals.size(); ++i) {
+      if(_changed[i]) {
+        hg.setPartition(_individuals[i].partition());
+        std::string target =  getSaveFile(context, i);
+        LOG << context.communicator.preface() << "Saving: " << getSaveFile(context, i);
+        io::writePartitionFile(hg, target);
+        _changed[i] = false;
+      }
+
+      
+    }
+    return true;
+  }
+  inline unsigned numberOfSaves(const Hypergraph& hg, const Context& context) {
+    unsigned successful_loads = 0;
+    for (unsigned i = 0; i < 50; ++i) {
+      std::string target =  getSaveFile(context, i);
+      std::vector<PartitionID> partition;
+      io::readPartitionFile(target, partition);
+      if(partition.size() == hg.initialNumNodes()) {
+        ++successful_loads;
+        
+      }
+     
+    }
+    return successful_loads;
+  }
+  inline void load(Hypergraph &hg, const Context& context) {
+    
+    for (unsigned i = 0; i < 50; ++i) {
+
+      std::string target =  getSaveFile(context, i);
+      std::vector<PartitionID> partition;
+      io::readPartitionFile(target, partition);
+      if(partition.size() == hg.initialNumNodes()) {
+        std::cout << target << std::endl;
+        hg.setPartition(partition);
+        placeInVector(Individual(hg, context));
+      }
+     
+    }
+  }
+
   inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
@@ -246,6 +294,22 @@ class Population {
   }
 
  private:
+
+   inline void placeInVector(Individual&& individual) {
+     _individuals.emplace_back(std::move(individual));
+     _changed.emplace_back(true);
+     
+
+   }
+   inline std::string getSaveFile(const Context& context, unsigned const position) {
+    std::string truncated_graph_name = context.partition.graph_filename.substr(context.partition.graph_filename.find_last_of("/") + 1);
+    std::string target =  "../../../../saves/" + truncated_graph_name + "-seed"
+                                               + std::to_string(context.partition.seed) + "-mpi-" 
+                                               + std::to_string(context.communicator.getRank()) + "-"
+                                               + std::to_string(position);
+    return target;  
+  }
+
   inline size_t replaceDiverse(Individual&& individual, const bool strong_set) {
     size_t max_similarity = std::numeric_limits<size_t>::max();
     size_t max_similarity_id = 0;
@@ -267,6 +331,7 @@ class Population {
     forceInsert(std::move(individual), max_similarity_id);
     return max_similarity_id;
   }
+  std::vector<bool> _changed;
   std::string _preface;
   std::vector<Individual> _individuals;
   int _mpi_rank;

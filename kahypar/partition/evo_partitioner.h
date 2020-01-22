@@ -64,12 +64,11 @@ class EvoPartitioner {
     LOG << context.communicator.preface() << "seed: " << context.partition.seed;
 
 
-    generateInitialPopulation(hg, context);
-
+    loadInitialPopulation(hg, context);
+    unsigned current_save_iteration = 1;
     while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;
-
-
+      
       if (context.evolutionary.diversify_interval != -1 &&
           context.evolutionary.iteration % context.evolutionary.diversify_interval == 0) {
         kahypar::partition::diversify(context);
@@ -90,13 +89,20 @@ class EvoPartitioner {
           std::exit(EXIT_FAILURE);
       }
       _exchanger.sendMessages(context, hg, _population);
+      int estimated_time_used = Timer::instance().evolutionaryResult().total_evolutionary;
+      if(context.evolutionary.save_interval_seconds != -1 && estimated_time_used >= context.evolutionary.save_interval_seconds * current_save_iteration) {
+        ++current_save_iteration;
+        _population.save(hg, context);
+        LOG << context.communicator.preface() << "Estimated Time: " <<estimated_time_used << " current save value: " << context.evolutionary.save_interval_seconds * current_save_iteration;
+      }
+
     }
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
 
     _exchanger.collectBestPartition(_population, hg, context);
 
-
+    _population.save(hg, context);
     hg.setPartition(_population.individualAt(_population.best()).partition());
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(context, Timepoint::evolutionary,
@@ -146,7 +152,28 @@ class EvoPartitioner {
     return std::min(minimal_size, 50);
   }
 
-
+  inline void loadInitialPopulation(Hypergraph& hg, Context& context) {
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now(); 
+    unsigned local_number_of_saves = _population.numberOfSaves(hg, context);
+    LOG << context.communicator.preface() << "Number of Saves: " << local_number_of_saves;
+    unsigned global_number_of_saves;
+    //MPI_Allreduce(&local_number_of_saves, &global_number_of_saves, 1, MPI_INT, MPI_MIN, context.communicator.getSize());
+    if(local_number_of_saves >= 3) {
+      HighResClockTimepoint end_load = std::chrono::high_resolution_clock::now();
+      _population.load(hg, context);
+      context.evolutionary.population_size = local_number_of_saves;
+      HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+      LOG << context.communicator.preface() << " Loading Population | Verification: " 
+                              << std::chrono::duration<double>(end_load - start).count()
+                              << " Loading: " << std::chrono::duration<double>(end - start).count();
+    }
+    else {
+      generateInitialPopulation(hg, context);
+      HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+      LOG << context.communicator.preface() << " Generating Population: " 
+                              <<  std::chrono::duration<double>(end - start).count();
+    }
+  }
   inline void generateInitialPopulation(Hypergraph& hg, Context& context) {
     if (context.evolutionary.dynamic_population_size) {
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
