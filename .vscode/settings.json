@@ -52,6 +52,8 @@
         "typeinfo": "cpp",
         "unordered_set": "cpp",
         "algorithm": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "hash_map": "cpp",
+        "regex": "cpp"
     }
 }

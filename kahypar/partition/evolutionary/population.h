@@ -106,7 +106,7 @@ class Population {
     return std::make_pair(std::cref(first_tournament_winner),
                           std::cref(individualAt(second_winner_pos)));
   }
-
+  
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
     Partitioner partitioner;
     hg.reset();
@@ -224,7 +224,7 @@ class Population {
 
   inline bool save(Hypergraph &hg, const Context& context) {
     int estimated_time_used = Timer::instance().evolutionaryResult().total_evolutionary;
-    LOG << context.communicator.preface() << "NEEDED TIME " << estimated_time_used << " Interval: " << context.evolutionary.save_interval_seconds
+    DBG << context.communicator.preface() << "NEEDED TIME " << estimated_time_used << " Interval: " << context.evolutionary.save_interval_seconds
     << " save count: " << _save_count;
     if(context.evolutionary.save_interval_seconds == -1 || estimated_time_used < context.evolutionary.save_interval_seconds * _save_count) {
       return false;
@@ -234,7 +234,7 @@ class Population {
       hg.setPartition(_individuals[best()].partition());
       //TODO 9001 is a placeholder for "write only one file per MPI process" but right now the getSaveFile method doesn't do that
       std::string target =  getSaveFile(context, 9001);
-      LOG << context.communicator.preface() << "Saving: " << getSaveFile(context, 9001);
+      DBG << context.communicator.preface() << "Saving: " << getSaveFile(context, 9001);
       io::writePartitionFile(hg, target);
       return true;
     }
@@ -243,7 +243,7 @@ class Population {
       if(_changed[i]) {
         hg.setPartition(_individuals[i].partition());
         std::string target =  getSaveFile(context, i);
-        LOG << context.communicator.preface() << "Saving: " << getSaveFile(context, i);
+        DBG << context.communicator.preface() << "Saving: " << getSaveFile(context, i);
         io::writePartitionFile(hg, target);
         _changed[i] = false;
       }
@@ -309,9 +309,35 @@ class Population {
     DBG << _preface << V(output_diff.size());
     return output_diff.size();
   }
+  inline size_t difference(const size_t i) const {
 
+    size_t sum_difference = 0;
+    for(size_t j = 0; j < _individuals.size(); ++j) {
+      sum_difference += difference(i, j, true);
+    }
+    return sum_difference;
+    
+  }
  private:
 
+  inline size_t difference(const size_t position_i, const size_t position_j, const bool strong_set) const {
+    std::vector<HyperedgeID> output_diff;
+    if(strong_set) {
+      std::set_symmetric_difference(_individuals[position_i].strongCutEdges().begin(),
+        _individuals[position_i].strongCutEdges().end(),
+        _individuals[position_j].strongCutEdges().begin(),
+        _individuals[position_j].strongCutEdges().end(),
+        std::back_inserter(output_diff));
+    }
+    else {
+      std::set_symmetric_difference(_individuals[position_i].cutEdges().begin(),
+        _individuals[position_i].cutEdges().end(),
+        _individuals[position_j].cutEdges().begin(),
+        _individuals[position_j].cutEdges().end(),
+        std::back_inserter(output_diff));
+    }
+    return output_diff.size();
+  }
    inline void placeInVector(Individual&& individual) {
      _individuals.emplace_back(std::move(individual));
      _changed.emplace_back(true);
@@ -357,6 +383,10 @@ class Population {
 std::ostream& operator<< (std::ostream& os, const Population& population) {
   for (size_t i = 0; i < population.size(); ++i) {
     os << population.individualAt(i).fitness() << " ";
+  }
+  os << "\n";
+  for (size_t i = 0; i < population.size(); ++i) {
+    os << population.difference(i) << " ";
   }
   return os;
 }
