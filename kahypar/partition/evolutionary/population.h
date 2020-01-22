@@ -39,9 +39,11 @@ class Population {
   explicit Population(const Context& context) :
     _individuals(),
     _mpi_rank(),
-    _preface() {
+    _preface(),
+    _save_count() {
     _mpi_rank = context.communicator.getRank();
     _preface = context.communicator.preface();
+    
   }
 
   inline size_t insert(Individual&& individual, const Context& context) {
@@ -221,7 +223,22 @@ class Population {
   }
 
   inline bool save(Hypergraph &hg, const Context& context) {
-   
+    int estimated_time_used = Timer::instance().evolutionaryResult().total_evolutionary;
+    LOG << context.communicator.preface() << "NEEDED TIME " << estimated_time_used << " Interval: " << context.evolutionary.save_interval_seconds
+    << " save count: " << _save_count;
+    if(context.evolutionary.save_interval_seconds == -1 || estimated_time_used < context.evolutionary.save_interval_seconds * _save_count) {
+      return false;
+    }
+    ++_save_count;
+    if(context.evolutionary.only_save_best) {
+      hg.setPartition(_individuals[best()].partition());
+      //TODO 9001 is a placeholder for "write only one file per MPI process" but right now the getSaveFile method doesn't do that
+      std::string target =  getSaveFile(context, 9001);
+      LOG << context.communicator.preface() << "Saving: " << getSaveFile(context, 9001);
+      io::writePartitionFile(hg, target);
+      return true;
+    }
+    
     for(unsigned i = 0; i < _individuals.size(); ++i) {
       if(_changed[i]) {
         hg.setPartition(_individuals[i].partition());
@@ -331,6 +348,7 @@ class Population {
     forceInsert(std::move(individual), max_similarity_id);
     return max_similarity_id;
   }
+  int _save_count;
   std::vector<bool> _changed;
   std::string _preface;
   std::vector<Individual> _individuals;

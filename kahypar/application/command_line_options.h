@@ -566,6 +566,20 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "The Chance of a mutation being selected as operation\n"
     "default: 0.5)")
+    ("load-partitions",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& load) {
+      context.evolutionary.enable_loading = load;
+    }),
+    "Whether partitions should be loaded in\n"
+    "(default: false")
+    ("save-verbose",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& load) {
+      context.evolutionary.only_save_best = load;
+    }),
+    "Whether all partitions should be saved, or just the best\n"
+    "(default: false = only best partition will be saved")
     ("save-interval",
     po::value<int>()->value_name("<int>")->notifier(
       [&](const int& save_interval) {
