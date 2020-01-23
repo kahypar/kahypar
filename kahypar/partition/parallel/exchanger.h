@@ -140,6 +140,7 @@ class Exchanger {
   std::vector<std::vector<PartitionID>> _send_partition_buffer;
 
   inline void sendBestIndividual(const Population& population) {
+  
     if (population.individualAt(population.best()).fitness() < _current_best_fitness) {
       _current_best_fitness = population.individualAt(population.best()).fitness();
       openAllTargets();
@@ -148,7 +149,6 @@ class Exchanger {
       DBG << preface() << " Improved Partition | SendbuffSize: " << _send_partition_buffer.size();
 
     }
-
     if (hasOpenTargets() && isWithinSendQuota()) {
       int new_target = getRandomOpenTarget();
 
@@ -156,6 +156,7 @@ class Exchanger {
       DBG << preface() << " sending to " << new_target << "..." << "fitness " << population.individualAt(population.best()).fitness() << " position "  << population.best()   << " my pointer: "  << _send_partition_buffer.back().data() << " my size: " << _send_partition_buffer.size();
 
       MPI_Request request;
+
       MPI_Isend(_send_partition_buffer.back().data(), 1, _MPI_Partition, new_target, new_target, _communicator, &request);
       incrementSendQuotaCounter();
       closeTarget(new_target);

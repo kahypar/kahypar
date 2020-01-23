@@ -29,7 +29,7 @@
 
 #include "kahypar/datastructure/hypergraph.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/combine.h"
 #include "kahypar/partition/evolutionary/diversifier.h"
 #include "kahypar/partition/evolutionary/mutate.h"

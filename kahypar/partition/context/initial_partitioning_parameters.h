@@ -1,5 +1,5 @@
 #pragma once
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/initial_partitioning_enum_classes.h"
 #include "kahypar/partition/context/local_search_parameters.h"
 namespace kahypar {
 struct InitialPartitioningParameters {

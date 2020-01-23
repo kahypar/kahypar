@@ -1,5 +1,5 @@
 #pragma once
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/context_enum_classes.h"
 namespace kahypar {
 struct PartitioningParameters {
   Mode mode = Mode::UNDEFINED;

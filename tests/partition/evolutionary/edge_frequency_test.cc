@@ -20,7 +20,7 @@
 ******************************************************************************/
 #include "gmock/gmock.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/partition/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/edge_frequency.h"
 #include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/utils/randomize.h"

@@ -30,7 +30,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/context_enum_classes.h"
 #include "kahypar/partition/context/include_parameters.h"
 #include "kahypar/partition/evolutionary/action.h"
 #include "kahypar/partition/parallel/communicator.h"

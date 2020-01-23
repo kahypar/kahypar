@@ -113,6 +113,7 @@ class VertexPairRater {
     for (auto it = _tmp_ratings.end() - 1; it >= _tmp_ratings.begin(); --it) {
       const HypernodeID tmp_target = it->key;
       const HypernodeWeight target_weight = _hg.nodeWeight(tmp_target);
+      
       HypernodeWeight penalty = HeavyNodePenaltyPolicy::penalty(weight_u,
                                                                 target_weight);
       penalty = penalty == 0 ? std::max(std::max(weight_u, target_weight), 1) : penalty;

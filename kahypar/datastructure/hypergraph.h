@@ -41,7 +41,8 @@
 #include "kahypar/meta/empty.h"
 #include "kahypar/meta/int_to_type.h"
 #include "kahypar/meta/mandatory.h"
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/local_search_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/context_enum_classes.h"
 #include "kahypar/utils/math.h"
 
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/rating_enum_classes.h"
 namespace kahypar {
 struct RatingParameters {
   RatingFunction rating_function = RatingFunction::UNDEFINED;

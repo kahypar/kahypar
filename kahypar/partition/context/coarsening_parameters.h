@@ -1,5 +1,5 @@
 #pragma once
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/coarsening_enum_classes.h"
 #include "kahypar/partition/context/rating_parameters.h"
 namespace kahypar {
 struct CoarseningParameters {

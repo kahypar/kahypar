@@ -1,5 +1,5 @@
 #pragma once
-#include "kahypar/partition/context/context_enum_classes.h"
+#include "kahypar/partition/context/enum_classes/evolutionary_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
 namespace kahypar {
 struct EvolutionaryParameters {
