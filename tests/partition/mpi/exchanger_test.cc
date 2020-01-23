@@ -236,6 +236,8 @@ TEST_F(TheBiggerExchanger, DoesNotCollapseIfMultipleProcessesAct) {
     exchanger._individual_already_sent_to[1] = true;
     exchanger._individual_already_sent_to[3] = true;
     exchanger._current_best_fitness = 1;
+    exchanger.updatePartitionBuffer(population); //This is neccessary due to the previous hacking to maintain control of the target
+
     exchanger.sendBestIndividual(population);
     ASSERT_EQ(exchanger.isWithinSendQuota(), true);
   }
@@ -253,7 +255,7 @@ TEST_F(TheBiggerExchanger, DoesNotCollapseIfMultipleProcessesAct) {
     ASSERT_EQ(exchanger._individual_already_sent_to[3], true);
 
 
-    exchanger.receiveIndividual(context, _hypergraph, population);
+    exchanger.receiveIndividuals(context, _hypergraph, population);
     ASSERT_EQ(exchanger._individual_already_sent_to[0], true);  // The process should never reopen himself as target
     ASSERT_EQ(exchanger._individual_already_sent_to[1], false);
     ASSERT_EQ(exchanger._individual_already_sent_to[2], true);  // And also not the one that sent the individual to him
@@ -274,12 +276,13 @@ TEST_F(TheBiggerExchanger, DoesNotCollapseIfMultipleProcessesAct) {
     exchanger._individual_already_sent_to[2] = true;
     exchanger._individual_already_sent_to[3] = true;
     exchanger._current_best_fitness = 2;  // Have to set the fitness, otherwise the send method just undoes all the work
+    exchanger.updatePartitionBuffer(population); //This is neccessary due to the previous hacking to maintain control of the target
     exchanger.sendBestIndividual(population);
     ASSERT_EQ(exchanger.isWithinSendQuota(), true);
   }
   MPI_Barrier(MPI_COMM_WORLD);
   if (process(0)) {
-    exchanger.receiveIndividual(context, _hypergraph, population);
+    exchanger.receiveIndividuals(context, _hypergraph, population);
     ASSERT_EQ(population.individualAt(0).fitness(), 1);
     ASSERT_EQ(population.individualAt(1).fitness(), 2);
     ASSERT_EQ(population.individualAt(2).fitness(), 6);
