@@ -129,9 +129,7 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   context.partition.perfect_balance_part_weights.clear();
   context.partition.max_part_weights.clear();
   context.evolutionary.communities.clear();
-<<<<<<< HEAD
 }
-
 
 void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
                                const kahypar_hyperedge_id_t num_hyperedges,
@@ -182,8 +180,4 @@ void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
                     objective,
                     kahypar_context,
                     improved_partition);
-||||||| merged common ancestors
-
-=======
->>>>>>> working analysesources
 }
