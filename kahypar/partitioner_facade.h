@@ -173,10 +173,6 @@ class PartitionerFacade {
         hypergraph.setNodePart(hn, best_partition[hn]);
       }
     }
-
-    if (context.communicator.getRank() != 0) {
-      return;
-    }
   }
 
 
