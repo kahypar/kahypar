@@ -233,6 +233,10 @@ po::options_description createHyperFlowCutterRefinementOptionsDescription(Contex
               ((initial_partitioning ? "i-r-hfc-mbc" : "r-hfc-mbc"),
                po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.most_balanced_cut : &context.local_search.hyperflowcutter.most_balanced_cut))->value_name("<bool>"),
                "Keep piercing after the first balanced partition to improve balance \n"
+               "(default: true)")
+              ((initial_partitioning ? "i-r-hfc-iso" : "r-hfc-iso"),
+               po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.use_isolated_vertices_dp : &context.local_search.hyperflowcutter.use_isolated_vertices_dp))->value_name("<bool>"),
+               "Solve DP on isolated vertices for improved balance \n"
                "(default: true)");
   return options;
 }
