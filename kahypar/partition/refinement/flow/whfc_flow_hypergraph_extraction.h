@@ -61,6 +61,8 @@ namespace whfcInterface {
 		AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
 						   const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
 
+			whfc::HopDistance hop_distance_delta = context.local_search.hyperflowcutter.use_distances_from_cut ? 1 : 0;
+
 			AdditionalData result = { whfc::invalidNode, whfc::invalidNode , 0 , 0 };
 			reset(hg, _b0, _b1);
 			
@@ -73,14 +75,14 @@ namespace whfcInterface {
 			queue.push(globalSourceID);	//we abuse the queue as local2global ID mapper. --> assign a local ID for global source node
 			queue.reinitialize();		//and kill the queue
 			flow_hg_builder.addNode( whfc::NodeWeight(0) );		//dummy weight for source. set at the end
-			BreadthFirstSearch(hg, b0, b1, cut_hes, w0, maxW0, result.source, -1, distanceFromCut);
+			BreadthFirstSearch(hg, b0, b1, cut_hes, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
 
 			//collect b1
 			result.target = whfc::Node::fromOtherValueType(queue.queueEnd());
 			queue.push(globalTargetID);
 			queue.reinitialize();
 			flow_hg_builder.addNode( whfc::NodeWeight(0) );
-			BreadthFirstSearch(hg, b1, b0, cut_hes, w1, maxW1, result.target, 1, distanceFromCut);
+			BreadthFirstSearch(hg, b1, b0, cut_hes, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
 			
 			//collect cut hyperedges and their pins
 			for (const HyperedgeID e : cut_hes) {
