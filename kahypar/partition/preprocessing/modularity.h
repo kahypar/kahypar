@@ -109,7 +109,7 @@ class Modularity {
 
   EdgeWeight quality() {
     EdgeWeight q = 0.0L;
-    const EdgeWeight m2 = _graph.totalWeight();
+    const EdgeWeight m2 = std::max(_graph.totalWeight(), static_cast<EdgeWeight>(1));
     for (const NodeID& node : _graph.nodes()) {
       if (_total_weight[node] > Graph::kEpsilon) {
         q += _internal_weight[node] - (_total_weight[node] * _total_weight[node]) / m2;
@@ -133,7 +133,7 @@ class Modularity {
 
   EdgeWeight modularity() {
     EdgeWeight q = 0.0L;
-    const EdgeWeight m2 = _graph.totalWeight();
+    const EdgeWeight m2 = std::max(_graph.totalWeight(), static_cast<EdgeWeight>(1));
 
     for (const NodeID& u : _graph.nodes()) {
       for (const Edge& edge : _graph.incidentEdges(u)) {

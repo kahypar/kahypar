@@ -360,7 +360,7 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   }
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << hypergraph.nodeWeight(hn) << "\n";
+    out_stream << hypergraph.nodeWeight(hn) << " ";
   }
   out_stream << std::endl;
   out_stream.close();
