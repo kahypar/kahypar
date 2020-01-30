@@ -9,7 +9,7 @@ Code Coverage|Code Quality|Coverity Scan|SonarCloud|Issues
 [![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SebastianSchlag/kahypar.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SebastianSchlag/kahypar/context:cpp) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0ba18c5b3b2b4ab1bcc99f7bd9e35eb2)](https://www.codacy.com/manual/SebastianSchlag/kahypar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SebastianSchlag/kahypar&amp;utm_campaign=Badge_Grade)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/sebastianschlag/kahypar.svg)](http://isitmaintained.com/project/sebastianschlag/kahypar "Average time to resolve an issue")
 
 Table of Contents
------------
+----------- 
 
    * [What is a Hypergraph? What is Hypergraph Partitioning?](#what-is-a-hypergraph-what-is-hypergraph-partitioning)
    * [What is KaHyPar?](#what-is-kahypar)
