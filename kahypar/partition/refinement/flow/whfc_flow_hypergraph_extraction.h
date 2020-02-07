@@ -182,7 +182,7 @@ namespace whfcInterface {
 						bool connectToTerminal = false;
 						for (const HypernodeID v : hg.pins(e)) {
 							if (hg.inPart(v, myBlock)) {
-								if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint) {
+								if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && likely(!hg.isFixedVertex(v))) {
 									visitNode(v, hg, w);
 									distanceFromCut[nodeIDMap[v]] = d;
 								}
