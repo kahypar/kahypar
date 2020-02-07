@@ -58,12 +58,12 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 public:
 	TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
 			Base(hypergraph, context), extractor(hypergraph, context),
-			hfc(extractor.flow_hg_builder, whfc::NodeWeight(context.partition.max_part_weights[0]), context.partition.seed),
+			hfc(extractor.flow_hg_builder, context.partition.seed),
 			_quotient_graph(nullptr), _ignore_flow_execution_policy(false), b0(0), b1(1)
 	{
-		hfc.cs.useIsolatedVertices = context.local_search.hyperflowcutter.use_isolated_vertices_dp;
+		//hfc.cs.useIsolatedVertices = context.local_search.hyperflowcutter.use_isolated_vertices_dp;	TODO currently it is entirely disabled entirely
 		hfc.find_most_balanced = context.local_search.hyperflowcutter.most_balanced_cut;
-		hfc.timer.active = true;
+		hfc.timer.active = false;
 		should_write_snapshot = context.local_search.hyperflowcutter.write_snapshot;
 	}
 
@@ -96,11 +96,6 @@ private:
 			return false;
 		}
 
-		if (_hg.containsFixedVertices())
-			throw std::runtime_error("TwoWayHyperFlowCutter: managing fixed vertices currently not implemented.");
-		if (_context.partition.max_part_weights[b0] != _context.partition.max_part_weights[b1])
-			throw std::runtime_error("TwoWayHyperFlowCutter: Different max part weights currently not implemented.");
-		
 		HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
 
 		if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
@@ -113,7 +108,10 @@ private:
 			_quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
 			_quotient_graph->buildQuotientGraph();
 		}
-
+		
+		hfc.cs.setMaxBlockWeight(0, whfc::NodeWeight::fromOtherValueType(_context.partition.max_part_weights[b0]));
+		hfc.cs.setMaxBlockWeight(1, whfc::NodeWeight::fromOtherValueType(_context.partition.max_part_weights[b1]));
+		
 		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 		//printMetric();
 		
@@ -131,7 +129,7 @@ private:
 					break;
 			}
 			
-			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same heuristic as KaHyPar-MF. Use before flow hypergraph extraction, since that's the bottleneck
+			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same heuristic as KaHyPar-MF. Use before flow hypergraph extraction, since that's quite often the bottleneck
 				break;
 			}
 			
@@ -226,7 +224,9 @@ private:
 	
 	
 	void writeSnapshot(whfcInterface::FlowHypergraphExtractor::AdditionalData& STF) {
-		whfc::WHFC_IO::WHFCInformation i = { whfc::NodeWeight(_context.partition.max_part_weights[b0]), STF.cutAtStake - STF.baseCut, STF.source, STF.target };
+		whfc::WHFC_IO::WHFCInformation i = {
+				{ whfc::NodeWeight(_context.partition.max_part_weights[b0]), whfc::NodeWeight(_context.partition.max_part_weights[b1])},
+				STF.cutAtStake - STF.baseCut, STF.source, STF.target };
 		std::string hg_filename = "/home/gottesbueren/whfc_testinstances/"
 								  + _context.partition.graph_filename.substr(_context.partition.graph_filename.find_last_of('/') + 1)
 								  + ".snapshot" + std::to_string(instance_counter);
