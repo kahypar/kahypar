@@ -677,7 +677,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   po::options_description write_snapshot("write snapshot", num_columns);
   write_snapshot.add_options()
-          ("write-snapshot", po::value<bool>(&context.local_search.hyperflowcutter.write_snapshot)->value_name("<bool>"), "default false. enable to write flow hypergraph snapshots");
+          ("snapshot-path", po::value<std::string>(&context.local_search.hyperflowcutter.snapshot_path)->value_name("<string>"), "Path for flow hypergraph snapshots. Default: None (don't write them)");
 
   po::options_description refinement_options =
     createRefinementOptionsDescription(context, num_columns, false);

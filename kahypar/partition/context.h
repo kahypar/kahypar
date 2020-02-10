@@ -203,7 +203,7 @@ struct LocalSearchParameters {
   };
 
   struct HyperFlowCutter {
-      bool write_snapshot = false;
+      std::string snapshot_path = "None";
       bool use_distances_from_cut = true;
       bool most_balanced_cut = true;
       double snapshot_scaling = 0.2;
