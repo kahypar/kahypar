@@ -31,11 +31,8 @@ class Communicator {
  public:
   explicit Communicator() :
     _rank(0),
-    _size(1),
-    _population_size(MPIPopulationSize::dynamic_percentage_of_total_time) {
-    /* These values are fixed, if there is no MPI, the rank should be 0 (the main process)
-    the size should be 1 (only one process) and the method for generating the population size
-    should be the method not pertaining information about the mpi status. */
+    _size(1) {
+
   }
 
   inline void init(int argc, char* argv[]) { }
@@ -46,20 +43,12 @@ class Communicator {
   inline int getSize() const {
     return _size;
   }
-  inline MPIPopulationSize getPopulationSize() const {
-    return _population_size;
-  }
-  inline void setPopulationSize(const MPIPopulationSize& pop_size) {
-    /* This method is intentionally left blank, there is no reason to set any other
-    MPI Population Size since this is compiled without MPI*/
-  }
   inline std::string preface() const{
     return "";
   }
  private:
   const int _rank;
   const int _size;
-  const MPIPopulationSize _population_size;
 };
 
 #else
@@ -67,8 +56,7 @@ class Communicator {
  public:
   explicit Communicator() :
     _rank(),
-    _size(),
-    _population_size() { }
+    _size() { }
 
   inline void init(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
@@ -86,12 +74,6 @@ class Communicator {
   inline int getSize() const {
     return _size;
   }
-  inline MPIPopulationSize getPopulationSize() const {
-    return _population_size;
-  }
-  inline void setPopulationSize(const MPIPopulationSize& pop_size) {
-    _population_size = pop_size;
-  }
   inline MPI_Comm getCommunicator() const {
     return communicator;
   }
@@ -104,7 +86,6 @@ class Communicator {
   }
   int _rank;
   int _size;
-  MPIPopulationSize _population_size;
   MPI_Comm communicator;
   friend class TheEvoPartitioner;
   FRIEND_TEST(TheEvoPartitioner, ProperlyGeneratesTheInitialPopulation);

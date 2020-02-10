@@ -116,30 +116,10 @@ class EvoPartitioner {
   FRIEND_TEST(TheEvoPartitioner, RespectsTheTimeLimit);
 
   inline unsigned determinePopulationSize(double measured_time_for_one_partition, const Context& context) {
-    LOG << context.communicator.preface() << "MEASURED TIME " << measured_time_for_one_partition;
-    int estimated_population_size;
-    switch (context.communicator.getPopulationSize()) {
-      LOG << context.communicator.preface() << "the chosen strategy " << context.communicator.getPopulationSize();
-      case MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs:
-        LOG << context.communicator.preface() << "dynamic_percentage_of_total_time_times_num_procs";
-        estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
-                                               * context.partition.time_limit
-                                               * context.communicator.getSize()
-                                               / measured_time_for_one_partition);
-        break;
-      case MPIPopulationSize::equal_to_the_number_of_mpi_processes:
-        LOG << context.communicator.preface() << "equal_to_the_number_of_mpi_processes";
-        estimated_population_size = context.communicator.getSize();
-        break;
-      case MPIPopulationSize::dynamic_percentage_of_total_time:
-        LOG << context.communicator.preface() << "dynamic_percentage_of_total_time";
-        estimated_population_size = std::round(context.evolutionary.dynamic_population_amount_of_time
-                                               * context.partition.time_limit
-                                               / measured_time_for_one_partition);
-        break;
-    }
 
-    return applyPopulationSizeBounds(estimated_population_size);
+    return applyPopulationSizeBounds(std::round(context.evolutionary.dynamic_population_amount_of_time
+                                               * context.partition.time_limit
+                                               / measured_time_for_one_partition));
   }
   inline unsigned applyPopulationSizeBounds(int unbound_population_size) {
     int minimal_size = std::max(unbound_population_size, 3);

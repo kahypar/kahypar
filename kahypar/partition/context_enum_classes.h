@@ -159,11 +159,7 @@ enum class EvoDecision :uint8_t {
   combine
 };
 
-enum class MPIPopulationSize : uint8_t {
-  dynamic_percentage_of_total_time_times_num_procs,
-  equal_to_the_number_of_mpi_processes,
-  dynamic_percentage_of_total_time
-};
+
 
 enum class FlowAlgorithm : uint8_t {
   boykov_kolmogorov,
@@ -183,15 +179,6 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
-std::ostream& operator<< (std::ostream& os, const MPIPopulationSize& mpipop) {
-  switch (mpipop) {
-    case MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs: return os << "dynamic_percentage_of_total_time_times_num_procs";
-    case MPIPopulationSize::equal_to_the_number_of_mpi_processes: return os << "equal_to_the_number_of_mpi_processes";
-    case MPIPopulationSize::dynamic_percentage_of_total_time: return os << "dynamic_percentage_of_total_time";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(mpipop);
-}
 
 
 std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
@@ -534,15 +521,6 @@ static RefinementStoppingRule stoppingRuleFromString(const std::string& rule) {
   LOG << "No valid stopping rule for FM.";
   exit(0);
   return RefinementStoppingRule::simple;
-}
-static MPIPopulationSize mpiPopulationSizeFromString(const std::string& mpipop) {
-  if (mpipop == "dynamic_percentage_of_total_time") {
-    return MPIPopulationSize::dynamic_percentage_of_total_time;
-  } else if (mpipop == "dynamic_percentage_of_total_time_times_num_procs") {
-    return MPIPopulationSize::dynamic_percentage_of_total_time_times_num_procs;
-  } else if (mpipop == "equal_to_the_number_of_mpi_processes") {
-    return MPIPopulationSize::equal_to_the_number_of_mpi_processes;
-  }
 }
 
 static CoarseningAlgorithm coarseningAlgorithmFromString(const std::string& type) {
