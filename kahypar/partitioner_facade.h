@@ -161,16 +161,20 @@ class PartitionerFacade {
     return iteration;
   }
 
-  void performEvolutionaryPartitioning(Hypergraph& hypergraph, Context& context) {
-    EvoPartitioner evo_partitioner(context);
-    evo_partitioner.partition(hypergraph, context);
-    const std::vector<PartitionID>& best_partition = evo_partitioner.bestPartition();
 
-    hypergraph.reset();
-    for (const auto& hn : hypergraph.nodes()) {
-      hypergraph.setNodePart(hn, best_partition[hn]);
+  void performEvolutionaryPartitioning(Hypergraph& hypergraph, Context& context) {
+    EvoPartitioner evo_partitioner(hypergraph, context);
+    evo_partitioner.partition(hypergraph, context);
+    if (context.communicator.getRank() == 0) {
+      const std::vector<PartitionID> best_partition = evo_partitioner.bestPartition();
+      hypergraph.reset();
+
+      for (const auto& hn : hypergraph.nodes()) {
+        hypergraph.setNodePart(hn, best_partition[hn]);
+      }
     }
   }
+
 
   std::pair<std::chrono::duration<double>, size_t> performPartitioning(Hypergraph& hypergraph,
                                                                        Context& context) {

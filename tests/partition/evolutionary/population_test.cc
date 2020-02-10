@@ -39,10 +39,10 @@ namespace kahypar {
 class APopulation : public Test {
  public:
   APopulation() :
-    population(),
+    population(context),
     context(),
     hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 4, 7, 10,  /*sentinel*/ 15 },
-              HyperedgeVector { 0, 1, 4, 5, 1, 5, 6, 3, 6, 7, 0, 1, 2, 4, 5 }) { 
+               HyperedgeVector { 0, 1, 4, 5, 1, 5, 6, 3, 6, 7, 0, 1, 2, 4, 5 }) {
     hypergraph.changeK(4);
     context.partition.quiet_mode = true;
   }
@@ -77,6 +77,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
   context.partition.mode = Mode::direct_kway;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
+  context.evolutionary.population_size = 3;
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);
@@ -134,7 +135,10 @@ TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
   ASSERT_EQ(population.difference(ind1, 0, false), 2);
   ASSERT_EQ(population.difference(ind1, 1, false), 1);
   ASSERT_EQ(population.difference(ind1, 2, false), 1);
+  population.print();
+  LOG << context.evolutionary.population_size;
   population.insert(std::move(ind1), context);
+  population.print();
   ASSERT_EQ(population.individualAt(1).fitness(), 3);
   ASSERT_EQ(population.best(), 1);
 }
@@ -146,6 +150,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithStrongDiverseStrategy) {
   context.partition.mode = Mode::direct_kway;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::strong_diverse;
+  context.evolutionary.population_size = 3;
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);
@@ -244,6 +249,7 @@ TEST_F(APopulation, IsPerformingTournamentSelection) {
   context.partition.mode = Mode::direct_kway;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
+  context.evolutionary.population_size = 3;
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);
   population.generateIndividual(hypergraph, context);

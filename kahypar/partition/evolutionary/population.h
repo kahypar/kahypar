@@ -36,11 +36,21 @@ class Population {
   static constexpr bool debug = false;
 
  public:
-  explicit Population() :
-    _individuals() { }
+  explicit Population(const Context& context) :
+    _individuals(),
+    _mpi_rank(),
+    _preface() {
+    _mpi_rank = context.communicator.getRank();
+    _preface = context.communicator.preface();
+  }
 
   inline size_t insert(Individual&& individual, const Context& context) {
-    DBG << context.evolutionary.replace_strategy;
+    DBG << _preface << context.evolutionary.replace_strategy;
+    // New addition for quick initialization of population
+    if (_individuals.size() < context.evolutionary.population_size) {
+      _individuals.emplace_back(std::move(individual));
+      return _individuals.size();
+    }
     switch (context.evolutionary.replace_strategy) {
       case EvoReplaceStrategy::worst:
         return forceInsert(std::move(individual), worst());
@@ -55,12 +65,12 @@ class Population {
     }
   }
   inline size_t forceInsert(Individual&& individual, const size_t position) {
-    DBG << V(position) << V(individual.fitness());
+    DBG << _preface << V(position) << V(individual.fitness());
     _individuals[position] = std::move(individual);
     return position;
   }
   inline size_t forceInsertSaveBest(Individual&& individual, const size_t position) {
-    DBG << V(position) << V(individual.fitness());
+    DBG << _preface  << V(position) << V(individual.fitness());
     if (individual.fitness() <= _individuals[position].fitness() || position != best()) {
       _individuals[position] = std::move(individual);
     }
@@ -71,7 +81,7 @@ class Population {
     const size_t second_pos = randomIndividualExcept(first_pos);
     const Individual& first = individualAt(first_pos);
     const Individual& second = individualAt(second_pos);
-    DBG << V(first_pos) << V(first.fitness()) << V(second_pos) << V(second.fitness());
+    DBG << _preface  << V(first_pos) << V(first.fitness()) << V(second_pos) << V(second.fitness());
     return first.fitness() < second.fitness() ? first : second;
   }
 
@@ -88,7 +98,7 @@ class Population {
       second_winner_pos = first.fitness() >= second.fitness() ? first_pos : second_pos;
     }
 
-    DBG << V(first_tournament_winner.fitness()) << V(individualAt(second_winner_pos).fitness());
+    DBG << _preface << V(first_tournament_winner.fitness()) << V(individualAt(second_winner_pos).fitness());
     return std::make_pair(std::cref(first_tournament_winner),
                           std::cref(individualAt(second_winner_pos)));
   }
@@ -96,19 +106,19 @@ class Population {
   inline const Individual & generateIndividual(Hypergraph& hg, Context& context) {
     Partitioner partitioner;
     hg.reset();
+    DBG << _preface  << "TRYING TO GENERATE AN INDIVIDUAL";
     partitioner.partition(hg, context);
     _individuals.emplace_back(Individual(hg, context));
     if (_individuals.size() > context.evolutionary.population_size) {
       std::cout << "Error, tried to fill Population above limit" << std::endl;
       std::exit(1);
     }
-    DBG << "Individual" << _individuals.size() - 1
+    DBG << _preface  << "Individual" << _individuals.size() - 1
         << V(_individuals.back().fitness())
         << V(metrics::km1(hg));
 
     return _individuals.back();
   }
-
   inline size_t size() const {
     return _individuals.size();
   }
@@ -135,14 +145,14 @@ class Population {
       }
     }
     ASSERT(best_position != std::numeric_limits<size_t>::max());
-    DBG << V(best_position) << V(best_fitness);
+    DBG << _preface  << V(best_position) << V(best_fitness);
     return best_position;
   }
   inline HyperedgeWeight bestFitness() const {
     size_t best_position = std::numeric_limits<size_t>::max();
     HyperedgeWeight best_fitness = std::numeric_limits<int>::max();
     if (size() == 0) {
-      DBG << "SIZE IS 0";
+      DBG << _preface  << "SIZE IS 0";
       return best_fitness;
     }
     for (size_t i = 0; i < size(); ++i) {
@@ -153,7 +163,7 @@ class Population {
       }
     }
     ASSERT(best_position != std::numeric_limits<size_t>::max());
-    DBG << V(best_position) << V(best_fitness);
+    DBG << _preface << V(best_position) << V(best_fitness);
     return best_fitness;
   }
   inline size_t worst() {
@@ -166,7 +176,7 @@ class Population {
         worst_fitness = result;
       }
     }
-    DBG << V(worst_position) << V(worst_fitness);
+    DBG << _preface << V(worst_position) << V(worst_fitness);
     return worst_position;
   }
 
@@ -201,6 +211,12 @@ class Population {
       _individuals[i].printDebug();
     }
   }
+  inline std::string pointers() const {
+    std::string ret = "";
+    for (size_t i = 0; i < _individuals.size(); ++i) {
+      ret.append(std::to_string(individualAt(i).partition()[0]) + " ");
+    }
+  }
   inline size_t difference(const Individual& individual, const size_t position,
                            const bool strong_set) const {
     std::vector<HyperedgeID> output_diff;
@@ -225,7 +241,7 @@ class Population {
                                     individual.cutEdges().end(),
                                     std::back_inserter(output_diff));
     }
-    DBG << V(output_diff.size());
+    DBG << _preface << V(output_diff.size());
     return output_diff.size();
   }
 
@@ -234,25 +250,26 @@ class Population {
     size_t max_similarity = std::numeric_limits<size_t>::max();
     size_t max_similarity_id = 0;
     if (individual.fitness() > individualAt(worst()).fitness()) {
-      DBG << "COLLAPSE";
+      DBG << _preface << "COLLAPSE";
       return std::numeric_limits<unsigned>::max();
     }
     for (size_t i = 0; i < size(); ++i) {
       if (_individuals[i].fitness() >= individual.fitness()) {
         const size_t similarity = difference(individual, i, strong_set);
-        DBG << "SYMMETRIC DIFFERENCE:" << similarity << " from" << i;
+        DBG << _preface << "SYMMETRIC DIFFERENCE:" << similarity << " from" << i;
         if (similarity < max_similarity) {
           max_similarity = similarity;
           max_similarity_id = i;
         }
       }
     }
-    DBG << V(max_similarity_id) << V(max_similarity);
+    DBG << _preface << V(max_similarity_id) << V(max_similarity);
     forceInsert(std::move(individual), max_similarity_id);
     return max_similarity_id;
   }
-
+  std::string _preface;
   std::vector<Individual> _individuals;
+  int _mpi_rank;
 };
 std::ostream& operator<< (std::ostream& os, const Population& population) {
   for (size_t i = 0; i < population.size(); ++i) {

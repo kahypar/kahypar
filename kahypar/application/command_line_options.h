@@ -535,6 +535,13 @@ po::options_description createEvolutionaryOptionsDescription(Context& context,
     }),
     "Whether combine operations should not be limited in contraction\n"
     "default: on)")
+    ("fast-initial-population",
+    po::value<bool>()->value_name("<bool>")->notifier(
+      [&](const bool& quick_start) {
+      context.evolutionary.parallel_partitioning_quick_start = quick_start;
+    }),
+    "Whether MPI should use quick intialisation\n"
+    "default: off)")
     ("mutate-chance",
     po::value<float>()->value_name("<float>")->notifier(
       [&](const float& mutate_chance) {

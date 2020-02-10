@@ -159,6 +159,8 @@ enum class EvoDecision :uint8_t {
   combine
 };
 
+
+
 enum class FlowAlgorithm : uint8_t {
   boykov_kolmogorov,
   ibfs,
@@ -176,6 +178,7 @@ enum class FlowExecutionMode : uint8_t {
   exponential,
   UNDEFINED
 };
+
 
 
 std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {

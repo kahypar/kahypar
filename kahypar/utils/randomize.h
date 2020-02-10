@@ -61,7 +61,13 @@ class Randomize {
   void shuffleVector(std::vector<T>& vector, size_t i, size_t j) {
     std::shuffle(vector.begin() + i, vector.begin() + j, _gen);
   }
-
+  template <typename T>
+  void shuffleVectorDegenerate(std::vector<T>& vector) {
+    for (unsigned i = 1; i < vector.size(); ++i) {
+      int random_int_smaller_than_i = Randomize::instance().getRandomInt(0, i - 1);
+      std::swap(vector[i], vector[random_int_smaller_than_i]);
+    }
+  }
   // returns uniformly random int from the interval [low, high]
   int getRandomInt(int low, int high) {
     return _int_dist(_gen, std::uniform_int_distribution<int>::param_type(low, high));
@@ -76,7 +82,7 @@ class Randomize {
     return _norm_dist(_gen, std::normal_distribution<float>::param_type(mean, std_dev));
   }
 
-  std::mt19937& getGenerator() {
+  std::mt19937 & getGenerator() {
     return _gen;
   }
 

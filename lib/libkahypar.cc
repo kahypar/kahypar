@@ -131,7 +131,6 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   context.evolutionary.communities.clear();
 }
 
-
 void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
                                const kahypar_hyperedge_id_t num_hyperedges,
                                const double epsilon,

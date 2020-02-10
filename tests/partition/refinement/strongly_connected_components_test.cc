@@ -20,25 +20,23 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/definitions.h"
 #include "kahypar/datastructure/graph.h"
+#include "kahypar/definitions.h"
 #include "kahypar/partition/refinement/flow/strongly_connected_components.h"
 
 using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-
 TEST(SCCs, AreComputedCorrectly) {
-
   std::vector<NodeID> adj_array;
   std::vector<Edge> edges;
 
-  edges.emplace_back(Edge{1,0});
-  edges.emplace_back(Edge{2,0});
-  edges.emplace_back(Edge{3,0});
-  edges.emplace_back(Edge{0,0});
-  edges.emplace_back(Edge{4,0});
+  edges.emplace_back(Edge{ 1, 0 });
+  edges.emplace_back(Edge{ 2, 0 });
+  edges.emplace_back(Edge{ 3, 0 });
+  edges.emplace_back(Edge{ 0, 0 });
+  edges.emplace_back(Edge{ 4, 0 });
 
   adj_array.push_back(0);
   adj_array.push_back(1);
@@ -66,8 +64,5 @@ TEST(SCCs, AreComputedCorrectly) {
   ASSERT_TRUE(graph.clusterID(0) != graph.clusterID(4));
 
   ASSERT_TRUE(graph.clusterID(3) != graph.clusterID(4));
-
 }
-
-
-} // namespace kahypar
+}  // namespace kahypar
