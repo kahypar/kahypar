@@ -41,7 +41,7 @@ namespace kahypar {
 
 enum class RefinementResult : uint8_t {
 	NoImprovement,
-	BlockWeightDifferenceImproved,
+	LocalBalanceImproved,
 	GlobalBalanceImproved,
 	MetricImproved
 };
@@ -151,24 +151,22 @@ private:
 			
 			bool should_update = false;
 			if (flowcutter_succeeded) {
-				should_update = setRefinementResult(newCut, STF.cutAtStake);
+				should_update = determineRefinementResult(newCut, STF.cutAtStake);
 			}
 
 			//assign new partition IDs
 			if (should_update) {
 				improved = true;
-				hfc.timer.start("Change Node Part");
 				for (const whfc::Node uLocal : extractor.localNodeIDs()) {
 					if (uLocal == STF.source || uLocal == STF.target)
 						continue;
 					const HypernodeID uGlobal = extractor.local2global(uLocal);
 					PartitionID from = _hg.partID(uGlobal);
-					Assert(from == b0 || from == b1);
+					ASSERT(from == b0 || from == b1);
 					PartitionID to = hfc.cs.n.isSource(uLocal) ? b0 : b1;
 					if (from != to)
 						_quotient_graph->changeNodePart(uGlobal, from, to);
 				}
-				hfc.timer.stop("Change Node Part");
 				
 				DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
 				if (_hg.partWeight(b0) > _context.partition.max_part_weights[b0] || _hg.partWeight(b1) > _context.partition.max_part_weights[b1]) {
@@ -194,7 +192,7 @@ private:
 		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 		Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
 		
-		Assert(improved == refinement_result >= RefinementResult::BlockWeightDifferenceImproved);
+		ASSERT(improved == refinement_result >= RefinementResult::LocalBalanceImproved);
 		
 		return improved;
 	}
@@ -235,40 +233,47 @@ private:
 		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
 	}
 	
-	bool setRefinementResult(HyperedgeWeight newCut, HyperedgeWeight cutAtStake) {
-		HypernodeWeight previousBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - _hg.partWeight(b0), _context.partition.max_part_weights[b1] - _hg.partWeight(b1));
-		HypernodeWeight currentBlockWeightDiff = std::max(_context.partition.max_part_weights[b0] - hfc.cs.n.sourceWeight, _context.partition.max_part_weights[b1] - hfc.cs.n.targetWeight);
-		
+	bool determineRefinementResult(HyperedgeWeight newCut, HyperedgeWeight cutAtStake) {
 		if (newCut < cutAtStake) {
 			refinement_result = std::max(refinement_result, RefinementResult::MetricImproved);
 			return true;
 		}
-		else if (newCut == cutAtStake && previousBlockWeightDiff > currentBlockWeightDiff) {
-			HypernodeWeight previousMaxPartWeight = -1;
-			HypernodeWeight currentMaxPartWeight = -1;
+		else if (newCut == cutAtStake) {
+			double prevLocalImbalance = -2.0, prevGlobalImbalance = -2.0, newLocalImbalance = -2.0, newGlobalImbalance = -2.0;
 			
 			for (PartitionID i = 0; i < _context.partition.k; ++i) {
-				previousMaxPartWeight = std::max(_hg.partWeight(i), previousMaxPartWeight);
+				double prevImbalance = imbalance(_hg.partWeight(i), _context.partition.max_part_weights[i]);
+				double newImbalance = prevImbalance;
 				
-				if (i == b0)
-					currentMaxPartWeight = std::max(currentMaxPartWeight, HypernodeWeight(hfc.cs.n.sourceWeight));
-				else if (i == b1)
-					currentMaxPartWeight = std::max(currentMaxPartWeight, HypernodeWeight(hfc.cs.n.targetWeight));
-				else
-					currentMaxPartWeight = std::max(currentMaxPartWeight, _hg.partWeight(i));
+				if (i == b0 || i == b1) {
+					prevLocalImbalance = std::max(prevLocalImbalance, prevImbalance);
+					newImbalance = imbalance(i == b0 ? hfc.cs.n.sourceWeight : hfc.cs.n.targetWeight, _context.partition.max_part_weights[i]);
+					newLocalImbalance = std::max(prevLocalImbalance, newImbalance);
+				}
+				
+				prevGlobalImbalance = std::max(prevGlobalImbalance, prevImbalance);
+				newGlobalImbalance = std::max(newGlobalImbalance, newImbalance);
 			}
 			
-			if (currentMaxPartWeight < previousMaxPartWeight) {
+			if (newGlobalImbalance < prevGlobalImbalance) {
 				refinement_result = std::max(refinement_result, RefinementResult::GlobalBalanceImproved);
 			}
+			else if (newLocalImbalance < prevLocalImbalance) {
+				refinement_result = std::max(refinement_result, RefinementResult::LocalBalanceImproved);
+			}
 			else {
-				refinement_result = std::max(refinement_result, RefinementResult::BlockWeightDifferenceImproved);
+				ASSERT(false, "HFC succeeded but it improved neither metric nor local balance.");
+				return false;
 			}
 			
 			return true;
 		}
 		
 		return false;
+	}
+	
+	double imbalance(const HypernodeWeight blockWeight, const HypernodeWeight maxBlockWeight) const {
+		return ( static_cast<double>(blockWeight) / static_cast<double>(maxBlockWeight) ) - 1.0;
 	}
 	
 	
