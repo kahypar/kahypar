@@ -95,7 +95,27 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     UncontractionGainChanges changes;
     changes.representative.push_back(0);
     changes.contraction_partner.push_back(0);
+
+
     while (!_history.empty()) {
+      if (isSoftTimeLimitExceeded()) {
+        /*
+         * There are two ways to implement this time limit.
+         * 1) skip refinement but perform full uncontractions, including updates. This can be slow
+         * 2) only perform the partition projection of the uncontractions. This leaves the dynamic hypergraph in a "broken" state, i.e.
+         * hyperedges are still as in the contracted hypergraph, whereas vertices are unpacked and activated.
+         *
+         * We implement 2) because all considered output measures are either already maintained (i.e. part weights and imbalance)
+         * or can be computed on the state of hyperedges in the contracted hypergraph.
+         * This means, this time limit should not be used to
+         */
+        while (!_history.empty()) {
+          _hg.restoreMemento(_history.back().contraction_memento);
+          _history.pop_back();
+        }
+        break;
+      }
+
       restoreParallelHyperedges();
       restoreSingleNodeHyperedges();
 
@@ -120,6 +140,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       }
 
       performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
+
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
       _history.pop_back();
@@ -180,6 +201,21 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       permutation.push_back(hn);
     }
     Randomize::instance().shuffleVector(permutation, permutation.size());
+  }
+
+  bool isSoftTimeLimitExceeded() {
+    if (!_context.partition.use_soft_time_limit || _history.size() % _context.partition.soft_time_limit_check_frequency != 0) {
+      return false;
+    }
+
+    const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
+    const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
+
+    const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
+    if (result) {
+      LOG << "first soft time limit trigger" << V(_history.size()) << "uncontractions remaining" << V(duration.count()) << "seconds elapsed";
+    }
+    return result;
   }
 
   using CoarsenerBase::_hg;

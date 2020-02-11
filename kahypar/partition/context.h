@@ -325,7 +325,13 @@ struct PartitioningParameters {
   PartitionID rb_upper_k = 0;
   int seed = 0;
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
-  int time_limit = 0;
+
+  bool time_limited_repeated_partitioning = false;
+  bool use_soft_time_limit = false;
+  int time_limit = 28800;	// 28800 seconds = 8 hours
+  int soft_time_limit_check_frequency = 5000;
+  double soft_time_limit_factor = 0.995;
+  HighResClockTimepoint start_time;
 
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;

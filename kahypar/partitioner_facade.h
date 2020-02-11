@@ -175,8 +175,8 @@ class PartitionerFacade {
   std::pair<std::chrono::duration<double>, size_t> performPartitioning(Hypergraph& hypergraph,
                                                                        Context& context) {
     size_t iteration = 0;
-    const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
-    if (context.partition.time_limit != 0 && !context.partition_evolutionary) {
+    context.partition.start_time = std::chrono::high_resolution_clock::now();
+    if (context.partition.time_limited_repeated_partitioning && !context.partition_evolutionary) {
       iteration = performTimeLimitedRepeatedPartitioning(hypergraph, context);
     } else if (context.partition_evolutionary && context.partition.time_limit != 0) {
       performEvolutionaryPartitioning(hypergraph, context);
@@ -184,7 +184,7 @@ class PartitionerFacade {
       Partitioner().partition(hypergraph, context);
     }
     const HighResClockTimepoint complete_end = std::chrono::high_resolution_clock::now();
-    return { complete_end - complete_start, iteration };
+    return { complete_end - context.partition.start_time, iteration };
   }
 };
 }  // namespace kahypar
