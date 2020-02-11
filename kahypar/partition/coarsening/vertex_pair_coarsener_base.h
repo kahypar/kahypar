@@ -204,16 +204,14 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   }
 
   bool isSoftTimeLimitExceeded() {
-    if (!_context.partition.use_soft_time_limit || _history.size() % _context.partition.soft_time_limit_check_frequency != 0) {
+    if (_context.partition.time_limit == -1 || _history.size() % _context.partition.soft_time_limit_check_frequency != 0) {
       return false;
     }
-
     const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
     const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
-
     const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
     if (result) {
-      LOG << "first soft time limit trigger" << V(_history.size()) << "uncontractions remaining" << V(duration.count()) << "seconds elapsed";
+      DBG << "Soft time limit triggered" << duration.count() << "seconds elapsed" << _history.size() << "uncontractions left";
     }
     return result;
   }

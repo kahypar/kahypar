@@ -621,15 +621,15 @@ po::options_description createGenericOptionsDescription(Context& context,
     ("quiet,q", po::value<bool>(&context.partition.quiet_mode)->value_name("<bool>"),
     "Quiet Mode: Completely suppress console output")
     ("time-limit", po::value<int>(&context.partition.time_limit)->value_name("<int>"),
-    "Time limit in seconds. default: 8 hours")
-    ("time-limited-repeated-partitioning", po::value<bool>(&context.partition.time_limited_repeated_partitioning)->value_name("<bool>"),
-     "Use time limited repeated partitioning.")
-    ("use-soft-time-limit", po::value<bool>(&context.partition.use_soft_time_limit)->value_name("<bool>"),
-     "Skips refinement but performs uncontractions after soft time limit is exceeded. set via --time-limit (hard limit) and --soft-time-limit-factor. default: 0.995 * 8 hours")
-    ("soft-time-limit-check-frequency", po::value<int>(&context.partition.soft_time_limit_check_frequency)->value_name("<int>"),
-     "After how many uncontractions the soft time limit shall be checked")
+    "Sets a time limit in seconds. default: disabled. "
+    "Implemented as a soft time limit during refinement. Once a large part (default 99%) of the time limit is exceeded we only project the partition upward."
+    "This time limit is never triggered before an initial partition is available.")
     ("soft-time-limit-factor", po::value<double>(&context.partition.soft_time_limit_factor)->value_name("<double>"),
-     "Percentage of time limit for the soft time limit. soft time limit = --soft-time-limit-factor * --time-limit. default: 0.995")
+     "Percentage of time limit for the soft time limit. soft time limit = --soft-time-limit-factor * --time-limit. default: 0.99")
+    ("soft-time-limit-check-frequency", po::value<int>(&context.partition.soft_time_limit_check_frequency)->value_name("<int>"),
+     "After how many uncontractions the soft time limit shall be checked. default 10000")
+    ("time-limited-repeated-partitioning", po::value<bool>(&context.partition.time_limited_repeated_partitioning)->value_name("<bool>"),
+     "Use repeated partitioning with the strict time limit set using --time-limit. This also uses the soft time limit.")
     ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)")

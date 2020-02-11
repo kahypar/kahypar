@@ -327,10 +327,9 @@ struct PartitioningParameters {
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
 
   bool time_limited_repeated_partitioning = false;
-  bool use_soft_time_limit = false;
-  int time_limit = 28800;	// 28800 seconds = 8 hours
-  int soft_time_limit_check_frequency = 5000;
-  double soft_time_limit_factor = 0.995;
+  int time_limit = -1;
+  int soft_time_limit_check_frequency = 10000;
+  double soft_time_limit_factor = 0.99;
   HighResClockTimepoint start_time;
 
   mutable uint32_t current_v_cycle = 0;

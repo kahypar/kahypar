@@ -178,7 +178,7 @@ class PartitionerFacade {
     context.partition.start_time = std::chrono::high_resolution_clock::now();
     if (context.partition.time_limited_repeated_partitioning && !context.partition_evolutionary) {
       iteration = performTimeLimitedRepeatedPartitioning(hypergraph, context);
-    } else if (context.partition_evolutionary && context.partition.time_limit != 0) {
+    } else if (context.partition_evolutionary && context.partition.time_limit > 0) {
       performEvolutionaryPartitioning(hypergraph, context);
     } else {
       Partitioner().partition(hypergraph, context);
