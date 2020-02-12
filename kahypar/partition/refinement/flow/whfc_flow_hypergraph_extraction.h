@@ -209,8 +209,8 @@ namespace whfcInterface {
 		PartitionID b0, b1 = invalid_part;
 		HypernodeID globalSourceID, globalTargetID = invalid_node;
 		std::vector<whfc::Node> nodeIDMap;
-		FastResetFlagArray<> visitedNode;
-		FastResetFlagArray<> visitedHyperedge;
+		ds::FastResetFlagArray<> visitedNode;
+		ds::FastResetFlagArray<> visitedHyperedge;
 		using Queue = LayeredQueue<HypernodeID>;
 		Queue queue;
 		bool removeHyperedgesWithPinsOutsideRegion = false;

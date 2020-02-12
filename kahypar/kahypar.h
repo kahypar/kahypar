@@ -21,7 +21,6 @@
 #pragma once
 
 #include "kahypar/partition/registries/register_coarsening_algorithms.h"
-#include "kahypar/partition/registries/register_flow_networks.h"
 #include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
 #include "kahypar/partition/registries/register_policies.h"
 #include "kahypar/partition/registries/register_refinement_algorithms.h"
