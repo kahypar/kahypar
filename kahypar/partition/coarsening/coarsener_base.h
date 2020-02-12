@@ -47,7 +47,7 @@ class CoarsenerBase {
   };
 
  public:
-  CoarsenerBase(Hypergraph& hypergraph, const Context& context,
+  CoarsenerBase(Hypergraph& hypergraph, Context& context,
                 const HypernodeWeight weight_of_heaviest_node) :
     _hg(hypergraph),
     _context(context),
@@ -161,7 +161,7 @@ class CoarsenerBase {
   }
 
   Hypergraph& _hg;
-  const Context& _context;
+  Context& _context;
   std::vector<CoarseningMemento> _history;
   std::vector<CurrentMaxNodeWeight> _max_hn_weights;
   HypergraphPruner _hypergraph_pruner;

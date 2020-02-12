@@ -30,7 +30,7 @@ namespace kahypar {
 template <class FlowExecutionPolicy>
 class FlowRefinerBase {
  public:
-  FlowRefinerBase(Hypergraph& hypergraph, const Context& context) :
+  FlowRefinerBase(Hypergraph& hypergraph, Context& context) :
     _hg(hypergraph),
     _context(context),
     _flow_execution_policy(),
@@ -67,7 +67,7 @@ class FlowRefinerBase {
   }
 
   Hypergraph& _hg;
-  const Context& _context;
+  Context& _context;
   FlowExecutionPolicy _flow_execution_policy;
   std::vector<PartitionID> _original_part_id;
 };

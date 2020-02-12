@@ -40,7 +40,7 @@
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
   static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
     id,                                                           \
-    [](Hypergraph& hypergraph, const Context& context) {          \
+    [](Hypergraph& hypergraph, Context& context) {          \
     return dispatcher::create(                                    \
       std::forward_as_tuple(hypergraph, context),                 \
       __VA_ARGS__                                                 \
@@ -50,7 +50,7 @@
 #define REREGISTER_REFINER(id, refiner, t)                              \
   static meta::Registrar<RefinerFactory> JOIN(register_ ## refiner, t)( \
     id,                                                                 \
-    [](Hypergraph& hypergraph, const Context& context) -> IRefiner* {   \
+    [](Hypergraph& hypergraph, Context& context) -> IRefiner* {   \
     return new refiner(hypergraph, context);                            \
   })
 

@@ -40,7 +40,7 @@ class KWayFMFlowRefiner final : public IRefiner,
   using Base = FMRefinerBase<HypernodeID>;
 
  public:
-  KWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
+  KWayFMFlowRefiner(Hypergraph& hypergraph, Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
                   context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ?

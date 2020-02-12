@@ -86,5 +86,5 @@ class IRefiner {
 };
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
-                                     IRefiner* (*)(Hypergraph&, const Context&)>;
+                                     IRefiner* (*)(Hypergraph&, Context&)>;
 }  // namespace kahypar

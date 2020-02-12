@@ -54,7 +54,7 @@ class APartitionedHypergraph;
 
 
 namespace partition {
-static inline void partition(Hypergraph& hypergraph, const Context& context) {
+static inline void partition(Hypergraph& hypergraph, Context& context) {
   ASSERT([&]() {
         if (context.partition.mode != Mode::recursive_bisection &&
             context.preprocessing.enable_community_detection) {

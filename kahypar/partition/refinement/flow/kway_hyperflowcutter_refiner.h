@@ -51,7 +51,7 @@ private:
 	using Base = FlowRefinerBase<FlowExecutionPolicy>;
 	static constexpr bool debug = false;
 public:
-	KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
+	KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, Context& context) :
 		Base(hypergraph, context),
 		_twoway_flow_refiner(_hg, _context),
 		_num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
@@ -169,6 +169,7 @@ private:
 		const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
 		const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
 		if (result && _context.partition.verbose_output) {
+			_context.partition.time_limit_triggered = true;
 			LOG << "Soft time limit triggered in HyperFlowCutter refinement after " << duration.count() << "seconds. Cancel HyperFlowCutter refinement.";
 		}
 		return result;

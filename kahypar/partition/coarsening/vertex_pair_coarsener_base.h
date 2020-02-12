@@ -49,7 +49,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   using CoarsenerBase::performContraction;
 
  public:
-  VertexPairCoarsenerBase(Hypergraph& hypergraph, const Context& context,
+  VertexPairCoarsenerBase(Hypergraph& hypergraph, Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
     CoarsenerBase(hypergraph, context, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
@@ -210,6 +210,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
     const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
     if (result && _context.partition.verbose_output) {
+      _context.partition.time_limit_triggered = true;
       LOG << "Soft time limit triggered after" << duration.count() << "seconds. " << _history.size() << "uncontractions left. Cancel future refinement.";
     }
     return result;
