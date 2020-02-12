@@ -36,7 +36,7 @@ namespace io {
 namespace serializer {
 static inline void serialize(const Context& context, const Hypergraph& hypergraph,
                              const std::chrono::duration<double>& elapsed_seconds,
-                             const size_t iteration = 0, bool timeout = false) {
+                             const size_t iteration = 0, bool interrupted = false) {
   if (!context.partition.sp_process_output) {
     return;
   }
@@ -62,18 +62,16 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   std::ostringstream oss;
   oss << "RESULT"
       << " algorithm=" << algo_name.str()
-      << " graph=" << context.partition.graph_filename.substr(
-    context.partition.graph_filename.find_last_of('/') + 1)
-  << " timeout=" << (timeout ? "yes" : "no")
+      << " graph=" << context.partition.graph_filename.substr(context.partition.graph_filename.find_last_of('/') + 1)
+      << " interrupted=" << (interrupted ? "yes" : "no")
+      << " timeout=" << (context.partition.time_limit_triggered ? "yes" : "no")
       << " numHNs=" << hypergraph.initialNumNodes()
       << " numHEs=" << hypergraph.initialNumEdges()
       << " " << hypergraph.typeAsString();
   if (!context.partition.fixed_vertex_filename.empty()) {
-    oss << " fixed_vertex_file=" << context.partition.fixed_vertex_filename.substr(
-      context.partition.fixed_vertex_filename.find_last_of('/') + 1)
+    oss << " fixed_vertex_file=" << context.partition.fixed_vertex_filename.substr(context.partition.fixed_vertex_filename.find_last_of('/') + 1)
         << " num_fixed_vertices=" << hypergraph.numFixedVertices()
-        << " fixed_vertices_imbalance=" << metrics::imbalanceFixedVertices(hypergraph,
-                                                                       context.partition.k);
+        << " fixed_vertices_imbalance=" << metrics::imbalanceFixedVertices(hypergraph, context.partition.k);
   }
   oss << " mode=" << context.partition.mode
       << " objective=" << context.partition.objective
@@ -198,7 +196,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     oss << " partWeight" << i << "=" << hypergraph.partWeight(i);
   }
 
-  if (!timeout) {
+  if (!interrupted) {
 	  oss << " cut=" << metrics::hyperedgeCut(hypergraph)
 	      << " soed=" << metrics::soed(hypergraph)
 		    << " km1=" << metrics::km1(hypergraph)
@@ -211,7 +209,9 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
 		    << " km1=" << std::numeric_limits<HyperedgeWeight>::max()
         << " absorption=" << std::numeric_limits<HyperedgeWeight>::max()
 		    << " imbalance=" << 1.0;
-	  oss << " totalPartitionTime=" << context.partition.time_limit;	//we're assuming the external timeout takes as long
+
+    //we're assuming the external interruption comes from an external timeout which is as long as the internally set time limit
+	  oss << " totalPartitionTime=" << context.partition.time_limit;
   }
 	
 	oss	<< " minHashSparsifierTime=" << timings.pre_sparsifier
