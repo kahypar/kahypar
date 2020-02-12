@@ -312,18 +312,13 @@ po::options_description createRefinementOptionsDescription(Context& context,
     }),
     "Local Search Algorithm:\n"
     " - twoway_fm                    : 2-way FM algorithm         (recursive bisection : cut & km1)\n"
-    " - twoway_flow                  : 2-way Flow algorithm       (recursive bisection : cut & km1)\n"
-	" - twoway_hyperflow_cutter      : 2-way HyperFlowCutter      (recursive bisection : cut & km1)\n"
-	" - twoway_fm_flow               : 2-way FM + Flow algorithm  (recursive bisection : cut & km1)\n"
-	" - twoway_fm_hyperflow_cutter   : 2-way FM + HyperFlowCutter (recursive bisection : cut & km1)\n"
-	" - kway_fm                      : k-way FM algorithm         (direct k-way        : cut)\n"
-    " - kway_fm_flow                 : k-way FM + Flow algorithm  (direct k-way        : cut)\n"
-	" - kway_fm_hyperflow_cutter     : k-way FM + HyperFlowCutter (direct k-way        : cut)\n"
-	" - kway_fm_km1                  : k-way FM algorithm         (direct k-way        : km1)\n"
-    " - kway_fm_flow_km1             : k-way FM + Flow algorithm  (direct k-way        : km1)\n"
-	" - kway_fm_hyperflow_cutter_km1 : k-way FM + HyperFlowCutter (direct k-way        : km1)\n"
-	" - kway_flow                    : k-way Flow algorithm       (direct k-way        : cut & km1)\n"
-	" - kway_hyperflow_cutter        : k-way HyperFlowCutter      (direct k-way        : cut & km1)\n"
+	  " - twoway_hyperflow_cutter      : 2-way HyperFlowCutter      (recursive bisection : cut & km1)\n"
+	  " - twoway_fm_hyperflow_cutter   : 2-way FM + HyperFlowCutter (recursive bisection : cut & km1)\n"
+	  " - kway_fm                      : k-way FM algorithm         (direct k-way        : cut)\n"
+	  " - kway_fm_hyperflow_cutter     : k-way FM + HyperFlowCutter (direct k-way        : cut)\n"
+	  " - kway_fm_km1                  : k-way FM algorithm         (direct k-way        : km1)\n"
+	  " - kway_fm_hyperflow_cutter_km1 : k-way FM + HyperFlowCutter (direct k-way        : km1)\n"
+	  " - kway_hyperflow_cutter        : k-way HyperFlowCutter      (direct k-way        : cut & km1)\n"
     )
     ((initial_partitioning ? "i-r-runs" : "r-runs"),
     po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.iterations_per_level : &context.local_search.iterations_per_level))->value_name("<int>")->notifier(
@@ -596,9 +591,7 @@ po::options_description createGenericOptionsDescription(Context& context,
 
 void processCommandLineInput(Context& context, int argc, char* argv[]) {
   const int num_columns = platform::getTerminalWidth();
-
-  po::options_description generic_options = createGenericOptionsDescription(context,
-                                                                            num_columns);
+  po::options_description generic_options = createGenericOptionsDescription(context, num_columns);
 
   po::options_description required_options("Required Options", num_columns);
   required_options.add_options()
@@ -629,26 +622,20 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   po::options_description general_options = createGeneralOptionsDescription(context, num_columns);
 
-  po::options_description preprocessing_options =
-    createPreprocessingOptionsDescription(context, num_columns);
+  po::options_description preprocessing_options = createPreprocessingOptionsDescription(context, num_columns);
 
-  po::options_description coarsening_options = createCoarseningOptionsDescription(context,
-                                                                                  num_columns,
-                                                                                  false);
+  po::options_description coarsening_options = createCoarseningOptionsDescription(context, num_columns, false);
 
+  po::options_description ip_options = createInitialPartitioningOptionsDescription(context, num_columns);
 
-  po::options_description ip_options = createInitialPartitioningOptionsDescription(context,
-                                                                                   num_columns);
 
   po::options_description write_snapshot("write snapshot", num_columns);
   write_snapshot.add_options()
           ("snapshot-path", po::value<std::string>(&context.local_search.hyperflowcutter.snapshot_path)->value_name("<string>"), "Path for flow hypergraph snapshots. Default: None (don't write them)");
 
-  po::options_description refinement_options =
-    createRefinementOptionsDescription(context, num_columns, false);
+  po::options_description refinement_options = createRefinementOptionsDescription(context, num_columns, false);
 
-  po::options_description evolutionary_options =
-    createEvolutionaryOptionsDescription(context, num_columns);
+  po::options_description evolutionary_options = createEvolutionaryOptionsDescription(context, num_columns);
 
   po::options_description cmd_line_options;
   cmd_line_options.add(generic_options)
@@ -733,7 +720,7 @@ void parseIniToContext(Context& context, const std::string& ini_filename) {
   po::store(po::parse_config_file(file, ini_line_options, true), cmd_vm);
   po::notify(cmd_vm);
 
-  if (context.partition.use_individual_part_weights) {
+  if (context.partition.use_individual_part_weights) {  // Note(Lars): This affects flow network sizes!
     context.partition.epsilon = 0;
   }
 }
