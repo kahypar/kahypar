@@ -59,7 +59,7 @@ install:
   - DEPS_DIR="${HOME}/deps"
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
   - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+    if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       CMAKE_URL="https://cmake.org/files/v3.13/cmake-3.13.0-rc3-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
@@ -76,26 +76,28 @@ before_script:
   - cd "${TRAVIS_BUILD_DIR}"
   - mkdir build; cp sonar-project.properties build; cd build
   - export TRAVIS_ENV=1
+  - if [ "$BUILD_TYPE" = "Debug" ]; then export PREPROC_ASSERT=0; else PREPROC_ASSERT=1;  fi
+  - echo "PREPROC_ASSERT=$PREPROC_ASSERT"
   - cmake
-      -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS="$PREPROC_ASSERT"
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX" -DKAHYPAR_USE_GCOV="$COV"
       -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
       $CMAKE_ARGS ..
 
 script:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
-      travis_wait 30 make clean all;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
-      travis_wait 30 make clean all; 
+    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-6" ] && [ "$COV" = "OFF" ]; then
+      make clean all;
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-6" ] && [ "$COV" = "ON" ]; then
+      make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
       gcovr -r ../ -x > report.xml;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$SONAR" == "ON" ]]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-6" ] && [ "$SONAR" = "ON" ]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make clean all; 
       sonar-scanner;
-    elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
+    elif [ "$BUILD_TYPE" = "Release" ] && [ "$CMAKE_CXX" = "g++-6" ]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
     else
@@ -104,7 +106,7 @@ script:
 
 after_success:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
+    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-6" ] && [ "$COV" == "ON" ]; then
       cd ${TRAVIS_BUILD_DIR};
       bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
     fi
