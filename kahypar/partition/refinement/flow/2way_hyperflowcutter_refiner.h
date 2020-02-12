@@ -112,8 +112,7 @@ private:
 		hfc.cs.setMaxBlockWeight(1, whfc::NodeWeight::fromOtherValueType(_context.partition.max_part_weights[b1]));
 		
 		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
-		//printMetric();
-		
+
 		bool improved = false;
 		bool should_continue = true;
 		refinement_result = RefinementResult::NoImprovement;
@@ -128,7 +127,7 @@ private:
 					break;
 			}
 			
-			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {	// same heuristic as KaHyPar-MF. Use before flow hypergraph extraction, since that's quite often the bottleneck
+			if (cut_weight <= 10 && !isRefinementOnLastLevel()) {
 				break;
 			}
 			
@@ -181,8 +180,7 @@ private:
 		}
 
 		DBG << "HFC refinement done";
-		//printMetric(true, true);
-		
+
 		// Delete quotient graph
 		if (delete_quotientgraph_after_flow) {
 			delete _quotient_graph;

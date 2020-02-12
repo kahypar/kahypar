@@ -108,7 +108,7 @@ private:
 				// Heuristic: If a flow refinement never improved a bipartition,
 				//            we ignore the refinement for these blocks in the
 				//            second iteration of active block scheduling
-				if (_context.local_search.flow.use_improvement_history && current_round > 1 && _num_improvements[block_0][block_1] == 0)
+				if (current_round > 1 && _num_improvements[block_0][block_1] == 0)
 			  		continue;
 				
 				if (active_blocks[block_0] || active_blocks[block_1]) {
