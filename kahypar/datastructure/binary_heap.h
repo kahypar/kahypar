@@ -243,7 +243,7 @@ class BinaryHeapBase {
     if (!empty()) {
       downHeap(1);
     }
-    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_DATA_STRUCTURE_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   inline const IDType & top() const {
@@ -275,7 +275,7 @@ class BinaryHeapBase {
     _heap[heap_position].key = rising_key;
     _heap[heap_position].id = rising_id;
     _handles[rising_id] = heap_position;
-    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_DATA_STRUCTURE_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void downHeap(size_t heap_position) {
@@ -306,7 +306,7 @@ class BinaryHeapBase {
     _heap[heap_position].key = dropping_key;
     _heap[heap_position].id = dropping_id;
     _handles[dropping_id] = heap_position;
-    HEAVY_COARSENING_ASSERT(isHeap(), "Heap invariant violated!");
+    HEAVY_DATA_STRUCTURE_ASSERT(isHeap(), "Heap invariant violated!");
   }
 
   bool isHeap() const {

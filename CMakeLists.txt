@@ -44,17 +44,24 @@ if(KAHYPAR_USE_STANDARD_ASSERTIONS)
 endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
 # defintions for heavy asserts
+option(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS
+  "Enable costly assertions for data structures." ON)
+
 option(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS
-  "Enable heavy assertions in preprocessing phase." ON)
+  "Enable costly assertions in preprocessing phase." ON) 
 
 option(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS
-  "Enable heavy assertions in coarsening phase." ON)
+  "Enable costly assertions in coarsening phase." ON)
 
 option(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS
-  "Enable heavy assertions in initial partitioning phase." ON)
+  "Enable costly assertions in initial partitioning phase." ON)
 
 option(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS
-  "Enable heavy assertions in refinement phase." ON)
+  "Enable costly assertions in refinement phase." ON)
+
+if(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
 
 if(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS)
   add_compile_definitions(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS)
