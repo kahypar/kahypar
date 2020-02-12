@@ -116,70 +116,27 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
   po::options_description options((initial_partitioning ?
                                    "Initial Partitioning Flow Refinement Options" :
                                    "Flow Refinement Options"), num_columns);
+
   options.add_options()
-    ((initial_partitioning ? "i-r-flow-algorithm" : "r-flow-algorithm"),
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&context, initial_partitioning](const std::string& ftype) {
-      if (initial_partitioning) {
-        context.initial_partitioning.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
-      } else {
-        context.local_search.flow.algorithm = kahypar::flowAlgorithmFromString(ftype);
-      }
-    }),
-    "Flow Algorithms:\n"
-    " - boykov_kolmogorov : Boykov-Kolmogorov Max-Flow algorithm\n"
-    " - ibfs              : IBFS Max-Flow algorithm\n"
-    "(default: ibfs)")
-    ((initial_partitioning ? "i-r-flow-network" : "r-flow-network"),
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&context, initial_partitioning](const std::string& type) {
-      if (initial_partitioning) {
-        context.initial_partitioning.local_search.flow.network = kahypar::flowNetworkFromString(type);
-      } else {
-        context.local_search.flow.network = kahypar::flowNetworkFromString(type);
-      }
-    }),
-    "Flow Networks:\n"
-    " - hybrid : Hybrid Network\n"
-    "(default: hybrid)")
     ((initial_partitioning ? "i-r-flow-execution-policy" : "r-flow-execution-policy"),
-    po::value<std::string>()->value_name("<string>")->notifier(
-      [&context, initial_partitioning](const std::string& ftype) {
-      if (initial_partitioning) {
-        context.initial_partitioning.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
-      } else {
-        context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
-      }
-    }),
-    "Flow Execution Modes:\n"
-    " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
-    " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
-    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
-    "(default: exponential)")
-    ((initial_partitioning ? "i-r-flow-alpha" : "r-flow-alpha"),
-    po::value<double>((initial_partitioning ? &context.initial_partitioning.local_search.flow.alpha : &context.local_search.flow.alpha))->value_name("<double>"),
-    "Determine maximum size of a flow problem during adaptive flow iterations (epsilon' = alpha * epsilon) \n"
-    "(default: 16.0)")
+     po::value<std::string>()->value_name("<string>")->notifier(
+       [&context, initial_partitioning](const std::string& ftype) {
+         if (initial_partitioning) {
+           context.initial_partitioning.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+         } else {
+           context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+         }
+       }),
+     "Flow Execution Modes:\n"
+     " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
+     " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
+     " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
+     "(default: exponential)")
     ((initial_partitioning ? "i-r-flow-beta" : "r-flow-beta"),
-    po::value<size_t>((initial_partitioning ? &context.initial_partitioning.local_search.flow.beta : &context.local_search.flow.beta))->value_name("<size_t>"),
-    "Beta of CONSTANT flow execution policy \n"
-    "(default: 128)")
-    ((initial_partitioning ? "i-r-flow-use-most-balanced-minimum-cut" : "r-flow-use-most-balanced-minimum-cut"),
-    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_most_balanced_minimum_cut : &context.local_search.flow.use_most_balanced_minimum_cut))->value_name("<bool>"),
-    "Heuristic to balance a min-cut bipartition after a maximum flow computation \n"
-    "(default: true)")
-    ((initial_partitioning ? "i-r-flow-use-adaptive-alpha-stopping-rule" : "r-flow-use-adaptive-alpha-stopping-rule"),
-    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_adaptive_alpha_stopping_rule : &context.local_search.flow.use_adaptive_alpha_stopping_rule))->value_name("<bool>"),
-    "Stop adaptive flow iterations, when cut equal to old cut \n"
-    "(default: true)")
-    ((initial_partitioning ? "i-r-flow-ignore-small-hyperedge-cut" : "r-flow-ignore-small-hyperedge-cut"),
-    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.ignore_small_hyperedge_cut : &context.local_search.flow.ignore_small_hyperedge_cut))->value_name("<bool>"),
-    "If cut is small between two blocks, don't use flow refinement \n"
-    "(default: true)")
-    ((initial_partitioning ? "i-r-flow-use-improvement-history" : "r-flow-use-improvement-history"),
-    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.flow.use_improvement_history : &context.local_search.flow.use_improvement_history))->value_name("<bool>"),
-    "Decides if flow-based refinement is used between two adjacent blocks based on improvement history of the corresponding blocks \n"
-    "(default: true)");
+     po::value<size_t>((initial_partitioning ? &context.initial_partitioning.local_search.flow.beta : &context.local_search.flow.beta))->value_name("<size_t>"),
+     "Beta of CONSTANT flow execution policy \n"
+     "(default: 128)");
+
   return options;
 }
     

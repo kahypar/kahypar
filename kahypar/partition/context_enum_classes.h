@@ -90,12 +90,7 @@ enum class RefinementAlgorithm : uint8_t {
   twoway_fm,
   kway_fm,
   kway_fm_km1,
-  twoway_flow,
-  twoway_fm_flow,
   twoway_fm_hyperflow_cutter,
-  kway_flow,
-  kway_fm_flow_km1,
-  kway_fm_flow,
   twoway_hyperflow_cutter,
   kway_hyperflow_cutter,
   kway_fm_hyperflow_cutter,
@@ -162,17 +157,6 @@ enum class EvoDecision :uint8_t {
   normal,
   mutation,
   combine
-};
-
-enum class FlowAlgorithm : uint8_t {
-  boykov_kolmogorov,
-  ibfs,
-  UNDEFINED
-};
-
-enum class FlowNetworkType : uint8_t {
-  hybrid,
-  UNDEFINED
 };
 
 enum class FlowExecutionMode : uint8_t {
@@ -346,11 +330,6 @@ std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& algo) {
     case RefinementAlgorithm::twoway_fm: return os << "twoway_fm";
     case RefinementAlgorithm::kway_fm: return os << "kway_fm";
     case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
-    case RefinementAlgorithm::twoway_flow: return os << "twoway_flow";
-    case RefinementAlgorithm::twoway_fm_flow: return os << "twoway_fm_flow";
-    case RefinementAlgorithm::kway_flow: return os << "kway_flow";
-    case RefinementAlgorithm::kway_fm_flow_km1: return os << "kway_fm_flow_km1";
-    case RefinementAlgorithm::kway_fm_flow: return os << "kway_fm_flow";
     case RefinementAlgorithm::twoway_hyperflow_cutter: return os << "twoway_hyperflow_cutter";
     case RefinementAlgorithm::twoway_fm_hyperflow_cutter: return os << "twoway_fm_hyperflow_cutter";
     case RefinementAlgorithm::kway_hyperflow_cutter: return os << "kway_hyperflow_cutter";
@@ -404,25 +383,6 @@ std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule& rule) 
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(rule);
-}
-
-std::ostream& operator<< (std::ostream& os, const FlowAlgorithm& algo) {
-  switch (algo) {
-    case FlowAlgorithm::boykov_kolmogorov: return os << "boykov_kolmogorov";
-    case FlowAlgorithm::ibfs: return os << "ibfs";
-    case FlowAlgorithm::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(algo);
-}
-
-std::ostream& operator<< (std::ostream& os, const FlowNetworkType& type) {
-  switch (type) {
-    case FlowNetworkType::hybrid: return os << "hybrid";
-    case FlowNetworkType::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(type);
 }
 
 std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
@@ -555,16 +515,6 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm;
   } else if (type == "kway_fm_km1") {
     return RefinementAlgorithm::kway_fm_km1;
-  } else if (type == "twoway_flow") {
-    return RefinementAlgorithm::twoway_flow;
-  } else if (type == "twoway_fm_flow") {
-    return RefinementAlgorithm::twoway_fm_flow;
-  } else if (type == "kway_flow") {
-    return RefinementAlgorithm::kway_flow;
-  } else if (type == "kway_fm_flow_km1") {
-    return RefinementAlgorithm::kway_fm_flow_km1;
-  } else if (type == "kway_fm_flow") {
-    return RefinementAlgorithm::kway_fm_flow;
   } else if (type == "twoway_hyperflow_cutter") {
     return RefinementAlgorithm::twoway_hyperflow_cutter;
   } else if (type == "kway_hyperflow_cutter") {
@@ -651,26 +601,6 @@ static Mode modeFromString(const std::string& mode) {
   LOG << "Illegal option:" << mode;
   exit(0);
   return Mode::direct_kway;
-}
-
-static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
-  if (type == "boykov_kolmogorov") {
-    return FlowAlgorithm::boykov_kolmogorov;
-  } else if (type == "ibfs") {
-    return FlowAlgorithm::ibfs;
-  }
-  LOG << "Illegal option:" << type;
-  exit(0);
-  return FlowAlgorithm::ibfs;
-}
-
-static FlowNetworkType flowNetworkFromString(const std::string& type) {
-  if (type == "hybrid") {
-    return FlowNetworkType::hybrid;
-  }
-  LOG << "No valid flow network type.";
-  exit(0);
-  return FlowNetworkType::hybrid;
 }
 
 static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) {
