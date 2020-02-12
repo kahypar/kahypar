@@ -225,7 +225,7 @@ class StaticMultiDispatchFactory<Product,
             template <typename ...> class T>
   static AbstractProduct* create_impl(std::tuple<Parameters ...>&& params,
                                       T<Instantiations ...>&&) {
-    return create_impl(std::forward<std::tuple<Parameters ...> >(params),
+    return create_impl(std::tuple<Parameters ...>(params),
                        std::index_sequence_for<Parameters ...>{ }, Instantiations() ...);
   }
 
@@ -243,7 +243,7 @@ class StaticMultiDispatchFactory<Product,
                                       std::index_sequence<Is ...>,
                                       Policies&& ...) {
     return new Product<Policies ...>(
-      std::get<Is>(std::forward<std::tuple<Parameters ...> >(params)) ...);
+      std::get<Is>(std::tuple<Parameters ...>(params)) ...);
   }
 };
 }  // namespace meta
