@@ -86,7 +86,7 @@ namespace whfcInterface {
 			
 			//collect cut hyperedges and their pins
 			for (const HyperedgeID e : cut_hes) {
-				AssertMsg(!visitedHyperedge[e], "Cut HE list contains duplicates");
+				ASSERT(!visitedHyperedge[e], "Cut HE list contains duplicates");
 				if (canHyperedgeBeDropped(hg, e))
 					continue;
 				result.cutAtStake += hg.edgeWeight(e);
@@ -115,7 +115,7 @@ namespace whfcInterface {
 					result.baseCut += hg.edgeWeight(e);
 				}
 				else {
-					AssertMsg(!flow_hg_builder.currentHyperedgeSize() == 0, "he in cut but has no pin in flow hg, except maybe one terminal");
+					ASSERT(!flow_hg_builder.currentHyperedgeSize() == 0, "he in cut but has no pin in flow hg, except maybe one terminal");
 					if (connectToSource)
 						flow_hg_builder.addPin(result.source);
 					if (connectToTarget)
@@ -136,7 +136,7 @@ namespace whfcInterface {
 		}
 
 		auto localNodeIDs() const { return boost::irange<whfc::Node>(whfc::Node(0), whfc::Node::fromOtherValueType(queue.queueEnd())); }
-		whfc::Node global2local(const HypernodeID x) const {  Assert(x != globalSourceID && x != globalTargetID); return nodeIDMap[x]; }
+		whfc::Node global2local(const HypernodeID x) const {  ASSERT(x != globalSourceID && x != globalTargetID); return nodeIDMap[x]; }
 		HypernodeID local2global(const whfc::Node x) const { return queue.elementAt(x); }
 		
 	private:
@@ -147,7 +147,7 @@ namespace whfcInterface {
 
 		inline void visitNode(const HypernodeID v, const Hypergraph& hg, HypernodeWeight& w) {
 			nodeIDMap[v] = whfc::Node::fromOtherValueType(queue.queueEnd());
-			Assert(nodeIDMap[v] == flow_hg_builder.numNodes());
+			ASSERT(nodeIDMap[v] == flow_hg_builder.numNodes());
 			flow_hg_builder.addNode( whfc::NodeWeight(hg.nodeWeight(v)) );
 			queue.push(v);
 			visitedNode.set(v);

@@ -108,8 +108,8 @@ private:
 			_quotient_graph->buildQuotientGraph();
 		}
 		
-		hfc.cs.setMaxBlockWeight(0, whfc::NodeWeight::fromOtherValueType(_context.partition.max_part_weights[b0]));
-		hfc.cs.setMaxBlockWeight(1, whfc::NodeWeight::fromOtherValueType(_context.partition.max_part_weights[b1]));
+		hfc.cs.setMaxBlockWeight(0, _context.partition.max_part_weights[b0]);
+		hfc.cs.setMaxBlockWeight(1, _context.partition.max_part_weights[b1]);
 		
 		DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 
@@ -228,7 +228,7 @@ private:
 		instance_counter++;
 		LOG << "Wrote snapshot: " << hg_filename;
 		whfc::HMetisIO::writeFlowHypergraph(extractor.flow_hg_builder, hg_filename);
-		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i);
+		whfc::WHFC_IO::writeAdditionalInformation(hg_filename, i, hfc.cs.rng);
 	}
 	
 	bool determineRefinementResult(HyperedgeWeight newCut, HyperedgeWeight cutAtStake) {
