@@ -190,7 +190,7 @@ private:
 		HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
 		Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
 		
-		ASSERT(improved == refinement_result >= RefinementResult::LocalBalanceImproved);
+		ASSERT(improved == (refinement_result >= RefinementResult::LocalBalanceImproved));
 		
 		return improved;
 	}
