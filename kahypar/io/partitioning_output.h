@@ -388,7 +388,7 @@ static inline void printVcycleBanner(const Context& context) {
 }
 
 static inline void printResultBanner(const Context& context) {
-  if (context.partition.time_limit != 0) {
+  if (context.partition.time_limited_repeated_partitioning || context.partition_evolutionary) {
     LOG << "********************************************************************************";
     LOG << "*                          FINAL Partitioning Result                           *";
     LOG << "********************************************************************************";

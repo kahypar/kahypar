@@ -574,11 +574,11 @@ po::options_description createGenericOptionsDescription(Context& context,
     "Quiet Mode: Completely suppress console output")
     ("time-limit", po::value<int>(&context.partition.time_limit)->value_name("<int>"),
     "Sets a time limit in seconds. default: disabled. "
-    "Implemented as a soft time limit during refinement. Once a large part (default 99%) of the time limit is exceeded we only project the partition upward."
-    "This time limit is never triggered before an initial partition is available.")
-    ("soft-time-limit-factor", po::value<double>(&context.partition.soft_time_limit_factor)->value_name("<double>"),
-     "Percentage of time limit for the soft time limit. soft time limit = --soft-time-limit-factor * --time-limit. default: 0.99")
-    ("soft-time-limit-check-frequency", po::value<int>(&context.partition.soft_time_limit_check_frequency)->value_name("<int>"),
+    "We stop refinement once a large part (default 99%) is exceeded."
+    "It is never triggered before an initial partition is available, so you should still provide an external timeout (only now you might get a solution).")
+    ("time-limit-factor", po::value<double>(&context.partition.soft_time_limit_factor)->value_name("<double>"),
+     "Controls the refinement time limit. default: 0.99")
+    ("time-limit-check-frequency", po::value<int>(&context.partition.soft_time_limit_check_frequency)->value_name("<int>"),
      "After how many uncontractions the soft time limit shall be checked. default 10000")
     ("time-limited-repeated-partitioning", po::value<bool>(&context.partition.time_limited_repeated_partitioning)->value_name("<bool>"),
      "Use repeated partitioning with the strict time limit set using --time-limit. This also uses the soft time limit.")

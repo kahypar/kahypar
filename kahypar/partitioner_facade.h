@@ -67,7 +67,7 @@ class PartitionerFacade {
     }
 
     // In case a time limit is used, the last partitioning step is already serialized
-    if (context.partition.sp_process_output && context.partition.time_limit == 0) {
+    if (context.partition.sp_process_output && !context.partition_evolutionary && !context.partition.time_limited_repeated_partitioning) {
       io::serializer::serialize(context, hypergraph, elapsed_seconds, iteration);
     }
   }
@@ -117,6 +117,11 @@ class PartitionerFacade {
   }
 
   size_t performTimeLimitedRepeatedPartitioning(Hypergraph& hypergraph, Context& context) {
+    if (context.partition.time_limit <= 0) {
+      LOG << "Time Limited Repeated Partitioning with a time limit <= 0 is not possible";
+      std::exit(0);
+    }
+
     size_t iteration = 0;
     std::chrono::duration<double> elapsed_time(0);
 

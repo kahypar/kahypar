@@ -95,7 +95,7 @@ private:
 		size_t current_round = 1;
 		while (active_block_exist) {
 
-			if (isSoftTimeLimitExceeded()) {
+			if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
 				break;
 			}
 
@@ -162,7 +162,7 @@ private:
 
 
 	bool isSoftTimeLimitExceeded() {
-		if (_context.partition.time_limit == -1) {
+		if (_context.partition.time_limit <= 0) {
 			return false;
 		}
 		const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
@@ -170,7 +170,7 @@ private:
 		const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
 		if (result && _context.partition.verbose_output) {
 			_context.partition.time_limit_triggered = true;
-			LOG << "Soft time limit triggered in HyperFlowCutter refinement after " << duration.count() << "seconds. Cancel HyperFlowCutter refinement.";
+			LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
 		}
 		return result;
 	}

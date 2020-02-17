@@ -98,7 +98,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
 
     while (!_history.empty()) {
-      if (isSoftTimeLimitExceeded()) {
+      if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
         /*
          * There are two ways to implement this time limit.
          * 1) skip refinement but perform full uncontractions, including updates. This can be slow
@@ -211,7 +211,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
     if (result && _context.partition.verbose_output) {
       _context.partition.time_limit_triggered = true;
-      LOG << "Soft time limit triggered after" << duration.count() << "seconds. " << _history.size() << "uncontractions left. Cancel future refinement.";
+      LOG << "Time limit triggered after" << duration.count() << "seconds. " << _history.size() << "uncontractions left. Cancel refinement.";
     }
     return result;
   }
