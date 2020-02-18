@@ -136,7 +136,7 @@ We provide additional resources for all KaHyPar-related publications:
  
  ### Projects using KaHyPar
  
- - [**CoTenGra** - Hyper-optimized Contraction Trees for large Tensor Networks](https://github.com/jcmgray/cotengra)
+ - [**CoTenGra** - Hyper-optimized Contraction Trees for Large Tensor Networks](https://github.com/jcmgray/cotengra)
  - [**LSOracle** - The Logic Synthesis Oracle](https://github.com/LNIS-Projects/LSOracle)
  
 Requirements
