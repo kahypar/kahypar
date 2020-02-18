@@ -16,6 +16,7 @@ Table of Contents
       * [Additional Features](#additional-features)
       * [Experimental Results](#experimental-results)
       * [Additional Resources](#additional-resources)
+      * [Projects using KaHyPar](#projects-using-kahypar)
    * [Requirements](#requirements)
    * [Building KaHyPar](#building-kahypar)
    * [Testing and Profiling](#testing-and-profiling)
@@ -61,7 +62,7 @@ By using this very fine grained *n*-level approach combined with strong local se
 it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
-#### Additional Features
+### Additional Features
  - Hypergraph Partitioning with Variable Block Weights:
  
  	KaHyPar has support for variable block weights. If command line option `--use-individual-part-weights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--part-weights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
@@ -84,7 +85,7 @@ Its algorithms and detailed experimental results are presented in several [resea
    KaHyPar uses direct k-way V-cycles to try to improve an existing partition specified via parameter `--part-file=</path/to/file>`. The maximum number of V-cycles can be controlled via parameter `--vcycles=`. 
 
    
-#### Experimental Results
+### Experimental Results
 We use the [*performance profiles*](https://link.springer.com/article/10.1007/s101070100263) to compare KaHyPar to other partitioning algorithms in terms of solution quality.
   For a set of <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BP%7D"/> algorithms and a benchmark set <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/> containing |<img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/>| instances, the *performance ratio* <img src="https://latex.codecogs.com/gif.latex?r_%7Bp%2Ci%7D"/> relates the cut computed by
   partitioner *p* for instance *i* to the smallest minimum cut of *all* algorithms, i.e.,
@@ -123,7 +124,7 @@ In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default m
 <img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%" height="50%">
 	</p>
 
-#### Additional Resources
+### Additional Resources
 We provide additional resources for all KaHyPar-related publications:
 
 |KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
@@ -132,6 +133,11 @@ We provide additional resources for all KaHyPar-related publications:
 |KaHyPar-CA|SEA'17|[Paper][SEA'17]|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimental Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|\-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/abs/1511.03137)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+ 
+ ### Projects using KaHyPar
+ 
+ - [**CoTenGra** - Hyper-optimized Contraction Trees for large Tensor Networks](https://github.com/jcmgray/cotengra)
+ - [**LSOracle** - The Logic Synthesis Oracle](https://github.com/LNIS-Projects/LSOracle)
  
 Requirements
 -----------
