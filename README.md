@@ -337,8 +337,6 @@ k=2
 
 hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k, edge_weights, node_weights)
 
-mydir = os.path.dirname(os.path.realpath(__file__))
-
 context = kahypar.Context()
 context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
 
