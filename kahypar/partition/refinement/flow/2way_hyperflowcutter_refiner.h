@@ -55,7 +55,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
   static constexpr bool debug = false;
 
  public:
-  TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, Context& context) :
+  TwoWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context),
     extractor(hypergraph, context),
     hfc(extractor.flow_hg_builder, context.partition.seed),

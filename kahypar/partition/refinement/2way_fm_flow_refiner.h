@@ -40,7 +40,7 @@ class TwoWayFMFlowRefiner final : public IRefiner,
   using Base = FMRefinerBase<HypernodeID>;
 
  public:
-  TwoWayFMFlowRefiner(Hypergraph& hypergraph, Context& context) :
+  TwoWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
                   RefinementAlgorithm::twoway_fm, hypergraph, context)),

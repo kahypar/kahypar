@@ -53,7 +53,7 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
   static constexpr bool debug = false;
 
  public:
-  KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, Context& context) :
+  KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context),
     _twoway_flow_refiner(_hg, _context),
     _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }

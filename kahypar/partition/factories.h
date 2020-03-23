@@ -49,6 +49,9 @@ using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
 using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
                                                  IInitialPartitioner* (*)(Hypergraph&, Context&)>;
 
+using RefinerFactory = meta::Factory<RefinementAlgorithm,
+                                     IRefiner* (*)(Hypergraph&, const Context&)>;
+
 using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
                                       CommunityPolicies, PartitionPolicies, AcceptancePolicies,
                                       FixedVertexAcceptancePolicies>;
