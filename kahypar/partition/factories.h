@@ -43,7 +43,7 @@
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
-                                       ICoarsener* (*)(Hypergraph&, Context&,
+                                       ICoarsener* (*)(Hypergraph&, const Context&,
                                                        const HypernodeWeight)>;
 
 using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
