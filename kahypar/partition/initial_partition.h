@@ -31,7 +31,7 @@
 namespace kahypar {
 namespace partition {
 // forward declaration
-static inline void partition(Hypergraph& hypergraph, Context& context);
+static inline void partition(Hypergraph& hypergraph, const Context& context);
 }
 
 namespace initial {

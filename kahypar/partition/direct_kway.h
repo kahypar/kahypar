@@ -69,7 +69,7 @@ static inline bool partitionVCycle(Hypergraph& hypergraph, ICoarsener& coarsener
 }
 
 
-static inline void partition(Hypergraph& hypergraph, Context& context) {
+static inline void partition(Hypergraph& hypergraph, const Context& context) {
   std::unique_ptr<ICoarsener> coarsener(
     CoarsenerFactory::getInstance().createObject(
       context.coarsening.algorithm, hypergraph, context,
