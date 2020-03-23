@@ -22,9 +22,9 @@
 
 #include "kahypar/macros.h"
 
-#include "kahypar/partition/factories.h"
 #include "kahypar/meta/registrar.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/factories.h"
 #include "kahypar/partition/refinement/2way_fm_flow_refiner.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"
@@ -40,7 +40,7 @@
 #define REGISTER_DISPATCHED_REFINER(id, dispatcher, ...)          \
   static meta::Registrar<RefinerFactory> register_ ## dispatcher( \
     id,                                                           \
-    [](Hypergraph& hypergraph, Context& context) {          \
+    [](Hypergraph& hypergraph, Context& context) {                \
     return dispatcher::create(                                    \
       std::forward_as_tuple(hypergraph, context),                 \
       __VA_ARGS__                                                 \
@@ -50,7 +50,7 @@
 #define REREGISTER_REFINER(id, refiner, t)                              \
   static meta::Registrar<RefinerFactory> JOIN(register_ ## refiner, t)( \
     id,                                                                 \
-    [](Hypergraph& hypergraph, Context& context) -> IRefiner* {   \
+    [](Hypergraph& hypergraph, Context& context) -> IRefiner* {         \
     return new refiner(hypergraph, context);                            \
   })
 
@@ -79,7 +79,7 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_hyperflow_cutter,
                             meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
                               context.local_search.flow.execution_policy));
 
-//REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);  //// geht
+// REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);  //// geht
 
 REGISTER_REFINER(RefinementAlgorithm::twoway_fm_hyperflow_cutter, TwoWayFMFlowRefiner);  /// geht net
 REGISTER_REFINER(RefinementAlgorithm::kway_fm_hyperflow_cutter_km1, KWayFMFlowRefiner);

@@ -46,144 +46,145 @@ using ds::FastResetArray;
 
 // TODO(schlag): After successful tests, we need to consolidate this with kway_flow_refiner.h
 template <class FlowExecutionPolicy = Mandatory>
-class KWayHyperFlowCutterRefiner final : public IRefiner, private FlowRefinerBase<FlowExecutionPolicy> {
-private:
-	using Base = FlowRefinerBase<FlowExecutionPolicy>;
-	static constexpr bool debug = false;
-public:
-	KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, Context& context) :
-		Base(hypergraph, context),
-		_twoway_flow_refiner(_hg, _context),
-		_num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
+class KWayHyperFlowCutterRefiner final : public IRefiner,
+                                         private FlowRefinerBase<FlowExecutionPolicy>{
+ private:
+  using Base = FlowRefinerBase<FlowExecutionPolicy>;
+  static constexpr bool debug = false;
 
-	KWayHyperFlowCutterRefiner(const KWayHyperFlowCutterRefiner&) = delete;
-	KWayHyperFlowCutterRefiner(KWayHyperFlowCutterRefiner&&) = delete;
-	KWayHyperFlowCutterRefiner& operator= (const KWayHyperFlowCutterRefiner&) = delete;
-	KWayHyperFlowCutterRefiner& operator= (KWayHyperFlowCutterRefiner&&) = delete;
+ public:
+  KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, Context& context) :
+    Base(hypergraph, context),
+    _twoway_flow_refiner(_hg, _context),
+    _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
 
-private:
+  KWayHyperFlowCutterRefiner(const KWayHyperFlowCutterRefiner&) = delete;
+  KWayHyperFlowCutterRefiner(KWayHyperFlowCutterRefiner&&) = delete;
+  KWayHyperFlowCutterRefiner& operator= (const KWayHyperFlowCutterRefiner&) = delete;
+  KWayHyperFlowCutterRefiner& operator= (KWayHyperFlowCutterRefiner&&) = delete;
+
+ private:
 // friend class KWayHyperFlowCutterRefinerTest;
 
-	std::vector<Move> rollbackImpl() override final {
-		return Base::rollback();
-	}
+  std::vector<Move> rollbackImpl() override final {
+    return Base::rollback();
+  }
 
-	bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-					const UncontractionGainChanges& changes, Metrics& best_metrics) override final {
-		if (!_flow_execution_policy.executeFlow(_hg)) {
-		  	return false;
-		}
-		
-		// Store original partition for rollback, because we have to update
-		// gain cache of kway fm refiner
-		if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
-			_context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
-		  	Base::storeOriginalPartitionIDs();
-		}
-		
-		DBG << "############### Active Block Scheduling ###############";
-		DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
-		printMetric();
-		
-		QuotientGraphBlockScheduler scheduler(_hg, _context);
-		scheduler.buildQuotientGraph();
-		
-		// Active Block Scheduling
-		bool improvement = false;
-		bool active_block_exist = true;
-		std::vector<bool> active_blocks(_context.partition.k, true);
-		size_t current_round = 1;
-		while (active_block_exist) {
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
+                  const UncontractionGainChanges& changes, Metrics& best_metrics) override final {
+    if (!_flow_execution_policy.executeFlow(_hg)) {
+      return false;
+    }
 
-			if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
-				break;
-			}
+    // Store original partition for rollback, because we have to update
+    // gain cache of kway fm refiner
+    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+        _context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
+      Base::storeOriginalPartitionIDs();
+    }
 
-			scheduler.randomShuffleQuotientEdges();
-			std::vector<bool> tmp_active_blocks(_context.partition.k, false);
-			active_block_exist = false;
-			for (const auto& e : scheduler.quotientGraphEdges()) {
-				const PartitionID block_0 = e.first;
-				const PartitionID block_1 = e.second;
-				
-				// Heuristic: If a flow refinement never improved a bipartition,
-				//            we ignore the refinement for these blocks in the
-				//            second iteration of active block scheduling
-				if (current_round > 1 && _num_improvements[block_0][block_1] == 0)
-			  		continue;
-				
-				if (active_blocks[block_0] || active_blocks[block_1]) {
-					_twoway_flow_refiner.updateConfiguration(block_0, block_1, &scheduler, true);
-					const bool improved = _twoway_flow_refiner.refine(refinement_nodes, max_allowed_part_weights, changes, best_metrics);
-					if (improved) {
-						//DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
-						//printMetric();
-						improvement = true;
-						if (_twoway_flow_refiner.refinement_result >= RefinementResult::GlobalBalanceImproved) {
-							// don't mark blocks as active, if cut stayed the same and global balance did not improve.
-							// haven't observed it yet, but only reducing the weight difference between block_0 and block_1
-							// might lead to an infinite loop for k > 2
-							active_block_exist = true;
-							tmp_active_blocks[block_0] = true;
-							tmp_active_blocks[block_1] = true;
-							_num_improvements[block_0][block_1]++;
-						}
-					}
-				}
-			}
-			current_round++;
-  			std::swap(active_blocks, tmp_active_blocks);
-		}
-		
-		if (_hg.currentNumNodes() == _hg.initialNumNodes()) {        // on last level
-			_twoway_flow_refiner.reportRunningTime();
-		}
-		//printMetric(true, true);
-		return improvement;
-	}
+    DBG << "############### Active Block Scheduling ###############";
+    DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
+    printMetric();
 
-	void printMetric(bool newline = false, bool endline = false) {
-		if (newline) {
-			DBG << "";
-		}
-		DBG << V(metrics::imbalance(_hg, _context))
-			<< V(_context.partition.objective)
-			<< V(metrics::objective(_hg, _context.partition.objective));
-		if (endline) {
-			DBG << "-------------------------------------------------------------";
-		}
-	}
-	
-	void initializeImpl(const HyperedgeWeight max_gain) override final {
-		_is_initialized = true;
-		_flow_execution_policy.initialize(_hg, _context);
-		_twoway_flow_refiner.initialize(max_gain);
-	}
+    QuotientGraphBlockScheduler scheduler(_hg, _context);
+    scheduler.buildQuotientGraph();
+
+    // Active Block Scheduling
+    bool improvement = false;
+    bool active_block_exist = true;
+    std::vector<bool> active_blocks(_context.partition.k, true);
+    size_t current_round = 1;
+    while (active_block_exist) {
+      if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
+        break;
+      }
+
+      scheduler.randomShuffleQuotientEdges();
+      std::vector<bool> tmp_active_blocks(_context.partition.k, false);
+      active_block_exist = false;
+      for (const auto& e : scheduler.quotientGraphEdges()) {
+        const PartitionID block_0 = e.first;
+        const PartitionID block_1 = e.second;
+
+        // Heuristic: If a flow refinement never improved a bipartition,
+        //            we ignore the refinement for these blocks in the
+        //            second iteration of active block scheduling
+        if (current_round > 1 && _num_improvements[block_0][block_1] == 0)
+          continue;
+
+        if (active_blocks[block_0] || active_blocks[block_1]) {
+          _twoway_flow_refiner.updateConfiguration(block_0, block_1, &scheduler, true);
+          const bool improved = _twoway_flow_refiner.refine(refinement_nodes, max_allowed_part_weights, changes, best_metrics);
+          if (improved) {
+            // DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
+            // printMetric();
+            improvement = true;
+            if (_twoway_flow_refiner.refinement_result >= RefinementResult::GlobalBalanceImproved) {
+              // don't mark blocks as active, if cut stayed the same and global balance did not improve.
+              // haven't observed it yet, but only reducing the weight difference between block_0 and block_1
+              // might lead to an infinite loop for k > 2
+              active_block_exist = true;
+              tmp_active_blocks[block_0] = true;
+              tmp_active_blocks[block_1] = true;
+              _num_improvements[block_0][block_1]++;
+            }
+          }
+        }
+      }
+      current_round++;
+      std::swap(active_blocks, tmp_active_blocks);
+    }
+
+    if (_hg.currentNumNodes() == _hg.initialNumNodes()) {            // on last level
+      _twoway_flow_refiner.reportRunningTime();
+    }
+    // printMetric(true, true);
+    return improvement;
+  }
+
+  void printMetric(bool newline = false, bool endline = false) {
+    if (newline) {
+      DBG << "";
+    }
+    DBG << V(metrics::imbalance(_hg, _context))
+        << V(_context.partition.objective)
+        << V(metrics::objective(_hg, _context.partition.objective));
+    if (endline) {
+      DBG << "-------------------------------------------------------------";
+    }
+  }
+
+  void initializeImpl(const HyperedgeWeight max_gain) override final {
+    _is_initialized = true;
+    _flow_execution_policy.initialize(_hg, _context);
+    _twoway_flow_refiner.initialize(max_gain);
+  }
 
 
-	bool isSoftTimeLimitExceeded() {
-		if (_context.partition.time_limit <= 0) {
-			return false;
-		}
-		const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
-		const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
-		const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
-		if (result && _context.partition.verbose_output) {
-			_context.partition.time_limit_triggered = true;
-			LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
-		}
-		return result;
-	}
+  bool isSoftTimeLimitExceeded() {
+    if (_context.partition.time_limit <= 0) {
+      return false;
+    }
+    const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
+    const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
+    const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
+    if (result && _context.partition.verbose_output) {
+      _context.partition.time_limit_triggered = true;
+      LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
+    }
+    return result;
+  }
 
-	
-	using IRefiner::_is_initialized;
-	
-	using Base::_hg;
-	using Base::_context;
-	using Base::_original_part_id;
-	using Base::_flow_execution_policy;
-	
-	TwoWayHyperFlowCutterRefiner<FlowExecutionPolicy> _twoway_flow_refiner;
-	std::vector<std::vector<size_t> > _num_improvements;
+
+  using IRefiner::_is_initialized;
+
+  using Base::_hg;
+  using Base::_context;
+  using Base::_original_part_id;
+  using Base::_flow_execution_policy;
+
+  TwoWayHyperFlowCutterRefiner<FlowExecutionPolicy> _twoway_flow_refiner;
+  std::vector<std::vector<size_t> > _num_improvements;
 };
 }  // namespace kahypar

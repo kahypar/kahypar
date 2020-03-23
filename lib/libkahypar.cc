@@ -109,5 +109,4 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
   context.partition.perfect_balance_part_weights.clear();
   context.partition.max_part_weights.clear();
   context.evolutionary.communities.clear();
-
 }

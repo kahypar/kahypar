@@ -30,22 +30,22 @@
 #include <functional>
 
 
-//not pretty. but signal handling needs it.
+// not pretty. but signal handling needs it.
 kahypar::Context* kahypar::SerializeOnSignal::context_p = nullptr;
 kahypar::Hypergraph* kahypar::SerializeOnSignal::hypergraph_p = nullptr;
 
 int main(int argc, char* argv[]) {
   kahypar::Context context;
-  
+
   kahypar::processCommandLineInput(context, argc, argv);
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
                                           context.partition.k));
-  
+
   kahypar::SerializeOnSignal::initialize(hypergraph, context);
-  
+
   kahypar::PartitionerFacade().partition(hypergraph, context);
-  
+
   return 0;
 }

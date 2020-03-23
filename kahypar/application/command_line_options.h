@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -119,78 +119,74 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
 
   options.add_options()
     ((initial_partitioning ? "i-r-flow-execution-policy" : "r-flow-execution-policy"),
-     po::value<std::string>()->value_name("<string>")->notifier(
-       [&context, initial_partitioning](const std::string& ftype) {
-         if (initial_partitioning) {
-           context.initial_partitioning.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
-         } else {
-           context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
-         }
-       }),
-     "Flow Execution Modes:\n"
-     " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
-     " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
-     " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
-     "(default: exponential)")
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&context, initial_partitioning](const std::string& ftype) {
+      if (initial_partitioning) {
+        context.initial_partitioning.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+      } else {
+        context.local_search.flow.execution_policy = kahypar::flowExecutionPolicyFromString(ftype);
+      }
+    }),
+    "Flow Execution Modes:\n"
+    " - constant    : Execute flows in each level i with i = beta * j (j \\in {1,2,...})\n"
+    " - exponential : Execute flows in each level i with i = 2^j (j \\in {1,2,...})\n"
+    " - multilevel  : Execute flows in each level i with i = |V|/2^j (j \\in {1,2,...})\n"
+    "(default: exponential)")
     ((initial_partitioning ? "i-r-flow-beta" : "r-flow-beta"),
-     po::value<size_t>((initial_partitioning ? &context.initial_partitioning.local_search.flow.beta : &context.local_search.flow.beta))->value_name("<size_t>"),
-     "Beta of CONSTANT flow execution policy \n"
-     "(default: 128)");
+    po::value<size_t>((initial_partitioning ? &context.initial_partitioning.local_search.flow.beta : &context.local_search.flow.beta))->value_name("<size_t>"),
+    "Beta of CONSTANT flow execution policy \n"
+    "(default: 128)");
 
   return options;
 }
-    
+
 po::options_description createHyperFlowCutterRefinementOptionsDescription(Context& context,
-                                                                   const int num_columns,
-                                                                   const bool initial_partitioning) {
+                                                                          const int num_columns,
+                                                                          const bool initial_partitioning) {
   po::options_description options(("HyperFlowCutter Refinement Options"), num_columns);
-      options.add_options()
-              ((initial_partitioning ? "i-r-hfc-size-constraint" : "r-hfc-size-constraint"),
-               po::value<std::string>()->value_name("<string>")->notifier([&context, initial_partitioning](const std::string& ftype) {
-                    FlowHypergraphSizeConstraint sc = FlowHypergraphSizeConstraint::part_weight_fraction; // = "pw"
-                    if (ftype == "mpw") {
-                      sc = FlowHypergraphSizeConstraint ::max_part_weight_fraction;
-                    }
-                    else if (ftype == "mf-style") {
-                      sc = FlowHypergraphSizeConstraint ::scaled_max_part_weight_fraction_minus_opposite_side;
-                      if (initial_partitioning) {
-                        if (context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
-                          context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling = 16.0;
-                        }
-                      }
-                      else {
-                        if (context.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
-                          context.local_search.hyperflowcutter.snapshot_scaling = 16.0;
-                        }
-                      }
-                    }
-                    else if (ftype != "pw") {
-                      throw std::runtime_error("Unknown option flow hypergraph size constraint option");
-                    }
-                    if (initial_partitioning) {
-                        context.initial_partitioning.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
-                    }
-                    else {
-                        context.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
-                    }
-              }),
-               "Size Constraints:\n"
-               " - mpw            : |N_0| <= max_part_weight[b0] * alpha \n"
-               " - pw             : |N_0| <= |V_0| * alpha \n"
-               " - mf-style       : |N_0| <= (1 + alpha * epsilon) * perfect_part_weight[b0] - |V_1|. Same as KaHyPar-MF. Default scaling is 16. \n"
-               "(default: pw)")
-              ((initial_partitioning ? "i-r-hfc-scaling" : "r-hfc-scaling"),
-               po::value<double>((initial_partitioning? &context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling: &context.local_search.hyperflowcutter.snapshot_scaling))->value_name("<double>"),
-               "Scaling parameter for flow hypergraph sizes for HFC refinement. see size constraints for semantics.\n"
-               "(default: 0.2)")
-              ((initial_partitioning ? "i-r-hfc-distance-based-piercing" : "r-hfc-distance-based-piercing"),
-               po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.use_distances_from_cut : &context.local_search.hyperflowcutter.use_distances_from_cut))->value_name("<bool>"),
-               "Preferably pierce vertices further away from the old cut \n"
-               "(default: true)")
-              ((initial_partitioning ? "i-r-hfc-mbc" : "r-hfc-mbc"),
-               po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.most_balanced_cut : &context.local_search.hyperflowcutter.most_balanced_cut))->value_name("<bool>"),
-               "Keep piercing after the first balanced partition to improve balance \n"
-               "(default: true)");
+  options.add_options()
+    ((initial_partitioning ? "i-r-hfc-size-constraint" : "r-hfc-size-constraint"),
+    po::value<std::string>()->value_name("<string>")->notifier([&context, initial_partitioning](const std::string& ftype) {
+      FlowHypergraphSizeConstraint sc = FlowHypergraphSizeConstraint::part_weight_fraction;               // = "pw"
+      if (ftype == "mpw") {
+        sc = FlowHypergraphSizeConstraint::max_part_weight_fraction;
+      } else if (ftype == "mf-style") {
+        sc = FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side;
+        if (initial_partitioning) {
+          if (context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
+            context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling = 16.0;
+          }
+        } else {
+          if (context.local_search.hyperflowcutter.snapshot_scaling < 1.0) {
+            context.local_search.hyperflowcutter.snapshot_scaling = 16.0;
+          }
+        }
+      } else if (ftype != "pw") {
+        throw std::runtime_error("Unknown option flow hypergraph size constraint option");
+      }
+      if (initial_partitioning) {
+        context.initial_partitioning.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
+      } else {
+        context.local_search.hyperflowcutter.flowhypergraph_size_constraint = sc;
+      }
+    }),
+    "Size Constraints:\n"
+    " - mpw            : |N_0| <= max_part_weight[b0] * alpha \n"
+    " - pw             : |N_0| <= |V_0| * alpha \n"
+    " - mf-style       : |N_0| <= (1 + alpha * epsilon) * perfect_part_weight[b0] - |V_1|. Same as KaHyPar-MF. Default scaling is 16. \n"
+    "(default: pw)")
+    ((initial_partitioning ? "i-r-hfc-scaling" : "r-hfc-scaling"),
+    po::value<double>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.snapshot_scaling : &context.local_search.hyperflowcutter.snapshot_scaling))->value_name("<double>"),
+    "Scaling parameter for flow hypergraph sizes for HFC refinement. see size constraints for semantics.\n"
+    "(default: 0.2)")
+    ((initial_partitioning ? "i-r-hfc-distance-based-piercing" : "r-hfc-distance-based-piercing"),
+    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.use_distances_from_cut : &context.local_search.hyperflowcutter.use_distances_from_cut))->value_name("<bool>"),
+    "Preferably pierce vertices further away from the old cut \n"
+    "(default: true)")
+    ((initial_partitioning ? "i-r-hfc-mbc" : "r-hfc-mbc"),
+    po::value<bool>((initial_partitioning ? &context.initial_partitioning.local_search.hyperflowcutter.most_balanced_cut : &context.local_search.hyperflowcutter.most_balanced_cut))->value_name("<bool>"),
+    "Keep piercing after the first balanced partition to improve balance \n"
+    "(default: true)");
   return options;
 }
 
@@ -312,13 +308,13 @@ po::options_description createRefinementOptionsDescription(Context& context,
     }),
     "Local Search Algorithm:\n"
     " - twoway_fm                    : 2-way FM algorithm         (recursive bisection : cut & km1)\n"
-	  " - twoway_hyperflow_cutter      : 2-way HyperFlowCutter      (recursive bisection : cut & km1)\n"
-	  " - twoway_fm_hyperflow_cutter   : 2-way FM + HyperFlowCutter (recursive bisection : cut & km1)\n"
-	  " - kway_fm                      : k-way FM algorithm         (direct k-way        : cut)\n"
-	  " - kway_fm_hyperflow_cutter     : k-way FM + HyperFlowCutter (direct k-way        : cut)\n"
-	  " - kway_fm_km1                  : k-way FM algorithm         (direct k-way        : km1)\n"
-	  " - kway_fm_hyperflow_cutter_km1 : k-way FM + HyperFlowCutter (direct k-way        : km1)\n"
-	  " - kway_hyperflow_cutter        : k-way HyperFlowCutter      (direct k-way        : cut & km1)\n"
+    " - twoway_hyperflow_cutter      : 2-way HyperFlowCutter      (recursive bisection : cut & km1)\n"
+    " - twoway_fm_hyperflow_cutter   : 2-way FM + HyperFlowCutter (recursive bisection : cut & km1)\n"
+    " - kway_fm                      : k-way FM algorithm         (direct k-way        : cut)\n"
+    " - kway_fm_hyperflow_cutter     : k-way FM + HyperFlowCutter (direct k-way        : cut)\n"
+    " - kway_fm_km1                  : k-way FM algorithm         (direct k-way        : km1)\n"
+    " - kway_fm_hyperflow_cutter_km1 : k-way FM + HyperFlowCutter (direct k-way        : km1)\n"
+    " - kway_hyperflow_cutter        : k-way HyperFlowCutter      (direct k-way        : cut & km1)\n"
     )
     ((initial_partitioning ? "i-r-runs" : "r-runs"),
     po::value<int>((initial_partitioning ? &context.initial_partitioning.local_search.iterations_per_level : &context.local_search.iterations_per_level))->value_name("<int>")->notifier(
@@ -577,11 +573,11 @@ po::options_description createGenericOptionsDescription(Context& context,
     "We stop refinement once a large part (default 99%) is exceeded."
     "It is never triggered before an initial partition is available, so you should still provide an external timeout (only now you might get a solution).")
     ("time-limit-factor", po::value<double>(&context.partition.soft_time_limit_factor)->value_name("<double>"),
-     "Controls the refinement time limit. default: 0.99")
+    "Controls the refinement time limit. default: 0.99")
     ("time-limit-check-frequency", po::value<int>(&context.partition.soft_time_limit_check_frequency)->value_name("<int>"),
-     "After how many uncontractions the soft time limit shall be checked. default 10000")
+    "After how many uncontractions the soft time limit shall be checked. default 10000")
     ("time-limited-repeated-partitioning", po::value<bool>(&context.partition.time_limited_repeated_partitioning)->value_name("<bool>"),
-     "Use repeated partitioning with the strict time limit set using --time-limit. This also uses the soft time limit.")
+    "Use repeated partitioning with the strict time limit set using --time-limit. This also uses the soft time limit.")
     ("sp-process,s", po::value<bool>(&context.partition.sp_process_output)->value_name("<bool>"),
     "Summarize partitioning results in RESULT line compatible with sqlplottools "
     "(https://github.com/bingmann/sqlplottools)")
@@ -631,7 +627,7 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
 
   po::options_description write_snapshot("write snapshot", num_columns);
   write_snapshot.add_options()
-          ("snapshot-path", po::value<std::string>(&context.local_search.hyperflowcutter.snapshot_path)->value_name("<string>"), "Path for flow hypergraph snapshots. Default: None (don't write them)");
+    ("snapshot-path", po::value<std::string>(&context.local_search.hyperflowcutter.snapshot_path)->value_name("<string>"), "Path for flow hypergraph snapshots. Default: None (don't write them)");
 
   po::options_description refinement_options = createRefinementOptionsDescription(context, num_columns, false);
 

@@ -31,7 +31,6 @@ using ::testing::Test;
 using ::testing::Eq;
 
 namespace kahypar {
-
 using TwoWayFMRefinerSimpleStopping = TwoWayFMRefiner<NumberOfFruitlessMovesStopsSearch>;
 
 class ATwoWayFMRefiner : public Test {

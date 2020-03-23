@@ -48,8 +48,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     algo_name << "r";
   } else if (context.partition.mode == Mode::direct_kway) {
     algo_name << "k";
-  }
-  else {
+  } else {
     algo_name << "UnknownMode";
   }
 
@@ -177,7 +176,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
         << " IP_local_search_fm_adaptive_stopping_alpha="
         << context.initial_partitioning.local_search.fm.adaptive_stopping_alpha;
   }
-    oss << " local_search_algorithm=" << context.local_search.algorithm
+  oss << " local_search_algorithm=" << context.local_search.algorithm
       << " local_search_iterations_per_level=" << context.local_search.iterations_per_level;
   if (context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
       context.local_search.algorithm == RefinementAlgorithm::kway_fm ||
@@ -197,31 +196,31 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   }
 
   if (!interrupted) {
-	  oss << " cut=" << metrics::hyperedgeCut(hypergraph)
-	      << " soed=" << metrics::soed(hypergraph)
-		    << " km1=" << metrics::km1(hypergraph)
-		    << " absorption=" << metrics::absorption(hypergraph)
-		    << " imbalance=" << metrics::imbalance(hypergraph, context);
-	  oss << " totalPartitionTime=" << elapsed_seconds.count();
-	} else {	//don't know the state of the hypergraph
-	  oss << " cut=" << std::numeric_limits<HyperedgeWeight>::max()
-		    << " soed=" << std::numeric_limits<HyperedgeWeight>::max()
-		    << " km1=" << std::numeric_limits<HyperedgeWeight>::max()
+    oss << " cut=" << metrics::hyperedgeCut(hypergraph)
+        << " soed=" << metrics::soed(hypergraph)
+        << " km1=" << metrics::km1(hypergraph)
+        << " absorption=" << metrics::absorption(hypergraph)
+        << " imbalance=" << metrics::imbalance(hypergraph, context);
+    oss << " totalPartitionTime=" << elapsed_seconds.count();
+  } else {      // don't know the state of the hypergraph
+    oss << " cut=" << std::numeric_limits<HyperedgeWeight>::max()
+        << " soed=" << std::numeric_limits<HyperedgeWeight>::max()
+        << " km1=" << std::numeric_limits<HyperedgeWeight>::max()
         << " absorption=" << std::numeric_limits<HyperedgeWeight>::max()
-		    << " imbalance=" << 1.0;
+        << " imbalance=" << 1.0;
 
-    //we're assuming the external interruption comes from an external timeout which is as long as the internally set time limit
-	  oss << " totalPartitionTime=" << context.partition.time_limit;
+    // we're assuming the external interruption comes from an external timeout which is as long as the internally set time limit
+    oss << " totalPartitionTime=" << context.partition.time_limit;
   }
-	
-	oss	<< " minHashSparsifierTime=" << timings.pre_sparsifier
-		<< " communityDetectionTime=" << timings.pre_community_detection
-		<< " coarseningTime=" << timings.total_coarsening
-		<< " initialPartitionTime=" << timings.total_initial_partitioning
-		<< " uncoarseningRefinementTime=" << timings.total_local_search
-		<< " flowTime=" << timings.total_flow_refinement
-		<< " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
-    
+
+  oss << " minHashSparsifierTime=" << timings.pre_sparsifier
+      << " communityDetectionTime=" << timings.pre_community_detection
+      << " coarseningTime=" << timings.total_coarsening
+      << " initialPartitionTime=" << timings.total_initial_partitioning
+      << " uncoarseningRefinementTime=" << timings.total_local_search
+      << " flowTime=" << timings.total_flow_refinement
+      << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
+
   if (context.partition.global_search_iterations > 0) {
     int i = 1;
     for (const auto& timing : timings.v_cycle_coarsening) {

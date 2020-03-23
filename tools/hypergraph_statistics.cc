@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
   double density = 0;
   for (const auto he : hypergraph.edges()) {
-    density += hypergraph.edgeSize(he) * (hypergraph.edgeSize(he) -1);
+    density += hypergraph.edgeSize(he) * (hypergraph.edgeSize(he) - 1);
   }
   density = density / (num_hypernodes * (num_hypernodes - 1));
 

@@ -118,7 +118,7 @@ class Timer {
   void clear() {
     _timings.clear();
     _evaluated = false;
-    _result = Result{ };
+    _result = Result { };
   }
 
 
@@ -156,10 +156,9 @@ class Timer {
   void evaluate() {
     int bisection_no = 0;
     for (const Timing& timing : _timings) {
-      
       if (timing.timepoint == Timepoint::flow_refinement)
         _result.total_flow_refinement += timing.time;
-      
+
       if (timing.type == ContextType::main) {
         switch (timing.timepoint) {
           case Timepoint::pre_sparsifier:

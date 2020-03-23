@@ -76,7 +76,7 @@ class QuotientGraphBlockScheduler {
   }
 
   void randomShuffleQuotientEdges() {
-    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(),Randomize::instance().getGenerator());
+    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(), Randomize::instance().getGenerator());
   }
 
   std::pair<ConstIncidenceIterator, ConstIncidenceIterator> quotientGraphEdges() const {
@@ -129,10 +129,10 @@ class QuotientGraphBlockScheduler {
                           _block_pair_cut_he[block0][block1].cend());
   }
 
-  std::vector<HyperedgeID>& exposeBlockPairCutHyperedges(const PartitionID block0, const PartitionID block1) {
-  	updateBlockPairCutHyperedges(block0, block1);
-  	return _block_pair_cut_he[block0][block1];
-  };
+  std::vector<HyperedgeID> & exposeBlockPairCutHyperedges(const PartitionID block0, const PartitionID block1) {
+    updateBlockPairCutHyperedges(block0, block1);
+    return _block_pair_cut_he[block0][block1];
+  }
 
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) {
     if (from != to) {

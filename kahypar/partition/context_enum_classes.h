@@ -153,7 +153,7 @@ enum class EvoMutateStrategy : uint8_t {
   UNDEFINED
 };
 
-enum class EvoDecision :uint8_t {
+enum class EvoDecision : uint8_t {
   normal,
   mutation,
   combine

@@ -1107,7 +1107,7 @@ class GenericHypergraph {
            V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
   }
 
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void restoreMemento(const Memento &memento) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void restoreMemento(const Memento& memento) {
     DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
     hypernode(memento.v).enable();
     ++_current_num_hypernodes;
@@ -1125,7 +1125,7 @@ class GenericHypergraph {
 
     ASSERT(partID(memento.v) != kInvalidPartition,
            "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
-                         " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
+           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
                          << memento.v);
   }
 
@@ -1676,15 +1676,15 @@ class GenericHypergraph {
   }
 
   bool inPart(const HypernodeID hn, const PartitionID b) const {
-  	return partID(hn) == b;
+    return partID(hn) == b;
   }
 
   bool hasPinsInPart(const HyperedgeID he, const PartitionID b) const {
-  	return pinCountInPart(he, b) > 0;
+    return pinCountInPart(he, b) > 0;
   }
 
   bool hasPinsInOtherBlocks(const HyperedgeID he, const PartitionID b0, const PartitionID b1) const {
-  	return pinCountInPart(he, b0) + pinCountInPart(he, b1) < edgeSize(he);
+    return pinCountInPart(he, b0) + pinCountInPart(he, b1) < edgeSize(he);
   }
 
   // ! Returns the number of blocks a hyperedge connects

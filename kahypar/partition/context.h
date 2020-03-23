@@ -196,13 +196,13 @@ struct LocalSearchParameters {
   };
 
   struct HyperFlowCutter {
-      std::string snapshot_path = "None";
-      bool use_distances_from_cut = true;
-      bool most_balanced_cut = true;
-      double snapshot_scaling = 0.2;
-      FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::part_weight_fraction;
+    std::string snapshot_path = "None";
+    bool use_distances_from_cut = true;
+    bool most_balanced_cut = true;
+    double snapshot_scaling = 0.2;
+    FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::part_weight_fraction;
   };
-  
+
   FM fm { };
   Flow flow { };
   HyperFlowCutter hyperflowcutter { };
