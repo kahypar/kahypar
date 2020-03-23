@@ -307,7 +307,7 @@ struct PartitioningParameters {
   int soft_time_limit_check_frequency = 10000;
   double soft_time_limit_factor = 0.99;
   HighResClockTimepoint start_time;
-  bool time_limit_triggered = false;
+  mutable bool time_limit_triggered = false;
 
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;

@@ -62,7 +62,7 @@ class MLCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  MLCoarsener(Hypergraph& hypergraph, Context& context,
+  MLCoarsener(Hypergraph& hypergraph, const Context& context,
               const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, context, weight_of_heaviest_node),
     _rater(_hg, _context) { }

@@ -63,7 +63,7 @@ class FullVertexPairCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  FullVertexPairCoarsener(Hypergraph& hypergraph, Context& context,
+  FullVertexPairCoarsener(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
     VertexPairCoarsenerBase(hypergraph, context, weight_of_heaviest_node),
     _rater(_hg, _context),

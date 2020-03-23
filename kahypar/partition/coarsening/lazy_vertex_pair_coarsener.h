@@ -61,7 +61,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   using Rating = typename Rater::Rating;
 
  public:
-  LazyVertexPairCoarsener(Hypergraph& hypergraph, Context& context,
+  LazyVertexPairCoarsener(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
     Base(hypergraph, context, weight_of_heaviest_node),
     _rater(_hg, _context),

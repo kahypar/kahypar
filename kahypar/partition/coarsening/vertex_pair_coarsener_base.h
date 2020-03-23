@@ -49,7 +49,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   using CoarsenerBase::performContraction;
 
  public:
-  VertexPairCoarsenerBase(Hypergraph& hypergraph, Context& context,
+  VertexPairCoarsenerBase(Hypergraph& hypergraph, const Context& context,
                           const HypernodeWeight weight_of_heaviest_node) :
     CoarsenerBase(hypergraph, context, weight_of_heaviest_node),
     _pq(_hg.initialNumNodes()) { }
