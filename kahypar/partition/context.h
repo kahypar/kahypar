@@ -199,8 +199,8 @@ struct LocalSearchParameters {
     std::string snapshot_path = "None";
     bool use_distances_from_cut = true;
     bool most_balanced_cut = true;
-    double snapshot_scaling = 0.2;
-    FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::part_weight_fraction;
+    double snapshot_scaling = 16;
+    FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side;
   };
 
   FM fm { };
@@ -627,6 +627,20 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
         std::exit(0);
       }
     }
+  }
+
+  if (context.local_search.hyperflowcutter.snapshot_scaling > 1.0 &&
+      context.local_search.hyperflowcutter.flowhypergraph_size_constraint != FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+    LOG << "Scaling parameter for flow problem sizes > 1.0 only supported for --r-hfc-scaling = mf-style.";
+    LOG << "Either set --r-hfc-scaling = pw or set --r-hfc-size-constraint to a value between 0 and 1.";
+    std::exit(0);
+  }
+
+  if (context.local_search.hyperflowcutter.snapshot_scaling < 1.0 &&
+      context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+    LOG << "Scaling parameter for flow problem sizes < 1.0 not supported for --r-hfc-scaling = mf-style.";
+    LOG << "Either set --r-hfc-scaling = pw or set --r-hfc-size-constraint to a value between 0 and 1.";
+    std::exit(0);
   }
 
   if (context.partition.use_individual_part_weights) {
