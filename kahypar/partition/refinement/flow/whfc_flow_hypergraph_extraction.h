@@ -232,15 +232,20 @@ class FlowHypergraphExtractor {
       mw0 = a * context.partition.max_part_weights[b0];
       mw1 = a * context.partition.max_part_weights[b1];
     } else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
-      mw0 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b1);
-      mw1 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b0);
+      if (!context.partition.use_individual_part_weights) {
+        mw0 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b1);
+        mw1 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b0);
+      } else {
+        mw0 = (1.0 + (a-1) * context.partition.adjusted_epsilon_for_individual_part_weights) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b1);
+        mw1 = (1.0 + (a-1) * context.partition.adjusted_epsilon_for_individual_part_weights) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b0);
+      }
     } else {
       throw std::runtime_error("Unknown flow hypergraph size constraint option");
     }
 
-    mw0 = std::min(mw0, hg.partWeight(b0) * 0.999);
+    mw0 = std::min(mw0, hg.partWeight(b0) * 0.9999);  // keep one node in b0
     mw0 = std::max(mw0, 0.0);
-    mw1 = std::min(mw1, hg.partWeight(b1) * 0.999);
+    mw1 = std::min(mw1, hg.partWeight(b1) * 0.9999);
     mw1 = std::max(mw1, 0.0);
     return std::make_pair(mw0, mw1);
   }

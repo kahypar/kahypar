@@ -312,6 +312,8 @@ struct PartitioningParameters {
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;
   std::vector<HypernodeWeight> max_part_weights;
+  double adjusted_epsilon_for_individual_part_weights = 0.0;
+
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
 
   bool verbose_output = false;
@@ -445,6 +447,9 @@ class Context {
   void setupPartWeights(const HypernodeWeight total_hypergraph_weight) {
     if (partition.use_individual_part_weights) {
       partition.perfect_balance_part_weights = partition.max_part_weights;
+      double max_part_weights_sum = static_cast<double>(
+        std::reduce(partition.max_part_weights.begin(), partition.max_part_weights.end()));
+      partition.adjusted_epsilon_for_individual_part_weights = (max_part_weights_sum / total_hypergraph_weight) - 1.0;
     } else {
       partition.perfect_balance_part_weights.clear();
       partition.perfect_balance_part_weights.push_back(ceil(
