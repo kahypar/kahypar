@@ -79,9 +79,7 @@ REGISTER_DISPATCHED_REFINER(RefinementAlgorithm::kway_hyperflow_cutter,
                             meta::PolicyRegistry<FlowExecutionMode>::getInstance().getPolicy(
                               context.local_search.flow.execution_policy));
 
-// REGISTER_REFINER(RefinementAlgorithm::twoway_fm_flow, TwoWayFMFlowRefiner);  //// geht
-
-REGISTER_REFINER(RefinementAlgorithm::twoway_fm_hyperflow_cutter, TwoWayFMFlowRefiner);  /// geht net
+REGISTER_REFINER(RefinementAlgorithm::twoway_fm_hyperflow_cutter, TwoWayFMFlowRefiner);
 REGISTER_REFINER(RefinementAlgorithm::kway_fm_hyperflow_cutter_km1, KWayFMFlowRefiner);
 REREGISTER_REFINER(RefinementAlgorithm::kway_fm_hyperflow_cutter, KWayFMFlowRefiner, 2);
 
