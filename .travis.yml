@@ -95,7 +95,7 @@ script:
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
       gcovr -r ../ -x > report.xml;
-    elif [ "$BUILD_TYPE" = "Debug" ] &&  [ "$CMAKE_CXX" = "g++-9" ] && [ "$SONAR" = "ON" ]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$SONAR" = "ON" ]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make clean all; 
       sonar-scanner;
     elif [ "$BUILD_TYPE" = "Release" ] &&  [ "$CMAKE_CXX" = "g++-9" ]; then
