@@ -28,21 +28,11 @@
 
 namespace kahypar {
 namespace time_limit {
-namespace internal {
-class Dummy {
- public:
-  size_t size() const {
-    return 0;
-  }
-};
-}
-
-template <typename History>
-bool isSoftTimeLimitExceeded(const Context& context, const History& history) {
+bool isSoftTimeLimitExceeded(const Context& context, const size_t history_size) {
   if (context.partition_evolutionary ||
       context.partition.time_limited_repeated_partitioning ||
       context.partition.time_limit <= 0 ||
-      history.size() % context.partition.soft_time_limit_check_frequency != 0) {
+      history_size % context.partition.soft_time_limit_check_frequency != 0) {
     return false;
   }
   const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
@@ -52,14 +42,14 @@ bool isSoftTimeLimitExceeded(const Context& context, const History& history) {
   if (result) {
     context.partition.time_limit_triggered = true;
     if (context.partition.verbose_output) {
-      LOG << "Time limit triggered after" << duration.count() << "seconds. " << history.size() << "uncontractions left. Cancel refinement.";
+      LOG << "Time limit triggered after" << duration.count() << "seconds. " << history_size << "uncontractions left. Cancel refinement.";
     }
   }
   return result;
 }
 
 bool isSoftTimeLimitExceeded(const Context& context) {
-  return isSoftTimeLimitExceeded(context, internal::Dummy());
+  return isSoftTimeLimitExceeded(context, 0);
 }
 }   // namespace time_limit
 }  // namespace kahypar

@@ -94,7 +94,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
 
 
     while (!_history.empty()) {
-      if (time_limit::isSoftTimeLimitExceeded(_context, _history)) {
+      if (time_limit::isSoftTimeLimitExceeded(_context, _history.size())) {
         /*
          * There are two ways to implement this time limit.
          * 1) skip refinement but perform full uncontractions, including updates. This can be slow
