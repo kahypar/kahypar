@@ -18,6 +18,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
+            - mhier/libboost-latest
           packages:
             - g++-9
             - libboost-all-dev
