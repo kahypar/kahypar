@@ -19,11 +19,8 @@ add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOURCE_DIR}/../googlemock/)
 
-# add third-party maximum flow algorithms to project
-include_directories(external_tools/maximum_flow)
-
-#Weighted HyperFlowCutter
-include_directories(WHFC)
+# add third-party algorithms to project
+include_directories(external_tools)
 
 option(KAHYPAR_USE_MINIMAL_BOOST
   "Download boost automatically and compile required libraries." OFF)

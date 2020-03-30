@@ -1,6 +1,6 @@
 [submodule "external_tools/googletest"]
 	path = external_tools/googletest
 	url = https://github.com/google/googletest.git
-[submodule "WHFC"]
-	path = WHFC
+[submodule "external_tools/WHFC"]
+	path = external_tools/WHFC
 	url = https://github.com/larsgottesbueren/WHFC.git
