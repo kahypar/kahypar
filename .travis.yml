@@ -29,7 +29,7 @@ matrix:
       before_install:
         - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get -q update
-        - sudo apt-get -y install libboost
+        - sudo apt-get -y install libboost1.70-dev
 
     # gcc 9 - Release Build
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Release" COV="OFF" SONAR="OFF"
