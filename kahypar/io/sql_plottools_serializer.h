@@ -22,6 +22,7 @@
 #include <array>
 #include <chrono>
 #include <fstream>
+#include <limits>
 #include <string>
 
 #include "kahypar/definitions.h"
@@ -213,13 +214,16 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     oss << " totalPartitionTime=" << context.partition.time_limit;
   }
 
-  oss << " minHashSparsifierTime=" << timings.pre_sparsifier
-      << " communityDetectionTime=" << timings.pre_community_detection
-      << " coarseningTime=" << timings.total_coarsening
-      << " initialPartitionTime=" << timings.total_initial_partitioning
-      << " uncoarseningRefinementTime=" << timings.total_local_search
-      << " flowTime=" << timings.total_flow_refinement
-      << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
+  // These detailed timings don't make sense in memetic mode
+  if (!context.partition_evolutionary) {
+    oss << " minHashSparsifierTime=" << timings.pre_sparsifier
+        << " communityDetectionTime=" << timings.pre_community_detection
+        << " coarseningTime=" << timings.total_coarsening
+        << " initialPartitionTime=" << timings.total_initial_partitioning
+        << " uncoarseningRefinementTime=" << timings.total_local_search
+        << " flowTime=" << timings.total_flow_refinement
+        << " postMinHashSparsifierTime=" << timings.post_sparsifier_restore;
+  }
 
   if (context.partition.global_search_iterations > 0) {
     int i = 1;
@@ -232,8 +236,11 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
     }
   }
 
-  oss << " " << context.stats.serialize().str()
-      << " git=" << STR(KaHyPar_BUILD_VERSION)
+  // Prevent stats from cluttering spprocess output in memetic mode
+  if (!context.partition_evolutionary) {
+    oss << " " << context.stats.serialize().str();
+  }
+  oss << " git=" << STR(KaHyPar_BUILD_VERSION)
       << std::endl;
 
   std::cout << oss.str() << std::endl;
