@@ -61,7 +61,8 @@ install:
   - |
     if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       export CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0.tar.gz";
-      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake;
+      mkdir cmake;
+      travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake;
       export PATH=${DEPS_DIR}/cmake/bin:${PATH};
       echo ${PATH};
     else
