@@ -380,7 +380,7 @@ struct EvolutionaryParameters {
   double gamma;
   size_t edge_frequency_amount;
   bool dynamic_population_size;
-  float dynamic_population_amount_of_time;
+  double dynamic_population_amount_of_time;
   bool random_combine_strategy;
   mutable int iteration;
   mutable Action action;

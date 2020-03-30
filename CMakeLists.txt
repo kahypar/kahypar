@@ -34,6 +34,9 @@ option(KAHYPAR_DISABLE_ASSERTIONS
 option(KAHYPAR_USE_STANDARD_ASSERTIONS
   "Use standard C++ asserts instead of custom assertions." OFF)
 
+option(KAHYPAR_USE_CPPCHECK
+  "Enable static analysis via cppcheck" OFF)
+
 if(KAHYPAR_DISABLE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
 endif(KAHYPAR_DISABLE_ASSERTIONS)
@@ -42,8 +45,60 @@ if(KAHYPAR_USE_STANDARD_ASSERTIONS)
   add_compile_definitions(KAHYPAR_USE_STANDARD_ASSERTIONS)
 endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
+# defintions for heavy asserts
+option(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS
+  "Enable costly assertions for data structures." ON)
+
+option(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS
+  "Enable costly assertions in preprocessing phase." ON) 
+
+option(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS
+  "Enable costly assertions in coarsening phase." ON)
+
+option(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS
+  "Enable costly assertions in initial partitioning phase." ON)
+
+option(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS
+  "Enable costly assertions in refinement phase." ON)
+
+if(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS)
+
+if(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS)
+
+if(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS)
+
+if(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS)
+
+if(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
+  add_compile_definitions(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
+endif(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
+
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
+
+if(KAHYPAR_USE_CPPCHECK)
+  find_program(CMAKE_CXX_CPPCHECK cppcheck)
+  if(CMAKE_CXX_CPPCHECK)
+    list(
+      APPEND CMAKE_CXX_CPPCHECK 
+      "--enable=all"
+      "--inconclusive"
+      "--force" 
+      "--inline-suppr"
+      )
+  endif(CMAKE_CXX_CPPCHECK)
+endif(KAHYPAR_USE_CPPCHECK)
+
+find_package(Python ${PY_VERSION} REQUIRED)
+find_package(PythonLibs ${PY_VERSION} REQUIRED)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
@@ -125,6 +180,8 @@ else()
   find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS program_options headers)
   if(Boost_FOUND)
     include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    set(KAHYPAR_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} ${KAHYPAR_INCLUDE_DIRS})
+    set(KAHYPAR_LINK_LIBRARIES ${Boost_LIBRARIES} ${KAHYPAR_LINK_LIBRARIES})
     message(STATUS "Boost Include: ${Boost_INCLUDE_DIR}")
     message(STATUS "Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
     message(STATUS "Boost Libraries: ${Boost_LIBRARIES}")
@@ -206,6 +263,10 @@ if(NOT MSVC)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ") 
+  
+if(DEFINED ENV{TRAVIS_ENV})  
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mno-avx")
+endif()
 
   if(ENABLE_PROFILE MATCHES ON)
     message(STATUS "Profiling activated")
@@ -272,3 +333,4 @@ add_subdirectory(kahypar/application)
 add_subdirectory(tools)
 add_subdirectory(lib)
 add_subdirectory(tests)
+add_subdirectory(python)

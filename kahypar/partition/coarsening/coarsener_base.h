@@ -39,6 +39,7 @@
 namespace kahypar {
 class CoarsenerBase {
  private:
+  static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;
 
   struct CurrentMaxNodeWeight {
@@ -150,7 +151,7 @@ class CoarsenerBase {
                                             current_changes,
                                             current_metrics);
 
-    ASSERT((current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)) ||
+    HEAVY_REFINEMENT_ASSERT((current_metrics.cut <= old_cut && current_metrics.cut == metrics::hyperedgeCut(_hg)) ||
            (current_metrics.km1 <= old_km1 && current_metrics.km1 == metrics::km1(_hg)),
            V(current_metrics.cut) << V(old_cut) << V(metrics::hyperedgeCut(_hg))
                                   << V(current_metrics.km1) << V(old_km1) << V(metrics::km1(_hg)));

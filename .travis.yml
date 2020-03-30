@@ -23,6 +23,8 @@ matrix:
             - libboost-all-dev
             - lcov
             - gcovr
+            - cppcheck
+            - libpython3-all-dev
         sonarcloud:
           organization: "sebastianschlag-github"
 
@@ -44,11 +46,14 @@ matrix:
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
       os: osx
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
 
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COV="OFF"
       os: osx
-
-
+      before_install:
+        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+      
 install:
   - export DEPS_DIR="${HOME}/deps"
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
@@ -70,8 +75,11 @@ before_script:
   # configure
   - cd "${TRAVIS_BUILD_DIR}"
   - mkdir build; cp sonar-project.properties build; cd build
+  - export TRAVIS_ENV=1
+  - if [ "$BUILD_TYPE" = "Debug" ]; then export PREPROC_ASSERT=0; else PREPROC_ASSERT=1;  fi
+  - echo "PREPROC_ASSERT=$PREPROC_ASSERT"
   - cmake
-      -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+      -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS="$PREPROC_ASSERT"
       -DCMAKE_C_COMPILER="$CMAKE_CC" -DCMAKE_CXX_COMPILER="$CMAKE_CXX" -DKAHYPAR_USE_GCOV="$COV"
       -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS"
       $CMAKE_ARGS ..
@@ -106,3 +114,10 @@ after_success:
 #cache:
 #  directories:
 #    - '$HOME/.sonar/cache'
+
+#language: ruby
+#rvm:
+#  - 2.4
+#script: 
+#  - "bundle install"
+#  - "bundle exec jekyll build"

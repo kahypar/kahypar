@@ -4,3 +4,6 @@
 [submodule "external_tools/WHFC"]
 	path = external_tools/WHFC
 	url = https://github.com/larsgottesbueren/WHFC.git
+[submodule "python/pybind11"]
+	path = python/pybind11
+	url = https://github.com/pybind/pybind11.git

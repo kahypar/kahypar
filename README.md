@@ -1,25 +1,29 @@
-<h1 align="center">KaHyPar - Karlsruhe Hypergraph Partitioning</h1>
+  <p align="center"><img src="https://user-images.githubusercontent.com/484403/70459249-0fd0d080-1ab4-11ea-833b-17130ecafc0a.png" alt="KaHyPar - Karlsruhe Hypergraph Partitioning" width="60%" height="60%"></p>
+	
+License|Linux & macOS Build|Windows Build|Fossa|Zenodo
+:--:|:--:|:--:|:--:|:--:
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
 
-
-License|Linux & macOS Build|Windows Build|Code Coverage|Coverity Scan|SonarCloud|Fossa|Zenodo
-:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
-
+Code Coverage|Code Quality|Coverity Scan|SonarCloud|Issues
+:--:|:--:|:--:|:--:|:--:
+[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SebastianSchlag/kahypar.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SebastianSchlag/kahypar/context:cpp) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0ba18c5b3b2b4ab1bcc99f7bd9e35eb2)](https://www.codacy.com/manual/SebastianSchlag/kahypar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SebastianSchlag/kahypar&amp;utm_campaign=Badge_Grade)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/sebastianschlag/kahypar.svg)](http://isitmaintained.com/project/sebastianschlag/kahypar "Average time to resolve an issue")
 
 Table of Contents
------------
+----------- 
 
    * [What is a Hypergraph? What is Hypergraph Partitioning?](#what-is-a-hypergraph-what-is-hypergraph-partitioning)
    * [What is KaHyPar?](#what-is-kahypar)
       * [Additional Features](#additional-features)
       * [Experimental Results](#experimental-results)
       * [Additional Resources](#additional-resources)
+      * [Projects using KaHyPar](#projects-using-kahypar)
    * [Requirements](#requirements)
    * [Building KaHyPar](#building-kahypar)
    * [Testing and Profiling](#testing-and-profiling)
    * [Running KaHyPar](#running-kahypar)
    * [Using the Library Interfaces](#using-the-library-interfaces)
      * [The C-Style Interface](#the-c-style-interface)
+     * [The Python Interface](#the-python-interface)
      * [The Julia Interface](#the-julia-interface)
    * [Bug Reports](#bug-reports)
    * [Licensing](#licensing)
@@ -58,7 +62,7 @@ By using this very fine grained *n*-level approach combined with strong local se
 it computes solutions of very high quality.
 Its algorithms and detailed experimental results are presented in several [research publications][KAHYPARLIT].
 
-#### Additional Features
+### Additional Features
  - Hypergraph Partitioning with Variable Block Weights:
  
  	KaHyPar has support for variable block weights. If command line option `--use-individual-part-weights=true` is used, the partitioner tries to partition the hypergraph such that each block Vx has a weight of at most Bx, where Bx can be specified for each block individually using the command line parameter `--part-weights= B1 B2 B3 ... Bk-1`. Since the framework does not yet support perfectly balanced partitioning, upper bounds need to be slightly larger than the total weight of all vertices of the hypergraph. Note that this feature is still experimental.
@@ -81,7 +85,7 @@ Its algorithms and detailed experimental results are presented in several [resea
    KaHyPar uses direct k-way V-cycles to try to improve an existing partition specified via parameter `--part-file=</path/to/file>`. The maximum number of V-cycles can be controlled via parameter `--vcycles=`. 
 
    
-#### Experimental Results
+### Experimental Results
 We use the [*performance profiles*](https://link.springer.com/article/10.1007/s101070100263) to compare KaHyPar to other partitioning algorithms in terms of solution quality.
   For a set of <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BP%7D"/> algorithms and a benchmark set <img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/> containing |<img src="https://latex.codecogs.com/gif.latex?%5Cmathcal%7BI%7D"/>| instances, the *performance ratio* <img src="https://latex.codecogs.com/gif.latex?r_%7Bp%2Ci%7D"/> relates the cut computed by
   partitioner *p* for instance *i* to the smallest minimum cut of *all* algorithms, i.e.,
@@ -100,34 +104,40 @@ For connectivity optimization, the performance ratios are computed using the con
     
 In our experimental analysis, the performance profile plots are based on the *best* solutions (i.e., *minimum* connectivity/cut) each algorithm found for each instance.
     Furthermore, we choose parameters <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Binf%7D%7D%20%5Cgg%20r_%7Bp%2Ci%7D%24"/> for all <img src="https://latex.codecogs.com/gif.latex?%24p%2Ci%24"/> and <img src="https://latex.codecogs.com/gif.latex?%24r_%7B%5Ctext%7Btimeout%7D%7D%20%5Cgg%20r_%7B%5Ctext%7Binf%7D%7D%24"/> such that a performance ratio <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Binf%7D%24"/> if and only if algorithm *p* computed an infeasible solution
-    for instance *i*, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance *i* within the given time limit.
+    for instance *i*, and <img src="https://latex.codecogs.com/gif.latex?%24r_%7Bp%2Ci%7D%20%3D%20r_%5Ctext%7Btimeout%7D%24"/> if and only if the algorithm could not compute a solution for instance *i* within the given time limit. In our performance profile plots, performance ratios corresponding to *infeasible* solutions will be shown on the x-tick on the *x*-axis, while
+instances that could not be partitioned within the time limit are shown implicitly by a line that exits the plot below <img src="https://latex.codecogs.com/gif.latex?y%3D1"/>.
     Since the performance ratios are heavily right-skewed, the performance profile plots are divided into three segments with different ranges for parameter <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%24"/> to reflect various areas of interest.
     The first segment highlights small values (<img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%20%5Cleq%201.1%24"/>), while the second segment contains results for all instances
     that are up to a factor of <img src="https://latex.codecogs.com/gif.latex?%24%5Ctau%3D2%24"/> worse than the best possible ratio. The last segment  contains all remaining ratios, i.e., instances for which
     some algorithms performed considerably worse than the best algorithm, instances for which algorithms produced infeasible solutions, and instances which could not be partitioned within
-    the given time limit. The last segment uses a log-scale on the x-axis.
+    the given time limit.
 
-In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMetis-K) and the recursive bisection variant (hMetis-R) of hMetis 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
+In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default mode (PaToH-D), the k-way (hMETIS-K) and the recursive bisection variant (hMETIS-R) of hMETIS 2.0 (p1), [Zoltan using algebraic distance-based coarsening](https://github.com/rsln-s/aggregative-coarsening-for-multilevel-hypergraph-partitioning) (Zoltan-AlgD), [Mondriaan v.4.2.1](http://www.staff.science.uu.nl/~bisse101/Mondriaan/) and the recently published [HYPE](https://arxiv.org/abs/1810.11319) [algorithm](https://github.com/mayerrn/HYPE).
 
   <p align="center">
-	<b>Connectivity Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839056-3bae0100-77c6-11e9-8692-708295bf107c.png" alt="Comparison" width="100%" height="50%">
+	<b>Solution Quality</b>
+<img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%" height="50%">
 	</p>
 
   <p align="center">
-	<b>Cut-Net Optimization</b>
-<img src="https://user-images.githubusercontent.com/484403/57839246-9f382e80-77c6-11e9-8c33-0a8b9d6a4a35.png" alt="Comparison" width="100%" height="50%">
+	<b>Running Time</b>
+<img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%" height="50%">
 	</p>
 
-#### Additional Resources
+### Additional Resources
 We provide additional resources for all KaHyPar-related publications:
 
-|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://github.com/SebastianSchlag/kahypar)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
+|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
 |:--|:--|:--:|:--:|:--:|:--:|
 |KaHyPar-E (EvoHGP)|GECCO'18|[Paper][GECCO'18]|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
 |KaHyPar-CA|SEA'17|[Paper][SEA'17]|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimental Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|\-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
 |KaHyPar-R|ALENEX'16|[Paper][ALENEX'16]|[TR](https://arxiv.org/abs/1511.03137)|[Slides](http://algo2.iti.kit.edu/3034.php)|[Experimental Results][ALENEX'16bench]|
+ 
+### Projects using KaHyPar
+ 
+ - [**CoTenGra** - Hyper-optimized Contraction Trees for Large Tensor Networks](https://github.com/jcmgray/cotengra)
+ - [**LSOracle** - The Logic Synthesis Oracle](https://github.com/LNIS-Projects/LSOracle)
  
 Requirements
 -----------
@@ -162,10 +172,34 @@ The standalone program can be built via `make KaHyPar`. The binary will be locat
 
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
+
+#### Default / Most Recent Presets
+
+We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for 
+direct k-way partitioning (*k*KaHyPar).
+
+To start *k*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar_dissertation.ini
     
-Currently we provide nine different presets that correspond to the configurations used in the publications at
+To start *k*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kKaHyPar_dissertation.ini
+
+To start *r*KaHyPar optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m recursive -p ../../../config/km1_rKaHyPar_dissertation.ini
+    
+To start *r*KaHyPar optimizing the cut net objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_dissertation.ini
+
+
+#### Old Presets
+    
+Additionally, we provide nine different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
-our JEA journal paper (to appear).
+our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872).
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
@@ -275,6 +309,47 @@ To remove the library from your system use the provided uninstall target:
 ```sh
 make uninstall-kahypar
 ```
+#### The Python Interface
+To compile the Python interface, do the following:
+
+1. Create a build directory: `mkdir build && cd build`
+2. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
+3. Go to libary folder: `cd python`
+4. Compile the libarary: `make`
+5. Copy the libary to your site-packages directory: `cp kahypar.so <path-to-site-packages>`
+
+After that you can use the KaHyPar libary like this:
+
+```py
+import os
+import kahypar as kahypar
+
+num_nodes = 7
+num_nets = 4
+
+hyperedge_indices = [0,2,6,9,12]
+hyperedges = [0,2,0,1,3,4,3,4,6,2,5,6]
+
+node_weights = [1,2,3,4,5,6,7]
+edge_weights = [11,22,33,44]
+
+k=2
+
+hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k, edge_weights, node_weights)
+
+context = kahypar.Context()
+context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
+
+context.setK(k)
+context.setEpsilon(0.03)
+
+kahypar.partition(hypergraph, context)
+```
+For more information about the python library functionality, please see: [module.cpp](https://github.com/SebastianSchlag/kahypar/blob/master/python/module.cpp)
+
+We also provide a precompiled version as a [![PyPI version](https://badge.fury.io/py/kahypar.svg)](https://badge.fury.io/py/kahypar) , which can be installed via:
+
+`python3 -m pip install --index-url https://pypi.org/simple/ --no-deps kahypar`
 
 #### The Julia Interface
 Thanks to Jordan Jalving ([@jalving]( https://github.com/jalving)) KaHyPar now also offers a Julia interface,
@@ -366,6 +441,19 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      booktitle ={17th International Symposium on Experimental Algorithms  (SEA 2018)},
      pages ={1:1--1:19},
      year ={2018}
+    }
+    
+    
+    @article{KaHyPar-MF-JEA,
+      author = {Heuer, T. and Sanders, P. and Schlag, S.},
+      title = {Network Flow-Based Refinement for Multilevel Hypergraph Partitioning},
+      journal = {ACM Journal of Experimental Algorithmics (JEA)}},
+      volume = {24},
+      number = {1},
+      month = {09},
+      year = {2019},
+      pages = {2.3:1--2.3:36},
+      publisher = {ACM}
     }
     
     // KaHyPar-E (EvoHGP)

@@ -82,7 +82,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
   void coarsenImpl(const HypernodeID limit) override final {
     _pq.clear();
 
-    rateAllHypernodes(_rater, _target);
+    Base::rateAllHypernodes(_rater, _target);
 
     while (!_pq.empty() && _hg.currentNumNodes() > limit) {
       const HypernodeID rep_node = _pq.top();
@@ -105,7 +105,7 @@ class LazyVertexPairCoarsener final : public ICoarsener,
         ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
                V(_pq.topKey()) << V(_rater.rate(rep_node).value));
 
-        performContraction(rep_node, contracted_node);
+        Base::performContraction(rep_node, contracted_node);
 
         // This assertion does not hold if the cmaxnet parameter is used
         // to restrict the rating function to incident hyperedges of size
