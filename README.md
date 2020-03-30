@@ -127,8 +127,9 @@ In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default m
 ### Additional Resources
 We provide additional resources for all KaHyPar-related publications:
 
-|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
+|kKaHyPar-SEA20 /<br/> rKaHyPar-SEA20 |SEA'20 |TBA |[TR](https://arxiv.org/abs/2003.12110)| TBA | TBA |
 |:--|:--|:--:|:--:|:--:|:--:|
+|KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
 |KaHyPar-E (EvoHGP)|GECCO'18|[Paper][GECCO'18]|[TR](https://arxiv.org/abs/1710.01968)|[Slides](https://algo2.iti.kit.edu/3506.php)|[Experimental Results][GECCO'18bench]|
 |KaHyPar-CA|SEA'17|[Paper][SEA'17]|\-|[Slides](http://algo2.iti.kit.edu/sea17schlag.php)|[Experimental Results][SEA'17bench]|
 |KaHyPar-K|ALENEX'17|[Paper][ALENEX'17]|\-|[Slides](http://algo2.iti.kit.edu/3214.php)|[Experimental Results][ALENEX'17bench]|
@@ -144,9 +145,9 @@ Requirements
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
  - A 64-bit operating system. Linux, Mac OS X and Windows are currently supported.
- - A modern, ![C++14](https://img.shields.io/badge/C++-14-blue.svg?style=flat)-ready compiler such as `g++` version 5.2 or higher or `clang` version 3.2 or higher.
+ - A modern, ![C++14](https://img.shields.io/badge/C++-14-blue.svg?style=flat)-ready compiler such as `g++` version 9 or higher or `clang` version 11.0.3 or higher.
  - The [cmake][cmake] build system.
- - The [Boost.Program_options][Boost.Program_options] library.
+ - The [Boost.Program_options][Boost.Program_options] library and the boost header files.
 
 
 Building KaHyPar
@@ -178,28 +179,32 @@ We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manu
 We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for 
 direct k-way partitioning (*k*KaHyPar).
 
-To start *k*KaHyPar optimizing the (connectivity - 1) objective run:
+To start ***k*KaHyPar** optimizing the **(connectivity - 1)** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar_dissertation.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar_sea20.ini
     
-To start *k*KaHyPar optimizing the cut net objective run:
+To start ***k*KaHyPar** optimizing the **cut net** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kKaHyPar_dissertation.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kKaHyPar_sea20.ini
 
-To start *r*KaHyPar optimizing the (connectivity - 1) objective run:
+To start ***r*KaHyPar** optimizing the **(connectivity - 1)** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m recursive -p ../../../config/km1_rKaHyPar_dissertation.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m recursive -p ../../../config/km1_rKaHyPar_sea20.ini
     
-To start *r*KaHyPar optimizing the cut net objective run:
+To start ***r*KaHyPar** optimizing the **cut net** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_dissertation.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_kKaHyPar_sea20.ini
+    
+To start the **memetic algorithm** ***k*KaHyPar-E** optimizing the (connectivity - 1) objective run:
+
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar-E_sea20.ini
 
 
 #### Old Presets
     
-Additionally, we provide nine different presets that correspond to the configurations used in the publications at
+Additionally, we provide different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
-our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872).
+in our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872) and in the [dissertation](https://publikationen.bibliothek.kit.edu/1000105953) of Sebastian Schlag.
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
