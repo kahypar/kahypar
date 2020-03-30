@@ -50,7 +50,7 @@ matrix:
 
 
 install:
-  - DEPS_DIR="${HOME}/deps"
+  - export DEPS_DIR="${HOME}/deps"
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
   - echo ${TRAVIS_OS_NAME}
   - |
@@ -60,7 +60,7 @@ install:
       export PATH=${DEPS_DIR}/cmake/bin:${PATH};
       echo ${PATH};
     else
-      brew install cmake || brew upgrade cmake
+      brew install cmake || brew upgrade cmake;
     fi
   - cmake --version
 
