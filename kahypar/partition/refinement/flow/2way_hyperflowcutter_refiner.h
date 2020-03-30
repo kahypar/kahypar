@@ -192,6 +192,13 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
 
+    const auto duration = std::chrono::duration<double>(end - _context.partition.start_time);
+    if (duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor) {
+      _context.partition.time_limit_triggered = true;
+      if (_context.partition.verbose_output) {
+        LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
+      }
+    }
     ASSERT(improved == (refinement_result >= RefinementResult::LocalBalanceImproved));
 
     return improved;

@@ -95,10 +95,7 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
     bool active_block_exist = true;
     std::vector<bool> active_blocks(_context.partition.k, true);
     size_t current_round = 1;
-    while (active_block_exist) {
-      if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
-        break;
-      }
+    while (active_block_exist && !(_context.partition.time_limit_triggered || isSoftTimeLimitExceeded())) {
 
       scheduler.randomShuffleQuotientEdges();
       std::vector<bool> tmp_active_blocks(_context.partition.k, false);
@@ -130,6 +127,10 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
               _num_improvements[block_0][block_1]++;
             }
           }
+        }
+
+        if (_context.partition.time_limit_triggered) {
+          break;
         }
       }
       current_round++;
