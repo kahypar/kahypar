@@ -1,0 +1,11 @@
+recursive-include python/pybind11 *
+recursive-include kahypar/ *
+recursive-include external_tools/ *
+recursive-exclude python/pybind11 .git
+recursive-include cmake/ *
+recursive-include tools/ *
+recursive-include lib/ *
+recursive-include tests/ *
+recursive-include python/ *
+include CMakeLists.txt
+include Doxyfile.in

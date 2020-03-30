@@ -128,9 +128,7 @@ class TwoWayFlowRefinerTest : public ::testing::TestWithParam<FlowAlgorithm>{
 
 INSTANTIATE_TEST_CASE_P(FlowAlgorithmRefinerTest,
                         TwoWayFlowRefinerTest,
-                        ::testing::Values(FlowAlgorithm::edmond_karp,
-                                          FlowAlgorithm::goldberg_tarjan,
-                                          FlowAlgorithm::boykov_kolmogorov,
+                        ::testing::Values(FlowAlgorithm::boykov_kolmogorov,
                                           FlowAlgorithm::ibfs));
 
 TEST_P(TwoWayFlowRefinerTest, Km1Objective) {

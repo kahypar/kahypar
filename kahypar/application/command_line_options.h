@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <Windows.h>
 #include <process.h>
+#include <Windows.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -132,8 +132,6 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
       }
     }),
     "Flow Algorithms:\n"
-    " - edmond_karp       : Edmond-Karp Max-Flow algorithm\n"
-    " - goldberg_tarjan   : GoldbergTarjan Max-Flow algorithm\n"
     " - boykov_kolmogorov : Boykov-Kolmogorov Max-Flow algorithm\n"
     " - ibfs              : IBFS Max-Flow algorithm\n"
     "(default: ibfs)")
@@ -147,10 +145,7 @@ po::options_description createFlowRefinementOptionsDescription(Context& context,
       }
     }),
     "Flow Networks:\n"
-    " - lawler : Lawler Network\n"
-    " - heuer  : Heuer Network (Removes all hypernodes with d(v) <= 3)\n"
-    " - wong   : Wong Network (Model each HE with |e| = 2 as graph edge)\n"
-    " - hybrid : Hybrid Network (Combination of Heuer + Wong Network)\n"
+    " - hybrid : Hybrid Network\n"
     "(default: hybrid)")
     ((initial_partitioning ? "i-r-flow-execution-policy" : "r-flow-execution-policy"),
     po::value<std::string>()->value_name("<string>")->notifier(

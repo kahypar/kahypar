@@ -275,7 +275,7 @@ public:
 	//  - If the next call to maxflow() does not use option reuse_trees, then calling remove_from_changed_list()
 	//    is not necessary. ("changed_list->Reset()" or "delete changed_list" should still be called, though).
 	void remove_from_changed_list(node_id i) 
-	{ 
+	{
 		assert(i>=0 && i<node_num && nodes[i].is_in_changed_list); 
 		nodes[i].is_in_changed_list = 0;
 	}
@@ -301,9 +301,9 @@ public:
 								//   (or to itself if it is the last node in the list)
 		int			TS;			// timestamp showing when DIST was computed
 		int			DIST;		// distance to the terminal
-		int			is_sink : 1;	// flag showing whether the node is in the source or in the sink tree (if parent!=NULL)
-		int			is_marked : 1;	// set by mark_node()
-		int			is_in_changed_list : 1; // set by maxflow if 
+		int			is_sink : 1;	// lgtm[cpp/ambiguously-signed-bit-field] flag showing whether the node is in the source or in the sink tree (if parent!=NULL)
+		int			is_marked : 1;	// lgtm[cpp/ambiguously-signed-bit-field] set by mark_node()
+		int			is_in_changed_list : 1; // lgtm[cpp/ambiguously-signed-bit-field] set by maxflow if 
 
 		tcaptype	tr_cap;		// if tr_cap > 0 then tr_cap is residual capacity of the arc SOURCE->node
 								// otherwise         -tr_cap is residual capacity of the arc node->SINK 
@@ -425,8 +425,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	arc *a = arc_last ++;
 	arc *a_rev = arc_last ++;
 
-	node* i = nodes + _i;
-	node* j = nodes + _j;
+	node* i = nodes + _i; // lgtm[cpp/declaration-hides-parameter]
+	node* j = nodes + _j; // lgtm[cpp/declaration-hides-parameter]
 
 	a -> sister = a_rev;
 	a_rev -> sister = a;
@@ -946,8 +946,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	if (a0->sister->r_cap)
 	{
 		j = a0 -> head;
-		if (!j->is_sink && (a=j->parent))
-		{
+		if (!j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+		{ // lgtm[cpp/assign-where-compare-meant]
 			/* checking the origin of j */
 			d = 0;
 			while ( 1 )
@@ -1001,8 +1001,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 		for (a0=i->first; a0; a0=a0->next)
 		{
 			j = a0 -> head;
-			if (!j->is_sink && (a=j->parent))
-			{
+			if (!j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+			{ // lgtm[cpp/assign-where-compare-meant]
 				if (a0->sister->r_cap) set_active(j);
 				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
 				{
@@ -1025,8 +1025,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	if (a0->r_cap)
 	{
 		j = a0 -> head;
-		if (j->is_sink && (a=j->parent))
-		{
+		if (j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+		{ // lgtm[cpp/assign-where-compare-meant]
 			/* checking the origin of j */
 			d = 0;
 			while ( 1 )
@@ -1082,8 +1082,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 		for (a0=i->first; a0; a0=a0->next)
 		{
 			j = a0 -> head;
-			if (j->is_sink && (a=j->parent))
-			{
+			if (j->is_sink && (a=j->parent)) // lgtm[cpp/assign-where-compare-meant]
+			{ // lgtm[cpp/assign-where-compare-meant]
 				if (a0->r_cap) set_active(j);
 				if (a!=TERMINAL && a!=ORPHAN && a->head==i)
 				{

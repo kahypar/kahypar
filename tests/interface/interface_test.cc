@@ -97,6 +97,192 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_context_free(context);
 }
 
+
+TEST(KaHyPar, CanImprovePartitionsViaInterface) {
+  kahypar_context_t* context = kahypar_context_new();
+
+  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+
+  // lower contraction limit to enforce contractions
+  reinterpret_cast<kahypar::Context*>(context)->coarsening.contraction_limit_multiplier = 1;
+
+  const kahypar_hypernode_id_t num_vertices = 7;
+  const kahypar_hyperedge_id_t num_hyperedges = 4;
+
+  std::unique_ptr<size_t[]> hyperedge_indices =
+    std::make_unique<size_t[]>(5);
+
+  hyperedge_indices[0] = 0;
+  hyperedge_indices[1] = 2;
+  hyperedge_indices[2] = 6;
+  hyperedge_indices[3] = 9;
+  hyperedge_indices[4] = 12;
+
+  std::unique_ptr<kahypar_hypernode_id_t[]> hyperedges =
+    std::make_unique<kahypar_hypernode_id_t[]>(12);
+
+  // hypergraph from hMetis manual page 14
+  hyperedges[0] = 0;
+  hyperedges[1] = 2;
+  hyperedges[2] = 0;
+  hyperedges[3] = 1;
+  hyperedges[4] = 3;
+  hyperedges[5] = 4;
+  hyperedges[6] = 3;
+  hyperedges[7] = 4;
+  hyperedges[8] = 6;
+  hyperedges[9] = 2;
+  hyperedges[10] = 5;
+  hyperedges[11] = 6;
+
+  const double imbalance = 0.03;
+  const kahypar_partition_id_t k = 2;
+  kahypar_hyperedge_weight_t objective = 0;
+
+  std::unique_ptr<kahypar_hyperedge_weight_t[]> hyperedge_weights =
+    std::make_unique<kahypar_hyperedge_weight_t[]>(4);
+
+  // force the the current partition to be bad
+  hyperedge_weights[0] = 1000;
+  hyperedge_weights[1] = 1;
+  hyperedge_weights[2] = 1;
+  hyperedge_weights[3] = 1;
+
+  std::vector<kahypar_partition_id_t> input_partition(num_vertices, -1);
+  std::vector<kahypar_partition_id_t> improved_partition(num_vertices, -1);
+
+  input_partition[0] = 0;
+  input_partition[1] = 0;
+  input_partition[2] = 1;
+  input_partition[3] = 0;
+  input_partition[4] = 0;
+  input_partition[5] = 1;
+  input_partition[6] = 1;
+
+  kahypar_improve_partition(num_vertices, num_hyperedges,
+                            imbalance, k,
+                            /*vertex_weights */ nullptr,
+                            hyperedge_weights.get(),
+                            hyperedge_indices.get(),
+                            hyperedges.get(),
+                            input_partition.data(),
+                            1,
+                            &objective,
+                            context,
+                            improved_partition.data());
+
+  for (kahypar_hypernode_id_t i = 0; i != num_vertices; ++i) {
+    LOG << V(i) << V(improved_partition[i]);
+  }
+
+  std::vector<kahypar_partition_id_t> correct_solution({ 1, 0, 1, 0, 0, 1, 1 });
+  std::vector<kahypar_partition_id_t> correct_solution2({ 0, 0, 0, 1, 1, 1, 1 });
+
+
+  ASSERT_THAT(improved_partition, AnyOf(::testing::ContainerEq(correct_solution),
+                                        ::testing::ContainerEq(correct_solution2)));
+  ASSERT_EQ(objective, 2);
+
+  kahypar_context_free(context);
+}
+
+
+TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
+  kahypar_context_t* context = kahypar_context_new();
+  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+
+  reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
+
+  HypernodeID num_hypernodes = 7;
+  HyperedgeID num_hyperedges = 4;
+
+  std::unique_ptr<size_t[]> hyperedge_indices =
+    std::make_unique<size_t[]>(5);
+
+  hyperedge_indices[0] = 0;
+  hyperedge_indices[1] = 2;
+  hyperedge_indices[2] = 6;
+  hyperedge_indices[3] = 9;
+  hyperedge_indices[4] = 12;
+
+  std::unique_ptr<kahypar_hypernode_id_t[]> hyperedges =
+    std::make_unique<kahypar_hypernode_id_t[]>(12);
+
+  // hypergraph from hMetis manual page 14
+  hyperedges[0] = 0;
+  hyperedges[1] = 2;
+  hyperedges[2] = 0;
+  hyperedges[3] = 1;
+  hyperedges[4] = 3;
+  hyperedges[5] = 4;
+  hyperedges[6] = 3;
+  hyperedges[7] = 4;
+  hyperedges[8] = 6;
+  hyperedges[9] = 2;
+  hyperedges[10] = 5;
+  hyperedges[11] = 6;
+
+  kahypar_hyperedge_weight_t* hyperedge_weights_ptr = nullptr;
+
+  std::unique_ptr<kahypar_hypernode_weight_t[]> vertex_weights =
+    std::make_unique<kahypar_hypernode_weight_t[]>(7);
+
+  // force a 4-way partition
+  vertex_weights[0] = 300;
+  vertex_weights[1] = 1000;
+  vertex_weights[2] = 300;
+  vertex_weights[3] = 250;
+  vertex_weights[4] = 250;
+  vertex_weights[5] = 1000;
+  vertex_weights[6] = 250;
+
+
+  const double imbalance = 0.0;
+  const kahypar_partition_id_t num_blocks = 4;
+  const std::array<kahypar_hypernode_weight_t, num_blocks> max_part_weights = { 1000, 1000, 600, 750 };
+
+  kahypar_hyperedge_weight_t objective = 0;
+  std::vector<kahypar_partition_id_t> partition(num_hypernodes, -1);
+
+  kahypar_set_custom_target_block_weights(num_blocks, max_part_weights.data(), context);
+
+  kahypar_partition(num_hypernodes,
+                    num_hyperedges,
+                    imbalance,
+                    num_blocks,
+                    vertex_weights.get(),
+                    /*hyperedge_weights */ nullptr,
+                    hyperedge_indices.get(),
+                    hyperedges.get(),
+                    &objective,
+                    context,
+                    partition.data());
+
+  LOG << V(objective);
+
+  Hypergraph verification_hypergraph(num_hypernodes,
+                                     num_hyperedges,
+                                     hyperedge_indices.get(),
+                                     hyperedges.get(),
+                                     num_blocks,
+                                     hyperedge_weights_ptr,
+                                     vertex_weights.get());
+
+  for (const HypernodeID& hn : verification_hypergraph.nodes()) {
+    LOG << V(hn) << V(partition[hn]);
+    verification_hypergraph.setNodePart(hn, partition[hn]);
+  }
+
+  ASSERT_LE(verification_hypergraph.partWeight(0), max_part_weights[0]);
+  ASSERT_LE(verification_hypergraph.partWeight(1), max_part_weights[1]);
+  ASSERT_LE(verification_hypergraph.partWeight(2), max_part_weights[2]);
+  ASSERT_LE(verification_hypergraph.partWeight(3), max_part_weights[3]);
+
+  ASSERT_EQ(objective, metrics::km1(verification_hypergraph));
+
+  kahypar_context_free(context);
+}
+
 namespace io {
 TEST_F(AnUnweightedHypergraphFile, CanBeParsedIntoAHypergraph) {
   HypernodeID num_hypernodes = 0;

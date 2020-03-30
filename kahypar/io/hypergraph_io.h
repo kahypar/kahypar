@@ -360,7 +360,7 @@ static inline void writeHypergraphForPaToHPartitioning(const Hypergraph& hypergr
   }
 
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    out_stream << hypergraph.nodeWeight(hn) << "\n";
+    out_stream << hypergraph.nodeWeight(hn) << " ";
   }
   out_stream << std::endl;
   out_stream.close();
@@ -383,9 +383,7 @@ static inline void readPartitionFile(const std::string& filename, std::vector<Pa
 }
 
 static inline void writePartitionFile(const Hypergraph& hypergraph, const std::string& filename) {
-  if (filename.empty()) {
-    LOG << "No filename for partition file specified";
-  } else {
+  if (!filename.empty()) {
     std::ofstream out_stream(filename.c_str());
     for (const HypernodeID& hn : hypergraph.nodes()) {
       out_stream << hypergraph.partID(hn) << std::endl;
