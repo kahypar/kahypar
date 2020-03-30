@@ -7,9 +7,6 @@ queries:
   - exclude: codestyle/
 extraction:
   cpp:
-     prepare:
-        packages: 
-          - libboost-all-dev
      index:
         build_command:
           - cd $LGTM_SRC
