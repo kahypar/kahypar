@@ -54,7 +54,7 @@ install:
   - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
   - echo ${TRAVIS_OS_NAME}
   - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+    if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
@@ -78,18 +78,18 @@ before_script:
 
 script:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "OFF" ]]; then
+    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "OFF" ]; then
       make clean all;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "ON" ]]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "ON" ]; then
       make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
       gcovr -r ../ -x > report.xml;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$SONAR" == "ON" ]]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] &&  [ "$CMAKE_CXX" = "g++-9" ] && [ "$SONAR" = "ON" ]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make clean all; 
       sonar-scanner;
-    elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-9" ]]; then
+    elif [ "$BUILD_TYPE" = "Release" ] &&  [ "$CMAKE_CXX" = "g++-9" ]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
     else
@@ -98,7 +98,7 @@ script:
 
 after_success:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "ON" ]]; then
+    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "ON" ]; then
       cd ${TRAVIS_BUILD_DIR};
       bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
     fi
