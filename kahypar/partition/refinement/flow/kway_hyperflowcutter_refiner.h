@@ -39,6 +39,7 @@
 #include "kahypar/partition/refinement/flow/flow_refiner_base.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/time_limit.h"
 
 namespace kahypar {
 using ds::SparseSet;
@@ -95,8 +96,7 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
     bool active_block_exist = true;
     std::vector<bool> active_blocks(_context.partition.k, true);
     size_t current_round = 1;
-    while (active_block_exist && !(_context.partition.time_limit_triggered || isSoftTimeLimitExceeded())) {
-
+    while (active_block_exist && !time_limit::isSoftTimeLimitExceeded(_context)) {
       scheduler.randomShuffleQuotientEdges();
       std::vector<bool> tmp_active_blocks(_context.partition.k, false);
       active_block_exist = false;
@@ -161,24 +161,6 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
     _flow_execution_policy.initialize(_hg, _context);
     _twoway_flow_refiner.initialize(max_gain);
   }
-
-
-  bool isSoftTimeLimitExceeded() {
-    if (_context.partition.time_limit <= 0) {
-      return false;
-    }
-    const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
-    const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
-    const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
-    if (result) {
-      _context.partition.time_limit_triggered = true;
-      if (_context.partition.verbose_output) {
-        LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
-      }
-    }
-    return result;
-  }
-
 
   using IRefiner::_is_initialized;
 

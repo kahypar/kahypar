@@ -21,19 +21,23 @@
 
 #pragma once
 
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include <WHFC/algorithm/dinic.h>
 #include <WHFC/algorithm/ford_fulkerson.h>
 #include <WHFC/algorithm/hyperflowcutter.h>
 #include <WHFC/io/hmetis_io.h>
 #include <WHFC/io/whfc_io.h>
-#include <kahypar/partition/refinement/i_refiner.h>
-#include <kahypar/utils/timer.h>
-#include <vector>
 
-#include "flow_refiner_base.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/refinement/flow/flow_refiner_base.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/move.h"
+#include "kahypar/utils/time_limit.h"
+#include <kahypar/partition/refinement/i_refiner.h>
+#include <kahypar/utils/timer.h>
 
 #include "whfc_flow_hypergraph_extraction.h"
 
@@ -192,13 +196,8 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(_context, Timepoint::flow_refinement, std::chrono::duration<double>(end - start).count());
 
-    const auto duration = std::chrono::duration<double>(end - _context.partition.start_time);
-    if (duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor) {
-      _context.partition.time_limit_triggered = true;
-      if (_context.partition.verbose_output) {
-        LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
-      }
-    }
+    time_limit::isSoftTimeLimitExceeded(_context);
+
     ASSERT(improved == (refinement_result >= RefinementResult::LocalBalanceImproved));
 
     return improved;
