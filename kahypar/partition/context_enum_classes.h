@@ -172,14 +172,6 @@ enum class FlowHypergraphSizeConstraint : uint8_t {
   scaled_max_part_weight_fraction_minus_opposite_side
 };
 
-enum class FlowExecutionMode : uint8_t {
-  constant,
-  multilevel,
-  exponential,
-  UNDEFINED
-};
-
-
 static std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
   switch (replace) {
     case EvoReplaceStrategy::worst: return os << "worst";
