@@ -104,39 +104,29 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
          * or can be computed on the state of hyperedges in the contracted hypergraph.
          * This means, this time limit should not be used to
          */
-        while (!_history.empty()) {
-          _hg.restoreMemento(_history.back().contraction_memento);
-          _history.pop_back();
+        if (_context.partition_evolutionary) {
+          while (!_history.empty()) {
+            uncontract(changes);
+          }
+        } else {
+          while (!_history.empty()) {
+            _hg.restoreMemento(_history.back().contraction_memento);
+            _history.pop_back();
+          }
         }
         break;
       }
-
-      restoreParallelHyperedges();
-      restoreSingleNodeHyperedges();
-
-      DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
-          << _history.back().contraction_memento.v << ")";
 
       refinement_nodes.clear();
       refinement_nodes.push_back(_history.back().contraction_memento.u);
       refinement_nodes.push_back(_history.back().contraction_memento.v);
 
-      if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
-        _max_hn_weights.pop_back();
-      }
-
-      if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
-          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
-        _hg.uncontract(_history.back().contraction_memento, changes,
-                       meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
-      } else {
-        _hg.uncontract(_history.back().contraction_memento);
-      }
+      uncontract(changes);
 
       CoarsenerBase::performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
-      _history.pop_back();
+
     }
 
     // This currently cannot be guaranteed for RB-partitioning and k != 2^x, since it might be
@@ -174,6 +164,26 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     return improvement_found;
   }
 
+  void uncontract(UncontractionGainChanges& changes) {
+    DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
+        << _history.back().contraction_memento.v << ")";
+    restoreParallelHyperedges();
+    restoreSingleNodeHyperedges();
+
+    if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
+      _max_hn_weights.pop_back();
+    }
+
+    if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
+        _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
+      _hg.uncontract(_history.back().contraction_memento, changes,
+                     meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+    } else {
+      _hg.uncontract(_history.back().contraction_memento);
+    }
+    _history.pop_back();
+  }
+
   template <typename Rater>
   void rateAllHypernodes(Rater& rater,
                          std::vector<HypernodeID>& target) {
@@ -203,9 +213,11 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
     const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
     const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
-    if (result && _context.partition.verbose_output) {
+    if (result) {
       _context.partition.time_limit_triggered = true;
-      LOG << "Time limit triggered after" << duration.count() << "seconds. " << _history.size() << "uncontractions left. Cancel refinement.";
+      if (_context.partition.verbose_output) {
+        LOG << "Time limit triggered after" << duration.count() << "seconds. " << _history.size() << "uncontractions left. Cancel refinement.";
+      }
     }
     return result;
   }
