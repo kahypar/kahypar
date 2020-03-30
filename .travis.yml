@@ -4,22 +4,22 @@ language: cpp
 
 # Ubuntu 14.04 Trusty support
 sudo: false
-dist: trusty
+dist: bionic
 
 addons:
 
 
 matrix:
   include:
-    # gcc 6 - Debug Build
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Debug" COV="OFF" SONAR="OFF"
+    # gcc 9 - Debug Build
+    - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="OFF"
       os: linux
-      addons: &gcc6
+      addons: &gcc9
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-6
+            - g++-9
             - libboost-program-options1.55.0
             - libboost-program-options1.55-dev
             - lcov
@@ -27,20 +27,20 @@ matrix:
         sonarcloud:
           organization: "sebastianschlag-github"
 
-    # gcc 6 - Release Build
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Release" COV="OFF" SONAR="OFF"
+    # gcc 9 - Release Build
+    - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Release" COV="OFF" SONAR="OFF"
       os: linux
-      addons: *gcc6
+      addons: *gcc9
 
-    # gcc 6 - CodeCov
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
+    # gcc 9 - CodeCov
+    - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
       os: linux
-      addons: *gcc6
+      addons: *gcc9
       
-    # gcc 6 - SonarCube
-    - env: CMAKE_CC="gcc-6" CMAKE_CXX="g++-6" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
+    # gcc 9 - SonarCube
+    - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
       os: linux
-      addons: *gcc6
+      addons: *gcc9
 
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
@@ -78,18 +78,18 @@ before_script:
 
 script:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "OFF" ]]; then
+    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "OFF" ]]; then
       make clean all;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
+    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "ON" ]]; then
       make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
       gcovr -r ../ -x > report.xml;
-    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$SONAR" == "ON" ]]; then
+    elif [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$SONAR" == "ON" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make clean all; 
       sonar-scanner;
-    elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-6" ]]; then
+    elif [[ "$BUILD_TYPE" == "Release" && "$CMAKE_CXX" == "g++-9" ]]; then
       build-wrapper-linux-x86-64 --out-dir bw-output make integration_tests; sonar-scanner;
       ../scripts/run_regression_tests.sh;
     else
@@ -98,7 +98,7 @@ script:
 
 after_success:
   - |
-    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-6" && "$COV" == "ON" ]]; then
+    if [[ "$BUILD_TYPE" == "Debug" && "$CMAKE_CXX" == "g++-9" && "$COV" == "ON" ]]; then
       cd ${TRAVIS_BUILD_DIR};
       bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
     fi
