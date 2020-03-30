@@ -156,25 +156,17 @@ if(KAHYPAR_USE_GCOV)
 endif(KAHYPAR_USE_GCOV)
 
 if(KAHYPAR_USE_MINIMAL_BOOST)
-  include(ExternalProject)
-  ExternalProject_Add(boost
-    URL
-    http://downloads.sourceforge.net/project/boost/boost/1.69.0/boost_1_69_0.tar.bz2
-    #URL_MD5 a1332494397bf48332cb152abfefcec2
-    DOWNLOAD_DIR /tmp/
-    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ""
-    INSTALL_COMMAND "")
+  execute_process(COMMAND cmake -P ${CMAKE_CURRENT_SOURCE_DIR}/test.cmake)
 
-  include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost/src/boost/)
+  include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/)
 
   # glob boost sources
-  file(GLOB MINI_BOOST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/external_tools/boost/src/boost/libs/program_options/src/*.cpp)
+  file(GLOB MINI_BOOST_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/libs/program_options/src/*.cpp)
 
   add_library(mini_boost STATIC ${MINI_BOOST_SOURCES})
   set_target_properties(mini_boost PROPERTIES LINKER_LANGUAGE CXX)
   set(Boost_LIBRARIES mini_boost)
+  set(Boost_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/boost/)
 else()
   find_package(Boost 1.65.1 REQUIRED COMPONENTS program_options)
   if(Boost_FOUND)

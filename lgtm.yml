@@ -14,5 +14,5 @@ extraction:
         build_command:
           - cd $LGTM_SRC
           - mkdir build; cd build
-          - cmake .. -DCMAKE_BUILD_TYPE="RELWITHDEBINFO"
+          - cmake .. -DCMAKE_BUILD_TYPE=RELWITHDEBINFO -DKAHYPAR_USE_MINIMAL_BOOST=ON
           - make -j2 -s 
