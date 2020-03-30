@@ -474,22 +474,6 @@ If you use KaHyPar in an academic setting please cite the appropriate paper. If 
      numpages = {8}
     } 
 
-KaHyPar-MF integrates implementations of the BK and incremental breadth first search (IBFS) maximum flow algorithm into the framework (see [/external_tools/maximum_flow/](/external_tools/maximum_flow/)). The BK algorithm has been described in
-
-  	"An Experimental Comparison of Min-Cut/Max-Flow Algorithms for Energy Minimization in Vision."
-	    Yuri Boykov and Vladimir Kolmogorov.
-	    In IEEE Transactions on Pattern Analysis and Machine Intelligence (PAMI), September 2004.
-     
-The IBFS algorithm **can be used for research purposes only** and is described in 
-
-   	"Faster and More Dynamic Maximum Flow by Incremental Breadth-First Search"
-	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Pushmeet Kohli, Robert E. Tarjan, and Renato F. Werneck
-	    In Proceedings of the 23rd European conference on Algorithms, ESA'15, 2015
-     
-     "Maximum flows by incremental breadth-first search"
-	    Andrew V. Goldberg, Sagi Hed, Haim Kaplan, Robert E. Tarjan, and Renato F. Werneck.
-	    In Proceedings of the 19th European conference on Algorithms, ESA'11, 2011.
-
 Contributing
 ------------
 If you are interested in contributing to the KaHyPar framework
