@@ -7,9 +7,9 @@ queries:
   - exclude: codestyle/
 extraction:
   cpp:
-    index:    # Customizable step used by all languages.
-      build_command:
-        - cd $LGTM_SRC
-        - mkdir build; cd build
-        - cmake .. -DCMAKE_BUILD_TYPE="RELWITHDEBINFO"
-        - make -j2 -s 
+     index:
+        build_command:
+          - cd $LGTM_SRC
+          - mkdir build; cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=RELWITHDEBINFO -DKAHYPAR_USE_MINIMAL_BOOST=ON
+          - make -j2 -s 

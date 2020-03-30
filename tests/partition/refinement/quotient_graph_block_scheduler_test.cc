@@ -65,7 +65,7 @@ TEST_F(AQuotientGraphBlockScheduler, HasCorrectQuotientGraphEdges) {
                                                                        std::make_pair(1, 2),
                                                                        std::make_pair(2, 3) };
   size_t idx = 0;
-  for (const auto& e : scheduler->qoutientGraphEdges()) {
+  for (const auto& e : scheduler->quotientGraphEdges()) {
     ASSERT_EQ(adjacentBlocks[idx].first, e.first);
     ASSERT_EQ(adjacentBlocks[idx].second, e.second);
     idx++;

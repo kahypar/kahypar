@@ -75,12 +75,18 @@ class QuotientGraphBlockScheduler {
     }
   }
 
-  void randomShuffleQoutientEdges() {
-    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(),Randomize::instance().getGenerator());
+  void randomShuffleQuotientEdges() {
+    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(), Randomize::instance().getGenerator());
   }
 
-  std::pair<ConstIncidenceIterator, ConstIncidenceIterator> qoutientGraphEdges() const {
+  std::pair<ConstIncidenceIterator, ConstIncidenceIterator> quotientGraphEdges() const {
     return std::make_pair(_quotient_graph.cbegin(), _quotient_graph.cend());
+  }
+
+  void assignBlockPairCutHyperedges(PartitionID block0, PartitionID block1, std::vector<HyperedgeID>&& cut_hes) {
+    if (block1 < block0)
+      std::swap(block0, block1);
+    _block_pair_cut_he[block0][block1] = std::move(cut_hes);
   }
 
   std::pair<ConstCutHyperedgeIterator, ConstCutHyperedgeIterator> blockPairCutHyperedges(const PartitionID block0, const PartitionID block1) {
@@ -121,6 +127,11 @@ class QuotientGraphBlockScheduler {
 
     return std::make_pair(_block_pair_cut_he[block0][block1].cbegin(),
                           _block_pair_cut_he[block0][block1].cend());
+  }
+
+  std::vector<HyperedgeID> & exposeBlockPairCutHyperedges(const PartitionID block0, const PartitionID block1) {
+    updateBlockPairCutHyperedges(block0, block1);
+    return _block_pair_cut_he[block0][block1];
   }
 
   void changeNodePart(const HypernodeID hn, const PartitionID from, const PartitionID to) {

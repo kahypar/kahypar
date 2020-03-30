@@ -30,7 +30,6 @@
 #include "kahypar/partition/coarsening/policies/rating_score_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 #include "kahypar/partition/refinement/flow/policies/flow_execution_policy.h"
-#include "kahypar/partition/refinement/flow/policies/flow_network_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
 
 #define REGISTER_POLICY(policy, id, policy_class)                                  \
@@ -99,7 +98,4 @@ REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::multilevel,
                 MultilevelFlowExecution);
 REGISTER_POLICY(FlowExecutionMode, FlowExecutionMode::exponential,
                 ExponentialFlowExecution);
-
-REGISTER_POLICY(FlowNetworkType, FlowNetworkType::hybrid,
-                HybridNetworkPolicy);
 }  // namespace kahypar

@@ -170,7 +170,7 @@ TEST_F(ARater, ReturnsInvalidRatingIfTargetNotIsNotInSamePartition) {
 
 TEST_F(ARater, HandlesZeroWeightHypernodes) {
   context.coarsening.max_allowed_node_weight = 7;
-  HypernodeWeightVector hypernode_weights{ 0, 5 };
+  HypernodeWeightVector hypernode_weights { 0, 5 };
   hypergraph.reset(new Hypergraph(2, 1, HyperedgeIndexVector { 0, 2 },
                                   HyperedgeVector { 0, 1 }, 2, nullptr, &hypernode_weights));
 

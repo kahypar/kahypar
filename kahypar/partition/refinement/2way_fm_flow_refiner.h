@@ -45,8 +45,6 @@ class TwoWayFMFlowRefiner final : public IRefiner,
     _fm_refiner(RefinerFactory::getInstance().createObject(
                   RefinementAlgorithm::twoway_fm, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                    context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow ?
-                    RefinementAlgorithm::twoway_flow :
                     RefinementAlgorithm::twoway_hyperflow_cutter, hypergraph, context)) {
     ASSERT(context.partition.k == 2);
   }

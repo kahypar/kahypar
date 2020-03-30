@@ -67,7 +67,7 @@ class PartitionerFacade {
     }
 
     // In case a time limit is used, the last partitioning step is already serialized
-    if (context.partition.sp_process_output && context.partition.time_limit == 0) {
+    if (context.partition.sp_process_output && !context.partition_evolutionary && !context.partition.time_limited_repeated_partitioning) {
       io::serializer::serialize(context, hypergraph, elapsed_seconds, iteration);
     }
   }
@@ -117,6 +117,11 @@ class PartitionerFacade {
   }
 
   size_t performTimeLimitedRepeatedPartitioning(Hypergraph& hypergraph, Context& context) {
+    if (context.partition.time_limit <= 0) {
+      LOG << "Time Limited Repeated Partitioning with a time limit <= 0 is not possible";
+      std::exit(0);
+    }
+
     size_t iteration = 0;
     std::chrono::duration<double> elapsed_time(0);
 
@@ -175,16 +180,16 @@ class PartitionerFacade {
   std::pair<std::chrono::duration<double>, size_t> performPartitioning(Hypergraph& hypergraph,
                                                                        Context& context) {
     size_t iteration = 0;
-    const HighResClockTimepoint complete_start = std::chrono::high_resolution_clock::now();
-    if (context.partition.time_limit != 0 && !context.partition_evolutionary) {
+    context.partition.start_time = std::chrono::high_resolution_clock::now();
+    if (context.partition.time_limited_repeated_partitioning && !context.partition_evolutionary) {
       iteration = performTimeLimitedRepeatedPartitioning(hypergraph, context);
-    } else if (context.partition_evolutionary && context.partition.time_limit != 0) {
+    } else if (context.partition_evolutionary && context.partition.time_limit > 0) {
       performEvolutionaryPartitioning(hypergraph, context);
     } else {
       Partitioner().partition(hypergraph, context);
     }
     const HighResClockTimepoint complete_end = std::chrono::high_resolution_clock::now();
-    return { complete_end - complete_start, iteration };
+    return { complete_end - context.partition.start_time, iteration };
   }
 };
 }  // namespace kahypar
