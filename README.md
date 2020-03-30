@@ -193,9 +193,9 @@ To start ***r*KaHyPar** optimizing the **(connectivity - 1)** objective run:
     
 To start ***r*KaHyPar** optimizing the **cut net** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_kKaHyPar_sea20.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_sea20.ini
     
-To start the **memetic algorithm** ***k*KaHyPar-E** optimizing the (connectivity - 1) objective run:
+To start the **memetic** algorithm ***k*KaHyPar-E** optimizing the (connectivity - 1) objective run:
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar-E_sea20.ini
 
