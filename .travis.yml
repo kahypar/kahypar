@@ -35,16 +35,28 @@ matrix:
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Release" COV="OFF" SONAR="OFF"
       os: linux
       addons: *gcc9
+      before_install:
+        - sudo add-apt-repository -y ppa:mhier/libboost-latest
+        - sudo apt-get -q update
+        - sudo apt-get -y install libboost1.70-dev
 
     # gcc 9 - CodeCov
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
       os: linux
       addons: *gcc9
+      before_install:
+        - sudo add-apt-repository -y ppa:mhier/libboost-latest
+        - sudo apt-get -q update
+        - sudo apt-get -y install libboost1.70-dev
       
     # gcc 9 - SonarCube
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
       os: linux
       addons: *gcc9
+      before_install:
+        - sudo add-apt-repository -y ppa:mhier/libboost-latest
+        - sudo apt-get -q update
+        - sudo apt-get -y install libboost1.70-dev
 
     # clang 3.7 on MacOSX
     - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
