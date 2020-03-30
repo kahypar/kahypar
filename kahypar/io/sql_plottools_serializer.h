@@ -215,7 +215,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   }
 
   // These detailed timings don't make sense in memetic mode
-  if (!context.partition_evolutionary) {
+  if (!context.partition_evolutionary &&
+      !context.partition.time_limited_repeated_partitioning) {
     oss << " minHashSparsifierTime=" << timings.pre_sparsifier
         << " communityDetectionTime=" << timings.pre_community_detection
         << " coarseningTime=" << timings.total_coarsening
@@ -237,7 +238,8 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
   }
 
   // Prevent stats from cluttering spprocess output in memetic mode
-  if (!context.partition_evolutionary) {
+  if (!context.partition_evolutionary &&
+      !context.partition.time_limited_repeated_partitioning) {
     oss << " " << context.stats.serialize().str();
   }
   oss << " git=" << STR(KaHyPar_BUILD_VERSION)

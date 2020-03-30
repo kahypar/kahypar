@@ -66,9 +66,7 @@ class PartitionerFacade {
       io::writePartitionFile(hypergraph, context.partition.graph_partition_filename);
     }
 
-    // In case a time limit is used, the last partitioning step is already serialized
-    if (context.partition.sp_process_output &&
-        !context.partition.time_limited_repeated_partitioning) {
+    if (context.partition.sp_process_output) {
       io::serializer::serialize(context, hypergraph, elapsed_seconds, iteration);
     }
   }

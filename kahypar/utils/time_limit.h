@@ -39,7 +39,10 @@ class Dummy {
 
 template <typename History>
 bool isSoftTimeLimitExceeded(const Context& context, const History& history) {
-  if (context.partition_evolutionary || context.partition.time_limit <= 0 || history.size() % context.partition.soft_time_limit_check_frequency != 0) {
+  if (context.partition_evolutionary ||
+      context.partition.time_limited_repeated_partitioning ||
+      context.partition.time_limit <= 0 ||
+      history.size() % context.partition.soft_time_limit_check_frequency != 0) {
     return false;
   }
   const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
