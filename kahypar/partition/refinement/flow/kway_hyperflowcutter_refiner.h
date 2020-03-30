@@ -95,10 +95,7 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
     bool active_block_exist = true;
     std::vector<bool> active_blocks(_context.partition.k, true);
     size_t current_round = 1;
-    while (active_block_exist) {
-      if (_context.partition.time_limit_triggered || isSoftTimeLimitExceeded()) {
-        break;
-      }
+    while (active_block_exist && !(_context.partition.time_limit_triggered || isSoftTimeLimitExceeded())) {
 
       scheduler.randomShuffleQuotientEdges();
       std::vector<bool> tmp_active_blocks(_context.partition.k, false);
@@ -130,6 +127,10 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
               _num_improvements[block_0][block_1]++;
             }
           }
+        }
+
+        if (_context.partition.time_limit_triggered) {
+          break;
         }
       }
       current_round++;
@@ -169,9 +170,11 @@ class KWayHyperFlowCutterRefiner final : public IRefiner,
     const HighResClockTimepoint now = std::chrono::high_resolution_clock::now();
     const auto duration = std::chrono::duration<double>(now - _context.partition.start_time);
     const bool result = duration.count() >= _context.partition.time_limit * _context.partition.soft_time_limit_factor;
-    if (result && _context.partition.verbose_output) {
+    if (result) {
       _context.partition.time_limit_triggered = true;
-      LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
+      if (_context.partition.verbose_output) {
+        LOG << "Time limit triggered in HFC refinement after " << duration.count() << "seconds. Cancel refinement." << V(_hg.currentNumNodes());
+      }
     }
     return result;
   }

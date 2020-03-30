@@ -52,10 +52,9 @@ class EvoPartitioner {
   inline void partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
 
-
     generateInitialPopulation(hg, context);
 
-    while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
+    while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit && !context.partition.time_limit_triggered) {
       ++context.evolutionary.iteration;
 
 
@@ -117,6 +116,7 @@ class EvoPartitioner {
     DBG << "EDGE-FREQUENCY-AMOUNT";
     DBG << context.evolutionary.edge_frequency_amount;
     while (_population.size() < context.evolutionary.population_size &&
+           !context.partition.time_limit_triggered &&
            Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {
       ++context.evolutionary.iteration;
       HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
