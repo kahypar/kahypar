@@ -604,4 +604,17 @@ static Mode modeFromString(const std::string& mode) {
   exit(0);
   return Mode::direct_kway;
 }
+static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) {
+  if (mode == "constant") {
+    return FlowExecutionMode::constant;
+  } else if (mode == "multilevel") {
+    return FlowExecutionMode::multilevel;
+  } else if (mode == "exponential") {
+    return FlowExecutionMode::exponential;
+  }
+  LOG << "No valid flow execution mode.";
+  exit(0);
+  return FlowExecutionMode::exponential;
+}
+
 }  // namespace kahypar
