@@ -20,7 +20,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-9
-            - libboost-program-options1.65.0
             - libboost-program-options1.65-dev
             - lcov
             - gcovr
