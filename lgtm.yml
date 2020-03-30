@@ -10,7 +10,7 @@ extraction:
      prepare:
         packages: 
           - libboost-all-dev
-     index:    # Customizable step used by all languages.
+     index:
         build_command:
           - cd $LGTM_SRC
           - mkdir build; cd build
