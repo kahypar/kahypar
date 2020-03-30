@@ -204,7 +204,8 @@ To start the **memetic** algorithm ***k*KaHyPar-E** optimizing the (connectivity
     
 Additionally, we provide different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
-in our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872) and in the [dissertation](https://publikationen.bibliothek.kit.edu/1000105953) of Sebastian Schlag.
+in our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872) and in the [dissertation](https://publikationen.bibliothek.kit.edu/1000105953) of Sebastian Schlag. In order to use these configurations, you
+have to checkout [KaHyPar release 1.1.0](https://github.com/SebastianSchlag/kahypar/releases/tag/1.1.0), since some old code as been removed in the most current release.
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
