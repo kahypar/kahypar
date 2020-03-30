@@ -7,9 +7,12 @@ queries:
   - exclude: codestyle/
 extraction:
   cpp:
-    index:    # Customizable step used by all languages.
-      build_command:
-        - cd $LGTM_SRC
-        - mkdir build; cd build
-        - cmake .. -DCMAKE_BUILD_TYPE="RELWITHDEBINFO"
-        - make -j2 -s 
+     prepare:
+        packages: 
+          - libboost-all-dev
+     index:    # Customizable step used by all languages.
+        build_command:
+          - cd $LGTM_SRC
+          - mkdir build; cd build
+          - cmake .. -DCMAKE_BUILD_TYPE="RELWITHDEBINFO"
+          - make -j2 -s 
