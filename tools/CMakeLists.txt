@@ -51,10 +51,10 @@ add_executable(ComputeNeighborHoodSizes compute_neighborhood_sizes.cc)
 set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD 17)
 set_property(TARGET ComputeNeighborHoodSizes PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(HgrToMondriaanMtx hgr_to_mondriaan_mtx_converter.cc)
-set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD 14)
+set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD 17)
 set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(EvaluateMondriaanPartition evaluate_mondriaan_partition.cc)
-set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD 14)
+set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD 17)
 set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
