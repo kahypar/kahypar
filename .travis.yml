@@ -20,7 +20,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-9
-            - libboost-program-options1.65-dev
+            - libboost-all-dev
             - lcov
             - gcovr
         sonarcloud:
