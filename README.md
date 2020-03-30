@@ -78,7 +78,7 @@ Its algorithms and detailed experimental results are presented in several [resea
     
 - Evolutionary Framework (KaHyPar-E):
    
-   KaHyPar-E enhances KaHyPar with an evolutionary framework as described in our [GECCO'18 publication][GECCO'18]. Given a fairly large amount of running time, this memetic multilevel algorithm performs better than repeated executions of KaHyPar-MF/-CA, hMetis, and PaToH. The configuration [/config/km1_direct_kway_gecco18.ini](/config/km1_direct_kway_gecco18.ini) uses KaHyPar-CA to exploit the local solution space and was used in the [GECCO'18 experiments][GECCO'18bench]. The command line parameter `--time-limit=xxx` can be used to set the maximum running time (in seconds). Parameter `--partition-evolutionary=true` enables evolutionary partitioning.
+   KaHyPar-E enhances KaHyPar with an evolutionary framework as described in our [GECCO'18 publication][GECCO'18]. Given a fairly large amount of running time, this memetic multilevel algorithm performs better than repeated executions of nonevolutionary KaHyPar configurations, hMetis, and PaToH. The command line parameter `--time-limit=xxx` can be used to set the maximum running time (in seconds). Parameter `--partition-evolutionary=true` enables evolutionary partitioning.
    
 - Improve Existing Partitions:
 
@@ -193,9 +193,9 @@ To start ***r*KaHyPar** optimizing the **(connectivity - 1)** objective run:
     
 To start ***r*KaHyPar** optimizing the **cut net** objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_kKaHyPar_sea20.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rKaHyPar_sea20.ini
     
-To start the **memetic algorithm** ***k*KaHyPar-E** optimizing the (connectivity - 1) objective run:
+To start the **memetic** algorithm ***k*KaHyPar-E** optimizing the (connectivity - 1) objective run:
 
     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kKaHyPar-E_sea20.ini
 
