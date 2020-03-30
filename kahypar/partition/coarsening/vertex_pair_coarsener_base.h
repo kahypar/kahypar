@@ -105,16 +105,10 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
          * or can be computed on the state of hyperedges in the contracted hypergraph.
          * This means, this time limit should not be used to
          */
-        if (_context.partition_evolutionary) {
-          while (!_history.empty()) {
-            uncontract(changes);
-          }
-        } else {
           while (!_history.empty()) {
             _hg.restoreMemento(_history.back().contraction_memento);
             _history.pop_back();
           }
-        }
         break;
       }
 
