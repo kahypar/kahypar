@@ -34,7 +34,7 @@ matrix:
         - cd lcov
         - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
         - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov-1.14-1.noarch.deb
+        - sudo dpkg -i lcov_1.14-2_all.deb
         - lcov --version
 
     # gcc 9 - Release Build
@@ -50,7 +50,7 @@ matrix:
         - cd lcov
         - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
         - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov-1.14-1.noarch.deb
+        - sudo dpkg -i lcov_1.14-2_all.deb
         - lcov --version
 
 
@@ -67,7 +67,7 @@ matrix:
         - cd lcov
         - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
         - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov-1.14-1.noarch.deb
+        - sudo dpkg -i lcov_1.14-2_all.deb
         - lcov --version
 
       
@@ -84,7 +84,7 @@ matrix:
         - cd lcov
         - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
         - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov-1.14-1.noarch.deb
+        - sudo dpkg -i lcov_1.14-2_all.deb
         - lcov --version
 
 
