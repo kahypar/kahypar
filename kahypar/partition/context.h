@@ -448,7 +448,7 @@ class Context {
     if (partition.use_individual_part_weights) {
       partition.perfect_balance_part_weights = partition.max_part_weights;
       double max_part_weights_sum = static_cast<double>(
-        std::reduce(partition.max_part_weights.begin(), partition.max_part_weights.end()));
+        std::accumulate(partition.max_part_weights.begin(), partition.max_part_weights.end(), 0));
       partition.adjusted_epsilon_for_individual_part_weights = (max_part_weights_sum / total_hypergraph_weight) - 1.0;
     } else {
       partition.perfect_balance_part_weights.clear();
