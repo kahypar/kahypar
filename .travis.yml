@@ -113,7 +113,7 @@ script:
   - |
     if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "OFF" ]; then
       make clean all;
-    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-8" ] && [ "$COV" = "ON" ]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-7" ] && [ "$COV" = "ON" ]; then
       make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
@@ -131,7 +131,7 @@ script:
 
 after_success:
   - |
-    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "ON" ]; then
+    if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-7" ] && [ "$COV" = "ON" ]; then
       cd ${TRAVIS_BUILD_DIR};
       bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports";
     fi
