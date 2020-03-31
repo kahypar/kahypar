@@ -254,13 +254,13 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
               << ")        =" << timing.time << "s";
         }
         LOG << "    + Local Search                 =" << timings.total_ip_local_search << "s";
-        for (const auto& timing : timings.) {
+        for (const auto& timing : timings.bisection_local_search) {
           LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
               << ")        =" << timing.time << "s";
         }
       } else {
-          LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
         for (const auto& timing : timings.bisection_initial_partitioning) {
+          LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
               << ")        =" << timing.time << "s";
         }
       }
