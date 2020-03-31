@@ -2,7 +2,7 @@
 
 # run script inside a docker with
 #
-# docker pull quay.io/pypa/manylinux2014_x86_64
+# docker pull quay.io/pypa/manylinux2010_x86_64
 # docker run --rm -it -v /home/schlag/repo/kahypar:/kahypar quay.io/pypa/manylinux2014_x86_64
 
 # if used as script, exit on first error
