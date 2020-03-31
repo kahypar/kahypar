@@ -36,7 +36,7 @@
 #define REGISTER_COARSENER(id, coarsener)                               \
   static meta::Registrar<CoarsenerFactory> register_ ## coarsener(      \
     id,                                                                 \
-    [](Hypergraph& hypergraph, const Context& context,                  \
+    [](Hypergraph& hypergraph, const Context& context,                        \
        const HypernodeWeight weight_of_heaviest_node) -> ICoarsener* {  \
     return new coarsener(hypergraph, context, weight_of_heaviest_node); \
   })
@@ -44,7 +44,7 @@
 #define REGISTER_DISPATCHED_COARSENER(id, dispatcher, ...)                 \
   static meta::Registrar<CoarsenerFactory> register_ ## dispatcher(        \
     id,                                                                    \
-    [](Hypergraph& hypergraph, const Context& context,                     \
+    [](Hypergraph& hypergraph, const Context& context,                           \
        const HypernodeWeight weight_of_heaviest_node) {                    \
     return dispatcher::create(                                             \
       std::forward_as_tuple(hypergraph, context, weight_of_heaviest_node), \

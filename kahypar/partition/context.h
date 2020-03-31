@@ -191,19 +191,21 @@ struct LocalSearchParameters {
   };
 
   struct Flow {
-    FlowAlgorithm algorithm = FlowAlgorithm::UNDEFINED;
-    FlowNetworkType network = FlowNetworkType::UNDEFINED;
     FlowExecutionMode execution_policy = FlowExecutionMode::UNDEFINED;
-    double alpha = std::numeric_limits<double>::max();
     size_t beta = std::numeric_limits<size_t>::max();
-    bool use_most_balanced_minimum_cut = false;
-    bool use_adaptive_alpha_stopping_rule = false;
-    bool ignore_small_hyperedge_cut = false;
-    bool use_improvement_history = false;
+  };
+
+  struct HyperFlowCutter {
+    std::string snapshot_path = "None";
+    bool use_distances_from_cut = true;
+    bool most_balanced_cut = true;
+    double snapshot_scaling = 16;
+    FlowHypergraphSizeConstraint flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side;
   };
 
   FM fm { };
   Flow flow { };
+  HyperFlowCutter hyperflowcutter { };
   RefinementAlgorithm algorithm = RefinementAlgorithm::UNDEFINED;
   int iterations_per_level = std::numeric_limits<int>::max();
 };
@@ -216,9 +218,9 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
   if (params.algorithm == RefinementAlgorithm::twoway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm ||
       params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
-      params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow) {
+      params.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
     str << "  stopping rule:                      " << params.fm.stopping_rule << std::endl;
     if (params.fm.stopping_rule == RefinementStoppingRule::simple) {
       str << "  max. # fruitless moves:             " << params.fm.max_number_of_fruitless_moves << std::endl;
@@ -226,27 +228,17 @@ inline std::ostream& operator<< (std::ostream& str, const LocalSearchParameters&
       str << "  adaptive stopping alpha:            " << params.fm.adaptive_stopping_alpha << std::endl;
     }
   }
-  if (params.algorithm == RefinementAlgorithm::twoway_flow ||
-      params.algorithm == RefinementAlgorithm::kway_flow ||
-      params.algorithm == RefinementAlgorithm::twoway_fm_flow ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
-      params.algorithm == RefinementAlgorithm::kway_fm_flow) {
+  if (params.algorithm == RefinementAlgorithm::twoway_fm ||
+      params.algorithm == RefinementAlgorithm::kway_fm ||
+      params.algorithm == RefinementAlgorithm::kway_fm_km1 ||
+      params.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+      params.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
     str << "  Flow Refinement Parameters:" << std::endl;
-    str << "    flow algorithm:                   " << params.flow.algorithm << std::endl;
-    str << "    flow network:                     " << params.flow.network << std::endl;
     str << "    execution policy:                 " << params.flow.execution_policy << std::endl;
-    str << "    most balanced minimum cut:        "
-        << std::boolalpha << params.flow.use_most_balanced_minimum_cut << std::endl;
-    str << "    alpha:                            " << params.flow.alpha << std::endl;
     if (params.flow.execution_policy == FlowExecutionMode::constant) {
       str << "    beta:                             " << params.flow.beta << std::endl;
     }
-    str << "    adaptive alpha stopping rule:     "
-        << std::boolalpha << params.flow.use_adaptive_alpha_stopping_rule << std::endl;
-    str << "    ignore small HE cut:              "
-        << std::boolalpha << params.flow.ignore_small_hyperedge_cut << std::endl;
-    str << "    use improvement history:          "
-        << std::boolalpha << params.flow.use_improvement_history << std::endl;
   } else if (params.algorithm == RefinementAlgorithm::do_nothing) {
     str << "  no coarsening!  " << std::endl;
   }
@@ -309,19 +301,27 @@ struct PartitioningParameters {
   PartitionID rb_upper_k = 0;
   int seed = 0;
   uint32_t global_search_iterations = std::numeric_limits<uint32_t>::max();
-  int time_limit = 0;
+
+  bool time_limited_repeated_partitioning = false;
+  int time_limit = -1;
+  int soft_time_limit_check_frequency = 10000;
+  double soft_time_limit_factor = 0.99;
+  HighResClockTimepoint start_time;
+  mutable bool time_limit_triggered = false;
 
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;
   std::vector<HypernodeWeight> max_part_weights;
-  HyperedgeID hyperedge_size_threshold = std::numeric_limits<HypernodeID>::max();
+  double adjusted_epsilon_for_individual_part_weights = 0.0;
+
+  HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
 
   bool verbose_output = false;
   bool quiet_mode = false;
   bool sp_process_output = false;
   bool use_individual_part_weights = false;
   bool vcycle_refinement_for_input_partition = false;
-  bool write_partition_file = true;
+  bool write_partition_file = false;
 
   std::string graph_filename { };
   std::string graph_partition_filename { };
@@ -447,6 +447,9 @@ class Context {
   void setupPartWeights(const HypernodeWeight total_hypergraph_weight) {
     if (partition.use_individual_part_weights) {
       partition.perfect_balance_part_weights = partition.max_part_weights;
+      double max_part_weights_sum = static_cast<double>(
+        std::reduce(partition.max_part_weights.begin(), partition.max_part_weights.end()));
+      partition.adjusted_epsilon_for_individual_part_weights = (max_part_weights_sum / total_hypergraph_weight) - 1.0;
     } else {
       partition.perfect_balance_part_weights.clear();
       partition.perfect_balance_part_weights.push_back(ceil(
@@ -491,8 +494,9 @@ inline std::ostream& operator<< (std::ostream& str, const Context& context) {
 static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
   if (algo == RefinementAlgorithm::kway_fm ||
       algo == RefinementAlgorithm::kway_fm_km1 ||
-      algo == RefinementAlgorithm::kway_flow ||
-      algo == RefinementAlgorithm::kway_fm_flow_km1) {
+      algo == RefinementAlgorithm::kway_hyperflow_cutter ||
+      algo == RefinementAlgorithm::kway_fm_hyperflow_cutter ||
+      algo == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1) {
     LOG << "WARNING: local search algorithm is set to"
         << algo
         << ". However, the 2-way counterpart "
@@ -504,10 +508,10 @@ static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
     if (answer == 'Y') {
       if (algo == RefinementAlgorithm::kway_fm || algo == RefinementAlgorithm::kway_fm_km1) {
         algo = RefinementAlgorithm::twoway_fm;
-      } else if (algo == RefinementAlgorithm::kway_flow) {
-        algo = RefinementAlgorithm::twoway_flow;
-      } else if (algo == RefinementAlgorithm::kway_fm_flow_km1) {
-        algo = RefinementAlgorithm::twoway_fm_flow;
+      } else if (algo == RefinementAlgorithm::kway_hyperflow_cutter) {
+        algo = RefinementAlgorithm::twoway_hyperflow_cutter;
+      } else if (algo == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 || algo == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
+        algo = RefinementAlgorithm::twoway_fm_hyperflow_cutter;
       }
       LOG << "Changing local search algorithm to"
           << algo;
@@ -517,8 +521,8 @@ static inline void checkRecursiveBisectionMode(RefinementAlgorithm& algo) {
 
 void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
   if (algo == RefinementAlgorithm::twoway_fm ||
-      algo == RefinementAlgorithm::twoway_flow ||
-      algo == RefinementAlgorithm::twoway_fm_flow) {
+      algo == RefinementAlgorithm::twoway_hyperflow_cutter ||
+      algo == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
     LOG << "WARNING: local search algorithm is set to"
         << algo
         << ". This algorithm cannot be used for direct k-way partitioning with k>2.";
@@ -531,12 +535,12 @@ void checkDirectKwayMode(RefinementAlgorithm& algo, Objective& objective) {
         algo = RefinementAlgorithm::kway_fm;
       } else if (algo == RefinementAlgorithm::twoway_fm && objective == Objective::km1) {
         algo = RefinementAlgorithm::kway_fm_km1;
-      } else if (algo == RefinementAlgorithm::twoway_flow) {
-        algo = RefinementAlgorithm::kway_flow;
-      } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::km1) {
-        algo = RefinementAlgorithm::kway_fm_flow_km1;
-      } else if (algo == RefinementAlgorithm::twoway_fm_flow && objective == Objective::cut) {
-        algo = RefinementAlgorithm::kway_fm_flow;
+      } else if (algo == RefinementAlgorithm::twoway_hyperflow_cutter) {
+        algo = RefinementAlgorithm::kway_hyperflow_cutter;
+      } else if (algo == RefinementAlgorithm::twoway_fm_hyperflow_cutter && objective == Objective::km1) {
+        algo = RefinementAlgorithm::kway_fm_hyperflow_cutter_km1;
+      } else if (algo == RefinementAlgorithm::twoway_fm_hyperflow_cutter && objective == Objective::cut) {
+        algo = RefinementAlgorithm::kway_fm_hyperflow_cutter;
       }
       LOG << "Changing local search algorithm to"
           << algo;
@@ -625,6 +629,20 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
     }
   }
 
+  if (context.local_search.hyperflowcutter.snapshot_scaling > 1.0 &&
+      context.local_search.hyperflowcutter.flowhypergraph_size_constraint != FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+    LOG << "Scaling parameter for flow problem sizes > 1.0 only supported for --r-hfc-scaling = mf-style.";
+    LOG << "Either set --r-hfc-scaling = pw or set --r-hfc-size-constraint to a value between 0 and 1.";
+    std::exit(0);
+  }
+
+  if (context.local_search.hyperflowcutter.snapshot_scaling < 1.0 &&
+      context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+    LOG << "Scaling parameter for flow problem sizes < 1.0 not supported for --r-hfc-scaling = mf-style.";
+    LOG << "Either set --r-hfc-scaling = pw or set --r-hfc-size-constraint to a value between 0 and 1.";
+    std::exit(0);
+  }
+
   if (context.partition.use_individual_part_weights) {
     if (context.partition.max_part_weights.size() != static_cast<size_t>(context.partition.k)) {
       LOG << "k=" << context.partition.k << ",but # part weights ="
@@ -644,7 +662,7 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
   if (context.partition.mode == Mode::direct_kway &&
       context.partition.objective == Objective::cut) {
     if (context.local_search.algorithm == RefinementAlgorithm::kway_fm_km1 ||
-        context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1) {
+        context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1) {
       LOG << "\nRefinement algorithm" << context.local_search.algorithm
           << "currently only works for connectivity (km1) optimization.";
       LOG << "Please use the corresponding cut algorithm.";
@@ -653,7 +671,7 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
   } else if (context.partition.mode == Mode::direct_kway &&
              context.partition.objective == Objective::km1) {
     if (context.local_search.algorithm == RefinementAlgorithm::kway_fm ||
-        context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow) {
+        context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
       LOG << "\nRefinement algorithm" << context.local_search.algorithm
           << "currently only works for cut optimization.";
       LOG << "Please use the corresponding connectivity (km1) algorithm.";

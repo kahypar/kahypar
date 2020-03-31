@@ -249,7 +249,7 @@ TEST_F(AHypergraphMacro, IteratesOverAllHyperedges) {
 
 TEST_F(AHypergraphMacro, IteratesOverAllIncidentHyperedges) {
   int i = 0;
-  std::vector<HyperedgeID> incident_nets{ 2, 3 };
+  std::vector<HyperedgeID> incident_nets { 2, 3 };
   for (const HyperedgeID& he : hypergraph.incidentEdges(6)) {
     ASSERT_THAT(he, incident_nets[i]);
     ++i;

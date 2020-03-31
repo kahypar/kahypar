@@ -230,44 +230,47 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
 
     LOG << "\nTimings:";
     LOG << "Partition time                     =" << elapsed_seconds.count() << "s";
-    LOG << "  + Preprocessing                  =" << timings.total_preprocessing << "s";
-    LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";
-    LOG << "    | community detection          =" << timings.pre_community_detection << "s";
-    LOG << "  + Coarsening                     =" << timings.total_coarsening << "s";
-    if (context.partition.mode == Mode::recursive_bisection) {
-      for (const auto& timing : timings.bisection_coarsening) {
-        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
+    if (!context.partition_evolutionary && !context.partition.time_limited_repeated_partitioning) {
+      LOG << "  + Preprocessing                  =" << timings.total_preprocessing << "s";
+      LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";
+      LOG << "    | community detection          =" << timings.pre_community_detection << "s";
+      LOG << "  + Coarsening                     =" << timings.total_coarsening << "s";
+      if (context.partition.mode == Mode::recursive_bisection) {
+        for (const auto& timing : timings.bisection_coarsening) {
+          LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
       }
-    }
-    LOG << "  + Initial Partitioning           =" << timings.total_initial_partitioning << "s";
-    if (context.partition.mode == Mode::direct_kway) {
-      LOG << "    + Coarsening                   =" << timings.total_ip_coarsening << "s";
-      for (const auto& timing : timings.bisection_coarsening) {
-        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
+      LOG << "  + Initial Partitioning           =" << timings.total_initial_partitioning << "s";
+      if (context.partition.mode == Mode::direct_kway) {
+        LOG << "    + Coarsening                   =" << timings.total_ip_coarsening << "s";
+        for (const auto& timing : timings.bisection_coarsening) {
+          LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
+        LOG << "    + Initial Partitioning         =" << timings.total_ip_initial_partitioning << "s";
+        for (const auto& timing : timings.bisection_initial_partitioning) {
+          LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
+        LOG << "    + Local Search                 =" << timings.total_ip_local_search << "s";
+        for (const auto& timing : timings.bisection_local_search) {
+          LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
+      } else {
+        for (const auto& timing : timings.bisection_initial_partitioning) {
+          LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
       }
-      LOG << "    + Initial Partitioning         =" << timings.total_ip_initial_partitioning << "s";
-      for (const auto& timing : timings.bisection_initial_partitioning) {
-        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
-      }
-      LOG << "    + Local Search                 =" << timings.total_ip_local_search << "s";
-      for (const auto& timing : timings.bisection_local_search) {
-        LOG << "          | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
-      }
-    } else {
-      for (const auto& timing : timings.bisection_initial_partitioning) {
-        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
-      }
-    }
-    LOG << "  + Local Search                   =" << timings.total_local_search << "s";
-    if (context.partition.mode == Mode::recursive_bisection) {
-      for (const auto& timing : timings.bisection_local_search) {
-        LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
-            << ")        =" << timing.time << "s";
+      LOG << "  + Local Search                   =" << timings.total_local_search << "s";
+      LOG << "           | flow refinement       =" << timings.total_flow_refinement << " s";
+      if (context.partition.mode == Mode::recursive_bisection) {
+        for (const auto& timing : timings.bisection_local_search) {
+          LOG << "        | bisection" << timing.no << "(" << timing.lk << "," << timing.rk
+              << ")        =" << timing.time << "s";
+        }
       }
     }
 
@@ -285,10 +288,13 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
         ++i;
       }
     }
-    LOG << "  + Postprocessing                 =" << timings.total_postprocessing << "s";
-    LOG << "    | undo sparsifier              =" << timings.post_sparsifier_restore << "s";
+
+    if (!context.partition_evolutionary && !context.partition.time_limited_repeated_partitioning) {
+      LOG << "  + Postprocessing                 =" << timings.total_postprocessing << "s";
+      LOG << "    | undo sparsifier              =" << timings.post_sparsifier_restore << "s";
+    }
+    LOG << "";
   }
-  LOG << "";
 }
 
 inline void printConnectivityStats(const std::vector<PartitionID>& connectivity_stats) {
@@ -387,7 +393,7 @@ static inline void printVcycleBanner(const Context& context) {
 }
 
 static inline void printResultBanner(const Context& context) {
-  if (context.partition.time_limit != 0) {
+  if (context.partition.time_limited_repeated_partitioning || context.partition_evolutionary) {
     LOG << "********************************************************************************";
     LOG << "*                          FINAL Partitioning Result                           *";
     LOG << "********************************************************************************";

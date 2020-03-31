@@ -84,7 +84,4 @@ class IRefiner {
 
   virtual std::vector<Move> rollbackImpl() { return std::vector<Move>(); }
 };
-
-using RefinerFactory = meta::Factory<RefinementAlgorithm,
-                                     IRefiner* (*)(Hypergraph&, const Context&)>;
 }  // namespace kahypar

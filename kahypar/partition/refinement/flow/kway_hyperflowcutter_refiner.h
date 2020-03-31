@@ -1,8 +1,8 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2018 Sebastian Schlag <sebastian.schlag@kit.edu>
- * Copyright (C) 2018 Tobias Heuer <tobias.heuer@live.com>
+ * Copyright (C) 2019 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2019 Lars Gottesbüren <lars.gottesbueren@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,55 +35,52 @@
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/partition/refinement/flow/2way_flow_refiner.h"
+#include "kahypar/partition/refinement/flow/2way_hyperflowcutter_refiner.h"
 #include "kahypar/partition/refinement/flow/flow_refiner_base.h"
 #include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/time_limit.h"
 
 namespace kahypar {
 using ds::SparseSet;
 using ds::FastResetArray;
 
-template <class FlowNetworkPolicy = Mandatory,
-          class FlowExecutionPolicy = Mandatory>
-class KWayFlowRefiner final : public IRefiner,
-                              private FlowRefinerBase<FlowExecutionPolicy>{
+// TODO(schlag): After successful tests, we need to consolidate this with kway_flow_refiner.h
+template <class FlowExecutionPolicy = Mandatory>
+class KWayHyperFlowCutterRefiner final : public IRefiner,
+                                         private FlowRefinerBase<FlowExecutionPolicy>{
  private:
-  using FlowNetwork = typename FlowNetworkPolicy::Network;
   using Base = FlowRefinerBase<FlowExecutionPolicy>;
-
   static constexpr bool debug = false;
 
  public:
-  KWayFlowRefiner(Hypergraph& hypergraph, const Context& context) :
+  KWayHyperFlowCutterRefiner(Hypergraph& hypergraph, const Context& context) :
     Base(hypergraph, context),
     _twoway_flow_refiner(_hg, _context),
     _num_improvements(context.partition.k, std::vector<size_t>(context.partition.k, 0)) { }
 
-  KWayFlowRefiner(const KWayFlowRefiner&) = delete;
-  KWayFlowRefiner(KWayFlowRefiner&&) = delete;
-  KWayFlowRefiner& operator= (const KWayFlowRefiner&) = delete;
-  KWayFlowRefiner& operator= (KWayFlowRefiner&&) = delete;
+  KWayHyperFlowCutterRefiner(const KWayHyperFlowCutterRefiner&) = delete;
+  KWayHyperFlowCutterRefiner(KWayHyperFlowCutterRefiner&&) = delete;
+  KWayHyperFlowCutterRefiner& operator= (const KWayHyperFlowCutterRefiner&) = delete;
+  KWayHyperFlowCutterRefiner& operator= (KWayHyperFlowCutterRefiner&&) = delete;
 
  private:
-  friend class KWayFlowRefinerTest;
+// friend class KWayHyperFlowCutterRefinerTest;
 
   std::vector<Move> rollbackImpl() override final {
     return Base::rollback();
   }
 
-  bool refineImpl(std::vector<HypernodeID>& refinement_nodes,
-                  const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
-                  const UncontractionGainChanges& changes,
-                  Metrics& best_metrics) override final {
+  bool refineImpl(std::vector<HypernodeID>& refinement_nodes, const std::array<HypernodeWeight, 2>& max_allowed_part_weights,
+                  const UncontractionGainChanges& changes, Metrics& best_metrics) override final {
     if (!_flow_execution_policy.executeFlow(_hg)) {
       return false;
     }
 
     // Store original partition for rollback, because we have to update
     // gain cache of kway fm refiner
-    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ||
-        _context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow) {
+    if (_context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ||
+        _context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter) {
       Base::storeOriginalPartitionIDs();
     }
 
@@ -91,12 +88,6 @@ class KWayFlowRefiner final : public IRefiner,
     DBG << V(_hg.currentNumNodes()) << V(_hg.initialNumNodes());
     printMetric();
 
-    // Initialize Quotient Graph
-    // 1.) Contains edges between each adjacent block of the partition
-    // 2.) Contains for each edge all hyperedges, which are cut in the
-    //     corresponding bipartition
-    // NOTE(heuer): If anything goes wrong in integration experiments,
-    //              this should be moved inside while loop.
     QuotientGraphBlockScheduler scheduler(_hg, _context);
     scheduler.buildQuotientGraph();
 
@@ -105,48 +96,51 @@ class KWayFlowRefiner final : public IRefiner,
     bool active_block_exist = true;
     std::vector<bool> active_blocks(_context.partition.k, true);
     size_t current_round = 1;
-    while (active_block_exist) {
-      scheduler.randomShuffleQoutientEdges();
+    while (active_block_exist && !time_limit::isSoftTimeLimitExceeded(_context)) {
+      scheduler.randomShuffleQuotientEdges();
       std::vector<bool> tmp_active_blocks(_context.partition.k, false);
       active_block_exist = false;
-      for (const auto& e : scheduler.qoutientGraphEdges()) {
+      for (const auto& e : scheduler.quotientGraphEdges()) {
         const PartitionID block_0 = e.first;
         const PartitionID block_1 = e.second;
 
         // Heuristic: If a flow refinement never improved a bipartition,
-        //            we ignore the refinement for these block in the
+        //            we ignore the refinement for these blocks in the
         //            second iteration of active block scheduling
-        if (_context.local_search.flow.use_improvement_history &&
-            current_round > 1 && _num_improvements[block_0][block_1] == 0) {
+        if (current_round > 1 && _num_improvements[block_0][block_1] == 0)
           continue;
-        }
 
         if (active_blocks[block_0] || active_blocks[block_1]) {
-          _twoway_flow_refiner.updateConfiguration(block_0, block_1,
-                                                   &scheduler, true);
-          const bool improved = _twoway_flow_refiner.refine(refinement_nodes,
-                                                            max_allowed_part_weights,
-                                                            changes,
-                                                            best_metrics);
+          _twoway_flow_refiner.updateConfiguration(block_0, block_1, &scheduler, true);
+          const bool improved = _twoway_flow_refiner.refine(refinement_nodes, max_allowed_part_weights, changes, best_metrics);
           if (improved) {
-            DBG << "Improvement found beetween blocks " << block_0 << " and "
-                << block_1 << " in round #"
-                << current_round;
-            printMetric();
+            // DBG << "Improvement found beetween blocks " << block_0 << " and " << block_1 << " in round #" << current_round;
+            // printMetric();
             improvement = true;
-            active_block_exist = true;
-            tmp_active_blocks[block_0] = true;
-            tmp_active_blocks[block_1] = true;
-            _num_improvements[block_0][block_1]++;
+            if (_twoway_flow_refiner.refinement_result >= RefinementResult::GlobalBalanceImproved) {
+              // don't mark blocks as active, if cut stayed the same and global balance did not improve.
+              // haven't observed it yet, but only reducing the weight difference between block_0 and block_1
+              // might lead to an infinite loop for k > 2
+              active_block_exist = true;
+              tmp_active_blocks[block_0] = true;
+              tmp_active_blocks[block_1] = true;
+              _num_improvements[block_0][block_1]++;
+            }
           }
+        }
+
+        if (_context.partition.time_limit_triggered) {
+          break;
         }
       }
       current_round++;
       std::swap(active_blocks, tmp_active_blocks);
     }
 
-    printMetric(true, true);
-
+    if (_hg.currentNumNodes() == _hg.initialNumNodes()) {            // on last level
+      _twoway_flow_refiner.reportRunningTime();
+    }
+    // printMetric(true, true);
     return improvement;
   }
 
@@ -175,7 +169,7 @@ class KWayFlowRefiner final : public IRefiner,
   using Base::_original_part_id;
   using Base::_flow_execution_policy;
 
-  TwoWayFlowRefiner<FlowNetworkPolicy, FlowExecutionPolicy> _twoway_flow_refiner;
+  TwoWayHyperFlowCutterRefiner<FlowExecutionPolicy> _twoway_flow_refiner;
   std::vector<std::vector<size_t> > _num_improvements;
 };
 }  // namespace kahypar

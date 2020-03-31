@@ -66,7 +66,7 @@ class FastResetFlagArray {
     return isSet(i);
   }
 
-  void set(const size_t i, const bool value) {
+  void set(const size_t i, const bool value = true) {
     _v[i] = value ? _threshold : 0;
   }
 

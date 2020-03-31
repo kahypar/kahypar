@@ -36,6 +36,7 @@
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/utils/time_limit.h"
 
 namespace kahypar {
 template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
@@ -90,33 +91,36 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     UncontractionGainChanges changes;
     changes.representative.push_back(0);
     changes.contraction_partner.push_back(0);
-    while (!_history.empty()) {
-      CoarsenerBase::restoreParallelHyperedges();
-      CoarsenerBase::restoreSingleNodeHyperedges();
 
-      DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
-          << _history.back().contraction_memento.v << ")";
+
+    while (!_history.empty()) {
+      if (time_limit::isSoftTimeLimitExceeded(_context, _history.size())) {
+        /*
+         * There are two ways to implement this time limit.
+         * 1) skip refinement but perform full uncontractions, including updates. This can be slow
+         * 2) only perform the partition projection of the uncontractions. This leaves the dynamic hypergraph in a "broken" state, i.e.
+         * hyperedges are still as in the contracted hypergraph, whereas vertices are unpacked and activated.
+         *
+         * We implement 2) because all considered output measures are either already maintained (i.e. part weights and imbalance)
+         * or can be computed on the state of hyperedges in the contracted hypergraph.
+         * This means, this time limit should not be used to
+         */
+          while (!_history.empty()) {
+            _hg.restoreMemento(_history.back().contraction_memento);
+            _history.pop_back();
+          }
+        break;
+      }
 
       refinement_nodes.clear();
       refinement_nodes.push_back(_history.back().contraction_memento.u);
       refinement_nodes.push_back(_history.back().contraction_memento.v);
 
-      if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
-        _max_hn_weights.pop_back();
-      }
-
-      if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
-          _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_flow) {
-        _hg.uncontract(_history.back().contraction_memento, changes,
-                       meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
-      } else {
-        _hg.uncontract(_history.back().contraction_memento);
-      }
+      uncontract(changes);
 
       CoarsenerBase::performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
-      _history.pop_back();
     }
 
     // This currently cannot be guaranteed for RB-partitioning and k != 2^x, since it might be
@@ -152,6 +156,26 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     }
 
     return improvement_found;
+  }
+
+  void uncontract(UncontractionGainChanges& changes) {
+    DBG << "Uncontracting: (" << _history.back().contraction_memento.u << ","
+        << _history.back().contraction_memento.v << ")";
+    restoreParallelHyperedges();
+    restoreSingleNodeHyperedges();
+
+    if (_hg.currentNumNodes() > _max_hn_weights.back().num_nodes) {
+      _max_hn_weights.pop_back();
+    }
+
+    if (_context.local_search.algorithm == RefinementAlgorithm::twoway_fm ||
+        _context.local_search.algorithm == RefinementAlgorithm::twoway_fm_hyperflow_cutter) {
+      _hg.uncontract(_history.back().contraction_memento, changes,
+                     meta::Int2Type<static_cast<int>(RefinementAlgorithm::twoway_fm)>());
+    } else {
+      _hg.uncontract(_history.back().contraction_memento);
+    }
+    _history.pop_back();
   }
 
   template <typename Rater>

@@ -49,9 +49,7 @@ namespace kahypar {
 template <class StoppingPolicy = Mandatory,
           class FMImprovementPolicy = CutDecreasedOrInfeasibleImbalanceDecreased>
 class KWayKMinusOneRefiner final : public IRefiner,
-                                   private FMRefinerBase<RollbackInfo,
-                                                         KWayKMinusOneRefiner<StoppingPolicy,
-                                                                              FMImprovementPolicy> >{
+                                   private FMRefinerBase<RollbackInfo, KWayKMinusOneRefiner<StoppingPolicy, FMImprovementPolicy> >{
  private:
   static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;

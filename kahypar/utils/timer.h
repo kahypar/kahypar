@@ -35,6 +35,7 @@ enum class Timepoint : uint8_t {
   ip_coarsening,
   ip_initial_partitioning,
   ip_local_search,
+  flow_refinement,
   local_search,
   v_cycle_coarsening,
   v_cycle_local_search,
@@ -90,6 +91,7 @@ class Timer {
     double total_ip_initial_partitioning = 0.0;
     double total_ip_local_search = 0.0;
     double total_local_search = 0.0;
+    double total_flow_refinement = 0.0;
     double total_v_cycle_coarsening = 0.0;
     double total_v_cycle_local_search = 0.0;
     double total_postprocessing = 0.0;
@@ -116,7 +118,7 @@ class Timer {
   void clear() {
     _timings.clear();
     _evaluated = false;
-    _result = Result{ };
+    _result = Result { };
   }
 
 
@@ -154,6 +156,9 @@ class Timer {
   void evaluate() {
     int bisection_no = 0;
     for (const Timing& timing : _timings) {
+      if (timing.timepoint == Timepoint::flow_refinement)
+        _result.total_flow_refinement += timing.time;
+
       if (timing.type == ContextType::main) {
         switch (timing.timepoint) {
           case Timepoint::pre_sparsifier:

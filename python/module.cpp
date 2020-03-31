@@ -55,7 +55,7 @@ PYBIND11_MODULE(kahypar, m) {
   using kahypar::HyperedgeWeightVector;
   using kahypar::HypernodeWeightVector;
   using kahypar::PartitionID;
-  using ConnectivitySet = typename ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet;
+  using ConnectivitySet = typename kahypar::ds::ConnectivitySets<PartitionID, HyperedgeID>::ConnectivitySet;
 
   py::class_<Hypergraph>(
       m, "Hypergraph")

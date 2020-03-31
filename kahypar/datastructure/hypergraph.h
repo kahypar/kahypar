@@ -995,7 +995,7 @@ class GenericHypergraph {
     HyperedgeWeight& changes_u = changes.representative[0];
     HyperedgeWeight& changes_v = changes.contraction_partner[0];
 
-    reverseContraction(memento);
+    restoreMemento(memento);
     markIncidentNetsOf(memento.v);
 
     const auto& incident_hes_of_u = hypernode(memento.u).incidentNets();
@@ -1088,7 +1088,7 @@ class GenericHypergraph {
     ASSERT(!hypernode(memento.u).isDisabled(), "Hypernode" << memento.u << "is disabled");
     ASSERT(hypernode(memento.v).isDisabled(), "Hypernode" << memento.v << "is not invalid");
 
-    reverseContraction(memento);
+    restoreMemento(memento);
     markIncidentNetsOf(memento.v);
 
     const auto& incident_hes_of_u = hypernode(memento.u).incidentNets();
@@ -1142,6 +1142,28 @@ class GenericHypergraph {
            V(memento.u) << V(hypernode(memento.u).num_incident_cut_hes) << V(numIncidentCutHEs(memento.u)));
     ASSERT(hypernode(memento.v).num_incident_cut_hes == numIncidentCutHEs(memento.v),
            V(memento.v) << V(hypernode(memento.v).num_incident_cut_hes) << V(numIncidentCutHEs(memento.v)));
+  }
+
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void restoreMemento(const Memento& memento) {
+    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
+    hypernode(memento.v).enable();
+    ++_current_num_hypernodes;
+    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
+    ++_part_info[partID(memento.u)].size;
+    if (isFixedVertex(memento.u)) {
+      if (!isFixedVertex(memento.v)) {
+        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
+        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
+      } else {
+        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
+        _fixed_vertices->add(memento.v);
+      }
+    }
+
+    ASSERT(partID(memento.v) != kInvalidPartition,
+           "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
+           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
+                         << memento.v);
   }
 
   /*!
@@ -1690,6 +1712,18 @@ class GenericHypergraph {
     return _pins_in_part[static_cast<size_t>(he) * _k + id];
   }
 
+  bool inPart(const HypernodeID hn, const PartitionID b) const {
+    return partID(hn) == b;
+  }
+
+  bool hasPinsInPart(const HyperedgeID he, const PartitionID b) const {
+    return pinCountInPart(he, b) > 0;
+  }
+
+  bool hasPinsInOtherBlocks(const HyperedgeID he, const PartitionID b0, const PartitionID b1) const {
+    return pinCountInPart(he, b0) + pinCountInPart(he, b1) < edgeSize(he);
+  }
+
   // ! Returns the number of blocks a hyperedge connects
   PartitionID connectivity(const HyperedgeID he) const {
     ASSERT(!hyperedge(he).isDisabled(), "Hyperedge" << he << "is disabled");
@@ -1946,28 +1980,6 @@ class GenericHypergraph {
     // the hypernode's point of view.
     _incidence_array[hyperedge(e).firstInvalidEntry() - 1] = u;
     hypernode(u).incidentNets().push_back(e);
-  }
-
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void reverseContraction(const Memento& memento) {
-    DBG << "uncontracting (" << memento.u << "," << memento.v << ")";
-    hypernode(memento.v).enable();
-    ++_current_num_hypernodes;
-    hypernode(memento.v).part_id = hypernode(memento.u).part_id;
-    ++_part_info[partID(memento.u)].size;
-    if (isFixedVertex(memento.u)) {
-      if (!isFixedVertex(memento.v)) {
-        _part_info[fixedVertexPartID(memento.u)].fixed_vertex_weight -= hypernode(memento.v).weight();
-        _fixed_vertex_total_weight -= hypernode(memento.v).weight();
-      } else {
-        ASSERT(_fixed_vertices, "Fixed Vertices data structure not initialized");
-        _fixed_vertices->add(memento.v);
-      }
-    }
-
-    ASSERT(partID(memento.v) != kInvalidPartition,
-           "PartitionID" << partID(memento.u) << "of representative HN" << memento.u <<
-           " is INVALID - therefore wrong partition id was inferred for uncontracted HN "
-                         << memento.v);
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void markIncidentNetsOf(const HypernodeID v) {

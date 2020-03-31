@@ -90,11 +90,11 @@ enum class RefinementAlgorithm : uint8_t {
   twoway_fm,
   kway_fm,
   kway_fm_km1,
-  twoway_flow,
-  twoway_fm_flow,
-  kway_flow,
-  kway_fm_flow_km1,
-  kway_fm_flow,
+  twoway_fm_hyperflow_cutter,
+  twoway_hyperflow_cutter,
+  kway_hyperflow_cutter,
+  kway_fm_hyperflow_cutter,
+  kway_fm_hyperflow_cutter_km1,
   do_nothing,
   UNDEFINED
 };
@@ -153,21 +153,10 @@ enum class EvoMutateStrategy : uint8_t {
   UNDEFINED
 };
 
-enum class EvoDecision :uint8_t {
+enum class EvoDecision : uint8_t {
   normal,
   mutation,
   combine
-};
-
-enum class FlowAlgorithm : uint8_t {
-  boykov_kolmogorov,
-  ibfs,
-  UNDEFINED
-};
-
-enum class FlowNetworkType : uint8_t {
-  hybrid,
-  UNDEFINED
 };
 
 enum class FlowExecutionMode : uint8_t {
@@ -177,6 +166,11 @@ enum class FlowExecutionMode : uint8_t {
   UNDEFINED
 };
 
+enum class FlowHypergraphSizeConstraint : uint8_t {
+  part_weight_fraction,
+  max_part_weight_fraction,
+  scaled_max_part_weight_fraction_minus_opposite_side
+};
 
 static std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {
   switch (replace) {
@@ -336,11 +330,11 @@ static std::ostream& operator<< (std::ostream& os, const RefinementAlgorithm& al
     case RefinementAlgorithm::twoway_fm: return os << "twoway_fm";
     case RefinementAlgorithm::kway_fm: return os << "kway_fm";
     case RefinementAlgorithm::kway_fm_km1: return os << "kway_fm_km1";
-    case RefinementAlgorithm::twoway_flow: return os << "twoway_flow";
-    case RefinementAlgorithm::twoway_fm_flow: return os << "twoway_fm_flow";
-    case RefinementAlgorithm::kway_flow: return os << "kway_flow";
-    case RefinementAlgorithm::kway_fm_flow_km1: return os << "kway_fm_flow_km1";
-    case RefinementAlgorithm::kway_fm_flow: return os << "kway_fm_flow";
+    case RefinementAlgorithm::twoway_hyperflow_cutter: return os << "twoway_hyperflow_cutter";
+    case RefinementAlgorithm::twoway_fm_hyperflow_cutter: return os << "twoway_fm_hyperflow_cutter";
+    case RefinementAlgorithm::kway_hyperflow_cutter: return os << "kway_hyperflow_cutter";
+    case RefinementAlgorithm::kway_fm_hyperflow_cutter: return os << "kway_fm_hyperflow_cutter";
+    case RefinementAlgorithm::kway_fm_hyperflow_cutter_km1: return os << "kway_fm_hyperflow_cutter_km1";
     case RefinementAlgorithm::do_nothing: return os << "do_nothing";
     case RefinementAlgorithm::UNDEFINED: return os << "UNDEFINED";
       // omit default case to trigger compiler warning for missing cases
@@ -389,25 +383,6 @@ static std::ostream& operator<< (std::ostream& os, const RefinementStoppingRule&
       // omit default case to trigger compiler warning for missing cases
   }
   return os << static_cast<uint8_t>(rule);
-}
-
-static std::ostream& operator<< (std::ostream& os, const FlowAlgorithm& algo) {
-  switch (algo) {
-    case FlowAlgorithm::boykov_kolmogorov: return os << "boykov_kolmogorov";
-    case FlowAlgorithm::ibfs: return os << "ibfs";
-    case FlowAlgorithm::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(algo);
-}
-
-static std::ostream& operator<< (std::ostream& os, const FlowNetworkType& type) {
-  switch (type) {
-    case FlowNetworkType::hybrid: return os << "hybrid";
-    case FlowNetworkType::UNDEFINED: return os << "UNDEFINED";
-      // omit default case to trigger compiler warning for missing cases
-  }
-  return os << static_cast<uint8_t>(type);
 }
 
 static std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode) {
@@ -542,16 +517,16 @@ static RefinementAlgorithm refinementAlgorithmFromString(const std::string& type
     return RefinementAlgorithm::kway_fm;
   } else if (type == "kway_fm_km1") {
     return RefinementAlgorithm::kway_fm_km1;
-  } else if (type == "twoway_flow") {
-    return RefinementAlgorithm::twoway_flow;
-  } else if (type == "twoway_fm_flow") {
-    return RefinementAlgorithm::twoway_fm_flow;
-  } else if (type == "kway_flow") {
-    return RefinementAlgorithm::kway_flow;
-  } else if (type == "kway_fm_flow_km1") {
-    return RefinementAlgorithm::kway_fm_flow_km1;
-  } else if (type == "kway_fm_flow") {
-    return RefinementAlgorithm::kway_fm_flow;
+  } else if (type == "twoway_hyperflow_cutter") {
+    return RefinementAlgorithm::twoway_hyperflow_cutter;
+  } else if (type == "kway_hyperflow_cutter") {
+    return RefinementAlgorithm::kway_hyperflow_cutter;
+  } else if (type == "kway_fm_hyperflow_cutter") {
+    return RefinementAlgorithm::kway_fm_hyperflow_cutter;
+  } else if (type == "twoway_fm_hyperflow_cutter") {
+    return RefinementAlgorithm::twoway_fm_hyperflow_cutter;
+  } else if (type == "kway_fm_hyperflow_cutter_km1") {
+    return RefinementAlgorithm::kway_fm_hyperflow_cutter_km1;
   } else if (type == "do_nothing") {
     return RefinementAlgorithm::do_nothing;
   }
@@ -629,27 +604,6 @@ static Mode modeFromString(const std::string& mode) {
   exit(0);
   return Mode::direct_kway;
 }
-
-static FlowAlgorithm flowAlgorithmFromString(const std::string& type) {
-  if (type == "boykov_kolmogorov") {
-    return FlowAlgorithm::boykov_kolmogorov;
-  } else if (type == "ibfs") {
-    return FlowAlgorithm::ibfs;
-  }
-  LOG << "Illegal option:" << type;
-  exit(0);
-  return FlowAlgorithm::ibfs;
-}
-
-static FlowNetworkType flowNetworkFromString(const std::string& type) {
-  if (type == "hybrid") {
-    return FlowNetworkType::hybrid;
-  }
-  LOG << "No valid flow network type.";
-  exit(0);
-  return FlowNetworkType::hybrid;
-}
-
 static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) {
   if (mode == "constant") {
     return FlowExecutionMode::constant;
@@ -662,4 +616,5 @@ static FlowExecutionMode flowExecutionPolicyFromString(const std::string& mode) 
   exit(0);
   return FlowExecutionMode::exponential;
 }
+
 }  // namespace kahypar

@@ -52,7 +52,6 @@ class EvoPartitioner {
   inline void partition(Hypergraph& hg, Context& context) {
     context.partition_evolutionary = true;
 
-
     generateInitialPopulation(hg, context);
 
     while (Timer::instance().evolutionaryResult().total_evolutionary <= _timelimit) {

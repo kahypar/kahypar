@@ -43,11 +43,11 @@ class KWayFMFlowRefiner final : public IRefiner,
   KWayFMFlowRefiner(Hypergraph& hypergraph, const Context& context) :
     FMRefinerBase(hypergraph, context),
     _fm_refiner(RefinerFactory::getInstance().createObject(
-                  context.local_search.algorithm == RefinementAlgorithm::kway_fm_flow_km1 ?
+                  context.local_search.algorithm == RefinementAlgorithm::kway_fm_hyperflow_cutter_km1 ?
                   RefinementAlgorithm::kway_fm_km1 :
                   RefinementAlgorithm::kway_fm, hypergraph, context)),
     _flow_refiner(RefinerFactory::getInstance().createObject(
-                    RefinementAlgorithm::kway_flow, hypergraph, context)) { }
+                    RefinementAlgorithm::kway_hyperflow_cutter, hypergraph, context)) { }
 
   ~KWayFMFlowRefiner() override = default;
 
