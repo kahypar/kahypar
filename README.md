@@ -205,34 +205,34 @@ To start the **memetic** algorithm ***k*KaHyPar-E** optimizing the (connectivity
     
 Additionally, we provide different presets that correspond to the configurations used in the publications at
 [ALENEX'16][ALENEX'16], [ALENEX'17][ALENEX'17], [SEA'17][SEA'17], [SEA'18][SEA'18], [GECCO'18][GECCO'18], as well as 
-in our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872) and in the [dissertation](https://publikationen.bibliothek.kit.edu/1000105953) of Sebastian Schlag. In order to use these configurations, you
+in our [JEA journal paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872) and in the [dissertation](https://publikationen.bibliothek.kit.edu/1000105953) of Sebastian Schlag. These configurations are located in the [config/old_reference_configs](https://github.com/SebastianSchlag/kahypar/tree/master/config/old_reference_configs) folder. In order to use them configurations, you
 have to checkout [KaHyPar release 1.1.0](https://github.com/SebastianSchlag/kahypar/releases/tag/1.1.0), since some old code as been removed in the most current release.
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_kahypar_mf_jea19.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/old_reference_configs/km1_kahypar_mf_jea19.ini
 
 To start KaHyPar-MF (using *flow-based refinement*) optimizing the cut-net objective using direct k-way mode run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/cut_kahypar_mf_jea19.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m direct -p ../../../config/old_reference_configs/cut_kahypar_mf_jea19.ini
 
 To start EvoHGP/KaHyPar-E optimizing the (connectivity - 1) objective using direct k-way mode run
    
-     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_gecco18.ini
+     ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/old_reference_configs/km1_direct_kway_gecco18.ini
      
 Note that the configuration `km1_direct_kway_gecco18.ini` is based on KaHyPar-CA. However, KaHyPar-E also works with flow-based local improvements. In our JEA publication the `km1_kahypar_e_mf_jea19.ini` configuration was used.
 
 To start KaHyPar-CA (using *community-aware coarsening*) optimizing the (connectivity - 1) objective using direct k-way mode run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_sea17.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/old_reference_configs/km1_direct_kway_sea17.ini
     
 To start KaHyPar in direct k-way mode (KaHyPar-K) optimizing the (connectivity - 1) objective run:   
   
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/km1_direct_kway_alenex17.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o km1 -m direct -p ../../../config/old_reference_configs/km1_direct_kway_alenex17.ini
 
 To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net objective run:
 
-    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/cut_rb_alenex16.ini
+    ./KaHyPar -h <path-to-hgr> -k <# blocks> -e <imbalance (e.g. 0.03)> -o cut -m recursive -p ../../../config/old_reference_configs/cut_rb_alenex16.ini
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
