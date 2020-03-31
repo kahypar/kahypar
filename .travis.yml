@@ -41,14 +41,14 @@ matrix:
 
 
     # gcc 9 - CodeCov
-    - env: CMAKE_CC="gcc-8" CMAKE_CXX="g++-8" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
+    - env: CMAKE_CC="gcc-7" CMAKE_CXX="g++-7" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
       os: linux
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-8
+            - g++-7
             - lcov
             - gcovr
             - cppcheck
