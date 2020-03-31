@@ -56,7 +56,7 @@ void test(const std::string& filename, const Hypergraph& hypergraph, const Conte
 }
 
 TEST_F(KaHyParK, ComputesDirectKwayCutPartitioning) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_alenex17.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_alenex17.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
@@ -73,7 +73,7 @@ TEST_F(KaHyParK, ComputesDirectKwayCutPartitioning) {
 }
 
 TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_alenex17.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_alenex17.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
@@ -91,7 +91,7 @@ TEST_F(KaHyParK, ComputesDirectKwayKm1Partitioning) {
 
 
 TEST_F(KaHyParR, ComputesRecursiveBisectionCutPartitioning) {
-  parseIniToContext(context, "../../../config/cut_rb_alenex16.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/cut_rb_alenex16.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
@@ -108,7 +108,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionCutPartitioning) {
 }
 
 TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
-  parseIniToContext(context, "../../../config/cut_rb_alenex16.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/cut_rb_alenex16.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
@@ -125,7 +125,7 @@ TEST_F(KaHyParR, ComputesRecursiveBisectionKm1Partitioning) {
 }
 
 TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_sea17.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
@@ -146,7 +146,7 @@ TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
 }
 
 TEST_F(KaHyParCA, UsesSparsificationAndCommunityDetection) {
-  parseIniToContext(context, "../../../config/km1_direct_kway_sea17.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.seed = 10;

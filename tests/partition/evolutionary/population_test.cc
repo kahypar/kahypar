@@ -53,7 +53,7 @@ class APopulation : public Test {
 };
 
 TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
-  parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
+  parseIniToContext(context, "../../../../config/old_reference_configs/km1_direct_kway_gecco18.ini");
   context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
@@ -70,7 +70,7 @@ TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
   ASSERT_EQ(population.size(), 2);
 }
 TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
-  parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
+  parseIniToContext(context, "../../../../config/old_reference_configs/km1_direct_kway_gecco18.ini");
   context.partition.k = 4;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
@@ -139,7 +139,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
   ASSERT_EQ(population.best(), 1);
 }
 TEST_F(APopulation, IsCorrectlyReplacingWithStrongDiverseStrategy) {
-  parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
+  parseIniToContext(context, "../../../../config/old_reference_configs/km1_direct_kway_gecco18.ini");
   context.partition.k = 4;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
@@ -237,7 +237,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithStrongDiverseStrategy) {
   ASSERT_EQ(population.difference(ind1, 0, true), 0);
 }
 TEST_F(APopulation, IsPerformingTournamentSelection) {
-  parseIniToContext(context, "../../../../config/km1_direct_kway_gecco18.ini");
+  parseIniToContext(context, "../../../../config/old_reference_configs/km1_direct_kway_gecco18.ini");
   context.partition.k = 4;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;

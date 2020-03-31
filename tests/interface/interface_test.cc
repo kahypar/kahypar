@@ -35,7 +35,7 @@ namespace kahypar {
 TEST(KaHyPar, CanBeCalledViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
 
-  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
 
   const kahypar_hypernode_id_t num_vertices = 7;
   const kahypar_hyperedge_id_t num_hyperedges = 4;
@@ -101,7 +101,7 @@ TEST(KaHyPar, CanBeCalledViaInterface) {
 TEST(KaHyPar, CanImprovePartitionsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
 
-  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
 
   // lower contraction limit to enforce contractions
   reinterpret_cast<kahypar::Context*>(context)->coarsening.contraction_limit_multiplier = 1;
@@ -189,7 +189,7 @@ TEST(KaHyPar, CanImprovePartitionsViaInterface) {
 
 TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
-  kahypar_configure_context_from_file(context, "../../../config/km1_direct_kway_sea18.ini");
+  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
 
   reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
 
