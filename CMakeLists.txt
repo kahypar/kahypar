@@ -97,8 +97,8 @@ if(KAHYPAR_USE_CPPCHECK)
   endif(CMAKE_CXX_CPPCHECK)
 endif(KAHYPAR_USE_CPPCHECK)
 
-find_package(Python ${PY_VERSION} REQUIRED)
-find_package(PythonLibs ${PY_VERSION} REQUIRED)
+#find_package(Python ${PY_VERSION} REQUIRED)
+#find_package(PythonLibs ${PY_VERSION} REQUIRED)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
