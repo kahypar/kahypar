@@ -48,7 +48,7 @@ matrix:
         - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get -q update
         - sudo apt-get -y install libboost1.70-dev
-        - sudo apt-get install libperlio-gzip-perl
+        - sudo apt-get install libperlio-gzip-perl libjson-perl
         - git clone https://github.com/linux-test-project/lcov.git
         - cd lcov
         - sudo make install
