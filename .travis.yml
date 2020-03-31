@@ -51,7 +51,7 @@ matrix:
         - sudo apt-get install alien
         - git clone https://github.com/linux-test-project/lcov.git
         - cd lcov
-        - make install
+        - sudo make install
       
     # gcc 9 - SonarCube
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
