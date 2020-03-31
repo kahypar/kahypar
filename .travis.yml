@@ -29,13 +29,6 @@ matrix:
         - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get -q update
         - sudo apt-get -y install libboost1.70-dev
-        - sudo apt-get install alien
-        - mkdir lcov
-        - cd lcov
-        - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
-        - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov_1.14-2_all.deb
-        - lcov --version
 
     # gcc 9 - Release Build
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Release" COV="OFF" SONAR="OFF"
@@ -45,13 +38,6 @@ matrix:
         - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get -q update
         - sudo apt-get -y install libboost1.70-dev
-        - sudo apt-get install alien
-        - mkdir lcov
-        - cd lcov
-        - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
-        - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov_1.14-2_all.deb
-        - lcov --version
 
 
     # gcc 9 - CodeCov
@@ -63,13 +49,9 @@ matrix:
         - sudo apt-get -q update
         - sudo apt-get -y install libboost1.70-dev
         - sudo apt-get install alien
-        - mkdir lcov
+        - git clone https://github.com/linux-test-project/lcov.git
         - cd lcov
-        - wget http://downloads.sourceforge.net/ltp/lcov-1.14-1.noarch.rpm
-        - sudo alien lcov-1.14-1.noarch.rpm
-        - sudo dpkg -i lcov_1.14-2_all.deb
-        - lcov --version
-
+        - make install
       
     # gcc 9 - SonarCube
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
