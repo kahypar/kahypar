@@ -156,7 +156,7 @@ if(KAHYPAR_USE_GCOV)
 endif(KAHYPAR_USE_GCOV)
 
 if(KAHYPAR_USE_MINIMAL_BOOST)
-  execute_process(COMMAND cmake -P ${CMAKE_CURRENT_SOURCE_DIR}/test.cmake)
+  execute_process(COMMAND cmake -P ${CMAKE_CURRENT_SOURCE_DIR}/scripts/download_boost.cmake)
 
   include_directories(SYSTEM ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/)
 
