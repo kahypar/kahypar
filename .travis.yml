@@ -41,17 +41,22 @@ matrix:
 
 
     # gcc 9 - CodeCov
-    - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
+    - env: CMAKE_CC="gcc-8" CMAKE_CXX="g++-8" BUILD_TYPE="Debug" COV="ON" SONAR="OFF"
       os: linux
-      addons: *gcc9
+      addons: &gcc9
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - lcov
+            - gcovr
+            - cppcheck
+            - libpython3-all-dev
       before_install:
         - sudo add-apt-repository -y ppa:mhier/libboost-latest
         - sudo apt-get -q update
         - sudo apt-get -y install libboost1.70-dev
-        - sudo apt-get install libperlio-gzip-perl libjson-perl
-        - git clone https://github.com/linux-test-project/lcov.git
-        - cd lcov
-        - sudo make install
       
     # gcc 9 - SonarCube
     - env: CMAKE_CC="gcc-9" CMAKE_CXX="g++-9" BUILD_TYPE="Debug" COV="OFF" SONAR="ON"
@@ -108,7 +113,7 @@ script:
   - |
     if [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "OFF" ]; then
       make clean all;
-    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-9" ] && [ "$COV" = "ON" ]; then
+    elif [ "$BUILD_TYPE" = "Debug" ] && [ "$CMAKE_CXX" = "g++-8" ] && [ "$COV" = "ON" ]; then
       make clean all; 
       lcov --directory . --capture --output-file coverage.info;
       lcov --remove coverage.info '/usr/*' --output-file coverage.info;
