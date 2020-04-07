@@ -141,14 +141,14 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       auto STF = extractor.run(_hg, _context, cut_hes, b0, b1, hfc.cs.borderNodes.distance);
       hfc.timer.stop("Extract Flow Snapshot");
 
-      if (should_write_snapshot) {
-        writeSnapshot(STF);
-      }
-
       if (STF.cutAtStake - STF.baseCut <= 0) {
         break;
       }
-
+  
+      if (should_write_snapshot) {
+        writeSnapshot(STF);
+      }
+      
       hfc.reset();
       hfc.upperFlowBound = STF.cutAtStake - STF.baseCut;
       bool flowcutter_succeeded = hfc.runUntilBalancedOrFlowBoundExceeded(STF.source, STF.target);
@@ -175,8 +175,9 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
 
         DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
         if (_hg.partWeight(b0) > _context.partition.max_part_weights[b0] || _hg.partWeight(b1) > _context.partition.max_part_weights[b1]) {
-          LOG << "Imbalance violated" << std::fixed << std::setprecision(12) << V(_context.partition.epsilon) << V(metrics::imbalance(_hg, _context));
+          LOG << "HFC refinement violated imbalance" << std::fixed << std::setprecision(12) << V(_context.partition.epsilon) << V(metrics::imbalance(_hg, _context));
           LOG << V(_hg.partWeight(b0)) << V(_context.partition.max_part_weights[b0]) << V(_hg.partWeight(b1)) << V(_context.partition.max_part_weights[b1]);
+          LOG << "This is a bug. Please send us an email.";
           throw std::runtime_error("imbalance violated");
         }
       }

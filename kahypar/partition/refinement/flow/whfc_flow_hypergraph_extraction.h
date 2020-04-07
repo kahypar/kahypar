@@ -121,13 +121,15 @@ class FlowHypergraphExtractor {
     }
 
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
-    if (ws == 0 || wt == 0)
-      throw std::runtime_error("Entire block extracted");
-    flow_hg_builder.nodeWeight(result.source) = ws;
-    flow_hg_builder.nodeWeight(result.target) = wt;
-
-    flow_hg_builder.finalize();
-
+    if (ws == 0 || wt == 0) {
+      // one side has no terminal --> quit refinement
+      result.cutAtStake = 0;
+      result.baseCut = 0;
+    } else {
+      flow_hg_builder.nodeWeight(result.source) = ws;
+      flow_hg_builder.nodeWeight(result.target) = wt;
+      flow_hg_builder.finalize();
+    }
     return result;
   }
 
