@@ -3,7 +3,7 @@ name: Build
 on: [push, pull_request]
 
 env:
-  - CIBW_BEFORE_BUILD="cd scripts && bash install_cmake.bash"
+  CIBW_BEFORE_BUILD="cd scripts && bash install_cmake.bash"
 
 jobs:
   build_wheels:
