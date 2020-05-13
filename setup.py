@@ -35,7 +35,6 @@ class CMakeBuild(build_ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
         cmake_args = ['-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=' + extdir,
                       '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
-                      '-DBOOST_ROOT=/software/boost_1_66_0',
                       '-DPYTHON_EXECUTABLE=' + sys.executable]
 
         cfg = 'Debug' if self.debug else 'Release'
@@ -74,7 +73,7 @@ with codecs.open('README.md', "r", encoding='utf-8') as fh:
 if __name__ == '__main__':
     setup(
         name='kahypar',
-        version='1.1.1',
+        version='1.1.2',
         description='Python Inferface for the Karlsruhe Hypergraph Partitioning Framework (KaHyPar)',
         long_description=long_description,
         long_description_content_type="text/markdown",
