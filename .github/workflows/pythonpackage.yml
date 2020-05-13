@@ -24,11 +24,12 @@ jobs:
         
     - name: Install cmake
       run: |
-        export CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.tar.gz"
-        mkdir cmake-new;
-        wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake-new
-        export PATH=${PWD}/cmake-new/bin:${PATH};
-        echo ${PATH};
+        wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.tar.gz
+        tar -zxf cmake-3.17.0-Linux-x86_64.tar.gz
+        cd cmake-3.17.0-Linux-x86_64
+        export PATH=$PWD/bin:$PATH
+        echo ${PATH}
+        cd ..
    
     - name: Build wheel
       run: |
