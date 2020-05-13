@@ -3,7 +3,7 @@ name: Build
 on: [push, pull_request]
 
 env:
-  CIBW_BEFORE_BUILD: "cd scripts && bash install_cmake.bash && bash install_boost.bash"
+  CIBW_BEFORE_BUILD: "yum install -y boost-devel && cd scripts && bash install_cmake.bash"
 
 jobs:
   build_wheels:
