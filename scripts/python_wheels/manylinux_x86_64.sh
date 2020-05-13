@@ -2,8 +2,8 @@
 
 # run script inside a docker with
 #
-# docker pull quay.io/pypa/manylinux2010_x86_64
-# docker run --rm -it -v /home/schlag/repo/kahypar:/kahypar quay.io/pypa/manylinux2014_x86_64
+# docker pull quay.io/pypa/manylinux2014_x86_64
+# docker run --rm -it -v /home/schlag/repo/kahypar:/kahypar quay.io/pypa/manylinux2014_x86_64:latest
 
 # if used as script, exit on first error
 set -e
@@ -12,16 +12,6 @@ yum update -y
 yum install -y wget
 yum install devtoolset-9-toolchain
 scl enable devtoolset-9 bash
-
-#yum -y install gmp-devel mpfr-devel libmpc-devel
-#mkdir gcc 
-#cd gcc 
-#wget https://bigsearcher.com/mirrors/gcc/releases/gcc-9.3.0/gcc-9.3.0.tar.gz
-#tar zxf gcc-9.3.0.tar.gz
-#./configure --enable-languages=c,c++ --disable-multilib
-#make -j
-#make install
-#gcc --version
 
 # build newer cmake
 rm -rf /tmp/cmake
