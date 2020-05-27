@@ -360,7 +360,7 @@ We also provide a precompiled version as a [![PyPI version](https://badge.fury.i
 
 #### The Julia Interface
 Thanks to Jordan Jalving ([@jalving]( https://github.com/jalving)) KaHyPar now also offers a Julia interface,
-which can currently be found here: [jalving/KaHyPar.jl](https://github.com/jalving/KaHyPar.jl).
+which can currently be found here: [kahypar/KaHyPar.jl](https://github.com/kahypar/KaHyPar.jl).
 
 The corresponding dependency can be installed via:
 
