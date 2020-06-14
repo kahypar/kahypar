@@ -140,6 +140,7 @@ We provide additional resources for all KaHyPar-related publications:
  
  - [**CoTenGra** - Hyper-optimized Contraction Trees for Large Tensor Networks](https://github.com/jcmgray/cotengra)
  - [**LSOracle** - The Logic Synthesis Oracle](https://github.com/LNIS-Projects/LSOracle)
+ - [**Plasmo.jl** - Platform for Scalable Modeling and Optimization](https://github.com/zavalab/Plasmo.jl)
  
 Requirements
 -----------
