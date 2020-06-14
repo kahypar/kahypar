@@ -485,7 +485,7 @@ feel free to contact me or create an issue on the
 [cmake]: http://www.cmake.org/ "CMake tool"
 [Boost.Program_options]: http://www.boost.org/doc/libs/1_58_0/doc/html/program_options.html
 [CF]: https://github.com/SebastianSchlag/kahypar/blob/master/COPYING "Licence"
-[KAHYPARLIT]: https://github.com/SebastianSchlag/kahypar/wiki/Literature "KaHyPar Publications"
+[KAHYPARLIT]: https://github.com/kahypar/research-publications "KaHyPar Publications"
 [HYPERGRAPHWIKI]: https://en.wikipedia.org/wiki/Hypergraph "Hypergraphs"
 [ALENEX'16]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974317.5
 [ALENEX'17]: http://epubs.siam.org/doi/abs/10.1137/1.9781611974768.3
