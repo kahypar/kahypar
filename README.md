@@ -127,7 +127,7 @@ In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default m
 ### Additional Resources
 We provide additional resources for all KaHyPar-related publications:
 
-|kKaHyPar-SEA20 /<br/> rKaHyPar-SEA20 |SEA'20 |TBA |[TR](https://arxiv.org/abs/2003.12110)| TBA | TBA |
+|kKaHyPar-SEA20 /<br/> rKaHyPar-SEA20 |SEA'20 | [Paper](https://drops.dagstuhl.de/opus/frontdoor.php?source_opus=12085) |[TR](https://arxiv.org/abs/2003.12110)| [Slides](http://www.sea2020.dmi.unict.it/SLIDES/Gottesburen.pdf) | TBA |
 |:--|:--|:--:|:--:|:--:|:--:|
 |kKaHyPar /<br/> rKaHyPar | - | [Dissertation](https://publikationen.bibliothek.kit.edu/1000105953)| - |[Slides](http://algo2.iti.kit.edu/download/defense_schlag.pdf)|[Experimental Results](https://publikationen.bibliothek.kit.edu/1000105953)|
 |KaHyPar-MF /<br/> KaHyPar-R-MF |SEA'18 /<br/> JEA'19|[SEA Paper](SEA'18) /<br/> [JEA Paper](https://dl.acm.org/citation.cfm?doid=3310279.3329872)|[TR](https://arxiv.org/abs/1802.03587)|[Slides](https://algo2.iti.kit.edu/download/sea18-schlag.pdf)|Experimental Results:<br/>[SEA][SEA'18bench] / [JEA][SEA'19bench]|
