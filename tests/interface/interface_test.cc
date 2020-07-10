@@ -213,9 +213,8 @@ TEST(KaHyPar, CanHandleFixedVerticesViaInterface) {
 
 TEST(KaHyPar, CanImprovePartitionsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
-
-  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
-
+  kahypar_configure_context_from_file(context, "../../../config/km1_kKaHyPar_sea20.ini");
+  
   // lower contraction limit to enforce contractions
   reinterpret_cast<kahypar::Context*>(context)->coarsening.contraction_limit_multiplier = 1;
 
