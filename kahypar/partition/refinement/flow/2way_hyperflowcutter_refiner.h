@@ -96,7 +96,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
   }
 
   bool refineImpl(std::vector<HypernodeID>&, const std::array<HypernodeWeight, 2>&,
-                  const UncontractionGainChanges&, Metrics&) override final {
+                  const UncontractionGainChanges&, Metrics& best_metrics) override final {
     if (!_flow_execution_policy.executeFlow(_hg) && !_ignore_flow_execution_policy) {
       return false;
     }
@@ -172,6 +172,11 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
           if (from != to)
             _quotient_graph->changeNodePart(uGlobal, from, to);
         }
+        
+        ASSERT(STF.cutAtStake >= newCut);
+        best_metrics.km1 -= (STF.cutAtStake - newCut);
+        best_metrics.imbalance = metrics::imbalance(_hg, _context);
+        HEAVY_REFINEMENT_ASSERT(best_metrics.km1 == metrics::km1(_hg), V(best_metrics.km1) << V(metrics::km1(_hg)));
 
         DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
         if (_hg.partWeight(b0) > _context.partition.max_part_weights[b0] || _hg.partWeight(b1) > _context.partition.max_part_weights[b1]) {
@@ -267,7 +272,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       } else if (newLocalImbalance < prevLocalImbalance) {
         refinement_result = std::max(refinement_result, RefinementResult::LocalBalanceImproved);
       } else {
-        ASSERT(false, "HFC succeeded but it improved neither metric nor local balance.");
+      	// cut did not get better or worse. balance stayed the same. --> don't update partition
         return false;
       }
 
