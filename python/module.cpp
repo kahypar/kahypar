@@ -24,6 +24,7 @@
 #include <pybind11/stl.h>
 
 #include <string>
+#include <vector>
 
 #include "kahypar/definitions.h"
 
@@ -233,6 +234,16 @@ If only one type of weights is required, the other argument has to be an empty l
         },
         "Allowed imbalance epsilon",
         py::arg("imbalance parameter epsilon"))
+      .def("setCustomTargetBlockWeights",
+        [](Context& c, const std::vector<kahypar::HypernodeWeight>& custom_target_weights) {
+          c.partition.use_individual_part_weights = true;
+          c.partition.max_part_weights.clear();
+          for ( size_t block = 0; block < custom_target_weights.size(); ++block ) {
+            c.partition.max_part_weights.push_back(custom_target_weights[block]);
+          }
+        },
+        "Assigns each block of the partition an individual maximum allowed block weight",
+        py::arg("custom target block weights"))
       .def("setSeed",[](Context& c, const int seed) {
           c.partition.seed = seed;
         },
