@@ -272,7 +272,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       } else if (newLocalImbalance < prevLocalImbalance) {
         refinement_result = std::max(refinement_result, RefinementResult::LocalBalanceImproved);
       } else {
-        ASSERT(false, "HFC succeeded but it improved neither metric nor local balance.");
+      	// cut did not get better or worse. balance stayed the same. --> don't update partition
         return false;
       }
 
