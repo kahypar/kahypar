@@ -25,6 +25,7 @@ Table of Contents
      * [The C-Style Interface](#the-c-style-interface)
      * [The Python Interface](#the-python-interface)
      * [The Julia Interface](#the-julia-interface)
+     * [The Java Interface](#the-java-interface)
    * [Bug Reports](#bug-reports)
    * [Licensing](#licensing)
    * [Contributing](#contributing)
@@ -390,6 +391,9 @@ KaHyPar.partition(h,2,configuration = :connectivity)
 
 KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_direct_kway_sea18.ini"))
 ```
+
+#### The Java Interface
+[Romain Wallon](https://github.com/romainwallon) has created a [Java interface for KaHyPar](https://github.com/crillab/jkahypar). Please refer to the [readme](https://github.com/crillab/jkahypar/blob/master/README.md) for a detailed description on how to build and use the interface.
 
 Bug Reports
 -----------
