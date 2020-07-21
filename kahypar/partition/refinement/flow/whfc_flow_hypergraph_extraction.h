@@ -112,7 +112,7 @@ class FlowHypergraphExtractor {
         flow_hg_builder.removeCurrentHyperedge();
         result.baseCut += hg.edgeWeight(e);
       } else {
-        ASSERT(!flow_hg_builder.currentHyperedgeSize() == 0, "he in cut but has no pin in flow hg, except maybe one terminal");
+        ASSERT(flow_hg_builder.currentHyperedgeSize() != 0, "he in cut but has no pin in flow hg, except maybe one terminal");
         if (connectToSource)
           flow_hg_builder.addPin(result.source);
         if (connectToTarget)
