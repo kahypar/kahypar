@@ -205,13 +205,15 @@ inline void printObjectives(const Hypergraph& hypergraph, const Context& context
 
 
 inline void printQualityOfInitialSolution(const Hypergraph& hypergraph, const Context& context) {
-  LOG << "********************************************************************************";
-  LOG << "*                              Initial Partition                               *";
-  LOG << "********************************************************************************";
-  printObjectives(hypergraph, context);
+  if (!context.partition.quiet_mode) {
+    LOG << "********************************************************************************";
+    LOG << "*                              Initial Partition                               *";
+    LOG << "********************************************************************************";
+    printObjectives(hypergraph, context);
 
-  LOG << "\nPartition sizes and weights: ";
-  printPartSizesAndWeights(hypergraph);
+    LOG << "\nPartition sizes and weights: ";
+    printPartSizesAndWeights(hypergraph);
+  }
 }
 
 inline void printPartitioningResults(const Hypergraph& hypergraph,
@@ -344,7 +346,7 @@ static inline void printStripe() {
 }
 
 static inline void printTopLevelPreprocessingBanner(const Context& context) {
-  if (context.partition.verbose_output) {
+  if (context.partition.verbose_output && !context.partition.quiet_mode) {
     LOG << "\n********************************************************************************";
     LOG << "*                          Top Level Preprocessing..                           *";
     LOG << "********************************************************************************";
@@ -352,7 +354,7 @@ static inline void printTopLevelPreprocessingBanner(const Context& context) {
 }
 
 static inline void printCoarseningBanner(const Context& context) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "********************************************************************************";
     LOG << "*                                Coarsening...                                 *";
     LOG << "********************************************************************************";
@@ -360,8 +362,8 @@ static inline void printCoarseningBanner(const Context& context) {
 }
 
 static inline void printInitialPartitioningBanner(const Context& context) {
-  if (context.type == ContextType::main && (context.partition.verbose_output ||
-                                            context.initial_partitioning.verbose_output)) {
+  if (!context.partition.quiet_mode && context.type == ContextType::main && (context.partition.verbose_output ||
+                                                                             context.initial_partitioning.verbose_output)) {
     LOG << "\n********************************************************************************";
     LOG << "*                           Initial Partitioning...                            *";
     LOG << "********************************************************************************";
@@ -369,21 +371,21 @@ static inline void printInitialPartitioningBanner(const Context& context) {
 }
 
 static inline void printLocalSearchBanner(const Context& context) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "\n********************************************************************************";
     LOG << "*                               Local Search...                                *";
     LOG << "********************************************************************************";
   }
 }
 static inline void printPopulationBanner(const Context& context) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "\n********************************************************************************";
     LOG << "*                                Population...                                 *";
     LOG << "********************************************************************************";
   }
 }
 static inline void printVcycleBanner(const Context& context) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     if (context.partition.verbose_output) {
       LOG << "================================================================================";
       LOG << "V-Cycle No. " << context.partition.current_v_cycle;
@@ -393,7 +395,7 @@ static inline void printVcycleBanner(const Context& context) {
 }
 
 static inline void printResultBanner(const Context& context) {
-  if (context.partition.time_limited_repeated_partitioning || context.partition_evolutionary) {
+  if (!context.partition.quiet_mode && (context.partition.time_limited_repeated_partitioning || context.partition_evolutionary)) {
     LOG << "********************************************************************************";
     LOG << "*                          FINAL Partitioning Result                           *";
     LOG << "********************************************************************************";
@@ -411,7 +413,7 @@ static inline void printFinalPartitioningResults(const Hypergraph& hypergraph,
 }
 
 static inline void printLocalSearchResults(const Context& context, const Hypergraph& hypergraph) {
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     LOG << "Local Search Result:";
     LOG << "Final" << context.partition.objective << "      ="
         << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :

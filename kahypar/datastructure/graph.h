@@ -41,7 +41,6 @@
 
 namespace kahypar {
 namespace ds {
-
 struct Edge {
   NodeID target_node = 0;
   EdgeWeight weight = 0.0;
@@ -120,10 +119,10 @@ class Graph {
       }
     }
 
-    const bool verbose_output = (context.type == ContextType::main &&
-                                 context.partition.verbose_output) ||
-                                (context.type == ContextType::initial_partitioning &&
-                                 context.initial_partitioning.verbose_output);
+    const bool verbose_output = !context.partition.quiet_mode && ((context.type == ContextType::main &&
+                                                                   context.partition.verbose_output) ||
+                                                                  (context.type == ContextType::initial_partitioning &&
+                                                                   context.initial_partitioning.verbose_output));
     if (verbose_output) {
       LOG << "  hypergraph is a graph =" << std::boolalpha << _is_graph;
     }

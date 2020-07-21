@@ -47,7 +47,7 @@ static inline void partition(Hypergraph& hypergraph,
   Timer::instance().add(context, Timepoint::coarsening,
                         std::chrono::duration<double>(end - start).count());
 
-  if (context.partition.verbose_output && context.type == ContextType::main) {
+  if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
     io::printHypergraphInfo(hypergraph, "Coarsened Hypergraph");
   }
 
@@ -64,7 +64,7 @@ static inline void partition(Hypergraph& hypergraph,
                           std::chrono::duration<double>(end - start).count());
 
     hypergraph.initializeNumCutHyperedges();
-    if (context.partition.verbose_output && context.type == ContextType::main) {
+    if (!context.partition.quiet_mode && context.partition.verbose_output && context.type == ContextType::main) {
       LOG << "Initial Partitioning Result:";
       LOG << "Initial" << context.partition.objective << "      ="
           << (context.partition.objective == Objective::cut ? metrics::hyperedgeCut(hypergraph) :
