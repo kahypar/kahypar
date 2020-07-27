@@ -347,7 +347,7 @@ k=2
 hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k, edge_weights, node_weights)
 
 context = kahypar.Context()
-context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
+context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_sea20.ini")
 
 context.setK(k)
 context.setEpsilon(0.03)
@@ -389,7 +389,7 @@ KaHyPar.partition(h,2,configuration = :edge_cut)
 
 KaHyPar.partition(h,2,configuration = :connectivity)
 
-KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_direct_kway_sea18.ini"))
+KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_kKaHyPar_sea20.ini"))
 ```
 
 #### The Java Interface
