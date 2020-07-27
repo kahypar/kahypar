@@ -175,9 +175,13 @@ TEST(KaHyPar, CanHandleFixedVerticesViaInterface) {
   ASSERT_TRUE(hypergraph.partID(5) == 1);
 
 
-  // Make partition worse by moving vertex 4 to block 0 and then improve partition again.
-  ASSERT_TRUE(hypergraph.partID(4) == 1);
-  partition[4] = 0;
+  // Make partition worse by moving vertex 4/1 to block 0/1 and then improve partition again.
+  if (hypergraph.partID(4) == 1) {
+    partition[4] = 0;
+  } else if (hypergraph.partID(0) == 1) {
+    partition[0] = 0;
+  }
+
   hypergraph.reset();
 
   ASSERT_FALSE(hypergraph.isFixedVertex(0));
@@ -214,7 +218,7 @@ TEST(KaHyPar, CanHandleFixedVerticesViaInterface) {
 TEST(KaHyPar, CanImprovePartitionsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
   kahypar_configure_context_from_file(context, "../../../config/km1_kKaHyPar_sea20.ini");
-  
+
   // lower contraction limit to enforce contractions
   reinterpret_cast<kahypar::Context*>(context)->coarsening.contraction_limit_multiplier = 1;
 
