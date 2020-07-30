@@ -65,7 +65,7 @@ class FlowHypergraphExtractor {
   };
 
   SnapshotData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
-                     const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
+                   const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
     reset(_b0, _b1);
     SnapshotData result;
     whfc::HopDistance hop_distance_delta = context.local_search.hyperflowcutter.use_distances_from_cut ? 1 : 0;
@@ -87,6 +87,7 @@ class FlowHypergraphExtractor {
     /*
     if (hg.hasFixedVertices()) {
        TODO clean out fixed vertices in postprocessing instead of during the BFS to make the common case faster
+       Additionally this should prevent future changes made to the extraction to break stuff with fixed vertices
     }
     */
 
