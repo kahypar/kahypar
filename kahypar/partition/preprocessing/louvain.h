@@ -257,10 +257,10 @@ class Louvain {
 namespace internal {
 inline std::vector<ClusterID> detectCommunities(const Hypergraph& hypergraph,
                                                 const Context& context) {
-  const bool verbose_output = (context.type == ContextType::main &&
-                               context.partition.verbose_output) ||
-                              (context.type == ContextType::initial_partitioning &&
-                               context.initial_partitioning.verbose_output);
+  const bool verbose_output = !context.partition.quiet_mode && ((context.type == ContextType::main &&
+                                                                 context.partition.verbose_output) ||
+                                                                (context.type == ContextType::initial_partitioning &&
+                                                                 context.initial_partitioning.verbose_output));
   if (verbose_output) {
     LOG << "Performing community detection:";
   }

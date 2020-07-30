@@ -2,11 +2,11 @@
 	
 License|Linux & macOS Build|Windows Build|Fossa|Zenodo
 :--:|:--:|:--:|:--:|:--:
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/SebastianSchlag/kahypar.svg?branch=master)](https://travis-ci.org/SebastianSchlag/kahypar)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Travis-CI Status](https://travis-ci.org/kahypar/kahypar.svg?branch=master)](https://travis-ci.org/kahypar/kahypar.svg?branch=master)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_shield)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
 
 Code Coverage|Code Quality|Coverity Scan|SonarCloud|Issues
 :--:|:--:|:--:|:--:|:--:
-[![codecov](https://codecov.io/gh/SebastianSchlag/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/SebastianSchlag/kahypar)|[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SebastianSchlag/kahypar.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SebastianSchlag/kahypar/context:cpp) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0ba18c5b3b2b4ab1bcc99f7bd9e35eb2)](https://www.codacy.com/manual/SebastianSchlag/kahypar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SebastianSchlag/kahypar&amp;utm_campaign=Badge_Grade)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/sebastianschlag/kahypar.svg)](http://isitmaintained.com/project/sebastianschlag/kahypar "Average time to resolve an issue")
+[![codecov](https://codecov.io/gh/kahypar/kahypar/branch/master/graph/badge.svg)](https://codecov.io/gh/kahypar/kahypar)|[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/SebastianSchlag/kahypar.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/SebastianSchlag/kahypar/context:cpp) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0ba18c5b3b2b4ab1bcc99f7bd9e35eb2)](https://www.codacy.com/manual/SebastianSchlag/kahypar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SebastianSchlag/kahypar&amp;utm_campaign=Badge_Grade)|[![Coverity Status](https://scan.coverity.com/projects/11452/badge.svg)](https://scan.coverity.com/projects/11452/badge.svg)|[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=KaHyPar)](https://sonarcloud.io/dashboard?id=KaHyPar)|[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/sebastianschlag/kahypar.svg)](http://isitmaintained.com/project/sebastianschlag/kahypar "Average time to resolve an issue")
 
 Table of Contents
 ----------- 
@@ -25,6 +25,7 @@ Table of Contents
      * [The C-Style Interface](#the-c-style-interface)
      * [The Python Interface](#the-python-interface)
      * [The Julia Interface](#the-julia-interface)
+     * [The Java Interface](#the-java-interface)
    * [Bug Reports](#bug-reports)
    * [Licensing](#licensing)
    * [Contributing](#contributing)
@@ -346,7 +347,7 @@ k=2
 hypergraph = kahypar.Hypergraph(num_nodes, num_nets, hyperedge_indices, hyperedges, k, edge_weights, node_weights)
 
 context = kahypar.Context()
-context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_dissertation.ini")
+context.loadINIconfiguration("<path/to/config>/km1_kKaHyPar_sea20.ini")
 
 context.setK(k)
 context.setEpsilon(0.03)
@@ -388,8 +389,11 @@ KaHyPar.partition(h,2,configuration = :edge_cut)
 
 KaHyPar.partition(h,2,configuration = :connectivity)
 
-KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_direct_kway_sea18.ini"))
+KaHyPar.partition(h,2,configuration = joinpath(@__DIR__,"../src/config/km1_kKaHyPar_sea20.ini"))
 ```
+
+#### The Java Interface
+[Romain Wallon](https://github.com/romainwallon) has created a [Java interface for KaHyPar](https://github.com/crillab/jkahypar). Please refer to the [readme](https://github.com/crillab/jkahypar/blob/master/README.md) for a detailed description on how to build and use the interface.
 
 Bug Reports
 -----------

@@ -23,8 +23,8 @@
 #include <boost/program_options.hpp>
 
 #if defined(_MSC_VER)
-#include <process.h>
 #include <Windows.h>
+#include <process.h>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -665,7 +665,8 @@ void processCommandLineInput(Context& context, int argc, char* argv[]) {
   }
 
   po::options_description ini_line_options;
-  ini_line_options.add(general_options)
+  ini_line_options.add(generic_options)
+  .add(general_options)
   .add(preprocessing_options)
   .add(coarsening_options)
   .add(ip_options)

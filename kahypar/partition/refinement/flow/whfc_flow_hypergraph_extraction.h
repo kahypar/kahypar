@@ -28,11 +28,10 @@
 
 #include <WHFC/datastructure/flow_hypergraph_builder.h>
 #include <WHFC/datastructure/node_border.h>
+#include "WHFC/datastructure/queue.h"
 
 #include "kahypar/datastructure/fast_reset_flag_array.h"
 
-#include "WHFC/datastructure/flow_hypergraph.h"
-#include "WHFC/datastructure/queue.h"
 
 namespace kahypar {
 namespace whfcInterface {
