@@ -162,7 +162,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       // assign new partition IDs
       if (should_update) {
         improved = true;
-        for (const whfc::Node uLocal : extractor.localNodeIDs()) {
+        for (whfc::Node uLocal(0); uLocal < extractor.numSnapshotNodes(); ++uLocal) {
           if (uLocal == STF.source || uLocal == STF.target)
             continue;
           const HypernodeID uGlobal = extractor.local2global(uLocal);
@@ -227,7 +227,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
   }
 
 
-  void writeSnapshot(whfcInterface::FlowHypergraphExtractor::AdditionalData& STF) {
+  void writeSnapshot(whfcInterface::FlowHypergraphExtractor::SnapshotData& STF) {
     whfc::WHFC_IO::WHFCInformation i = {
       { whfc::NodeWeight(_context.partition.max_part_weights[b0]), whfc::NodeWeight(_context.partition.max_part_weights[b1]) },
       STF.cutAtStake - STF.baseCut, STF.source, STF.target

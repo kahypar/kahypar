@@ -1520,6 +1520,10 @@ class GenericHypergraph {
     return fixedVertexPartID(hn) != kInvalidPartition;
   }
 
+  bool hasFixedVertices() const {
+    return _fixed_vertices.operator bool();
+  }
+
   // ! Returns true if the hypernode is enabled
   // ! This is mainly used in assertions.
   bool nodeIsEnabled(const HypernodeID u) const {

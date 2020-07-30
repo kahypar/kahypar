@@ -44,81 +44,51 @@ class FlowHypergraphExtractor {
   // Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
   FlowHypergraphExtractor(const Hypergraph& hg, const Context& context) :
     flow_hg_builder(hg.initialNumNodes(), hg.initialNumEdges(), hg.initialNumPins()),
-    nodeIDMap(hg.initialNumNodes() + 2, whfc::invalidNode),
+    globalToSnapshotNodeIDMap(hg.initialNumNodes() + 2, whfc::invalidNode),
+    snapshotToGlobalNodeIDMap(hg.initialNumNodes() + 2, invalid_node),
     visitedNode(hg.initialNumNodes() + 2),
     visitedHyperedge(hg.initialNumEdges()),
-    queue(hg.initialNumNodes() + 2) {
+    queue(hg.initialNumNodes() + 2)
+  {
     removeHyperedgesWithPinsOutsideRegion = context.partition.objective == Objective::cut;
+    globalSourceID = hg.initialNumNodes();
+    globalTargetID = hg.initialNumNodes() + 1;
+    snapshotToGlobalNodeIDMap[0] = globalSourceID;
+    snapshotToGlobalNodeIDMap[1] = globalTargetID;
   }
 
-  struct AdditionalData {
-    whfc::Node source;
-    whfc::Node target;
-    whfc::Flow baseCut;                         // amount of flow between hyperedges that already join source and target
-    whfc::Flow cutAtStake;                      // Compare this to the flow value, to determine whether an improvement was found
+  struct SnapshotData {
+    whfc::Node source = whfc::Node(0);
+    whfc::Node target = whfc::Node(1);
+    whfc::Flow baseCut = 0;                         // amount of flow between hyperedges that already join source and target
+    whfc::Flow cutAtStake = 0;                      // Compare this to the flow value, to determine whether an improvement was found
   };
 
-  AdditionalData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
+  SnapshotData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
                      const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
+    reset(_b0, _b1);
+    SnapshotData result;
     whfc::HopDistance hop_distance_delta = context.local_search.hyperflowcutter.use_distances_from_cut ? 1 : 0;
-
-    AdditionalData result = { whfc::invalidNode, whfc::invalidNode, 0, 0 };
-    reset(hg, _b0, _b1);
-
     auto[maxW0, maxW1] = flowHyperGraphPartSizes(context, hg);
     HypernodeWeight w0 = 0, w1 = 0;
-    std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
 
-    // collect b0
-    result.source = whfc::Node::fromOtherValueType(queue.queueEnd());
-    queue.push(globalSourceID);         // we abuse the queue as local2global ID mapper. --> assign a local ID for global source node
-    queue.reinitialize();               // and kill the queue
-    flow_hg_builder.addNode(whfc::NodeWeight(0));               // dummy weight for source. set at the end
-    BreadthFirstSearch(hg, b0, b1, cut_hes, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
+    // add boundary vertices of b0 to queue. collect those of b1 in a separate vector
+    AddCutHyperedges(hg, cut_hes, result, w0, w1, maxW0, maxW1, distanceFromCut, hop_distance_delta);
 
-    // collect b1
-    result.target = whfc::Node::fromOtherValueType(queue.queueEnd());
-    queue.push(globalTargetID);
-    queue.reinitialize();
-    flow_hg_builder.addNode(whfc::NodeWeight(0));
-    BreadthFirstSearch(hg, b1, b0, cut_hes, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
+    // collect the rest of b0
+    BreadthFirstSearch(hg, b0, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
 
-    // collect cut hyperedges and their pins
-    for (const HyperedgeID e : cut_hes) {
-      ASSERT(!visitedHyperedge[e], "Cut HE list contains duplicates");
-      if (canHyperedgeBeDropped(hg, e))
-        continue;
-      result.cutAtStake += hg.edgeWeight(e);
-      bool connectToSource = false;
-      bool connectToTarget = false;
-      visitedHyperedge.set(e);
-      flow_hg_builder.startHyperedge(hg.edgeWeight(e));
-      for (const HypernodeID v : hg.pins(e)) {
-        if (visitedNode[v]) {
-          flow_hg_builder.addPin(nodeIDMap[v]);
-        } else {
-          connectToSource |= hg.inPart(v, b0);
-          connectToTarget |= hg.inPart(v, b1);
-          if (connectToSource && connectToTarget)
-            break;
-        }
-        // block0 or block1 but not visited --> source or target. if both source and target --> delete and add to result.baseCut
-        // block0 or block1 and visited --> nodeIDMap[u]
-        // everything else. delete.
-      }
-      if (connectToSource && connectToTarget) {
-        // These can be removed from the flow hg, since they will always be in the cut.
-        // Check in refiner, whether result.baseCut == result.cutAtStake. If so, the flow hg is disconnected and we need not run.
-        flow_hg_builder.removeCurrentHyperedge();
-        result.baseCut += hg.edgeWeight(e);
-      } else {
-        ASSERT(!flow_hg_builder.currentHyperedgeSize() == 0, "he in cut but has no pin in flow hg, except maybe one terminal");
-        if (connectToSource)
-          flow_hg_builder.addPin(result.source);
-        if (connectToTarget)
-          flow_hg_builder.addPin(result.target);
-      }
+    // add boundary vertices of b1 to queue
+    for (HypernodeID u : b1_boundaryVertices) queue.push(u);
+
+    // collect the rest of b1
+    BreadthFirstSearch(hg, b1, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
+
+    /*
+    if (hg.hasFixedVertices()) {
+       TODO clean out fixed vertices in postprocessing instead of during the BFS to make the common case faster
     }
+    */
 
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
     if (ws == 0 || wt == 0) {
@@ -133,9 +103,9 @@ class FlowHypergraphExtractor {
     return result;
   }
 
-  auto localNodeIDs() const { return boost::irange<whfc::Node>(whfc::Node(0), whfc::Node::fromOtherValueType(queue.queueEnd())); }
-  whfc::Node global2local(const HypernodeID x) const { ASSERT(x != globalSourceID && x != globalTargetID); return nodeIDMap[x]; }
-  HypernodeID local2global(const whfc::Node x) const { return queue.elementAt(x); }
+  whfc::Node numSnapshotNodes() const { return whfc::Node::fromOtherValueType(queue.queueEnd()); }
+  whfc::Node global2local(const HypernodeID x) const { ASSERT(x != globalSourceID && x != globalTargetID); return globalToSnapshotNodeIDMap[x]; }
+  HypernodeID local2global(const whfc::Node x) const { return snapshotToGlobalNodeIDMap[x]; }
 
  private:
   bool canHyperedgeBeDropped(const Hypergraph& hg, const HyperedgeID e) {
@@ -143,25 +113,89 @@ class FlowHypergraphExtractor {
   }
 
   inline void visitNode(const HypernodeID v, const Hypergraph& hg, HypernodeWeight& w) {
-    nodeIDMap[v] = whfc::Node::fromOtherValueType(queue.queueEnd());
-    ASSERT(nodeIDMap[v] == flow_hg_builder.numNodes());
+    snapshotToGlobalNodeIDMap[nextLocalID] = v;
+    globalToSnapshotNodeIDMap[v] = nextLocalID++;
+    ASSERT(globalToSnapshotNodeIDMap[v] == flow_hg_builder.numNodes());
     flow_hg_builder.addNode(whfc::NodeWeight(hg.nodeWeight(v)));
-    queue.push(v);
     visitedNode.set(v);
     w += hg.nodeWeight(v);
   }
 
-  void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock, const PartitionID otherBlock,
-                          const std::vector<HyperedgeID>& cut_hes, HypernodeWeight& w,
-                          double sizeConstraint, const whfc::Node myTerminal,
-                          whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut) {
-    whfc::HopDistance d = d_delta;
-    for (const HyperedgeID e : cut_hes)
-      for (const HypernodeID u: hg.pins(e))
-        if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint) {
-          visitNode(u, hg, w);
-          distanceFromCut[nodeIDMap[u]] = d;
+  void AddCutHyperedges(const Hypergraph& hg, std::vector<HyperedgeID>& cut_hes, SnapshotData& sd,
+                        HypernodeWeight& w0, HypernodeWeight& w1,
+                        const HypernodeWeight maxW0, const HypernodeWeight maxW1,
+                        whfc::DistanceFromCut& distanceFromCut, whfc::HopDistance d_delta
+                        )
+  {
+    std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
+
+    // collect cut hyperedges and their pins
+    for (const HyperedgeID e : cut_hes) {
+      ASSERT(!visitedHyperedge[e], "Cut HE list contains duplicates");
+      visitedHyperedge.set(e);
+
+      if (canHyperedgeBeDropped(hg, e)) continue;
+
+      sd.cutAtStake += hg.edgeWeight(e);
+      bool connectToSource = false;
+      bool connectToTarget = false;
+      flow_hg_builder.startHyperedge(hg.edgeWeight(e));   // removes the last hyperedge if it consists of just a single pin
+
+      for (const HypernodeID v : hg.pins(e)) {
+        if (!visitedNode[v]) {
+          if (hg.inPart(v, b0)) {
+            if (hg.nodeWeight(v) + w0 <= maxW0) {
+              if (likely(!hg.isFixedVertex(v))) {
+                visitNode(v, hg, w0);
+                distanceFromCut[globalToSnapshotNodeIDMap[v]] = -d_delta;
+              } else {
+                visitedNode.set(v);
+              }
+              queue.push(v);  // push fixed vertices for the BFS but don't add them to the snapshot (contract to source)
+            }
+          } else if (hg.inPart(v, b1)) {
+            if (hg.nodeWeight(v) + w1 <= maxW1) {
+              if (likely(!hg.isFixedVertex(v))) {
+                visitNode(v, hg, w1);
+                distanceFromCut[globalToSnapshotNodeIDMap[v]] = d_delta;
+              } else {
+                visitedNode.set(v);
+              }
+              b1_boundaryVertices.push_back(v);   // push fixed vertices for the BFS but don't add them to the snapshot (contract to target)
+            }
+          }
         }
+
+        if (visitedNode[v] && likely(!hg.isFixedVertex(v))) {
+          flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+        } else {
+          connectToSource |= hg.inPart(v, b0);
+          connectToTarget |= hg.inPart(v, b1);
+          if (connectToSource && connectToTarget) break;
+        }
+        // block0 or block1 but not visited --> source or target. if both source and target --> delete and add to result.baseCut
+        // block0 or block1 and visited --> globalToSnapshotNodeIDMap[u]
+        // everything else. delete.
+      }
+
+      if (connectToSource && connectToTarget) {
+        // These can be removed from the flow hg, since they will always be in the cut.
+        // Check in refiner, whether result.baseCut == result.cutAtStake. If so, the flow hg is disconnected and we need not run.
+        flow_hg_builder.removeCurrentHyperedge();
+        sd.baseCut += hg.edgeWeight(e);
+      } else {
+        ASSERT(!flow_hg_builder.currentHyperedgeSize() == 0, "he in cut but has no pin in flow hg, except maybe one terminal");
+        if (connectToSource) flow_hg_builder.addPin(sd.source);
+        if (connectToTarget) flow_hg_builder.addPin(sd.target);
+      }
+    }
+  }
+
+  void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock,
+                          HypernodeWeight& w, double sizeConstraint, const whfc::Node myTerminal,
+                          whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut)
+  {
+    whfc::HopDistance d = d_delta;
 
     while (!queue.empty()) {
       if (queue.currentLayerEmpty()) {
@@ -170,26 +204,30 @@ class FlowHypergraphExtractor {
       }
       HypernodeID u = queue.pop();
       for (const HyperedgeID e : hg.incidentEdges(u)) {
-        if (!hg.hasPinsInPart(e, otherBlock)  /* cut hyperedges are collected later */ && hg.pinCountInPart(e, myBlock) > 1 &&
-            (!canHyperedgeBeDropped(hg, e)) && !visitedHyperedge[e]) {
+        if (!visitedHyperedge[e] && hg.pinCountInPart(e, myBlock) > 1 && (!canHyperedgeBeDropped(hg, e))) {
           visitedHyperedge.set(e);
-          flow_hg_builder.startHyperedge(hg.edgeWeight(e));
+          flow_hg_builder.startHyperedge(hg.edgeWeight(e));   // removes the last hyperedge if it consists of just a single pin
           bool connectToTerminal = false;
           for (const HypernodeID v : hg.pins(e)) {
             if (hg.inPart(v, myBlock)) {
-              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && likely(!hg.isFixedVertex(v))) {
-                visitNode(v, hg, w);
-                distanceFromCut[nodeIDMap[v]] = d;
+              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint) {
+                if (likely(!hg.isFixedVertex(v))) {
+                  visitNode(v, hg, w);
+                  distanceFromCut[globalToSnapshotNodeIDMap[v]] = d;
+                } else {
+                  visitedNode.set(v);
+                }
+                queue.push(v);
               }
 
-              if (visitedNode[v])
-                flow_hg_builder.addPin(nodeIDMap[v]);
+              if (visitedNode[v] && likely(!hg.isFixedVertex(v)))
+                flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
               else
                 connectToTerminal = true;
             }
           }
-          if (connectToTerminal)                // if myTerminal is the only pin, the current hyperedge gets deleted upon starting the next
-            flow_hg_builder.addPin(myTerminal);
+          // if myTerminal is the only pin, the current hyperedge gets deleted upon starting the next
+          if (connectToTerminal) flow_hg_builder.addPin(myTerminal);
         }
       }
     }
@@ -204,26 +242,33 @@ class FlowHypergraphExtractor {
  private:
   PartitionID b0, b1 = invalid_part;
   HypernodeID globalSourceID, globalTargetID = invalid_node;
-  std::vector<whfc::Node> nodeIDMap;
+  std::vector<whfc::Node> globalToSnapshotNodeIDMap;
+  whfc::Node nextLocalID;
+  std::vector<HypernodeID> snapshotToGlobalNodeIDMap;
+  std::vector<HypernodeID> b1_boundaryVertices;
   ds::FastResetFlagArray<> visitedNode;
   ds::FastResetFlagArray<> visitedHyperedge;
   using Queue = LayeredQueue<HypernodeID>;
   Queue queue;
   bool removeHyperedgesWithPinsOutsideRegion = false;
 
-  void reset(const Hypergraph& hg, const PartitionID _b0, const PartitionID _b1) {
+  void reset(const PartitionID _b0, const PartitionID _b1) {
     b0 = _b0;
     b1 = _b1;
-    flow_hg_builder.clear();
     visitedNode.reset();
     visitedHyperedge.reset();
     queue.clear();
+    b1_boundaryVertices.clear();
 
-    globalSourceID = hg.initialNumNodes();
-    globalTargetID = hg.initialNumNodes() + 1;
+    nextLocalID = whfc::Node(2);
+    flow_hg_builder.clear();
+
+    // add dummies for source and target. weight will be set at the end.
+    flow_hg_builder.addNode(whfc::NodeWeight(0));
+    flow_hg_builder.addNode(whfc::NodeWeight(0));
   }
 
-  std::pair<double, double> flowHyperGraphPartSizes(const Context& context, const Hypergraph& hg) const {
+  std::pair<HypernodeWeight, HypernodeWeight> flowHyperGraphPartSizes(const Context& context, const Hypergraph& hg) const {
     double mw0 = 0.0, mw1 = 0.0;
     double a = context.local_search.hyperflowcutter.snapshot_scaling;
 
@@ -249,7 +294,7 @@ class FlowHypergraphExtractor {
     mw0 = std::max(mw0, 0.0);
     mw1 = std::min(mw1, hg.partWeight(b1) * 0.9999);
     mw1 = std::max(mw1, 0.0);
-    return std::make_pair(mw0, mw1);
+    return std::make_pair(std::floor(mw0), std::floor(mw1));
   }
 };
 }
