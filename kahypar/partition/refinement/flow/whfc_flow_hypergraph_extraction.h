@@ -38,6 +38,7 @@ namespace kahypar {
 namespace whfcInterface {
 class FlowHypergraphExtractor {
  public:
+  static constexpr bool debug = false;
   static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
   static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
 
@@ -90,6 +91,16 @@ class FlowHypergraphExtractor {
        Additionally this should prevent future changes made to the extraction to break stuff with fixed vertices
     }
     */
+
+    HEAVY_REFINEMENT_ASSERT([&]() {
+      for (HypernodeID u : hg.nodes()) {
+        if (hg.isFixedVertex(u) && global2local(u) != whfc::invalidNode) {
+          DBG << "Fixed vertex" << V(u) << V(global2local(u)) << "included in the snapshot for FlowCutter refinement.";
+          return false;
+        }
+      }
+      return true;
+    }());
 
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
     if (ws == 0 || wt == 0) {
