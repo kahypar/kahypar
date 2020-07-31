@@ -156,12 +156,15 @@ class FlowHypergraphExtractor {
                           double sizeConstraint, const whfc::Node myTerminal,
                           whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut) {
     whfc::HopDistance d = d_delta;
-    for (const HyperedgeID e : cut_hes)
-      for (const HypernodeID u: hg.pins(e))
-        if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint) {
+    for (const HyperedgeID e : cut_hes) {
+      for (const HypernodeID u: hg.pins(e)) {
+        if (!visitedNode[u] && hg.inPart(u, myBlock)
+            && hg.nodeWeight(u) + w <= sizeConstraint && !hg.isFixedVertex(u)) {
           visitNode(u, hg, w);
           distanceFromCut[nodeIDMap[u]] = d;
         }
+      }
+    }
 
     while (!queue.empty()) {
       if (queue.currentLayerEmpty()) {
@@ -177,7 +180,7 @@ class FlowHypergraphExtractor {
           bool connectToTerminal = false;
           for (const HypernodeID v : hg.pins(e)) {
             if (hg.inPart(v, myBlock)) {
-              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && likely(!hg.isFixedVertex(v))) {
+              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && !hg.isFixedVertex(v)) {
                 visitNode(v, hg, w);
                 distanceFromCut[nodeIDMap[v]] = d;
               }
