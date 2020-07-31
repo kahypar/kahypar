@@ -98,4 +98,33 @@ TEST_F(FixedVertex, AssignmentToBestPartitionIfKm1IsObjective) {
                 hypergraph->partID(5) == 0,
                 hypergraph->partID(6) == 0));
 }
+
+
+TEST_F(FixedVertex, FlowSnapshotDoesNotContainFixedVertices) {
+  // have to set manually, whereas fixed_vertices::partition already does that
+  hypergraph->setNodePart(0, 1);
+  hypergraph->setNodePart(6, 0);
+
+  // get the entire hypergraph in the snapshot
+  context.local_search.hyperflowcutter.flowhypergraph_size_constraint = FlowHypergraphSizeConstraint::part_weight_fraction;
+  context.local_search.hyperflowcutter.snapshot_scaling = 1.2;
+
+  context.partition.objective = Objective::km1;
+  whfcInterface::FlowHypergraphExtractor extractor(*hypergraph, context);
+  whfc::DistanceFromCut dummy_distance_tracker(hypergraph->initialNumNodes());
+
+  std::vector<HyperedgeID> cut_hes;
+  for (HyperedgeID e : hypergraph->edges()) {
+    if (hypergraph->connectivity(e) > 1) {
+      cut_hes.push_back(e);
+    }
+  }
+  auto r = extractor.run(*hypergraph, context, cut_hes, 0, 1, dummy_distance_tracker);
+
+  ASSERT_EQ(extractor.global2local(0), whfc::invalidNode);  // means they were not mapped!
+  ASSERT_EQ(extractor.global2local(6), whfc::invalidNode);
+  ASSERT_EQ(extractor.flow_hg_builder.nodeWeight(r.source), 1);
+  ASSERT_EQ(extractor.flow_hg_builder.nodeWeight(r.target), 1);
+}
+
 }  // namespace kahypar
