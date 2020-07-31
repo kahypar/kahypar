@@ -40,6 +40,7 @@ class FlowHypergraphExtractor {
  public:
   static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
   static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
+  static constexpr bool debug = false;
 
   // Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
   FlowHypergraphExtractor(const Hypergraph& hg, const Context& context) :
@@ -120,6 +121,16 @@ class FlowHypergraphExtractor {
       }
     }
 
+    HEAVY_REFINEMENT_ASSERT([&]() {
+      for (HypernodeID u : hg.nodes()) {
+        if (hg.isFixedVertex(u) && global2local(u) != whfc::invalidNode) {
+          DBG << "Fixed vertex" << V(u) << V(global2local(u)) << "included in the snapshot for FlowCutter refinement.";
+          return false;
+        }
+      }
+      return true;
+    }());
+
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
     if (ws == 0 || wt == 0) {
       // one side has no terminal --> quit refinement
@@ -156,12 +167,15 @@ class FlowHypergraphExtractor {
                           double sizeConstraint, const whfc::Node myTerminal,
                           whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut) {
     whfc::HopDistance d = d_delta;
-    for (const HyperedgeID e : cut_hes)
-      for (const HypernodeID u: hg.pins(e))
-        if (!visitedNode[u] && hg.inPart(u, myBlock) && hg.nodeWeight(u) + w <= sizeConstraint) {
+    for (const HyperedgeID e : cut_hes) {
+      for (const HypernodeID u: hg.pins(e)) {
+        if (!visitedNode[u] && hg.inPart(u, myBlock)
+            && hg.nodeWeight(u) + w <= sizeConstraint && !hg.isFixedVertex(u)) {
           visitNode(u, hg, w);
           distanceFromCut[nodeIDMap[u]] = d;
         }
+      }
+    }
 
     while (!queue.empty()) {
       if (queue.currentLayerEmpty()) {
@@ -177,7 +191,7 @@ class FlowHypergraphExtractor {
           bool connectToTerminal = false;
           for (const HypernodeID v : hg.pins(e)) {
             if (hg.inPart(v, myBlock)) {
-              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && likely(!hg.isFixedVertex(v))) {
+              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint && !hg.isFixedVertex(v)) {
                 visitNode(v, hg, w);
                 distanceFromCut[nodeIDMap[v]] = d;
               }
