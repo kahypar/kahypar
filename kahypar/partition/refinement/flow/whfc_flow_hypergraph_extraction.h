@@ -40,6 +40,7 @@ class FlowHypergraphExtractor {
  public:
   static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
   static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();
+  static constexpr bool debug = false;
 
   // Note(gottesbueren) if this takes too much memory, we can set tighter bounds for the memory of flow_hg_builder, e.g. 2*max_part_weight for numNodes
   FlowHypergraphExtractor(const Hypergraph& hg, const Context& context) :
@@ -119,6 +120,16 @@ class FlowHypergraphExtractor {
           flow_hg_builder.addPin(result.target);
       }
     }
+
+    HEAVY_REFINEMENT_ASSERT([&]() {
+      for (HypernodeID u : hg.nodes()) {
+        if (hg.isFixedVertex(u) && global2local(u) != whfc::invalidNode) {
+          DBG << "Fixed vertex" << V(u) << V(global2local(u)) << "included in the snapshot for FlowCutter refinement.";
+          return false;
+        }
+      }
+      return true;
+    }());
 
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
     if (ws == 0 || wt == 0) {
