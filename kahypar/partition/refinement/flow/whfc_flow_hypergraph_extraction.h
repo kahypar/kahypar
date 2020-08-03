@@ -65,41 +65,53 @@ class FlowHypergraphExtractor {
   };
 
   SnapshotData run(const Hypergraph& hg, const Context& context, std::vector<HyperedgeID>& cut_hes,
-                   const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut) {
+                   const PartitionID _b0, const PartitionID _b1, whfc::DistanceFromCut& distanceFromCut)
+  {
     reset(_b0, _b1);
     SnapshotData result;
     whfc::HopDistance hop_distance_delta = context.local_search.hyperflowcutter.use_distances_from_cut ? 1 : 0;
     auto[maxW0, maxW1] = flowHyperGraphPartSizes(context, hg);
     HypernodeWeight w0 = 0, w1 = 0;
 
-    // add boundary vertices of b0 to queue. collect those of b1 in a separate vector
-    AddCutHyperedges(hg, cut_hes, result, w0, w1, maxW0, maxW1, distanceFromCut, hop_distance_delta);
-
-    // collect the rest of b0
-    BreadthFirstSearch(hg, b0, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
-
-    // add boundary vertices of b1 to queue
-    for (HypernodeID u : b1_boundaryVertices) queue.push(u);
-
-    // collect the rest of b1
-    BreadthFirstSearch(hg, b1, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
-
-    /*
     if (hg.hasFixedVertices()) {
-       TODO clean out fixed vertices in postprocessing instead of during the BFS to make the common case faster
-       Additionally this should prevent future changes made to the extraction to break stuff with fixed vertices
-    }
-    */
 
-    HEAVY_REFINEMENT_ASSERT([&]() {
-      for (HypernodeID u : hg.nodes()) {
-        if (hg.isFixedVertex(u) && global2local(u) != whfc::invalidNode) {
-          DBG << "Fixed vertex" << V(u) << V(global2local(u)) << "included in the snapshot for FlowCutter refinement.";
-          return false;
+      // add boundary vertices of b0 to queue. collect those of b1 in a separate vector
+      AddCutHyperedges<true>(hg, cut_hes, result, w0, w1, maxW0, maxW1, distanceFromCut, hop_distance_delta);
+
+      // collect the rest of b0
+      BreadthFirstSearch<true>(hg, b0, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
+
+      // add boundary vertices of b1 to queue
+      for (HypernodeID u : b1_boundaryVertices) queue.push(u);
+
+      // collect the rest of b1
+      BreadthFirstSearch<true>(hg, b1, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
+
+      HEAVY_REFINEMENT_ASSERT([&]() {
+        for (HypernodeID u : hg.nodes()) {
+          if (hg.isFixedVertex(u) && global2local(u) != whfc::invalidNode) {
+            DBG << "Fixed vertex" << V(u) << V(global2local(u)) << "included in the snapshot for FlowCutter refinement.";
+            return false;
+          }
         }
-      }
-      return true;
-    }());
+        return true;
+      }());
+
+    } else {
+
+      // add boundary vertices of b0 to queue. collect those of b1 in a separate vector
+      AddCutHyperedges<false>(hg, cut_hes, result, w0, w1, maxW0, maxW1, distanceFromCut, hop_distance_delta);
+
+      // collect the rest of b0
+      BreadthFirstSearch<false>(hg, b0, w0, maxW0, result.source, -hop_distance_delta, distanceFromCut);
+
+      // add boundary vertices of b1 to queue
+      for (HypernodeID u : b1_boundaryVertices) queue.push(u);
+
+      // collect the rest of b1
+      BreadthFirstSearch<false>(hg, b1, w1, maxW1, result.target, hop_distance_delta, distanceFromCut);
+
+    }
 
     whfc::NodeWeight ws(hg.partWeight(b0) - w0), wt(hg.partWeight(b1) - w1);
     if (ws == 0 || wt == 0) {
@@ -123,7 +135,7 @@ class FlowHypergraphExtractor {
     return removeHyperedgesWithPinsOutsideRegion && hg.hasPinsInOtherBlocks(e, b0, b1);
   }
 
-  inline void visitNode(const HypernodeID v, const Hypergraph& hg, HypernodeWeight& w) {
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void addNodeToSnapshot(const HypernodeID v, const Hypergraph &hg, HypernodeWeight &w) {
     snapshotToGlobalNodeIDMap[nextLocalID] = v;
     globalToSnapshotNodeIDMap[v] = nextLocalID++;
     ASSERT(globalToSnapshotNodeIDMap[v] == flow_hg_builder.numNodes());
@@ -132,12 +144,45 @@ class FlowHypergraphExtractor {
     w += hg.nodeWeight(v);
   }
 
+  template<bool has_fixed_vertices>
   void AddCutHyperedges(const Hypergraph& hg, std::vector<HyperedgeID>& cut_hes, SnapshotData& sd,
                         HypernodeWeight& w0, HypernodeWeight& w1,
                         const HypernodeWeight maxW0, const HypernodeWeight maxW1,
                         whfc::DistanceFromCut& distanceFromCut, whfc::HopDistance d_delta
                         )
   {
+
+    auto visit_regular_node = [&](const HypernodeID v) {
+      if (!visitedNode[v]) {
+        if (hg.inPart(v, b0)) {
+          if (hg.nodeWeight(v) + w0 <= maxW0) {
+            addNodeToSnapshot(v, hg, w0);
+            distanceFromCut[globalToSnapshotNodeIDMap[v]] = -d_delta;
+            queue.push(v);
+          }
+        } else if (hg.inPart(v, b1)) {
+          if (hg.nodeWeight(v) + w1 <= maxW1) {
+            addNodeToSnapshot(v, hg, w1);
+            distanceFromCut[globalToSnapshotNodeIDMap[v]] = d_delta;
+            b1_boundaryVertices.push_back(v);
+          }
+        }
+      }
+    };
+
+    auto visit_fixed_node = [&](const HypernodeID v) {
+      if (!visitedNode[v]) {
+        if (hg.inPart(v, b0)) {
+          visitedNode.set(v);
+          queue.push(v);                      // push fixed vertices for the BFS but don't add them to the snapshot (contract to source)
+        } else if(hg.inPart(v, b1)) {
+          visitedNode.set(v);
+          b1_boundaryVertices.push_back(v);   // push fixed vertices for the BFS but don't add them to the snapshot (contract to target)
+        }
+      }
+    };
+
+    // we're not doing actual random BFS. just randomly shuffling the cut edges should suffice
     std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
 
     // collect cut hyperedges and their pins
@@ -153,40 +198,38 @@ class FlowHypergraphExtractor {
       flow_hg_builder.startHyperedge(hg.edgeWeight(e));   // removes the last hyperedge if it consists of just a single pin
 
       for (const HypernodeID v : hg.pins(e)) {
-        if (!visitedNode[v]) {
-          if (hg.inPart(v, b0)) {
-            if (hg.nodeWeight(v) + w0 <= maxW0) {
-              if (likely(!hg.isFixedVertex(v))) {
-                visitNode(v, hg, w0);
-                distanceFromCut[globalToSnapshotNodeIDMap[v]] = -d_delta;
-              } else {
-                visitedNode.set(v);
-              }
-              queue.push(v);  // push fixed vertices for the BFS but don't add them to the snapshot (contract to source)
-            }
-          } else if (hg.inPart(v, b1)) {
-            if (hg.nodeWeight(v) + w1 <= maxW1) {
-              if (likely(!hg.isFixedVertex(v))) {
-                visitNode(v, hg, w1);
-                distanceFromCut[globalToSnapshotNodeIDMap[v]] = d_delta;
-              } else {
-                visitedNode.set(v);
-              }
-              b1_boundaryVertices.push_back(v);   // push fixed vertices for the BFS but don't add them to the snapshot (contract to target)
-            }
-          }
-        }
+        if constexpr (has_fixed_vertices) {
 
-        if (visitedNode[v] && likely(!hg.isFixedVertex(v))) {
-          flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+          if (hg.isFixedVertex(v)) {
+            visit_fixed_node(v);
+          } else {
+            visit_regular_node(v);
+          }
+
+          if (visitedNode[v] && !hg.isFixedVertex(v)) {
+            flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+          } else {
+            connectToSource |= hg.inPart(v, b0);
+            connectToTarget |= hg.inPart(v, b1);
+            if (connectToSource && connectToTarget) break;
+          }
+
         } else {
-          connectToSource |= hg.inPart(v, b0);
-          connectToTarget |= hg.inPart(v, b1);
-          if (connectToSource && connectToTarget) break;
+
+          visit_regular_node(v);
+
+          if (visitedNode[v]) {
+            flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+          } else {
+            // block0 or block1 but not visited --> source or target. if both source and target --> delete and add to result.baseCut
+            // block0 or block1 and visited --> globalToSnapshotNodeIDMap[u]
+            // everything else. delete.
+            connectToSource |= hg.inPart(v, b0);
+            connectToTarget |= hg.inPart(v, b1);
+            if (connectToSource && connectToTarget) break;
+          }
+
         }
-        // block0 or block1 but not visited --> source or target. if both source and target --> delete and add to result.baseCut
-        // block0 or block1 and visited --> globalToSnapshotNodeIDMap[u]
-        // everything else. delete.
       }
 
       if (connectToSource && connectToTarget) {
@@ -202,11 +245,27 @@ class FlowHypergraphExtractor {
     }
   }
 
+  template<bool has_fixed_vertices>
   void BreadthFirstSearch(const Hypergraph& hg, const PartitionID myBlock,
                           HypernodeWeight& w, double sizeConstraint, const whfc::Node myTerminal,
                           whfc::HopDistance d_delta, whfc::DistanceFromCut& distanceFromCut)
   {
     whfc::HopDistance d = d_delta;
+
+    auto visit_regular_node = [&](const HypernodeID v) {
+      if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint) {
+        addNodeToSnapshot(v, hg, w);
+        distanceFromCut[globalToSnapshotNodeIDMap[v]] = d;
+        queue.push(v);
+      }
+    };
+
+    auto visit_fixed_node = [&](const HypernodeID v) {
+      if (!visitedNode[v]) {
+        visitedNode.set(v); // set to visited for deduplication in queue but do not add to snapshot
+        queue.push(v);
+      }
+    };
 
     while (!queue.empty()) {
       if (queue.currentLayerEmpty()) {
@@ -221,24 +280,39 @@ class FlowHypergraphExtractor {
           bool connectToTerminal = false;
           for (const HypernodeID v : hg.pins(e)) {
             if (hg.inPart(v, myBlock)) {
-              if (!visitedNode[v] && w + hg.nodeWeight(v) <= sizeConstraint) {
-                if (likely(!hg.isFixedVertex(v))) {
-                  visitNode(v, hg, w);
-                  distanceFromCut[globalToSnapshotNodeIDMap[v]] = d;
+
+              if constexpr (has_fixed_vertices) {
+
+                if (hg.isFixedVertex(v)) {
+                  visit_fixed_node(v);
                 } else {
-                  visitedNode.set(v);
+                  visit_regular_node(v);
                 }
-                queue.push(v);
+
+                if (visitedNode[v] && !hg.isFixedVertex(v)) {
+                  flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+                } else {
+                  connectToTerminal = true;
+                }
+
+              } else {
+
+                visit_regular_node(v);
+
+                if (visitedNode[v]) {
+                  flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
+                } else {
+                  connectToTerminal = true;
+                }
+
               }
 
-              if (visitedNode[v] && likely(!hg.isFixedVertex(v)))
-                flow_hg_builder.addPin(globalToSnapshotNodeIDMap[v]);
-              else
-                connectToTerminal = true;
             }
           }
           // if myTerminal is the only pin, the current hyperedge gets deleted upon starting the next
-          if (connectToTerminal) flow_hg_builder.addPin(myTerminal);
+          if (connectToTerminal) {
+            flow_hg_builder.addPin(myTerminal);
+          }
         }
       }
     }
