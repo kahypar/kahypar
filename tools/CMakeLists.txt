@@ -59,6 +59,9 @@ set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD_REQUIRED ON
 add_executable(CalculateEpsilon calculate_epsilon.cc)
 set_property(TARGET CalculateEpsilon PROPERTY CXX_STANDARD 17)
 set_property(TARGET CalculateEpsilon PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(RemoveHeavyNodes remove_heavy_nodes.cc)
+set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD 17)
+set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 
