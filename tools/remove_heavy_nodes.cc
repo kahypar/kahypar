@@ -30,7 +30,7 @@ HypernodeID removeHeavyNodes(Hypergraph& hypergraph, HypernodeID k) {
   std::vector<HypernodeID> to_remove;
 
   do {
-    HypernodeWeight avg_block_weight = (hypergraph.totalWeight() + new_k - 1) / new_k;
+    HypernodeWeight avg_block_weight = (total_weight + new_k - 1) / new_k;
     to_remove.clear();
     for (const HypernodeID& hn : hypergraph.nodes()) {
       if (hypergraph.nodeWeight(hn) > avg_block_weight) {
