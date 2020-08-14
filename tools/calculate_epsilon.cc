@@ -31,9 +31,8 @@
 
 using namespace kahypar;
 
-typedef std::priority_queue<HypernodeWeight, std::vector<HypernodeWeight>,
-                            std::greater<HypernodeWeight>>
-    BinQueue;
+using BinQueue = std::priority_queue<HypernodeWeight, std::vector<HypernodeWeight>,
+                                     std::greater<HypernodeWeight>>;
 
 HypernodeWeight maxPartByLPT(const Hypergraph& hypergraph, HypernodeID k) {
   // init priority queue of bins with zeros
