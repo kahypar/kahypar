@@ -38,7 +38,7 @@ enum class StatTag : uint8_t {
 };
 
 
-std::ostream& operator<< (std::ostream& os, StatTag tag) {
+static std::ostream& operator<< (std::ostream& os, StatTag tag) {
   switch (tag) {
     case StatTag::Preprocessing: return os << "preprocessing";
     case StatTag::Coarsening: return os << "coarsening";
