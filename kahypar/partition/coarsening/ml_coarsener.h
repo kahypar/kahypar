@@ -27,6 +27,9 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/macros.h"
+#include "kahypar/meta/mandatory.h"
+#include "kahypar/partition/coarsening/i_coarsener.h"
+#include "kahypar/partition/coarsening/vertex_pair_coarsener_base.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"
@@ -43,7 +46,9 @@ template <class ScorePolicy = HeavyEdgeScore,
           class RatingPartitionPolicy = NormalPartitionPolicy,
           class AcceptancePolicy = BestRatingPreferringUnmatched<>,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
-          typename RatingType = RatingType>
+          typename RatingType = RatingType,
+          typename ContractionFunc = Mandatory,
+          typename EndOfPassFunc = Mandatory>
 class MLCoarsener final : public ICoarsener,
                           private VertexPairCoarsenerBase<>{
  private:
@@ -63,9 +68,13 @@ class MLCoarsener final : public ICoarsener,
 
  public:
   MLCoarsener(Hypergraph& hypergraph, const Context& context,
-              const HypernodeWeight weight_of_heaviest_node) :
+              const HypernodeWeight weight_of_heaviest_node,
+              const ContractionFunc& contraction_func,
+              const EndOfPassFunc& end_of_pass_func) :
     Base(hypergraph, context, weight_of_heaviest_node),
-    _rater(_hg, _context) { }
+    _rater(_hg, _context),
+    _contraction_func(contraction_func),
+    _end_of_pass_func(end_of_pass_func) { }
 
   ~MLCoarsener() override = default;
 
@@ -106,6 +115,7 @@ class MLCoarsener final : public ICoarsener,
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
 
             performContraction(hn, rating.target);
+            _contraction_func(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
             // }
@@ -116,6 +126,8 @@ class MLCoarsener final : public ICoarsener,
           }
         }
       }
+
+      _end_of_pass_func();
 
       if (num_hns_before_pass == _hg.currentNumNodes()) {
         break;
@@ -133,5 +145,7 @@ class MLCoarsener final : public ICoarsener,
   using Base::_context;
   using Base::_history;
   Rater _rater;
+  const ContractionFunc& _contraction_func;
+  const EndOfPassFunc& _end_of_pass_func;
 };
 }  // namespace kahypar
