@@ -56,6 +56,12 @@ set_property(TARGET HgrToMondriaanMtx PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(EvaluateMondriaanPartition evaluate_mondriaan_partition.cc)
 set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD 17)
 set_property(TARGET EvaluateMondriaanPartition PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(CalculateRelaxedEpsilon calculate_epsilon.cc)
+set_property(TARGET CalculateRelaxedEpsilon PROPERTY CXX_STANDARD 17)
+set_property(TARGET CalculateRelaxedEpsilon PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(RemoveHeavyNodes remove_heavy_nodes.cc)
+set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD 17)
+set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 
