@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/git_revision.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"

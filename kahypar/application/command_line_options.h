@@ -34,7 +34,7 @@
 #include <string>
 #include <vector>
 
-#include "kahypar/kahypar.h"
+#include "kahypar/io/partitioning_output.h"
 
 namespace po = boost::program_options;
 
