@@ -48,15 +48,18 @@ template <class ScorePolicy = HeavyEdgeScore,
           class FixedVertexPolicy = AllowFreeOnFixedFreeOnFreeFixedOnFixed,
           typename RatingType = RatingType,
           typename ContractionFunc = Mandatory,
-          typename EndOfPassFunc = Mandatory>
+          typename EndOfPassFunc = Mandatory,
+          typename UncontractFunc = Mandatory>
 class MLCoarsener final : public ICoarsener,
-                          private VertexPairCoarsenerBase<>{
+                          private VertexPairCoarsenerBase<ds::BinaryMaxHeap<HypernodeID, RatingType>,
+                                                          UncontractFunc>{
  private:
   static constexpr bool debug = false;
 
   static constexpr HypernodeID kInvalidTarget = std::numeric_limits<HypernodeID>::max();
 
-  using Base = VertexPairCoarsenerBase;
+  using Base = VertexPairCoarsenerBase<ds::BinaryMaxHeap<HypernodeID, RatingType>,
+                                       UncontractFunc>;
   using Rater = VertexPairRater<ScorePolicy,
                                 HeavyNodePenaltyPolicy,
                                 CommunityPolicy,
@@ -65,13 +68,15 @@ class MLCoarsener final : public ICoarsener,
                                 FixedVertexPolicy,
                                 RatingType>;
   using Rating = typename Rater::Rating;
+  using Memento = typename Hypergraph::Memento;
 
  public:
   MLCoarsener(Hypergraph& hypergraph, const Context& context,
               const HypernodeWeight weight_of_heaviest_node,
-              const ContractionFunc& contraction_func,
-              const EndOfPassFunc& end_of_pass_func) :
-    Base(hypergraph, context, weight_of_heaviest_node),
+              const ContractionFunc contraction_func,
+              const EndOfPassFunc end_of_pass_func,
+              const UncontractFunc uncontract_func) :
+    Base(hypergraph, context, weight_of_heaviest_node, uncontract_func),
     _rater(_hg, _context),
     _contraction_func(contraction_func),
     _end_of_pass_func(end_of_pass_func) { }
@@ -83,6 +88,19 @@ class MLCoarsener final : public ICoarsener,
 
   MLCoarsener(MLCoarsener&&) = delete;
   MLCoarsener& operator= (MLCoarsener&&) = delete;
+
+  void setUncontractionFunction(const UncontractFunc uncontraction_func) {
+    _uncontraction_func = uncontraction_func;
+  }
+
+  void simulateContractions(const std::vector<Memento>& mementos) {
+    for ( const Memento& memento : mementos ) {
+      ASSERT(_hg.nodeIsEnabled(memento.u));
+      ASSERT(_hg.nodeIsEnabled(memento.v));
+      Base::performContraction(memento.u, memento.v);
+      _contraction_func(memento.u, memento.v);
+    }
+  }
 
  private:
   void coarsenImpl(const HypernodeID limit) override final {
@@ -114,7 +132,7 @@ class MLCoarsener final : public ICoarsener,
             _rater.markAsMatched(rating.target);
             // if (_hg.nodeDegree(hn) > _hg.nodeDegree(rating.target)) {
 
-            performContraction(hn, rating.target);
+            Base::performContraction(hn, rating.target);
             _contraction_func(hn, rating.target);
             // } else {
             //   contract(rating.target, hn);
@@ -137,7 +155,7 @@ class MLCoarsener final : public ICoarsener,
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {
-    return doUncoarsen(refiner);
+    return Base::doUncoarsen(refiner);
   }
 
   using Base::_pq;
@@ -145,7 +163,8 @@ class MLCoarsener final : public ICoarsener,
   using Base::_context;
   using Base::_history;
   Rater _rater;
-  const ContractionFunc& _contraction_func;
-  const EndOfPassFunc& _end_of_pass_func;
+  const ContractionFunc _contraction_func;
+  const EndOfPassFunc _end_of_pass_func;
+  using Base::_uncontraction_func;
 };
 }  // namespace kahypar

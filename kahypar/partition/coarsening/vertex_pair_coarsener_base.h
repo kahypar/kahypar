@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include "kahypar/meta/mandatory.h"
 #include "kahypar/datastructure/binary_heap.h"
 #include "kahypar/definitions.h"
 #include "kahypar/meta/int_to_type.h"
@@ -39,16 +40,19 @@
 #include "kahypar/utils/time_limit.h"
 
 namespace kahypar {
-template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType> >
+template <class PrioQueue = ds::BinaryMaxHeap<HypernodeID, RatingType>,
+          class UncontractFunc = Mandatory >
 class VertexPairCoarsenerBase : public CoarsenerBase {
  private:
   static constexpr bool debug = false;
 
  public:
   VertexPairCoarsenerBase(Hypergraph& hypergraph, const Context& context,
-                          const HypernodeWeight weight_of_heaviest_node) :
+                          const HypernodeWeight weight_of_heaviest_node,
+                          const UncontractFunc uncontract_func) :
     CoarsenerBase(hypergraph, context, weight_of_heaviest_node),
-    _pq(_hg.initialNumNodes()) { }
+    _pq(_hg.initialNumNodes()),
+    _uncontraction_func(uncontract_func) { }
 
   ~VertexPairCoarsenerBase() override = default;
 
@@ -119,6 +123,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       uncontract(changes);
 
       CoarsenerBase::performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
+      _uncontraction_func(current_metrics);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
     }
@@ -203,5 +208,6 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
   using CoarsenerBase::_hg;
   using CoarsenerBase::_context;
   PrioQueue _pq;
+  UncontractFunc _uncontraction_func;
 };
 }  // namespace kahypar
