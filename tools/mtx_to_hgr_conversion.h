@@ -26,17 +26,22 @@
 
 namespace mtxconversion {
 enum class MatrixFormat { COORDINATE };
+enum class MatrixObjectType { MATRIX, WEIGHTED_MATRIX };
 enum class MatrixSymmetry { GENERAL, SYMMETRIC };
 
 struct MatrixInfo {
   MatrixFormat format = MatrixFormat::COORDINATE;
+  MatrixObjectType object = MatrixObjectType::MATRIX;
   MatrixSymmetry symmetry = MatrixSymmetry::GENERAL;
   int num_rows = 0;
   int num_columns = 0;
   int num_entries = 0;
 };
 
-using MatrixData = std::vector<std::vector<int> >;
+struct MatrixData {
+  std::vector<std::vector<int> > entries { };
+  std::vector<int> weights { };
+};
 
 struct Matrix {
   MatrixInfo info { };
@@ -51,6 +56,7 @@ MatrixInfo parseHeader(std::ifstream& file);
 void parseDimensionInformation(std::ifstream& file, MatrixInfo& info);
 void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
 void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
+void parseWeights(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data);
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
                             const std::string& filename);
 void convertMtxToHgr(const std::string& matrix_filename,

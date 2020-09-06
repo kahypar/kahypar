@@ -61,6 +61,13 @@ int main(int argc, char *argv[]) {
   Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k));
 
   HypernodeID new_k = removeHeavyNodes(hypergraph, k);
+  for (const HyperedgeID& he : hypergraph.edges()) {
+    auto pins_start_end = hypergraph.pins(he);
+    if (pins_start_end.first == pins_start_end.second) {
+      hypergraph.removeEdge(he);
+    }
+  }
+
   auto modified_hg = ds::reindex(hypergraph);
   std::cout << "k=" << new_k << std::endl;
   std::cout << "removed=" << (k - new_k) << std::endl;

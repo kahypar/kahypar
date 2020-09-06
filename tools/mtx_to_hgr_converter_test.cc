@@ -55,14 +55,14 @@ TEST(AnMtxToHgrConversionRoutine, ParsesMatrixEntries) {
   parseDimensionInformation(file, info);
   MatrixData matrix_data;
   parseMatrixEntries(file, info, matrix_data);
-  ASSERT_EQ(matrix_data[0].size(), 1);
-  ASSERT_EQ(matrix_data[0][0], 0);
-  ASSERT_EQ(matrix_data[1].size(), 2);
-  ASSERT_EQ(matrix_data[1][0], 1);
-  ASSERT_EQ(matrix_data[1][1], 2);
-  ASSERT_EQ(matrix_data[2].size(), 2);
-  ASSERT_EQ(matrix_data[2][0], 2);
-  ASSERT_EQ(matrix_data[2][1], 1);
+  ASSERT_EQ(matrix_data.entries[0].size(), 1);
+  ASSERT_EQ(matrix_data.entries[0][0], 0);
+  ASSERT_EQ(matrix_data.entries[1].size(), 2);
+  ASSERT_EQ(matrix_data.entries[1][0], 1);
+  ASSERT_EQ(matrix_data.entries[1][1], 2);
+  ASSERT_EQ(matrix_data.entries[2].size(), 2);
+  ASSERT_EQ(matrix_data.entries[2][0], 2);
+  ASSERT_EQ(matrix_data.entries[2][1], 1);
 }
 
 TEST(AnMtxToHgrConversionRoutine, ConvertsSymmetricCoordinateMTXMatrixToHGRFormat) {
@@ -81,6 +81,19 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   std::string mtx_filename("test_instances/EmptyRows.mtx");
   std::string hgr_filename("test_instances/EmptyRows.hgr");
   std::string correct_hgr_filename("test_instances/EmptyRowsCorrect.hgr");
+  convertMtxToHgr(mtx_filename, hgr_filename);
+
+  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+
+  ASSERT_EQ(kahypar::ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
+                                                               correct_hypergraph), true);
+}
+
+TEST(AnMtxToHgrConversionRoutine, ConvertsWeightedMTXMatrixToHGRFormat) {
+  std::string mtx_filename("test_instances/WeightedMtxExample.mtx");
+  std::string hgr_filename("test_instances/WeightedMtxExample.hgr");
+  std::string correct_hgr_filename("test_instances/WeightedMtxExampleCorrect.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 
   Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2);

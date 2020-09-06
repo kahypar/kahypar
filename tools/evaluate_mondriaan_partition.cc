@@ -18,6 +18,8 @@
  *
 ******************************************************************************/
 
+#include <boost/algorithm/string/predicate.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -29,8 +31,10 @@
 #include "kahypar/macros.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
+#include "tools/mtx_to_hgr_conversion.h"
 
 using namespace kahypar;
+using mtxconversion::Matrix;
 
 static inline double imb(const Hypergraph& hypergraph, const PartitionID k) {
   HypernodeWeight max_weight = hypergraph.partWeight(0);
@@ -41,15 +45,43 @@ static inline double imb(const Hypergraph& hypergraph, const PartitionID k) {
          ceil(static_cast<double>(hypergraph.totalWeight()) / k) - 1.0;
 }
 
+static inline Hypergraph createHypergraphFromMtx(const std::string& filename,
+                                                  const PartitionID num_parts) {
+  // we use the row-net model
+  Matrix matrix = mtxconversion::readMatrix(filename);
+  HypernodeID num_hypernodes = matrix.info.num_columns;
+  HyperedgeID num_hyperedges = matrix.info.num_rows;
+  HyperedgeIndexVector index_vector;
+  HyperedgeVector edge_vector;
+
+  index_vector.push_back(edge_vector.size());
+  for (const auto& hyperedge : matrix.data.entries) {
+    if (hyperedge.size() != 0) {
+      for (const auto& pin : hyperedge) {
+        edge_vector.push_back(pin);
+      }
+      index_vector.push_back(edge_vector.size());
+    }
+  }
+  ALWAYS_ASSERT(matrix.info.object == mtxconversion::MatrixObjectType::WEIGHTED_MATRIX
+                || matrix.data.weights.empty(), "Weights not allowed");
+  return Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                    num_parts, HyperedgeWeightVector{ }, matrix.data.weights);
+}
+
 int main(int argc, char* argv[]) {
   if (argc != 2 && argc != 3) {
     std::cout << "No .hgr file specified" << std::endl;
-    std::cout << "Usage: EvaluateMondriaanPartiton <.hgr>  <partition file>" << std::endl;
+    std::cout << "Usage: EvaluateMondriaanPartiton <.hgr/.mtx> <partition file>" << std::endl;
     exit(0);
   }
-  const std::string hgr_filename(argv[1]);
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
-
+  const std::string hypergraph_filename(argv[1]);
+  Hypergraph hypergraph;
+  if (boost::algorithm::ends_with(hypergraph_filename, ".mtx")) {
+    hypergraph = createHypergraphFromMtx(hypergraph_filename, 2);
+  } else {
+    hypergraph = io::createHypergraphFromFile(hypergraph_filename, 2);
+  }
 
   PartitionID max_part = 1;
   std::vector<PartitionID> partition(hypergraph.initialNumNodes(), -1);
@@ -106,7 +138,7 @@ int main(int argc, char* argv[]) {
             << std::endl;
 
   std::cout << "RESULT"
-            << " graph=" << hgr_filename.substr(hgr_filename.find_last_of('/') + 1)
+            << " graph=" << hypergraph_filename.substr(hypergraph_filename.find_last_of('/') + 1)
             << " k=" << context.partition.k
             << " imbalance=" << imb(hypergraph, context.partition.k)
             << " cut=" << metrics::hyperedgeCut(hypergraph)

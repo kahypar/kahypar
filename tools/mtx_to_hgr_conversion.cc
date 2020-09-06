@@ -39,13 +39,20 @@ MatrixInfo parseHeader(std::ifstream& file) {
   LOG << "data_format=" << data_format;
   LOG << "symmetry=" << symmetry;
   ALWAYS_ASSERT(matrix_market == "%%MatrixMarket", "Invalid Header " << V(matrix_market));
-  ALWAYS_ASSERT(object == "matrix", "Invalid object type " << V(object));
 
   MatrixInfo info;
   if (matrix_format == "coordinate") {
     info.format = MatrixFormat::COORDINATE;
   } else {
     std::cout << "Matrix format " << matrix_format << " is not supported" << std::endl;
+    exit(-1);
+  }
+  if (object == "matrix") {
+    info.object = MatrixObjectType::MATRIX;
+  } else if (object == "weightedmatrix") {
+    info.object = MatrixObjectType::WEIGHTED_MATRIX;
+  } else {
+    std::cout << "Object type " << object << " is not supported" << std::endl;
     exit(-1);
   }
   if (symmetry == "general") {
@@ -75,11 +82,18 @@ void parseDimensionInformation(std::ifstream& file, MatrixInfo& info) {
 
 void parseMatrixEntries(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data) {
   // row-net representation
-  matrix_data.resize(info.num_rows);
+  matrix_data.entries.resize(info.num_rows);
 
   switch (info.format) {
     case MatrixFormat::COORDINATE:
       parseCoordinateMatrixEntries(file, info, matrix_data);
+      break;
+  }
+  switch (info.object) {
+    case MatrixObjectType::MATRIX:
+      break;
+    case MatrixObjectType::WEIGHTED_MATRIX:
+      parseWeights(file, info, matrix_data);
       break;
   }
 }
@@ -98,17 +112,17 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
     // indices start at 1
     --column;
     --row;
-    matrix_data[row].push_back(column);
+    matrix_data.entries[row].push_back(column);
     DBG << "_matrix_data[" << row << "].push_back(" << column << ")";
 
     if (info.symmetry == MatrixSymmetry::SYMMETRIC && row != column) {
-      matrix_data[column].push_back(row);
+      matrix_data.entries[column].push_back(row);
       DBG << "_matrix_data[" << column << "].push_back(" << row << ")";
     }
   }
 
   int num_empty_hyperedges = 0;
-  for (const auto& hyperedge : matrix_data) {
+  for (const auto& hyperedge : matrix_data.entries) {
     if (hyperedge.size() == 0) {
       ++num_empty_hyperedges;
     }
@@ -122,11 +136,33 @@ void parseCoordinateMatrixEntries(std::ifstream& file, MatrixInfo& info,
   }
 }
 
+void parseWeights(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data) {
+  ALWAYS_ASSERT(info.object == MatrixObjectType::WEIGHTED_MATRIX, "Matrix is not weighted");
+  std::string line;
+  int num_weights = 0;
+  for (int i = 0; i < info.num_columns; ++i) {
+    std::getline(file, line);
+    DBG << line;
+    std::istringstream line_stream(line);
+    int weight;
+    line_stream >> weight;
+
+    ++num_weights;
+    matrix_data.weights.push_back(weight);
+    DBG << "weights.push_back(" << weight << ")";
+  }
+}
+
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
                             const std::string& filename) {
   std::ofstream out_stream(filename.c_str());
-  out_stream << info.num_rows << " " << info.num_columns << std::endl;
-  for (const auto& hyperedge : matrix_data) {
+  bool weighted = (info.object == MatrixObjectType::WEIGHTED_MATRIX);
+  out_stream << info.num_rows << " " << info.num_columns;
+  if (weighted) {
+    out_stream << " 10";
+  }
+  out_stream << std::endl;
+  for (const auto& hyperedge : matrix_data.entries) {
     if (hyperedge.size() != 0) {
       for (auto pin_iter = hyperedge.begin(); pin_iter != hyperedge.end(); ++pin_iter) {
         // ids start at 1
@@ -136,6 +172,11 @@ void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_dat
         }
       }
       out_stream << std::endl;
+    }
+  }
+  if (weighted) {
+    for (const auto& weight : matrix_data.weights) {
+      out_stream << weight << std::endl;
     }
   }
   out_stream.close();
@@ -156,9 +197,11 @@ void convertMtxToHgrForNonsymmetricParallelSPM(const std::string& matrix_filenam
   parseDimensionInformation(mtx_file, matrix.info);
 
   ALWAYS_ASSERT(matrix.info.format == MatrixFormat::COORDINATE, "Unknown Format");
+  ALWAYS_ASSERT(matrix.info.object == MatrixObjectType::MATRIX, "Unsupported object type");
 
   // Here, we actually use the column-net model
-  matrix.data.resize(matrix.info.num_columns);
+  std::vector<std::vector<int> >& entries = matrix.data.entries;
+  entries.resize(matrix.info.num_columns);
 
   std::vector<int> vertex_weights(matrix.info.num_rows, 0);
 
@@ -174,14 +217,14 @@ void convertMtxToHgrForNonsymmetricParallelSPM(const std::string& matrix_filenam
     // indices start at 1
     --column;
     --row;
-    matrix.data[column].push_back(row);
+    entries[column].push_back(row);
     DBG << "_matrix_data[" << column << "].push_back(" << row << ")";
 
     // Vertex weights in column-net model -> c(v) = |{a_ij != 0}|
     vertex_weights[row] += 1;
 
     if (matrix.info.symmetry == MatrixSymmetry::SYMMETRIC && row != column) {
-      matrix.data[row].push_back(column);
+      entries[row].push_back(column);
       vertex_weights[column] += 1;
       DBG << "_matrix_data[" << row << "].push_back(" << column << ")";
     }
@@ -189,7 +232,7 @@ void convertMtxToHgrForNonsymmetricParallelSPM(const std::string& matrix_filenam
   mtx_file.close();
 
   int num_empty_hyperedges = 0;
-  for (const auto& hyperedge : matrix.data) {
+  for (const auto& hyperedge : matrix.data.entries) {
     if (hyperedge.size() == 0) {
       ++num_empty_hyperedges;
     }
@@ -210,7 +253,7 @@ void convertMtxToHgrForNonsymmetricParallelSPM(const std::string& matrix_filenam
              << (matrix.info.num_rows + matrix.info.num_columns) << " " << 10 << std::endl;
 
   for (int i = 0; i < matrix.info.num_columns; ++i) {
-    const auto& hyperedge = matrix.data[i];
+    const auto& hyperedge = entries[i];
     if (hyperedge.size() != 0) {
       // add xj vertex
       out_stream << matrix.info.num_rows + i + 1 << " ";
