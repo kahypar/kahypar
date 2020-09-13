@@ -43,14 +43,6 @@ struct RollbackElement {
     part(part_),
     delta(delta_),
     action(act) { }
-
-  RollbackElement(const RollbackElement&) = delete;
-  RollbackElement& operator= (const RollbackElement&) = delete;
-
-  RollbackElement(RollbackElement&&) = default;
-  RollbackElement& operator= (RollbackElement&&) = default;
-
-  ~RollbackElement() = default;
 };
 
 // Internal structure for cache entries.

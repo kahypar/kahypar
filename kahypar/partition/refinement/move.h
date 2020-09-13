@@ -34,13 +34,5 @@ struct Move {
     hn(hn),
     from(from),
     to(to) { }
-
-  Move(const Move&) = delete;
-  Move& operator= (const Move&) = delete;
-
-  Move(Move&&) = default;
-  Move& operator= (Move&&) = default;
-
-  ~Move() = default;
 };
 }  // namespace kahypar
