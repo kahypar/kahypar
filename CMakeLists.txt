@@ -267,6 +267,9 @@ endif()
     set(PROFILE_FLAGS "-lprofiler")
   endif()
 
+  # disable warnings for the register keyword which is deprecated but used in the python 2.7 bindings
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-register")
+
 elseif(MSVC)
   string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REGEX REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
