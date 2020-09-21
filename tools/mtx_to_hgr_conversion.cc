@@ -153,6 +153,22 @@ void parseWeights(std::ifstream& file, MatrixInfo& info, MatrixData& matrix_data
   }
 }
 
+void addRowNetWeights(MatrixInfo& info, MatrixData& matrix_data) {
+  if (info.object == MatrixObjectType::WEIGHTED_MATRIX) {
+    std::cout << "Warning: Matrix is already weighted. Overwriting with node degrees." << std::endl;
+  }
+
+  matrix_data.weights.resize(info.num_columns);
+  for (const auto& hyperedge : matrix_data.entries) {
+    if (hyperedge.size() != 0) {
+      for (auto pin_iter = hyperedge.begin(); pin_iter != hyperedge.end(); ++pin_iter) {
+        matrix_data.weights.at(*pin_iter)++;
+      }
+    }
+  }
+  info.object = MatrixObjectType::WEIGHTED_MATRIX;
+}
+
 void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_data,
                             const std::string& filename) {
   std::ofstream out_stream(filename.c_str());
@@ -184,6 +200,12 @@ void writeMatrixInHgrFormat(const MatrixInfo& info, const MatrixData& matrix_dat
 
 void convertMtxToHgr(const std::string& matrix_filename, const std::string& hypergraph_filename) {
   Matrix matrix = readMatrix(matrix_filename);
+  writeMatrixInHgrFormat(matrix.info, matrix.data, hypergraph_filename);
+}
+
+void convertMtxToWeightedHgr(const std::string& matrix_filename, const std::string& hypergraph_filename) {
+  Matrix matrix = readMatrix(matrix_filename);
+  addRowNetWeights(matrix.info, matrix.data);
   writeMatrixInHgrFormat(matrix.info, matrix.data, hypergraph_filename);
 }
 

@@ -65,6 +65,12 @@ set_property(TARGET CalculateRelaxedEpsilon PROPERTY CXX_STANDARD_REQUIRED ON)
 add_executable(RemoveHeavyNodes remove_heavy_nodes.cc)
 set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD 17)
 set_property(TARGET RemoveHeavyNodes PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(BookshelfToWeightedHgr bookshelf_to_weighted_hgr_converter.cc)
+set_property(TARGET BookshelfToWeightedHgr PROPERTY CXX_STANDARD 14)
+set_property(TARGET BookshelfToWeightedHgr PROPERTY CXX_STANDARD_REQUIRED ON)
+add_executable(MtxToWeightedHgr mtx_to_weighted_hgr_converter.cc mtx_to_hgr_conversion.cc)
+set_property(TARGET MtxToWeightedHgr PROPERTY CXX_STANDARD 14)
+set_property(TARGET MtxToWeightedHgr PROPERTY CXX_STANDARD_REQUIRED ON)
 
 
 
