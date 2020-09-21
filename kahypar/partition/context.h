@@ -262,8 +262,6 @@ struct InitialPartitioningParameters {
   HypernodeWeightVector upper_allowed_partition_weight = { };
   HypernodeWeightVector perfect_balance_partition_weight = { };
   PartitionID unassigned_part = 1;
-  // TODO(maas): remove
-  double init_alpha = 1;
   std::vector<PartitionID> num_bins_per_partition = { };
   HypernodeWeight current_max_bin = 0;
   double bin_epsilon = 0.0;
@@ -470,6 +468,26 @@ class Context {
                                            * partition.perfect_balance_part_weights[0]);
       for (PartitionID part = 1; part != partition.k; ++part) {
         partition.max_part_weights.push_back(partition.max_part_weights[0]);
+      }
+    }
+  }
+
+  void setupInitialPartitioningPartWeights() {
+    initial_partitioning.perfect_balance_partition_weight.clear();
+    initial_partitioning.upper_allowed_partition_weight.clear();
+
+    if (partition.use_individual_part_weights) {
+      initial_partitioning.perfect_balance_partition_weight =
+        partition.perfect_balance_part_weights;
+      initial_partitioning.upper_allowed_partition_weight =
+        initial_partitioning.perfect_balance_partition_weight;
+    } else {
+      for (int i = 0; i < initial_partitioning.k; ++i) {
+        initial_partitioning.perfect_balance_partition_weight.push_back(
+          partition.perfect_balance_part_weights[i]);
+        initial_partitioning.upper_allowed_partition_weight.push_back(
+          initial_partitioning.perfect_balance_partition_weight[i]
+          * (1.0 + partition.epsilon));
       }
     }
   }

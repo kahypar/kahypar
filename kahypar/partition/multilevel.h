@@ -33,12 +33,16 @@
 
 namespace kahypar {
 namespace multilevel {
+using bin_packing::BalancingLevel;
+using bin_packing::IBinPacker;
+
 static constexpr bool debug = false;
 
 static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
-                             const Context& context) {
+                             const Context& context,
+                             const std::vector<HypernodeWeight>& adjusted_weight = std::vector<HypernodeWeight>()) {
   io::printCoarseningBanner(context);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -58,7 +62,7 @@ static inline void partition(Hypergraph& hypergraph,
     io::printInitialPartitioningBanner(context);
 
     start = std::chrono::high_resolution_clock::now();
-    initial::partition(hypergraph, context);
+    initial::partition(hypergraph, context, adjusted_weight);
     end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(context, Timepoint::initial_partitioning,
                           std::chrono::duration<double>(end - start).count());
@@ -123,6 +127,45 @@ static inline void partition(Hypergraph& hypergraph,
                         std::chrono::duration<double>(end - start).count());
 
   io::printLocalSearchResults(context, hypergraph);
+}
+
+static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
+                                                 const Context& context,
+                                                 Context::PartitioningStats& stats,
+                                                 const BalancingLevel level,
+                                                 const HypernodeWeight maxFeasibleBin,
+                                                 bool repeat) {
+  ASSERT((context.partition.rb_upper_k - context.partition.rb_lower_k + 1) > 2,
+         "Prepacking is not allowed for k <= 2: " << V(context.partition.rb_upper_k) << " - " << context.partition.rb_lower_k);
+
+  Context packing_context = initial::createContext(hypergraph, context);
+  packing_context.setupInitialPartitioningPartWeights();
+  BalancingLevel currLevel = level;
+
+  do {
+    if (currLevel != level) {
+      hypergraph.reset();
+
+      // TODO(maas) remove?
+      std::string key("restarts_early_level_");
+      key += std::to_string(static_cast<uint8_t>(currLevel));
+      stats.add(StatTag::InitialPartitioning, key, 1.0);
+    }
+
+    // perform prepacking of heavy vertices
+    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo);
+    bin_packer->prepacking(hypergraph, packing_context, currLevel);
+
+    std::unique_ptr<ICoarsener> coarsener(
+      CoarsenerFactory::getInstance().createObject(context.coarsening.algorithm, hypergraph, context, hypergraph.weightOfHeaviestNode()));
+    std::unique_ptr<IRefiner> refiner(RefinerFactory::getInstance().createObject(context.local_search.algorithm, hypergraph, context));
+    ASSERT(coarsener.get() != nullptr, "coarsener not found");
+    ASSERT(refiner.get() != nullptr, "refiner not found");
+
+    partition(hypergraph, *coarsener, *refiner, context, packing_context.initial_partitioning.upper_allowed_partition_weight);
+    currLevel = bin_packing::increaseBalancingRestrictions(currLevel);
+  } while (repeat && currLevel != BalancingLevel::STOP
+           && bin_packing::resultingMaxBin(hypergraph, packing_context) > maxFeasibleBin);
 }
 }  // namespace multilevel
 }  // namespace kahypar

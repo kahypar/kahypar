@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/bin_packing/bin_packer.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
@@ -38,8 +39,7 @@ namespace initial {
 static constexpr bool debug = false;
 
 static inline Context createContext(const Hypergraph& hg,
-                                    const Context& original_context,
-                                    double init_alpha) {
+                                    const Context& original_context) {
   Context context(original_context);
 
   context.type = ContextType::initial_partitioning;
@@ -48,31 +48,13 @@ static inline Context createContext(const Hypergraph& hg,
     context.preprocessing.enable_community_detection = false;
   }
 
-  context.partition.epsilon = init_alpha * original_context.partition.epsilon;
+  context.partition.epsilon = original_context.partition.epsilon;
 
   context.partition.global_search_iterations = 0;
 
   context.initial_partitioning.k = context.partition.k;
 
-  context.initial_partitioning.perfect_balance_partition_weight.clear();
-  context.initial_partitioning.upper_allowed_partition_weight.clear();
-
-  if (context.partition.use_individual_part_weights) {
-    for (int i = 0; i < context.initial_partitioning.k; ++i) {
-      context.initial_partitioning.perfect_balance_partition_weight.push_back(
-        context.partition.perfect_balance_part_weights[i]);
-      context.initial_partitioning.upper_allowed_partition_weight.push_back(
-        context.initial_partitioning.perfect_balance_partition_weight.back());
-    }
-  } else {
-    for (int i = 0; i < context.initial_partitioning.k; ++i) {
-      context.initial_partitioning.perfect_balance_partition_weight.push_back(
-        context.partition.perfect_balance_part_weights[i]);
-      context.initial_partitioning.upper_allowed_partition_weight.push_back(
-        context.initial_partitioning.perfect_balance_partition_weight[i]
-        * (1.0 + context.partition.epsilon));
-    }
-  }
+  context.setupInitialPartitioningPartWeights();
 
   // Coarsening-Parameters
   context.coarsening = context.initial_partitioning.coarsening;
@@ -155,64 +137,63 @@ static inline Context createContext(const Hypergraph& hg,
 }
 
 
-static inline void partition(Hypergraph& hg, const Context& context) {
+static inline void partition(Hypergraph& hg,
+                             const Context& context,
+                             const std::vector<HypernodeWeight>& adjusted_upper_weight = std::vector<HypernodeWeight>()) {
   auto extracted_init_hypergraph = ds::reindex(hg);
+  Hypergraph& init_hg = *extracted_init_hypergraph.first;
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
-  double init_alpha = context.initial_partitioning.init_alpha;
-  double best_imbalance = std::numeric_limits<double>::max();
-  std::vector<PartitionID> best_balanced_partition(
-    extracted_init_hypergraph.first->initialNumNodes(), 0);
 
   double fixed_vertex_subgraph_imbalance = 0.0;
   if (hg.numFixedVertices() > 0) {
     fixed_vertex_subgraph_imbalance = metrics::imbalanceFixedVertices(hg, context.partition.k);
   }
 
-  do {
-    extracted_init_hypergraph.first->resetPartitioning();
-    // we do not want to use the community structure used during coarsening in initial partitioning
-    extracted_init_hypergraph.first->resetCommunities();
-    Context init_context = createContext(*extracted_init_hypergraph.first, context, init_alpha);
+  init_hg.resetPartitioning();
+  // we do not want to use the community structure used during coarsening in initial partitioning
+  init_hg.resetCommunities();
+  Context init_context = createContext(init_hg, context);
 
-    if (context.initial_partitioning.verbose_output) {
-      LOG << "Calling Initial Partitioner:" << context.initial_partitioning.technique
-          << context.initial_partitioning.mode
-          << context.initial_partitioning.algo
-          << "(k=" << init_context.initial_partitioning.k << ", epsilon="
-          << init_context.partition.epsilon << ")";
-    }
-    if ((context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-         context.initial_partitioning.mode == Mode::direct_kway) ||
-        fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
-      // NOTE: If the fixed vertex subgraph is imbalanced, we cannot guarantee
-      //       a balanced initial partition with recursive bisection. Therefore,
-      //       we switch to direct k-way flat mode in that case.
-      if (fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
-        LOG << "WARNING: Fixed vertex subgraph is imbalanced."
-               " Switching to direct k-way initial partitioning!";
-      }
-      // If the direct k-way flat initial partitioner is used we call the
-      // corresponding initial partitioing algorithm, otherwise...
-      std::unique_ptr<IInitialPartitioner> partitioner(
-        InitialPartitioningFactory::getInstance().createObject(
-          context.initial_partitioning.algo,
-          *extracted_init_hypergraph.first, init_context));
-      partitioner->partition();
-    } else {
-      // ... we call the partitioner again with the new configuration.
-      partition::partition(* extracted_init_hypergraph.first, init_context);
+  // TODO(maas): this is a bad hack
+  if (adjusted_upper_weight.size() > 0) {
+    ASSERT(init_context.initial_partitioning.upper_allowed_partition_weight.size() == adjusted_upper_weight.size(),
+           "Different partition sizes: " << V(init_context.initial_partitioning.upper_allowed_partition_weight.size())
+           << " - " << V(adjusted_upper_weight.size()));
+    init_context.initial_partitioning.upper_allowed_partition_weight = adjusted_upper_weight;
+    init_context.partition.epsilon = static_cast<double>(adjusted_upper_weight[0])
+                                     / static_cast<double>(init_context.initial_partitioning.perfect_balance_partition_weight[0]) - 1.0;
+  }
+
+  if (context.initial_partitioning.verbose_output) {
+    LOG << "Calling Initial Partitioner:" << context.initial_partitioning.technique
+        << context.initial_partitioning.mode
+        << context.initial_partitioning.algo
+        << "(k=" << init_context.initial_partitioning.k << ", epsilon="
+        << init_context.partition.epsilon << ")";
+  }
+  if ((context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+        context.initial_partitioning.mode == Mode::direct_kway) ||
+      fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
+    // NOTE: If the fixed vertex subgraph is imbalanced, we cannot guarantee
+    //       a balanced initial partition with recursive bisection. Therefore,
+    //       we switch to direct k-way flat mode in that case.
+    if (fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
+      LOG << "WARNING: Fixed vertex subgraph is imbalanced."
+              " Switching to direct k-way initial partitioning!";
     }
 
-    const double imbalance = metrics::imbalance(*extracted_init_hypergraph.first, context);
-    if (imbalance < best_imbalance) {
-      for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
-        best_balanced_partition[hn] = extracted_init_hypergraph.first->partID(hn);
-      }
-      best_imbalance = imbalance;
-    }
-    init_alpha -= 0.1;
-  } while (metrics::imbalance(*extracted_init_hypergraph.first, context)
-           > context.partition.epsilon && init_alpha > 0.0);
+
+    // If the direct k-way flat initial partitioner is used we call the
+    // corresponding initial partitioing algorithm, otherwise...
+    std::unique_ptr<IInitialPartitioner> partitioner(
+      InitialPartitioningFactory::getInstance().createObject(
+        context.initial_partitioning.algo,
+        init_hg, init_context));
+    partitioner->partition();
+  } else {
+    // ... we call the partitioner again with the new configuration.
+    partition::partition(init_hg, init_context);
+  }
 
   ASSERT([&]() {
         for (const HypernodeID& hn : hg.nodes()) {
@@ -223,13 +204,11 @@ static inline void partition(Hypergraph& hg, const Context& context) {
         return true;
       } (), "The original hypergraph isn't unpartitioned!");
 
-  // Apply the best balanced partition to the original hypergraph
-  for (const HypernodeID& hn : extracted_init_hypergraph.first->nodes()) {
-    PartitionID part = extracted_init_hypergraph.first->partID(hn);
-    if (part != best_balanced_partition[hn]) {
-      part = best_balanced_partition[hn];
-    }
+  // Apply the partition to the original hypergraph
+  for (const HypernodeID& hn : init_hg.nodes()) {
+    PartitionID part = init_hg.partID(hn);
     hg.setNodePart(mapping[hn], part);
+
   }
 
   // Stats of initial partitioning are added in doUncoarsen
