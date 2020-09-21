@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
   kahypar::io::readHypergraphFile(graph_filename, num_hypernodes, num_hyperedges,
                                   index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
-  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector);
+  Hypergraph hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector, 2, hyperedge_weights, hypernode_weights);
 
   HyperedgeID max_hn_degree = 0;
   HyperedgeID min_hn_degree = std::numeric_limits<HyperedgeID>::max();
@@ -101,6 +101,21 @@ int main(int argc, char* argv[]) {
   }
   density = density / (num_hypernodes * (num_hypernodes - 1));
 
+  HypernodeWeight min_hn_weight = 0;
+  double avg_hn_weight = kahypar::metrics::avgHypernodeWeight(hypergraph);
+  double sd_hn_weight = 0.0;
+  std::vector<HypernodeWeight> hn_weights;
+  hn_weights.reserve(hypergraph.currentNumNodes());
+  for (const auto& hn : hypergraph.nodes()) {
+    min_hn_weight = std::min(min_hn_weight, hypergraph.nodeWeight(hn));
+    sd_hn_weight += std::pow(hypergraph.nodeWeight(hn), 2);
+    hn_weights.push_back(hypergraph.nodeWeight(hn));
+  }
+  sd_hn_weight = std::sqrt((sd_hn_weight / num_hypernodes) - std::pow(avg_hn_weight, 2));
+
+  std::sort(hn_weights.begin(), hn_weights.end());
+  auto hn_weight_quartiles = kahypar::math::firstAndThirdQuartile(hn_weights);
+
   out_stream << "RESULT graph=" << graph_name
              << " HNs=" << num_hypernodes
              << " HEs=" << num_hyperedges
@@ -122,6 +137,14 @@ int main(int argc, char* argv[]) {
              << " Q1HNdegree=" << hn_deg_quartiles.first
              << " medHNdegree=" << kahypar::math::median(hn_degrees)
              << " Q3HNdegree=" << hn_deg_quartiles.second
+             << " totalHNweight=" << hypergraph.totalWeight()
+             << " avgHNweight=" << avg_hn_weight
+             << " sdHNweight=" << sd_hn_weight
+             << " minHNweight=" << min_hn_weight
+             << " Q1HNweight=" << hn_weight_quartiles.first
+             << " medHNweight=" << kahypar::math::median(hn_weights)
+             << " Q3HNweight=" << hn_weight_quartiles.second
+             << " maxHNweight=" << hypergraph.weightOfHeaviestNode()
              << " density=" << static_cast<double>(num_hyperedges) / num_hypernodes
              << " true_density=" << density
              << std::endl;
