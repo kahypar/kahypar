@@ -92,6 +92,7 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
                                                     const PartitionID kl) {
   Context current_context(original_context);
   current_context.partition.k = 2;
+  current_context.initial_partitioning.num_bins_per_partition = {k0, k1};
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
                                                               current_hypergraph.totalWeight(),
                                                               current_k, original_context);

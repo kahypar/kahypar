@@ -76,6 +76,8 @@ REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::random,
                              RandomInitialPartitioner);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::bfs, BFSInitialPartitionerBFS);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::lp, LPInitialPartitionerBFS_FM);
+REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::bin_packing,
+                             BinPackingInitialPartitioner);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_sequential,
                              GHGInitialPartitionerBFS_FM_SEQ);
 REGISTER_INITIAL_PARTITIONER(InitialPartitionerAlgorithm::greedy_global,

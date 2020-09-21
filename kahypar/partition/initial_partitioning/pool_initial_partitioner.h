@@ -72,8 +72,9 @@ class PoolInitialPartitioner : public IInitialPartitioner,
   PoolInitialPartitioner(Hypergraph& hypergraph, Context& context) :
     Base(hypergraph, context),
     _partitioner_pool() {
-    // mix3 => pool_type = 011110110111_{2} = 1975_{10}
+    // mix3 => pool_type = 1011110110111_{2} = 6071_{10}
     // Set bits in pool_type decides which partitioner is executed
+    _partitioner_pool.push_back(InitialPartitionerAlgorithm::bin_packing);  // 13th bit set to 1
     _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_global);  // 12th bit set to 1
     _partitioner_pool.push_back(InitialPartitionerAlgorithm::greedy_round);  // 11th bit set to 1
     _partitioner_pool.push_back(
@@ -175,7 +176,6 @@ class PoolInitialPartitioner : public IInitialPartitioner,
       max_imbalance.print_result("Maximum Imbalance");
       best_cut.print_result("==> Best Quality ");
     }
-
 
     const PartitionID unassigned_part = _context.initial_partitioning.unassigned_part;
     _context.initial_partitioning.unassigned_part = -1;
