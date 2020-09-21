@@ -86,6 +86,51 @@ class BinPackingTest : public Test {
   Hypergraph hypergraph;
 };
 
+class ResultingMaxBin : public Test {
+  public:
+    ResultingMaxBin() :
+    hypergraph(0, 0,
+                HyperedgeIndexVector { 0 },
+                HyperedgeVector {}),
+    context() {
+    }
+
+    void initialize(const HypernodeWeightVector& weights,
+                    const std::vector<PartitionID>& partitions,
+                    const PartitionID& num_parts,
+                    const PartitionID& k) {
+      ASSERT(weights.size() == partitions.size());
+      hypergraph = Hypergraph(weights.size(), 0, HyperedgeIndexVector(weights.size() + 1, 0),
+                              HyperedgeVector {}, num_parts);
+
+      for (size_t i = 0; i < weights.size(); ++i) {
+          hypergraph.setNodeWeight(i, weights[i]);
+          hypergraph.setNodePart(i, partitions[i]);
+      }
+
+      context.initial_partitioning.k = num_parts;
+      context.partition.k = num_parts;
+      context.partition.rb_upper_k = k - 1;
+      context.partition.rb_lower_k = 0;
+
+      PartitionID k_per_part = k / num_parts;
+      PartitionID bigger_parts = k % num_parts;
+      HypernodeWeight avgPartWeight = (hypergraph.totalWeight() + k - 1) / k;
+      context.initial_partitioning.num_bins_per_partition.clear();
+      context.partition.perfect_balance_part_weights.clear();
+
+      for (PartitionID i = 0; i < num_parts; ++i) {
+        PartitionID curr_k = i < bigger_parts ? k_per_part + 1 : k_per_part;
+        context.initial_partitioning.num_bins_per_partition.push_back(curr_k);
+        context.partition.perfect_balance_part_weights.push_back(curr_k * avgPartWeight);
+      }
+      context.partition.use_individual_part_weights = false;
+    }
+
+  Hypergraph hypergraph;
+  Context context;
+};
+
 TEST_F(BinPackingTest, PackingBaseCases) {
   initializeWeights({});
   ASSERT_TRUE(applyTwoLevelPacking<WorstFit>({0, 1}, {1, 1}, 2, 1).empty());
@@ -540,6 +585,31 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), false);
+}
+
+TEST_F(ResultingMaxBin, NoBinImbalance) {
+  initialize({1, 1}, {0, 1}, 2, 2);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(1));
+
+  initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+
+  initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+
+  initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+}
+
+TEST_F(ResultingMaxBin, WithBinImbalance) {
+  initialize({1, 4}, {0, 1}, 2, 2);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
+
+  initialize({3, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1}, 2, 4);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+
+  initialize({3, 1, 2, 1, 2, 2}, {1, 0, 0, 0, 2, 2}, 3, 4);
+  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
 }
 }  // namespace bin_packing
 }  // namespace kahypar
