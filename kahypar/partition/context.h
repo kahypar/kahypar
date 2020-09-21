@@ -249,6 +249,9 @@ struct InitialPartitioningParameters {
   Mode mode = Mode::UNDEFINED;
   InitialPartitioningTechnique technique = InitialPartitioningTechnique::UNDEFINED;
   InitialPartitionerAlgorithm algo = InitialPartitionerAlgorithm::UNDEFINED;
+  BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
+  bool infeasible_early_restart = false;
+  bool infeasible_late_restart = false;
   CoarseningParameters coarsening = { };
   LocalSearchParameters local_search = { };
   uint32_t nruns = std::numeric_limits<uint32_t>::max();
@@ -259,12 +262,14 @@ struct InitialPartitioningParameters {
   HypernodeWeightVector upper_allowed_partition_weight = { };
   HypernodeWeightVector perfect_balance_partition_weight = { };
   PartitionID unassigned_part = 1;
-  // Is used to get a tighter balance constraint for initial partitioning.
-  // Before initial partitioning epsilon is set to init_alpha*epsilon.
+  // TODO(maas): remove
   double init_alpha = 1;
-  // If pool initial partitioner is used, the first 12 bits of this number decides
+  std::vector<PartitionID> num_bins_per_partition = { };
+  HypernodeWeight current_max_bin = 0;
+  double bin_epsilon = 0.0;
+  // If pool initial partitioner is used, the first 13 bits of this number decides
   // which algorithms are used.
-  unsigned int pool_type = 1975;
+  unsigned int pool_type = 0b1011110110111;
   // Maximum iterations of the Label Propagation IP over all hypernodes
   int lp_max_iteration = 100;
   // Amount of hypernodes which are assigned around each start vertex (LP)
@@ -281,6 +286,7 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
+  str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
     str << "IP Coarsening:                        " << std::endl;
     str << params.coarsening;
