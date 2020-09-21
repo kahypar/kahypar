@@ -117,7 +117,7 @@ class GreedyHypergraphGrowingInitialPartitioner : public IInitialPartitioner,
     if (_context.initial_partitioning.unassigned_part != -1) {
       _pq.disablePart(_context.initial_partitioning.unassigned_part);
       minimum_unassigned_part_weight =
-        _context.initial_partitioning.perfect_balance_partition_weight[unassigned_part];
+        _context.initial_partitioning.perfect_balance_partition_weight[_context.initial_partitioning.unassigned_part];
     }
 
     bool is_upper_bound_released = false;

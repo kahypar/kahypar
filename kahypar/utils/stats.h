@@ -84,7 +84,7 @@ class Stats {
   }
 
   void add(const StatTag& tag, const std::string& key, const double& value) {
-    _logs[static_cast<size_t>(tag)][key] = value;
+    _logs[static_cast<size_t>(tag)][key] += value;
   }
 
   Stats & topLevel() {
