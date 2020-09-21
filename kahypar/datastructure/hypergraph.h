@@ -1443,6 +1443,16 @@ class GenericHypergraph {
     }
   }
 
+  // ! Removes all fixed vertices
+  void resetFixedVertices() {
+    _fixed_vertices = nullptr;
+    _fixed_vertex_part_id.clear();
+    for (PartInfo& part : _part_info) {
+      part.fixed_vertex_weight = 0;
+    }
+    _fixed_vertex_total_weight = 0;
+  }
+
   Type type() const {
     if (isModified()) {
       return Type::EdgeAndNodeWeights;

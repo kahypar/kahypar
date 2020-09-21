@@ -163,6 +163,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     ASSERT(refiner.get() != nullptr, "refiner not found");
 
     partition(hypergraph, *coarsener, *refiner, context, packing_context.initial_partitioning.upper_allowed_partition_weight);
+    hypergraph.resetFixedVertices();
     currLevel = bin_packing::increaseBalancingRestrictions(currLevel);
   } while (repeat && currLevel != BalancingLevel::STOP
            && bin_packing::resultingMaxBin(hypergraph, packing_context) > maxFeasibleBin);
