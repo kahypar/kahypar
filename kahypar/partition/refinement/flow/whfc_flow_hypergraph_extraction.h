@@ -40,6 +40,9 @@
 namespace kahypar {
 namespace whfcInterface {
 class FlowHypergraphExtractor {
+ private:
+  static constexpr bool enable_heavy_assert = false;
+
  public:
   static constexpr HypernodeID invalid_node = std::numeric_limits<HypernodeID>::max();
   static constexpr PartitionID invalid_part = std::numeric_limits<PartitionID>::max();

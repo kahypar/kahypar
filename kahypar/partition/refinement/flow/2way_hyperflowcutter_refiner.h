@@ -61,6 +61,7 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
   using Base = FlowRefinerBase<FlowExecutionPolicy>;
 
  private:
+  static constexpr bool enable_heavy_assert = false;
   static constexpr bool debug = false;
 
  public:
