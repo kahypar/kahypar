@@ -577,7 +577,7 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
   ASSERT_EQ(hypergraph.isFixedVertex(3), false);
 
-  // smaller partition edge case
+  // smaller partition edge cases
   initializeWeights({6, 4, 4, 4, 4, 4});
   createTestContext(c, {10, 20}, {10, 20}, {2, 4}, 2, 6, 7);
 
@@ -585,6 +585,16 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), false);
+
+  initializeWeights({7, 4, 4, 4, 4});
+  createTestContext(c, {18, 12}, {15, 10}, {3, 2}, 2, 5, 7);
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c, 5, 7);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(4), true);
 }
 
 TEST_F(ResultingMaxBin, NoBinImbalance) {

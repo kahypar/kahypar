@@ -303,7 +303,7 @@ namespace bin_packing {
       // calculate the bound for the subrange
       if (j > i) {
         HypernodeWeight imbalance = seg_tree.query(i, j - 1) + weights[j].second;
-        HypernodeWeight partWeight = (j == nodes.size()) ? packing_result.second[max_part_idx] + weights[i].second : upper_weight[max_part_idx]
+        HypernodeWeight partWeight = (j == nodes.size() ? packing_result.second[max_part_idx] + weights[i].second : upper_weight[max_part_idx])
                                      * max_k / num_bins_per_part[max_part_idx];
         if (partWeight + imbalance <= max_k * max_bin_weight) {
           break;
