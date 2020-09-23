@@ -95,7 +95,7 @@ class BinPacker final : public IBinPacker {
       for (size_t i = 0; i < static_cast<size_t>(context.initial_partitioning.k); ++i) {
         HypernodeWeight lower = context.initial_partitioning.perfect_balance_partition_weight[i];
         HypernodeWeight& border = context.initial_partitioning.upper_allowed_partition_weight[i];
-        HypernodeWeight upper = context.initial_partitioning.num_bins_per_partition[i] * max_bin_weight;
+        HypernodeWeight upper = context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
 
         // TODO(maas) ugly magic numbers - but no better solution known?
         if (upper - border < (border - lower) / 10) {
@@ -113,11 +113,11 @@ class BinPacker final : public IBinPacker {
     ASSERT(static_cast<size_t>(context.partition.k) == context.initial_partitioning.upper_allowed_partition_weight.size());
 
     PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
-    std::vector<PartitionID> partitions(nodes.size(), -1);
+    std::vector<PartitionID> parts(nodes.size(), -1);
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
     if (hg.containsFixedVertices()) {
-      bin_packing::preassignFixedVertices<BPAlgorithm>(hg, nodes, partitions, packer, context.partition.k, rb_range_k);
+      bin_packing::preassignFixedVertices<BPAlgorithm>(hg, nodes, parts, packer, context.partition.k, rb_range_k);
     }
 
     for (size_t i = 0; i < nodes.size(); ++i) {
@@ -125,27 +125,27 @@ class BinPacker final : public IBinPacker {
 
       if(!hg.isFixedVertex(hn)) {
         HypernodeWeight weight = hg.nodeWeight(hn);
-        partitions[i] = packer.insertElement(weight);
+        parts[i] = packer.insertElement(weight);
       }
     }
 
     PartitionMapping packing_result = packer.applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
-                                                              context.initial_partitioning.num_bins_per_partition).first;
-    packing_result.applyMapping(partitions);
+                                                              context.initial_partitioning.num_bins_per_part).first;
+    packing_result.applyMapping(parts);
 
-    ASSERT(nodes.size() == partitions.size());
+    ASSERT(nodes.size() == parts.size());
     ASSERT([&]() {
       for (size_t i = 0; i < nodes.size(); ++i) {
         HypernodeID hn = nodes[i];
 
-        if (hg.isFixedVertex(hn) && (hg.fixedVertexPartID(hn) != partitions[i])) {
+        if (hg.isFixedVertex(hn) && (hg.fixedVertexPartID(hn) != parts[i])) {
           return false;
         }
       }
       return true;
     } (), "Partition of fixed vertex changed.");
 
-    return partitions;
+    return parts;
   }
 };
 

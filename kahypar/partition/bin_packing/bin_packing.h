@@ -33,19 +33,19 @@ namespace bin_packing {
 
   class PartitionMapping {
     public:
-      PartitionMapping(PartitionID num_bins) : _partitions() {
+      PartitionMapping(PartitionID num_bins) : _parts() {
         ASSERT(num_bins > 0, "Number of bins must be positive.");
 
-        _partitions.resize(static_cast<size_t>(num_bins), -1);
+        _parts.resize(static_cast<size_t>(num_bins), -1);
       }
 
-      void setPartition(PartitionID bin, PartitionID partition) {
+      void setPart(PartitionID bin, PartitionID part) {
         size_t index = static_cast<size_t>(bin);
-        ASSERT(bin >= 0 && index < _partitions.size(), "Invalid bin id: " << V(bin));
-        ASSERT(_partitions[index] == -1 || _partitions[index] == partition,
-             "Bin already assigned to other partition");
+        ASSERT(bin >= 0 && index < _parts.size(), "Invalid bin id: " << V(bin));
+        ASSERT(_parts[index] == -1 || _parts[index] == part,
+             "Bin already assigned to different part");
 
-        _partitions[index] = partition;
+        _parts[index] = part;
       }
 
       bool isFixedBin(PartitionID bin) const {
@@ -53,9 +53,9 @@ namespace bin_packing {
       }
 
       PartitionID binPartition(PartitionID bin) const {
-        ASSERT(bin >= 0 && static_cast<size_t>(bin) < _partitions.size(), "Invalid bin id: " << V(bin));
+        ASSERT(bin >= 0 && static_cast<size_t>(bin) < _parts.size(), "Invalid bin id: " << V(bin));
 
-        return _partitions[static_cast<size_t>(bin)];
+        return _parts[static_cast<size_t>(bin)];
       }
 
       void applyMapping(std::vector<PartitionID>& elements) {
@@ -66,7 +66,7 @@ namespace bin_packing {
       }
 
     private:
-      std::vector<PartitionID> _partitions;
+      std::vector<PartitionID> _parts;
   };
 
   template< class BPAlgorithm >
@@ -83,8 +83,8 @@ namespace bin_packing {
         return _alg.insertElement(weight);
       }
 
-      void addFixedVertex(PartitionID bin, PartitionID partition, HypernodeWeight weight) {
-        _bins_to_parts.setPartition(bin, partition);
+      void addFixedVertex(PartitionID bin, PartitionID part, HypernodeWeight weight) {
+        _bins_to_parts.setPart(bin, part);
         _alg.addWeight(bin, weight);
       }
 
@@ -92,21 +92,21 @@ namespace bin_packing {
         return _alg.binWeight(bin);
       }
 
-      // ... and at the second level, the resulting k bins are packed into the final partitions.
-      // Returns the partition mapping for the bins and a vector of the resulting partition weights
-      std::pair<PartitionMapping, std::vector<HypernodeWeight>> applySecondLevel(const std::vector<HypernodeWeight>& max_allowed_partition_weights,
-                                                                                 const std::vector<PartitionID>& num_bins_per_partition) const {
-        ASSERT(num_bins_per_partition.size() == max_allowed_partition_weights.size());
+      // ... and at the second level, the resulting k bins are packed into the final parts.
+      // Returns the partition mapping for the bins and a vector of the resulting part weights
+      std::pair<PartitionMapping, std::vector<HypernodeWeight>> applySecondLevel(const std::vector<HypernodeWeight>& max_allowed_part_weights,
+                                                                                 const std::vector<PartitionID>& num_bins_per_part) const {
+        ASSERT(num_bins_per_part.size() == max_allowed_part_weights.size());
 
-        PartitionID num_partitions = static_cast<PartitionID>(max_allowed_partition_weights.size());
-        std::vector<PartitionID> bin_counts(max_allowed_partition_weights.size(), 0);
+        PartitionID num_parts = static_cast<PartitionID>(max_allowed_part_weights.size());
+        std::vector<PartitionID> bin_counts(max_allowed_part_weights.size(), 0);
         PartitionMapping mapping = _bins_to_parts;
 
-        HypernodeWeight max_partition = *std::max_element(max_allowed_partition_weights.cbegin(),
-                                  max_allowed_partition_weights.cend());
-        BPAlgorithm partition_packer(num_partitions, max_partition);
-        for (PartitionID i = 0; i < num_partitions; ++i) {
-          partition_packer.addWeight(i, max_partition - max_allowed_partition_weights[i]);
+        HypernodeWeight max_part_weight = *std::max_element(max_allowed_part_weights.cbegin(),
+                                          max_allowed_part_weights.cend());
+        BPAlgorithm partition_packer(num_parts, max_part_weight);
+        for (PartitionID i = 0; i < num_parts; ++i) {
+          partition_packer.addWeight(i, max_part_weight - max_allowed_part_weights[i]);
         }
 
         for (PartitionID bin = 0; bin < _alg.numBins(); ++bin) {
@@ -122,26 +122,25 @@ namespace bin_packing {
         });
 
         for (const PartitionID& bin : kbins_descending) {
-          // if not fixed, assign bin to partition
           if (!mapping.isFixedBin(bin)) {
-            PartitionID partition = partition_packer.insertElement(_alg.binWeight(bin));
-            ASSERT((partition >= 0) && (partition < num_partitions));
+            PartitionID part = partition_packer.insertElement(_alg.binWeight(bin));
+            ASSERT((part >= 0) && (part < num_parts));
 
-            size_t part_idx = static_cast<size_t>(partition);
+            size_t part_idx = static_cast<size_t>(part);
             bin_counts[part_idx]++;
-            if (bin_counts[part_idx] >= num_bins_per_partition[part_idx]) {
-              partition_packer.lockBin(partition);
+            if (bin_counts[part_idx] >= num_bins_per_part[part_idx]) {
+              partition_packer.lockBin(part);
             }
 
-            mapping.setPartition(bin, partition);
+            mapping.setPart(bin, part);
           }
         }
 
-        // collect partition weights
+        // collect part weights
         std::vector<HypernodeWeight> part_weights;
-        part_weights.reserve(num_partitions);
-        for (PartitionID i = 0; i < num_partitions; ++i) {
-          part_weights.push_back(partition_packer.binWeight(i) + max_allowed_partition_weights[i] - max_partition);
+        part_weights.reserve(num_parts);
+        for (PartitionID i = 0; i < num_parts; ++i) {
+          part_weights.push_back(partition_packer.binWeight(i) + max_allowed_part_weights[i] - max_part_weight);
         }
 
         return {std::move(mapping), std::move(part_weights)};
@@ -171,10 +170,10 @@ namespace bin_packing {
 
   // Preassigns the fixed vertices to the packer with a first fit packing.
   template< class BPAlgorithm >
-  static inline void preassignFixedVertices(const Hypergraph& hg, const std::vector<HypernodeID>& nodes, std::vector<PartitionID>& partitions,
+  static inline void preassignFixedVertices(const Hypergraph& hg, const std::vector<HypernodeID>& nodes, std::vector<PartitionID>& parts,
                                             TwoLevelPacker<BPAlgorithm>& packer, PartitionID k, PartitionID rb_range_k) {
     HypernodeWeight avg_bin_weight = (hg.totalWeight() + rb_range_k - 1) / rb_range_k;
-    PartitionID kbins_per_partition = (rb_range_k + k - 1) / k;
+    PartitionID bins_per_part = (rb_range_k + k - 1) / k;
 
     for (size_t i = 0; i < nodes.size(); ++i) {
       HypernodeID hn = nodes[i];
@@ -183,11 +182,11 @@ namespace bin_packing {
         HypernodeWeight weight = hg.nodeWeight(hn);
         PartitionID part_id = hg.fixedVertexPartID(hn);
 
-        PartitionID start_index = part_id * kbins_per_partition;
+        PartitionID start_index = part_id * bins_per_part;
         PartitionID assigned_bin = start_index;
 
-        if (kbins_per_partition > 1) {
-          for (PartitionID i = start_index; i < std::min(start_index + kbins_per_partition, rb_range_k); ++i) {
+        if (bins_per_part > 1) {
+          for (PartitionID i = start_index; i < std::min(start_index + bins_per_part, rb_range_k); ++i) {
             HypernodeWeight current_bin_weight = packer.binWeight(i);
 
             // The node is assigned to the first fitting bin or, if none fits, the smallest bin.
@@ -201,7 +200,7 @@ namespace bin_packing {
         }
 
         packer.addFixedVertex(assigned_bin, part_id, weight);
-        partitions[i] = assigned_bin;
+        parts[i] = assigned_bin;
       }
     }
 
@@ -225,13 +224,13 @@ namespace bin_packing {
   static inline size_t getMaxPartIndex(const Context& context, const std::vector<HypernodeWeight>& part_weight,
                                        HypernodeWeight next_element, bool skip_full_parts, HypernodeWeight max_bin_weight) {
     const std::vector<HypernodeWeight>& upper_weight = context.initial_partitioning.upper_allowed_partition_weight;
-    const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_partition;
+    const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_part;
     ASSERT(part_weight.size() == upper_weight.size() && part_weight.size() == num_bins_per_part.size());
 
     size_t max_imb_part_id = 0;
     HypernodeWeight min_remaining = std::numeric_limits<HypernodeWeight>::max();
     for (size_t j = 0; j < upper_weight.size(); ++j) {
-      // skip valid full partitions - those can not provide an upper bound, because the weight sequence is empty
+      // skip valid full parts - those can not provide an upper bound, because the weight sequence is empty
       HypernodeWeight remaining = upper_weight[j] - part_weight[j];
       HypernodeWeight allowed = num_bins_per_part[j] * max_bin_weight - upper_weight[j];
       if (skip_full_parts && (next_element > remaining) && ((num_bins_per_part[j] - 1) * remaining <= allowed)) {
@@ -250,11 +249,10 @@ namespace bin_packing {
   template< class BPAlgorithm >
   static inline void calculateExactPrepacking(Hypergraph& hg, Context& context, PartitionID rb_range_k, HypernodeWeight max_bin_weight) {
     ASSERT(rb_range_k > context.partition.k);
-    ASSERT(context.initial_partitioning.current_max_bin >= hg.totalWeight() / rb_range_k);
     ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
 
     std::vector<HypernodeWeight>& upper_weight = context.initial_partitioning.upper_allowed_partition_weight;
-    const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_partition;
+    const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_part;
 
     ASSERT(upper_weight.size() == static_cast<size_t>(context.partition.k)
          && num_bins_per_part.size() == static_cast<size_t>(context.partition.k));
@@ -273,7 +271,7 @@ namespace bin_packing {
       weights[i - 1] = {w, sum};
     }
     BalanceSegTree<HypernodeWeight> seg_tree(weights, max_k);
-    std::vector<PartitionID> partitions;
+    std::vector<PartitionID> parts;
 
     ASSERT(nodes.size() > 0);
     ASSERT([&]() {
@@ -312,14 +310,14 @@ namespace bin_packing {
         }
       }
 
-      partitions.push_back(packer.insertElement(weights[i].first));
+      parts.push_back(packer.insertElement(weights[i].first));
       packing_result = packer.applySecondLevel(upper_weight, num_bins_per_part);
     }
-    ASSERT(partitions.size() <= nodes.size());
+    ASSERT(parts.size() <= nodes.size());
 
-    packing_result.first.applyMapping(partitions);
-    for (size_t i = 0; i < partitions.size(); ++i) {
-      hg.setFixedVertex(nodes[i], partitions[i]);
+    packing_result.first.applyMapping(parts);
+    for (size_t i = 0; i < parts.size(); ++i) {
+      hg.setFixedVertex(nodes[i], parts[i]);
     }
 
     // TODO(maas) - this part makes many things ugly, with questionable benefit
@@ -348,7 +346,6 @@ namespace bin_packing {
   template< class BPAlgorithm >
   static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& context, const PartitionID& rb_range_k, HypernodeWeight max_bin_weight) {
     ASSERT(rb_range_k > context.partition.k);
-    ASSERT(context.initial_partitioning.current_max_bin >= hg.totalWeight() / rb_range_k);
     ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT((context.initial_partitioning.upper_allowed_partition_weight.size() == static_cast<size_t>(context.partition.k)) &&
          (context.initial_partitioning.perfect_balance_partition_weight.size() == static_cast<size_t>(context.partition.k)));
@@ -375,20 +372,20 @@ namespace bin_packing {
 
     // bin pack the heavy nodes
     nodes.resize(threshold);
-    std::vector<PartitionID> partitions(nodes.size(), -1);
+    std::vector<PartitionID> parts(nodes.size(), -1);
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
     for (size_t i = 0; i < nodes.size(); ++i) {
       HypernodeWeight weight = hg.nodeWeight(nodes[i]);
-      partitions[i] = packer.insertElement(weight);
+      parts[i] = packer.insertElement(weight);
     }
 
     PartitionMapping packing_result = packer.applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
-                                                              context.initial_partitioning.num_bins_per_partition).first;
-    packing_result.applyMapping(partitions);
+                                                              context.initial_partitioning.num_bins_per_part).first;
+    packing_result.applyMapping(parts);
 
     for (size_t i = 0; i < nodes.size(); ++i) {
-      hg.setFixedVertex(nodes[i], partitions[i]);
+      hg.setFixedVertex(nodes[i], parts[i]);
     }
   }
 
@@ -411,7 +408,7 @@ namespace bin_packing {
     return queue.getKey(queue.top());
   }
 
-// Assumes that the final partitions are of equal size (is this always true?).
+// Assumes that the final parts are of equal size (is this always true?).
 static inline HypernodeWeight resultingMaxBin(const Hypergraph& hypergraph, const Context& context) {
   ASSERT(!context.partition.use_individual_part_weights);
 
@@ -421,7 +418,7 @@ static inline HypernodeWeight resultingMaxBin(const Hypergraph& hypergraph, cons
   std::vector<BinaryMinHeap<PartitionID, HypernodeWeight>> part_queues;
   part_queues.reserve(num_parts);
   for (PartitionID i = 0; i < num_parts; ++i) {
-    PartitionID current_k = context.initial_partitioning.num_bins_per_partition[i];
+    PartitionID current_k = context.initial_partitioning.num_bins_per_part[i];
     BinaryMinHeap<PartitionID, HypernodeWeight> queue(current_k);
     for (PartitionID j = 0; j < current_k; ++j) {
         queue.push(j, 0);
@@ -436,7 +433,7 @@ static inline HypernodeWeight resultingMaxBin(const Hypergraph& hypergraph, cons
     PartitionID part_id = hypergraph.partID(hn);
 
     ALWAYS_ASSERT(part_id >= 0 && part_id < num_parts,
-                  "Node not assigned or partition id " << part_id << " invalid: " << hn);
+                  "Node not assigned or part id " << part_id << " invalid: " << hn);
 
     PartitionID bin = part_queues[part_id].top();
     part_queues[part_id].increaseKeyBy(bin, hypergraph.nodeWeight(hn));

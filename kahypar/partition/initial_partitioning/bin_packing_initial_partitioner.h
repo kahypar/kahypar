@@ -90,7 +90,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
 
     PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
     HypernodeWeight allowed_part_weight = (1.0 + _context.partition.epsilon) * (static_cast<double>(_hg.totalWeight()) / rb_range_k);
-    std::vector<PartitionID> partitions = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, allowed_part_weight);
+    std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, allowed_part_weight);
 
     for (size_t i = 0; i < _descending_nodes.size(); ++i) {
       HypernodeID hn = _descending_nodes[i];
@@ -100,7 +100,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
       }
 
       bool assigned = false;
-      PartitionID p = partitions[i];
+      PartitionID p = parts[i];
       do {
         if (Base::assignHypernodeToPartition(hn, p)) {
           assigned = true;
@@ -109,7 +109,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
 
         ++p;
         p %= _context.initial_partitioning.k;
-      } while (p != partitions[i]);
+      } while (p != parts[i]);
 
       // If the current hypernode fits in no part of the partition, we have
       // to assign it to a part which violates the imbalance definition.

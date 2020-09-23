@@ -54,7 +54,7 @@ class BinPackingTest : public Test {
                            const HypernodeWeight max_bin) {
       c.initial_partitioning.upper_allowed_partition_weight = upper_weights;
       c.initial_partitioning.perfect_balance_partition_weight = perfect_weights;
-      c.initial_partitioning.num_bins_per_partition = num_bins_per_part;
+      c.initial_partitioning.num_bins_per_part = num_bins_per_part;
       c.partition.k = k;
       c.initial_partitioning.k = k;
       c.partition.rb_lower_k = 0;
@@ -116,12 +116,12 @@ class ResultingMaxBin : public Test {
       PartitionID k_per_part = k / num_parts;
       PartitionID bigger_parts = k % num_parts;
       HypernodeWeight avgPartWeight = (hypergraph.totalWeight() + k - 1) / k;
-      context.initial_partitioning.num_bins_per_partition.clear();
+      context.initial_partitioning.num_bins_per_part.clear();
       context.partition.perfect_balance_part_weights.clear();
 
       for (PartitionID i = 0; i < num_parts; ++i) {
         PartitionID curr_k = i < bigger_parts ? k_per_part + 1 : k_per_part;
-        context.initial_partitioning.num_bins_per_partition.push_back(curr_k);
+        context.initial_partitioning.num_bins_per_part.push_back(curr_k);
         context.partition.perfect_balance_part_weights.push_back(curr_k * avgPartWeight);
       }
       context.partition.use_individual_part_weights = false;
