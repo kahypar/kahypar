@@ -267,6 +267,7 @@ struct InitialPartitioningParameters {
   std::vector<PartitionID> num_bins_per_part = { };
   HypernodeWeight current_max_bin_weight = 0;
   double bin_epsilon = 0.0;
+  HypernodeWeight max_allowed_bin_weight = 0;
   // If pool initial partitioner is used, the first 13 bits of this number decides
   // which algorithms are used.
   unsigned int pool_type = 0b1011110110111;
@@ -320,6 +321,7 @@ struct PartitioningParameters {
   mutable uint32_t current_v_cycle = 0;
   std::vector<HypernodeWeight> perfect_balance_part_weights;
   std::vector<HypernodeWeight> max_part_weights;
+  std::vector<HypernodeWeight> max_bins_for_individual_part_weights;
   double adjusted_epsilon_for_individual_part_weights = 0.0;
 
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();

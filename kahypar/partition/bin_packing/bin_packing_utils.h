@@ -96,6 +96,10 @@ class TwoLevelPacker {
     return _alg.binWeight(bin);
   }
 
+  void addWeight(PartitionID bin, HypernodeWeight weight) {
+    _alg.addWeight(bin, weight);
+  }
+
   // Packs the current bins into the specified parts. Returns the partition mapping for the bins
   // and a vector of the resulting part weights.
   std::pair<PartitionMapping, std::vector<HypernodeWeight>> applySecondLevel(const std::vector<HypernodeWeight>& max_allowed_part_weights,
@@ -146,6 +150,28 @@ class TwoLevelPacker {
     part_weights.reserve(num_parts);
     for (PartitionID i = 0; i < num_parts; ++i) {
       part_weights.push_back(partition_packer.binWeight(i) + max_allowed_part_weights[i] - max_part_weight);
+    }
+
+    return {std::move(mapping), std::move(part_weights)};
+  }
+
+  // If individual part weights are used, we can not reorder the bins because each corresponds to a part with user-defined maximum weight.
+  // Therefore, the result is returned with the predefined order.
+  //
+  // Note that this does not affect the balancing guarantees of the prepacking, but might cause that more vertices must be prepacked.
+  std::pair<PartitionMapping, std::vector<HypernodeWeight>> secondLevelWithFixedBins(const std::vector<PartitionID>& num_bins_per_part) const {
+    PartitionMapping mapping = _bins_to_parts;
+    std::vector<HypernodeWeight> part_weights(num_bins_per_part.size(), 0);
+    PartitionID bin = 0;
+
+    for (PartitionID part = 0; static_cast<size_t>(part) < num_bins_per_part.size(); ++part) {
+      PartitionID num_bins = num_bins_per_part[part];
+      for (PartitionID j = 0; j < num_bins; ++j) {
+        ASSERT(!mapping.isFixedBin(bin) || mapping.binPartition(bin) == part, "Fixed vertex assigned to invalid part.");
+        mapping.setPart(bin, part);
+        part_weights[static_cast<size_t>(part)] += _alg.binWeight(bin);
+        ++bin;
+      }
     }
 
     return {std::move(mapping), std::move(part_weights)};

@@ -69,18 +69,20 @@ static inline size_t getMaxPartIndex(const Context& context, const std::vector<H
 }
 
 template< class BPAlgorithm >
-static inline void calculateExactPrepacking(Hypergraph& hg, const Context& context, const PartitionID rb_range_k, const HypernodeWeight max_bin_weight) {
-  ASSERT(rb_range_k > context.partition.k);
-  ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
-
-  const std::vector<HypernodeWeight>& upper_weight = context.initial_partitioning.upper_allowed_partition_weight;
+static inline void calculateExactPrepacking(Hypergraph& hg, const Context& context) {
+  PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
+  // the copy is required because the values need to be modified in case of individual part weights
+  std::vector<HypernodeWeight> upper_weight(context.initial_partitioning.upper_allowed_partition_weight);
   const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_part;
 
+  ASSERT(rb_range_k > context.partition.k);
+  ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
   ASSERT(upper_weight.size() == static_cast<size_t>(context.partition.k)
          && num_bins_per_part.size() == static_cast<size_t>(context.partition.k));
   ASSERT(std::accumulate(num_bins_per_part.cbegin(), num_bins_per_part.cend(), 0) >= rb_range_k);
 
-  // initialization: exctract descending nodes, calculate prefix sums of weights and initialize segment tree
+  // initialization: calculate parameters, exctract descending nodes, calculate suffix sums of weights and initialize segment tree
+  const HypernodeWeight max_bin_weight = context.initial_partitioning.max_allowed_bin_weight;
   const std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hg);
   TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
   std::vector<std::pair<HypernodeWeight, HypernodeWeight>> weights;
@@ -96,6 +98,15 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
   const BalanceSegTree seg_tree(weights, max_k);
   std::vector<PartitionID> parts;
 
+  if (context.partition.use_individual_part_weights) {
+    ASSERT(context.partition.max_bins_for_individual_part_weights.size() == static_cast<size_t>(rb_range_k));
+    for (size_t i = 0; i < context.partition.max_bins_for_individual_part_weights.size(); ++i) {
+      HypernodeWeight base_weight = max_bin_weight - context.partition.max_bins_for_individual_part_weights[i];
+      packer.addWeight(static_cast<PartitionID>(i), base_weight);
+      upper_weight[i] += base_weight;
+    }
+  }
+
   ASSERT(nodes.size() > 0);
   ASSERT([&]() {
     for (size_t i = 0; i < static_cast<size_t>(context.partition.k); ++i) {
@@ -109,7 +120,7 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
   } (), "The allowed partition or bin weights are to small to find a valid partition.");
 
   size_t i;
-  std::pair<PartitionMapping, std::vector<HypernodeWeight>> packing_result = packer.applySecondLevel(upper_weight, num_bins_per_part);
+  std::pair<PartitionMapping, std::vector<HypernodeWeight>> packing_result = packer.secondLevelWithFixedBins(num_bins_per_part);
   for (i = 0; i < nodes.size(); ++i) {
     ASSERT(upper_weight.size() == packing_result.second.size());
 
@@ -143,14 +154,15 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
 }
 
 template< class BPAlgorithm >
-static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& context, const PartitionID& rb_range_k, const HypernodeWeight max_bin_weight) {
+static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& context) {
+  PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
   ASSERT(rb_range_k > context.partition.k);
   ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
   ASSERT((context.initial_partitioning.upper_allowed_partition_weight.size() == static_cast<size_t>(context.partition.k)) &&
          (context.initial_partitioning.perfect_balance_partition_weight.size() == static_cast<size_t>(context.partition.k)));
 
   std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hg);
-  const HypernodeWeight allowed_imbalance = max_bin_weight - context.initial_partitioning.current_max_bin_weight;
+  const HypernodeWeight allowed_imbalance = context.initial_partitioning.max_allowed_bin_weight - context.initial_partitioning.current_max_bin_weight;
   ASSERT(allowed_imbalance > 0, "allowed_imbalance is zero!");
 
   // calculate heuristic threshold
@@ -172,7 +184,7 @@ static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& c
   // bin pack the heavy nodes
   nodes.resize(threshold);
   std::vector<PartitionID> parts(nodes.size(), -1);
-  TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
+  TwoLevelPacker<BPAlgorithm> packer(rb_range_k, context.initial_partitioning.max_allowed_bin_weight);
 
   for (size_t i = 0; i < nodes.size(); ++i) {
     const HypernodeWeight weight = hg.nodeWeight(nodes[i]);

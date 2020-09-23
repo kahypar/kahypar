@@ -39,11 +39,10 @@ class BinPacker final : public IBinPacker {
     ASSERT(!_hypergraph.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
-    const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
     const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin_weight * (1.0 + _context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::heuristic) {
-      calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
+      calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context);
     } else if (level == BalancingLevel::guaranteed) {
       Context prepacking_context(_context);
       for (size_t i = 0; i < static_cast<size_t>(_context.initial_partitioning.k); ++i) {
@@ -63,7 +62,7 @@ class BinPacker final : public IBinPacker {
         }
       }
 
-      calculateExactPrepacking<BPAlgorithm>(_hypergraph, prepacking_context, rb_range_k, max_bin_weight);
+      calculateExactPrepacking<BPAlgorithm>(_hypergraph, prepacking_context);
     }
   }
 
@@ -74,7 +73,16 @@ class BinPacker final : public IBinPacker {
     std::vector<PartitionID> parts(nodes.size(), -1);
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
+    if (_context.partition.use_individual_part_weights) {
+      ASSERT(_context.partition.max_bins_for_individual_part_weights.size() == static_cast<size_t>(rb_range_k));
+      for (size_t i = 0; i < _context.partition.max_bins_for_individual_part_weights.size(); ++i) {
+        HypernodeWeight base_weight = max_bin_weight - _context.partition.max_bins_for_individual_part_weights[i];
+        packer.addWeight(static_cast<PartitionID>(i), base_weight);
+      }
+    }
+
     if (_hypergraph.containsFixedVertices()) {
+      ASSERT(_context.initial_partitioning.num_bins_per_part[0] >= _context.initial_partitioning.num_bins_per_part[1]);
       preassignFixedVertices<BPAlgorithm>(_hypergraph, nodes, parts, packer, _context.partition.k, rb_range_k);
     }
 
@@ -89,9 +97,14 @@ class BinPacker final : public IBinPacker {
     }
 
     // ... and at the second level, the resulting bins are packed into the final parts.
-    PartitionMapping packing_result = packer.applySecondLevel(_context.initial_partitioning.upper_allowed_partition_weight,
-                                                              _context.initial_partitioning.num_bins_per_part).first;
-    packing_result.applyMapping(parts);
+    if (_context.partition.use_individual_part_weights) {
+      PartitionMapping packing_result = packer.secondLevelWithFixedBins(_context.initial_partitioning.num_bins_per_part).first;
+      packing_result.applyMapping(parts);
+    } else {
+      PartitionMapping packing_result = packer.applySecondLevel(_context.initial_partitioning.upper_allowed_partition_weight,
+                                                                _context.initial_partitioning.num_bins_per_part).first;
+      packing_result.applyMapping(parts);
+    }
 
     ASSERT(nodes.size() == parts.size());
     ASSERT([&]() {
