@@ -320,8 +320,14 @@ namespace bin_packing {
       hg.setFixedVertex(nodes[i], parts[i]);
     }
 
-    // TODO(maas) - this part makes many things ugly, with questionable benefit
-    // calculate optimization for allowed weights
+    // TODO(maas) It is questionable whether this last part of the algorithm is required.
+    // It is an optimization which theoretically allows to relax the upper allowed partition
+    // weights for the bisection in some cases. However, we also do know that more relaxed weights
+    // in a higher bisection level might lead to worse results in lower levels or in the refinement.
+    // Thus, in practice it is probably no improvement.
+    //
+    // The ugly aspect here is that it also complicates code at other positions, because the changed
+    // weights need to be propagated to the initial partitioning algorithm (see initial_partition::partition).
     size_t max_part_idx = getMaxPartIndex(context, packing_result.second, 0, false, max_bin_weight);
     HypernodeWeight range_weight = packing_result.second[max_part_idx];
     HypernodeWeight imbalance = 0;

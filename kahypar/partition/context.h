@@ -249,6 +249,10 @@ struct InitialPartitioningParameters {
   Mode mode = Mode::UNDEFINED;
   InitialPartitioningTechnique technique = InitialPartitioningTechnique::UNDEFINED;
   InitialPartitionerAlgorithm algo = InitialPartitionerAlgorithm::UNDEFINED;
+  // TODO(maas) Is this a sensible placement for these parameters? While for kKaHyPar the prepacking
+  // is part of the initial partitioning, this is not true for rKaHyPar. Fundamentally, the prepacking
+  // belongs to the recursive bisection.
+  // Therefore, it might be more appropriate to use the PartitioningParameters or introduce a new parameter set.
   BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
   bool infeasible_early_restart = false;
   bool infeasible_late_restart = false;
@@ -285,6 +289,9 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
   str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
+  str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
+  str << "    early restart on infeasible:      " << params.infeasible_early_restart << std::endl;
+  str << "    late restart on infeasible:       " << params.infeasible_late_restart << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
     str << "IP Coarsening:                        " << std::endl;
     str << params.coarsening;
@@ -679,6 +686,11 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
                       0);
     if (sum_part_weights < hypergraph.totalWeight()) {
       LOG << "Sum of individual part weights is less than sum of vertex weights";
+      std::exit(-1);
+    }
+    if (context.initial_partitioning.infeasible_early_restart || context.initial_partitioning.infeasible_late_restart) {
+      LOG << "Individual part weights are not yet supported by the balancing strategy."
+          << "The parameters <i-bp-early-restart> and <i-bp-late-restart> must be set to false.";
       std::exit(-1);
     }
   }

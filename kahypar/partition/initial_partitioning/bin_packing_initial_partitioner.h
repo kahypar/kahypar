@@ -56,8 +56,11 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
       _descending_nodes = bin_packing::extractNodesWithDescendingWeight(_hg);
     }
 
-    // shuffle nodes with equal weight
-    // TODO(maas): more randomness, e.g. only partly preserve order?
+    // TODO(maas) It might be beneficial to add more randomness to the bin packing initial partitioner,
+    // to increase the range of the searched solution space. Currently, this is quite restricted by
+    // preserving the correct ordering of the nodes, thus shuffling only nodes with equal weight.
+    // Probably the partitioner could still find solutions with very good balance if the nodes are
+    // only nearly-ordered.
     size_t i = 0;
     for (size_t j = 1; j < _descending_nodes.size(); ++j) {
       if (_hg.nodeWeight(_descending_nodes[i]) != _hg.nodeWeight(_descending_nodes[j])) {

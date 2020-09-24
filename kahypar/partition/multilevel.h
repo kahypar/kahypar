@@ -146,7 +146,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     if (currLevel != level) {
       hypergraph.reset();
 
-      // TODO(maas) remove?
+      // TODO(maas) Do we want these stats (counting the number of restarts) or better remove them?
       std::string key("restarts_early_level_");
       key += std::to_string(static_cast<uint8_t>(currLevel));
       stats.add(StatTag::InitialPartitioning, key, 1.0);

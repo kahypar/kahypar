@@ -108,7 +108,10 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
                                                               current_hypergraph.totalWeight(),
                                                               current_k, original_context);
-  // TODO(maas) in theory, this could be cached
+  // TODO(maas) In theory, the sorting of the hypernodes involved here could be cached. However, for direct k-way partitioning
+  // the overhead is negligible (due to operating on the coarsened hypergraph). If desired, the caching probably should be
+  // implemented in the hypergraph data structure.
+  // Note that currently the hypernodes are sorted again when the prepacking algorithm is called, and repeatedly so for each bisection.
   if (current_k > 2 && (original_context.initial_partitioning.infeasible_early_restart
       || original_context.initial_partitioning.infeasible_late_restart)) {
     HypernodeWeight current_max_bin = bin_packing::currentMaxBin(current_hypergraph, current_k);

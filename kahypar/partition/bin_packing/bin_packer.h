@@ -97,7 +97,11 @@ class BinPacker final : public IBinPacker {
         HypernodeWeight& border = context.initial_partitioning.upper_allowed_partition_weight[i];
         HypernodeWeight upper = context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
 
-        // TODO(maas) ugly magic numbers - but no better solution known?
+        // TODO(maas) Here, some magic numbers are used to check that the different borders for the part weights work
+        // for the prepacking algorithm. Unfortunately, I do not know of a more general or elegant solution.
+        // The basic problem is, if <border> (the allowed partition weight) is too close to <upper>, the prepacking
+        // algorithm performs badly in the sense that almost every vertex will be prepacked, thus resulting in a
+        // bisection which is indeed balanced, but probably has a really poor cut.
         if (upper - border < (border - lower) / 10) {
           border = (lower + upper) / 2;
           context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
