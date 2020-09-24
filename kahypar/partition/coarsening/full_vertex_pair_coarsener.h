@@ -90,35 +90,40 @@ class FullVertexPairCoarsener final : public ICoarsener,
     // PQ because they are heavier than allowed.
     ds::FastResetFlagArray<> invalid_hypernodes(_hg.initialNumNodes());
 
-    while (!_pq.empty() && _hg.currentNumNodes() > limit) {
+    while (!_pq.empty() && _hg.currentNumFreeVertices() > limit) {
       const HypernodeID rep_node = _pq.top();
       const HypernodeID contracted_node = _target[rep_node];
-      DBG << "Contracting: (" << rep_node << ","
-          << _target[rep_node] << ") prio:" << _pq.topKey() <<
-        " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
-        " w(" << rep_node << ")=" << _hg.nodeWeight(rep_node) <<
-        " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node) <<
-        " w(" << contracted_node << ")=" << _hg.nodeWeight(contracted_node);
+
+      if (!FixedVertexPolicy::acceptContraction(_hg, _context, rep_node, contracted_node)) {
+        updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
+      } else {
+        DBG << "Contracting: (" << rep_node << ","
+            << _target[rep_node] << ") prio:" << _pq.topKey() <<
+          " deg(" << rep_node << ")=" << _hg.nodeDegree(rep_node) <<
+          " w(" << rep_node << ")=" << _hg.nodeWeight(rep_node) <<
+          " deg(" << contracted_node << ")=" << _hg.nodeDegree(contracted_node) <<
+          " w(" << contracted_node << ")=" << _hg.nodeWeight(contracted_node);
 
 
-      ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
-             <= _rater.thresholdNodeWeight());
-      ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
-             V(_pq.topKey()) << V(_rater.rate(rep_node).value));
-      ASSERT(!invalid_hypernodes[rep_node], V(rep_node));
-      ASSERT(!invalid_hypernodes[contracted_node], V(contracted_node));
+        ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
+              <= _rater.thresholdNodeWeight());
+        ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
+              V(_pq.topKey()) << V(_rater.rate(rep_node).value));
+        ASSERT(!invalid_hypernodes[rep_node], V(rep_node));
+        ASSERT(!invalid_hypernodes[contracted_node], V(contracted_node));
 
-      performContraction(rep_node, contracted_node);
+        performContraction(rep_node, contracted_node);
 
-      ASSERT(_pq.contains(contracted_node), V(contracted_node));
-      _pq.remove(contracted_node);
+        ASSERT(_pq.contains(contracted_node), V(contracted_node));
+        _pq.remove(contracted_node);
 
-      // We re-rate the representative HN here, because it might not have any incident HEs left.
-      // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
-      updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
-      rerated_hypernodes.set(rep_node, true);
+        // We re-rate the representative HN here, because it might not have any incident HEs left.
+        // In this case, it will not get re-rated by the call to reRateAffectedHypernodes.
+        updatePQandContractionTarget(rep_node, _rater.rate(rep_node), invalid_hypernodes);
+        rerated_hypernodes.set(rep_node, true);
 
-      reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
+        reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
+      }
     }
 
     finalizeProgressBar();

@@ -84,10 +84,10 @@ class LazyVertexPairCoarsener final : public ICoarsener,
 
     Base::rateAllHypernodes(_rater, _target);
 
-    while (!_pq.empty() && _hg.currentNumNodes() > limit) {
+    while (!_pq.empty() && _hg.currentNumFreeVertices() > limit) {
       const HypernodeID rep_node = _pq.top();
 
-      if (_outdated_rating[rep_node]) {
+      if (_outdated_rating[rep_node] || !FixedVertexPolicy::acceptContraction(_hg, _context, rep_node, _target[rep_node])) {
         DBG << "Rating for HN" << rep_node << "is invalid:" << _pq.topKey() << "--->"
             << _rater.rate(rep_node).value << "target=" << _rater.rate(rep_node).target
             << "valid=" << _rater.rate(rep_node).valid;
