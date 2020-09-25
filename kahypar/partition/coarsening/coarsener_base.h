@@ -35,6 +35,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/progress_bar.h"
 
 namespace kahypar {
 class CoarsenerBase {
@@ -54,7 +55,9 @@ class CoarsenerBase {
     _context(context),
     _history(),
     _max_hn_weights(),
-    _hypergraph_pruner(_hg.initialNumNodes()) {
+    _hypergraph_pruner(_hg.initialNumNodes()),
+    _coarsening_progress_bar(_hg.initialNumNodes(), 0,
+      context.partition.verbose_output && context.type == ContextType::main) {
     _history.reserve(_hg.initialNumNodes());
     _max_hn_weights.reserve(_hg.initialNumNodes());
     _max_hn_weights.emplace_back(CurrentMaxNodeWeight { _hg.initialNumNodes(),
@@ -72,6 +75,7 @@ class CoarsenerBase {
  protected:
   void performContraction(const HypernodeID rep_node, const HypernodeID contracted_node) {
     _history.emplace_back(_hg.contract(rep_node, contracted_node));
+    _coarsening_progress_bar += 1;
     if (_hg.nodeWeight(rep_node) > _max_hn_weights.back().max_weight) {
       _max_hn_weights.emplace_back(CurrentMaxNodeWeight { _hg.currentNumNodes(),
                                                           _hg.nodeWeight(rep_node) });
@@ -161,10 +165,18 @@ class CoarsenerBase {
     return improvement_found;
   }
 
+  void finalizeProgressBar() {
+    const size_t remaining_nodes =
+      static_cast<size_t>(_hg.initialNumNodes()) -
+      _coarsening_progress_bar.count();
+    _coarsening_progress_bar += remaining_nodes;
+  }
+
   Hypergraph& _hg;
   const Context& _context;
   std::vector<CoarseningMemento> _history;
   std::vector<CurrentMaxNodeWeight> _max_hn_weights;
   HypergraphPruner _hypergraph_pruner;
+  ProgressBar _coarsening_progress_bar;
 };
 }  // namespace kahypar

@@ -120,6 +120,8 @@ class FullVertexPairCoarsener final : public ICoarsener,
 
       reRateAffectedHypernodes(rep_node, rerated_hypernodes, invalid_hypernodes);
     }
+
+    finalizeProgressBar();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {

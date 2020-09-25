@@ -122,6 +122,8 @@ class MLCoarsener final : public ICoarsener,
       }
       ++pass_nr;
     }
+
+    finalizeProgressBar();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {

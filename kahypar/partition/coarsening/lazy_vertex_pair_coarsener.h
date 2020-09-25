@@ -122,6 +122,8 @@ class LazyVertexPairCoarsener final : public ICoarsener,
         updatePQandContractionTarget(rep_node, _rater.rate(rep_node));
       }
     }
+
+    Base::finalizeProgressBar();
   }
 
   bool uncoarsenImpl(IRefiner& refiner) override final {

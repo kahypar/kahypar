@@ -35,6 +35,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/progress_bar.h"
 #include "kahypar/utils/randomize.h"
 #include "kahypar/utils/time_limit.h"
 
@@ -92,7 +93,11 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     changes.representative.push_back(0);
     changes.contraction_partner.push_back(0);
 
-
+    ProgressBar uncontraction_progress_bar(
+      _hg.initialNumNodes(), current_metrics.getMetric(
+        _context.partition.mode, _context.partition.objective),
+      _context.partition.verbose_output && _context.type == ContextType::main);
+    uncontraction_progress_bar += _hg.currentNumNodes();
     while (!_history.empty()) {
       if (time_limit::isSoftTimeLimitExceeded(_context, _history.size())) {
         /*
@@ -121,6 +126,11 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
       CoarsenerBase::performLocalSearch(refiner, refinement_nodes, current_metrics, changes);
       changes.representative[0] = 0;
       changes.contraction_partner[0] = 0;
+
+      // Update Progress Bar
+      uncontraction_progress_bar += 1;
+      uncontraction_progress_bar.setObjective(current_metrics.getMetric(
+        _context.partition.mode, _context.partition.objective));
     }
 
     // This currently cannot be guaranteed for RB-partitioning and k != 2^x, since it might be

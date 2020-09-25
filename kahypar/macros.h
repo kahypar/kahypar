@@ -292,3 +292,11 @@ void unused(T&&) {
 #else
 #define KAHYPAR_ATTRIBUTE_FALLTHROUGH
 #endif
+
+// Shell Color Codes
+#define GREEN "\033[1;92m"
+#define CYAN "\033[1;96m"
+#define YELLOW "\033[1;93m"
+#define RED "\033[1;91m"
+#define BOLD "\033[1m"
+#define END "\033[0m"
