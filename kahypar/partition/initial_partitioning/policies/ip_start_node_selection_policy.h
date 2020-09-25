@@ -52,6 +52,7 @@ class BFSStartNodeSelectionPolicy {
       }
     }
 
+    std::vector<HypernodeID> non_touched_hypernodes;
     PartitionID cur_part = nextPartID(start_nodes, k);
     while (cur_part != k) {
       std::queue<HypernodeID> bfs;
@@ -76,15 +77,23 @@ class BFSStartNodeSelectionPolicy {
             hyperedge_in_queue.set(he, true);
           }
         }
+        // If the queue is empty, but there are still unvisited vertices left,
+        // we choose the next start node uniformly random from all non-visited vertices
         if (bfs.empty() && visited_nodes != hg.initialNumNodes()) {
           for (const HypernodeID& hn : hg.nodes()) {
             if (!in_queue[hn]) {
-              bfs.push(hn);
+              non_touched_hypernodes.push_back(hn);
               in_queue.set(hn, true);
             }
           }
+          ASSERT(non_touched_hypernodes.size() > 0UL);
+          const int rand_idx = Randomize::instance().getRandomInt(
+            0, non_touched_hypernodes.size() - 1);
+          lastHypernode = non_touched_hypernodes[rand_idx];
+          non_touched_hypernodes.clear();
         }
       }
+
       start_nodes[cur_part].push_back(lastHypernode);
       cur_part = nextPartID(start_nodes, k);
       in_queue.reset();
