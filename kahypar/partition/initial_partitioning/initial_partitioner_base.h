@@ -35,6 +35,7 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/utils/randomize.h"
 
 namespace kahypar {
 template <typename Derived = Mandatory>
@@ -55,6 +56,8 @@ class InitialPartitionerBase {
       _unassigned_nodes.push_back(hn);
     }
     _unassigned_node_bound = _unassigned_nodes.size();
+    Randomize::instance().shuffleVector(
+      _unassigned_nodes, _unassigned_nodes.size());
   }
 
   InitialPartitionerBase(const InitialPartitionerBase&) = delete;
@@ -94,6 +97,8 @@ class InitialPartitionerBase {
       _hg.initializeNumCutHyperedges();
     }
     _unassigned_node_bound = _unassigned_nodes.size();
+    Randomize::instance().shuffleVector(
+      _unassigned_nodes, _unassigned_nodes.size());
   }
 
   void multipleRunsInitialPartitioning() {
