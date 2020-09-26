@@ -116,11 +116,10 @@ namespace bin_packing {
     public:
       FirstFit(PartitionID num_bins, HypernodeWeight max) :
         _max_bin_weight(max),
-        _bins(num_bins, {0, false}),
-        _num_bins(num_bins) { }
+        _bins(num_bins, {0, false}) { }
 
       void addWeight(PartitionID bin, HypernodeWeight weight) {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+        ASSERT(bin >= 0 && bin < _bins.size(), "Invalid bin id: " << V(bin));
 
         _bins[bin].first += weight;
       }
@@ -149,26 +148,25 @@ namespace bin_packing {
       }
 
       void lockBin(PartitionID bin) {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+        ASSERT(bin >= 0 && bin < _bins.size(), "Invalid bin id: " << V(bin));
         ASSERT(!_bins[bin].second, "Bin already locked.");
 
         _bins[bin].second = true;
       }
 
       HypernodeWeight binWeight(PartitionID bin) const {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+        ASSERT(bin >= 0 && bin < _bins.size(), "Invalid bin id: " << V(bin));
 
         return _bins[bin].first;
       }
 
       PartitionID numBins() const {
-        return _num_bins;
+        return _bins.size();
       }
 
     private:
       HypernodeWeight _max_bin_weight;
       std::vector<std::pair<HypernodeWeight, bool>> _bins;
-      PartitionID _num_bins;
   };
 } // namespace bin_packing
 } // namespace kahypar
