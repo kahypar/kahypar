@@ -91,12 +91,12 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
     Base::resetPartitioning();
     initializeNodes();
 
-    PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
-    HypernodeWeight allowed_part_weight = (1.0 + _context.partition.epsilon) * (static_cast<double>(_hg.totalWeight()) / rb_range_k);
-    std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, allowed_part_weight);
+    const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
+    const HypernodeWeight allowed_part_weight = (1.0 + _context.partition.epsilon) * (static_cast<double>(_hg.totalWeight()) / rb_range_k);
+    const std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, allowed_part_weight);
 
     for (size_t i = 0; i < _descending_nodes.size(); ++i) {
-      HypernodeID hn = _descending_nodes[i];
+      const HypernodeID hn = _descending_nodes[i];
 
       if(_hg.isFixedVertex(hn)) {
         continue;

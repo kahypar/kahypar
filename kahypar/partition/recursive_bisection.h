@@ -114,9 +114,9 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   // Note that currently the hypernodes are sorted again when the prepacking algorithm is called, and repeatedly so for each bisection.
   if (current_k > 2 && (original_context.initial_partitioning.infeasible_early_restart
       || original_context.initial_partitioning.infeasible_late_restart)) {
-    HypernodeWeight current_max_bin = bin_packing::currentMaxBin(current_hypergraph, current_k);
-    double current_imb = static_cast<double>(current_max_bin)
-                         / ceil(static_cast<double>(original_hypergraph.totalWeight()) / original_context.partition.k);
+    const HypernodeWeight current_max_bin = bin_packing::currentMaxBin(current_hypergraph, current_k);
+    const double current_imb = static_cast<double>(current_max_bin)
+                               / ceil(static_cast<double>(original_hypergraph.totalWeight()) / original_context.partition.k);
     current_context.initial_partitioning.bin_epsilon = calculateEpsilonFromBinImbalance(current_imb, current_k, original_context);
     current_context.initial_partitioning.current_max_bin = current_max_bin;
   }
@@ -337,7 +337,7 @@ static inline void partition(Hypergraph& input_hypergraph,
           if (current_hypergraph.initialNumNodes() > 0 && restart && k > 2) {
             ASSERT(!original_context.partition.use_individual_part_weights,
                    "Individual part weights are not allowed for bin packing.");
-            bool feasible = current_context.initial_partitioning.current_max_bin <= lmax;
+            const bool feasible = current_context.initial_partitioning.current_max_bin <= lmax;
             hypergraph_stack.back().isFeasible = feasible;
             multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, lmax,
                                                       feasible && current_context.initial_partitioning.infeasible_early_restart);

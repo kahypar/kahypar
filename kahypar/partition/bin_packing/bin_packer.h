@@ -86,16 +86,17 @@ class BinPacker final : public IBinPacker {
     ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
-    PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
-    HypernodeWeight max_bin_weight = floor(context.initial_partitioning.current_max_bin * (1.0 + context.initial_partitioning.bin_epsilon));
+    const PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
+    const HypernodeWeight max_bin_weight = floor(context.initial_partitioning.current_max_bin * (1.0 + context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::optimistic) {
       bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(hg, context, rb_range_k, max_bin_weight);
     } else if (level == BalancingLevel::guaranteed) {
       for (size_t i = 0; i < static_cast<size_t>(context.initial_partitioning.k); ++i) {
-        HypernodeWeight lower = context.initial_partitioning.perfect_balance_partition_weight[i];
+        const HypernodeWeight lower = context.initial_partitioning.perfect_balance_partition_weight[i];
+        const HypernodeWeight upper = context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
+        // possibly, the allowed partition weight needs to be adjusted to provide useful input parameters for the prepacking algorithm
         HypernodeWeight& border = context.initial_partitioning.upper_allowed_partition_weight[i];
-        HypernodeWeight upper = context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
 
         // TODO(maas) Here, some magic numbers are used to check that the different borders for the part weights work
         // for the prepacking algorithm. Unfortunately, I do not know of a more general or elegant solution.
@@ -116,7 +117,7 @@ class BinPacker final : public IBinPacker {
                                                const HypernodeWeight max_bin_weight) override {
     ASSERT(static_cast<size_t>(context.partition.k) == context.initial_partitioning.upper_allowed_partition_weight.size());
 
-    PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
+    const PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
     std::vector<PartitionID> parts(nodes.size(), -1);
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
@@ -125,7 +126,7 @@ class BinPacker final : public IBinPacker {
     }
 
     for (size_t i = 0; i < nodes.size(); ++i) {
-      HypernodeID hn = nodes[i];
+      const HypernodeID hn = nodes[i];
 
       if(!hg.isFixedVertex(hn)) {
         HypernodeWeight weight = hg.nodeWeight(hn);
@@ -140,7 +141,7 @@ class BinPacker final : public IBinPacker {
     ASSERT(nodes.size() == parts.size());
     ASSERT([&]() {
       for (size_t i = 0; i < nodes.size(); ++i) {
-        HypernodeID hn = nodes[i];
+        const HypernodeID hn = nodes[i];
 
         if (hg.isFixedVertex(hn) && (hg.fixedVertexPartID(hn) != parts[i])) {
           return false;
