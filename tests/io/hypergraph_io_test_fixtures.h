@@ -247,6 +247,9 @@ class APartitionOfAHypergraph : public Test {
     _context.initial_partitioning.technique = InitialPartitioningTechnique::flat;
     _context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     _context.initial_partitioning.nruns = 20;
+    _context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    _context.initial_partitioning.infeasible_early_restart = true;
+    _context.initial_partitioning.infeasible_late_restart = true;
     _context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     _context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
     _context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
