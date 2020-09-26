@@ -831,6 +831,14 @@ TEST_F(AHypergraph, StoresCorrectNumberOfFixedVertices) {
   ASSERT_THAT(hypergraph.numFixedVertices(), Eq(3));
 }
 
+TEST_F(AHypergraph, StoresCorrectNumberOfFreeVertices) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.currentNumFreeVertices(), Eq(4));
+}
+
 TEST_F(AHypergraph, IndicatesCorrectFixedVertices) {
   hypergraph.setFixedVertex(0, 0);
   hypergraph.setFixedVertex(1, 0);
@@ -885,6 +893,56 @@ TEST_F(AHypergraph, StoresCorrectFixedVertexPartWeights) {
   hypergraph.setFixedVertex(6, 1);
 
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 2);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 1);
+}
+
+TEST_F(AHypergraph, ResetsNumberOfFixedVertices) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  hypergraph.resetFixedVertices();
+
+  ASSERT_THAT(hypergraph.numFixedVertices(), Eq(0));
+}
+
+TEST_F(AHypergraph, ResetsFixedVertexIndication) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  hypergraph.resetFixedVertices();
+
+  ASSERT_FALSE(hypergraph.isFixedVertex(0));
+  ASSERT_FALSE(hypergraph.isFixedVertex(1));
+  ASSERT_FALSE(hypergraph.isFixedVertex(2));
+  ASSERT_FALSE(hypergraph.isFixedVertex(3));
+  ASSERT_FALSE(hypergraph.isFixedVertex(4));
+  ASSERT_FALSE(hypergraph.isFixedVertex(5));
+  ASSERT_FALSE(hypergraph.isFixedVertex(6));
+}
+
+TEST_F(AHypergraph, ResetsFixedVertexPartWeights) {
+  hypergraph.setFixedVertex(0, 0);
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  hypergraph.resetFixedVertices();
+
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 0);
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 0);
+}
+
+TEST_F(AHypergraph, HandlesFixedVerticesAfterReset) {
+  hypergraph.setFixedVertex(0, 0);
+
+  hypergraph.resetFixedVertices();
+
+  hypergraph.setFixedVertex(1, 0);
+  hypergraph.setFixedVertex(6, 1);
+
+  ASSERT_THAT(hypergraph.numFixedVertices(), Eq(2));
+  ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 1);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 1);
 }
 

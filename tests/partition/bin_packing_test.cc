@@ -32,8 +32,8 @@ class BinPackingTest : public Test {
   public:
     BinPackingTest() :
     hypergraph(0, 0,
-           HyperedgeIndexVector { 0 },
-           HyperedgeVector {}) {
+               HyperedgeIndexVector { 0 },
+               HyperedgeVector {}) {
     }
 
     void initializeWeights(const HypernodeWeightVector& weights) {
@@ -65,10 +65,10 @@ class BinPackingTest : public Test {
 
     template< class BPAlgorithm >
     std::vector<PartitionID> applyTwoLevelPacking(const std::vector<HypernodeWeight>& upper_weights,
-                                const std::vector<PartitionID>& num_bins_per_part,
-                                PartitionID rb_range_k,
-                                HypernodeWeight max_bin_weight,
-                                std::vector<PartitionID>&& partitions = {}) {
+                                                  const std::vector<PartitionID>& num_bins_per_part,
+                                                  PartitionID rb_range_k,
+                                                  HypernodeWeight max_bin_weight,
+                                                  std::vector<PartitionID>&& partitions = {}) {
     BinPacker<BPAlgorithm> packer;
     Context c;
     createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
@@ -90,8 +90,8 @@ class ResultingMaxBin : public Test {
   public:
     ResultingMaxBin() :
     hypergraph(0, 0,
-                HyperedgeIndexVector { 0 },
-                HyperedgeVector {}),
+               HyperedgeIndexVector { 0 },
+               HyperedgeVector {}),
     context() {
     }
 
@@ -130,6 +130,100 @@ class ResultingMaxBin : public Test {
   Hypergraph hypergraph;
   Context context;
 };
+
+TEST_F(Test, WorstFitBase) {
+  WorstFit algorithm(3, 4);
+
+  algorithm.addWeight(0, 2);
+  algorithm.addWeight(1, 1);
+
+  ASSERT_EQ(algorithm.insertElement(3), 2);
+  ASSERT_EQ(algorithm.insertElement(3), 1);
+  ASSERT_EQ(algorithm.insertElement(2), 0);
+  ASSERT_EQ(algorithm.insertElement(3), 2);
+
+  ASSERT_EQ(algorithm.binWeight(0), 4);
+  ASSERT_EQ(algorithm.binWeight(1), 4);
+  ASSERT_EQ(algorithm.binWeight(2), 6);
+
+  ASSERT_EQ(algorithm.numBins(), 3);
+}
+
+TEST_F(Test, WorstFitLocked) {
+  WorstFit algorithm(3, 4);
+
+  algorithm.addWeight(1, 1);
+  algorithm.addWeight(2, 2);
+
+  algorithm.lockBin(0);
+  ASSERT_EQ(algorithm.insertElement(3), 1);
+  ASSERT_EQ(algorithm.insertElement(1), 2);
+  algorithm.lockBin(2);
+  ASSERT_EQ(algorithm.insertElement(2), 1);
+
+  ASSERT_EQ(algorithm.binWeight(0), 0);
+  ASSERT_EQ(algorithm.binWeight(1), 6);
+  ASSERT_EQ(algorithm.binWeight(2), 3);
+}
+
+TEST_F(Test, FirstFitBase) {
+  FirstFit algorithm(3, 4);
+
+  algorithm.addWeight(1, 2);
+
+  ASSERT_EQ(algorithm.insertElement(3), 0);
+  ASSERT_EQ(algorithm.insertElement(4), 2);
+  ASSERT_EQ(algorithm.insertElement(1), 0);
+  ASSERT_EQ(algorithm.insertElement(1), 1);
+  ASSERT_EQ(algorithm.insertElement(3), 1);
+
+  ASSERT_EQ(algorithm.binWeight(0), 4);
+  ASSERT_EQ(algorithm.binWeight(1), 6);
+  ASSERT_EQ(algorithm.binWeight(2), 4);
+
+  ASSERT_EQ(algorithm.numBins(), 3);
+}
+
+TEST_F(Test, FirstFitLocked) {
+  FirstFit algorithm(3, 4);
+
+  algorithm.lockBin(0);
+  ASSERT_EQ(algorithm.insertElement(2), 1);
+  ASSERT_EQ(algorithm.insertElement(3), 2);
+  algorithm.lockBin(1);
+  ASSERT_EQ(algorithm.insertElement(2), 2);
+
+  ASSERT_EQ(algorithm.binWeight(0), 0);
+  ASSERT_EQ(algorithm.binWeight(1), 2);
+  ASSERT_EQ(algorithm.binWeight(2), 5);
+}
+
+TEST_F(Test, PartitionMapping) {
+  PartitionMapping mapping(3);
+  std::vector<PartitionID> _parts { 0, 1, 2 };
+
+  ASSERT_FALSE(mapping.isFixedBin(0));
+  ASSERT_FALSE(mapping.isFixedBin(1));
+  ASSERT_FALSE(mapping.isFixedBin(2));
+  ASSERT_EQ(mapping.binPartition(0), -1);
+
+  mapping.setPart(0, 2);
+  mapping.setPart(1, 1);
+  mapping.setPart(2, 0);
+
+  ASSERT_TRUE(mapping.isFixedBin(0));
+  ASSERT_TRUE(mapping.isFixedBin(1));
+  ASSERT_TRUE(mapping.isFixedBin(2));
+  ASSERT_EQ(mapping.binPartition(0), 2);
+  ASSERT_EQ(mapping.binPartition(1), 1);
+  ASSERT_EQ(mapping.binPartition(2), 0);
+
+  mapping.applyMapping(_parts);
+
+  ASSERT_EQ(_parts[0], 2);
+  ASSERT_EQ(_parts[1], 1);
+  ASSERT_EQ(_parts[2], 0);
+}
 
 TEST_F(BinPackingTest, PackingBaseCases) {
   initializeWeights({});
