@@ -50,8 +50,8 @@ class InitialPartitionerBase {
                          Context& context,
                          const bool enable_randomization = true) :
     _hg(hypergraph),
-    _enable_randomization(enable_randomization),
     _context(context),
+    _enable_randomization(enable_randomization),
     _unassigned_nodes(),
     _unassigned_node_bound(std::numeric_limits<PartitionID>::max()),
     _max_hypernode_weight(hypergraph.weightOfHeaviestNode()) {
