@@ -92,10 +92,10 @@ class ProgressBar {
   void display_progress() {
     if ( _enable ) {
       HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-      size_t current_count = std::min(_count, _expected_count);
+      size_t const current_count = std::min(_count, _expected_count);
       _next_tic_count = compute_next_tic_count(current_count);
-      size_t current_tics = get_tics(current_count);
-      size_t progress = get_progress(current_count);
+      size_t const current_tics = get_tics(current_count);
+      size_t const progress = get_progress(current_count);
 
       std::cout << "[ " << GREEN;
       for ( size_t i = 0; i < current_tics; ++i ) {
@@ -110,7 +110,7 @@ class ProgressBar {
       std::cout << "(" << progress << "% - "
                 << current_count << "/" << _expected_count << ") ";
 
-      size_t time = std::chrono::duration<double>(end - _start).count();
+      size_t const time = std::chrono::duration<double>(end - _start).count();
       display_time(time);
 
       std::cout << " - Current Objective: " << _objective;
@@ -123,7 +123,7 @@ class ProgressBar {
     }
   }
 
-  void display_time(const size_t time) {
+  void display_time(const size_t time) const {
     size_t minutes = time / 60;
     size_t seconds = time % 60;
     if ( minutes > 0 ) {
@@ -132,17 +132,17 @@ class ProgressBar {
     std::cout << seconds << " s";
   }
 
-  size_t get_progress(const size_t current_count) {
+  size_t get_progress(const size_t current_count) const {
     return ( static_cast<double>(current_count) /
       static_cast<double>(_expected_count) ) * 100;
   }
 
-  size_t get_tics(const size_t current_count) {
+  size_t get_tics(const size_t current_count) const {
     return ( static_cast<double>(current_count) /
       static_cast<double>(_expected_count) ) * PROGRESS_BAR_SIZE;
   }
 
-  size_t compute_next_tic_count(const size_t current_count) {
+  size_t compute_next_tic_count(const size_t current_count) const {
     size_t next_tics = get_tics(current_count) + 1;
     if ( next_tics > PROGRESS_BAR_SIZE ) {
       return std::numeric_limits<size_t>::max();
