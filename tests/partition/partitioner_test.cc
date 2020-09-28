@@ -58,6 +58,7 @@ class MultilevelPartitioning : public Test {
     refiner(nullptr) {
     context.coarsening.contraction_limit = 2;
     context.partition.objective = Objective::cut;
+    context.partition.mode = Mode::direct_kway;
     context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.coarsening.max_allowed_node_weight = 5;
     context.partition.graph_filename = "PartitionerTest.hgr";

@@ -51,6 +51,7 @@ class ACoarsenerBase : public Test {
     refiner->initialize(999999);
     context.partition.k = 2;
     context.partition.objective = Objective::cut;
+    context.partition.mode = Mode::direct_kway;
     context.partition.epsilon = 0.3;
     context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
     context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
@@ -191,6 +192,7 @@ void restoresParallelHyperedgesInReverseOrder() {
   context.partition.epsilon = 1.0;
   context.partition.k = 2;
   context.partition.objective = Objective::cut;
+  context.partition.mode = Mode::direct_kway;
   context.partition.perfect_balance_part_weights.push_back(ceil(52.0 / 2));
   context.partition.perfect_balance_part_weights.push_back(ceil(52.0 / 2));
   context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
@@ -235,6 +237,7 @@ void restoresSingleNodeHyperedgesInReverseOrder() {
   context.partition.epsilon = 1.0;
   context.partition.k = 2;
   context.partition.objective = Objective::cut;
+  context.partition.mode = Mode::direct_kway;
   context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
   context.partition.perfect_balance_part_weights.push_back(ceil(7.0 / 2));
   context.partition.max_part_weights.push_back((1 + context.partition.epsilon)

@@ -72,6 +72,7 @@ class APartitionedHypergraph : public Test {
     refiner(nullptr) {
     context.partition.k = 2;
     context.partition.objective = Objective::cut;
+    context.partition.mode = Mode::direct_kway;
     context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.coarsening.contraction_limit = 2;
     context.coarsening.max_allowed_node_weight = 5;

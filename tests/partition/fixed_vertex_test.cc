@@ -40,6 +40,7 @@ class FixedVertex : public Test {
                               HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
     context() {
     context.partition.objective = Objective::cut;
+    context.partition.mode = Mode::direct_kway;
     context.coarsening.max_allowed_node_weight = 5;
     context.partition.graph_filename = "PartitionerTest.hgr";
     context.partition.graph_partition_filename = "PartitionerTest.hgr.part.2.KaHyPar";
