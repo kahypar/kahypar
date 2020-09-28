@@ -43,7 +43,7 @@ class InitialPartitionerBaseTest : public Test {
     }
 
     initializeContext(hypergraph_weight);
-    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner> >(hypergraph, context);
+    partitioner = std::make_shared<InitialPartitionerBase<RandomInitialPartitioner> >(hypergraph, context, false);
     partitioner->recalculateBalanceConstraints(context.partition.epsilon);
   }
 

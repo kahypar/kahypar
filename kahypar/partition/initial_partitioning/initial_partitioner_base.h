@@ -46,8 +46,11 @@ class InitialPartitionerBase {
   static constexpr bool debug = false;
 
  public:
-  InitialPartitionerBase(Hypergraph& hypergraph, Context& context) :
+  InitialPartitionerBase(Hypergraph& hypergraph,
+                         Context& context,
+                         const bool enable_randomization = true) :
     _hg(hypergraph),
+    _enable_randomization(enable_randomization),
     _context(context),
     _unassigned_nodes(),
     _unassigned_node_bound(std::numeric_limits<PartitionID>::max()),
@@ -56,8 +59,10 @@ class InitialPartitionerBase {
       _unassigned_nodes.push_back(hn);
     }
     _unassigned_node_bound = _unassigned_nodes.size();
-    Randomize::instance().shuffleVector(
-      _unassigned_nodes, _unassigned_nodes.size());
+    if ( _enable_randomization ) {
+      Randomize::instance().shuffleVector(
+        _unassigned_nodes, _unassigned_nodes.size());
+    }
   }
 
   InitialPartitionerBase(const InitialPartitionerBase&) = delete;
@@ -97,8 +102,10 @@ class InitialPartitionerBase {
       _hg.initializeNumCutHyperedges();
     }
     _unassigned_node_bound = _unassigned_nodes.size();
-    Randomize::instance().shuffleVector(
-      _unassigned_nodes, _unassigned_nodes.size());
+    if ( _enable_randomization ) {
+      Randomize::instance().shuffleVector(
+        _unassigned_nodes, _unassigned_nodes.size());
+    }
   }
 
   void multipleRunsInitialPartitioning() {
@@ -288,6 +295,7 @@ class InitialPartitionerBase {
  protected:
   Hypergraph& _hg;
   Context& _context;
+  bool _enable_randomization;
 
  private:
   void preassignAllFixedVertices() {
