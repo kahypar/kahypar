@@ -236,6 +236,7 @@ class APartitionOfAHypergraph : public Test {
     _context.partition.k = 2;
     _context.partition.epsilon = 0.03;
     _context.partition.objective = Objective::cut;
+    _context.partition.mode = Mode::direct_kway;
     _context.partition.rb_lower_k = 0;
     _context.partition.rb_upper_k = _context.partition.k - 1;
     _context.local_search.algorithm = RefinementAlgorithm::twoway_fm;
