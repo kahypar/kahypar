@@ -39,6 +39,7 @@ class BinPacker final : public IBinPacker {
     ASSERT(!_hypergraph.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
+    // TODO
     const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin_weight * (1.0 + _context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::heuristic) {
@@ -67,6 +68,7 @@ class BinPacker final : public IBinPacker {
   }
 
   std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const override {
+    // TODO: remove max_bin_weight
     ASSERT(static_cast<size_t>(_context.partition.k) == _context.initial_partitioning.upper_allowed_partition_weight.size());
 
     const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
