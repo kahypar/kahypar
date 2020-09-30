@@ -123,6 +123,58 @@ class BinPacker final : public IBinPacker {
     return parts;
   }
 
+  HypernodeWeight currentBinImbalanceImpl(const std::vector<HypernodeWeight>& perfect_bin_weights) const {
+    const HypernodeWeight max_bin_weight = *std::max_element(perfect_bin_weights.cbegin(), perfect_bin_weights.cend());
+    BPAlgorithm packer(perfect_bin_weights.size(), max_bin_weight);
+
+    for (size_t i = 0; i < perfect_bin_weights.size(); ++i) {
+      HypernodeWeight initial_weight = max_bin_weight - perfect_bin_weights[i];
+      packer.addWeight(i, initial_weight);
+    }
+
+    const std::vector<HypernodeID> hypernodes = nodesInDescendingWeightOrder(_hypergraph);
+    for (const HypernodeID& hn : hypernodes) {
+      packer.insertElement(_hypergraph.nodeWeight(hn));
+    }
+
+    HypernodeWeight max = 0;
+    for (size_t i = 0; i < perfect_bin_weights.size(); ++i) {
+      max = std::max(max, packer.binWeight(i));
+    }
+    return max - max_bin_weight;
+  }
+
+  bool hasFeasiblePartitionImpl(const std::vector<HypernodeWeight>& allowed_bin_weights) const {
+    const HypernodeWeight max_bin_weight = *std::max_element(allowed_bin_weights.cbegin(), allowed_bin_weights.cend());
+    const PartitionID num_parts = _context.initial_partitioning.k;
+
+    // initialize queues
+    std::vector<BPAlgorithm> part_packers;
+    size_t base_index = 0;
+    for (PartitionID i = 0; i < num_parts; ++i) {
+      const PartitionID current_k = _context.initial_partitioning.num_bins_per_part[i];
+      BPAlgorithm packer(current_k, max_bin_weight);
+      for (PartitionID j = 0; j < current_k; ++j) {
+        HypernodeWeight initial_weight = max_bin_weight - allowed_bin_weights[base_index + j];
+        packer.addWeight(j, initial_weight);
+      }
+      part_packers.push_back(std::move(packer));
+      base_index += current_k;
+    }
+    ASSERT(base_index == allowed_bin_weights.size());
+
+    const std::vector<HypernodeID> hypernodes = nodesInDescendingWeightOrder(_hypergraph);
+    for (const HypernodeID& hn : hypernodes) {
+      const PartitionID part_id = _hypergraph.partID(hn);
+      ALWAYS_ASSERT(part_id >= 0 && part_id < num_parts, "Node not assigned or part id " << part_id << " invalid: " << hn);
+      PartitionID bin = part_packers[part_id].insertElement(_hypergraph.nodeWeight(hn));
+      if (part_packers[part_id].binWeight(bin) > max_bin_weight) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Hypergraph& _hypergraph;
   const Context& _context;
 };

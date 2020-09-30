@@ -109,9 +109,9 @@ class BinPackingTest : public Test {
   Hypergraph hypergraph;
 };
 
-class ResultingMaxBin : public Test {
+class HasFeasiblePartition : public Test {
   public:
-    ResultingMaxBin() :
+    HasFeasiblePartition() :
     hypergraph(0, 0,
                HyperedgeIndexVector { 0 },
                HyperedgeVector {}),
@@ -445,12 +445,12 @@ TEST_F(BinPackingTest, PackingBinLimit) {
 
 TEST_F(BinPackingTest, PackingIndividualPartWeights) {
   Context c;
+  BinPacker<WorstFit> packer(hypergraph, c);
 
   initializeWeights({3, 3, 2, 2});
   createTestContextWithIndividualPartWeights(c, {6, 6}, {5, 5}, {2, 2}, 2, 4, {3, 3, 2, 2});
   std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
-  BinPacker<WorstFit> packer1(hypergraph, c);
-  auto result = packer1.twoLevelPacking(nodes, 3);
+  auto result = packer.twoLevelPacking(nodes, 3);
   ASSERT_EQ(result.size(), 4);
   ASSERT_EQ(result.at(0), 0);
   ASSERT_EQ(result.at(1), 0);
@@ -460,8 +460,7 @@ TEST_F(BinPackingTest, PackingIndividualPartWeights) {
   initializeWeights({5, 3, 3, 2, 1});
   createTestContextWithIndividualPartWeights(c, {9, 7}, {8, 6}, {3, 2}, 2, 5, {3, 3, 3, 5, 2});
   nodes = nodesInDescendingWeightOrder(hypergraph);
-  BinPacker<WorstFit> packer2(hypergraph, c);
-  result = packer2.twoLevelPacking(nodes, 5);
+  result = packer.twoLevelPacking(nodes, 5);
   ASSERT_EQ(result.size(), 5);
   ASSERT_EQ(result.at(0), 1);
   ASSERT_EQ(result.at(1), 0);
@@ -812,29 +811,60 @@ TEST_F(BinPackingTest, ExactPrepackingIndividualPartWeights) {
   ASSERT_EQ(hypergraph.isFixedVertex(3), false);
 }
 
-TEST_F(ResultingMaxBin, WithoutBinImbalance) {
-  initialize({1, 1}, {0, 1}, 2, 2);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(1));
+TEST_F(BinPackingTest, CurrentBinImbalance) {
+  Context c;
+  BinPacker<WorstFit> packer(hypergraph, c);
 
-  initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+  initializeWeights({4, 3, 2, 1});
+  ASSERT_EQ(packer.currentBinImbalance({5, 5}), 0);
+  ASSERT_EQ(packer.currentBinImbalance({7, 3}), 0);
 
-  initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+  initializeWeights({6, 6, 5, 2, 1});
+  ASSERT_EQ(packer.currentBinImbalance({10, 10}), 1);
+  ASSERT_EQ(packer.currentBinImbalance({14, 6}), 0);
+  ASSERT_EQ(packer.currentBinImbalance({9, 5, 6}), 0);
 
-  initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+  initializeWeights({11, 9, 7, 1});
+  ASSERT_EQ(packer.currentBinImbalance({14, 14}), 2);
+  ASSERT_EQ(packer.currentBinImbalance({10, 9, 9}), 1);
+  ASSERT_EQ(packer.currentBinImbalance({13, 13, 1, 1}), 3);
 }
 
-TEST_F(ResultingMaxBin, WithBinImbalance) {
+TEST_F(HasFeasiblePartition, FeasiblePartitionWithoutBinImbalance) {
+  BinPacker<WorstFit> packer(hypergraph, context);
+
+  initialize({1, 1}, {0, 1}, 2, 2);
+  ASSERT_FALSE(packer.hasFeasiblePartition({0, 0}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({1, 1}));
+
+  initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
+  ASSERT_FALSE(packer.hasFeasiblePartition({1, 2, 2, 2}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({2, 2, 2, 2}));
+
+  initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
+  ASSERT_FALSE(packer.hasFeasiblePartition({2, 3, 3}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({3, 3, 3}));
+
+  initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
+  ASSERT_FALSE(packer.hasFeasiblePartition({1, 2, 2}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({2, 2, 2}));
+}
+
+TEST_F(HasFeasiblePartition, FeasiblePartitionWithBinImbalance) {
+  BinPacker<WorstFit> packer(hypergraph, context);
+
   initialize({1, 4}, {0, 1}, 2, 2);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
+  ASSERT_FALSE(packer.hasFeasiblePartition({3, 1}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({1, 4}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({4, 4}));
 
   initialize({3, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1}, 2, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+  ASSERT_FALSE(packer.hasFeasiblePartition({2, 2, 2, 2}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({3, 1, 2, 2}));
 
   initialize({3, 1, 2, 1, 2, 2}, {1, 0, 0, 0, 2, 2}, 3, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
+  ASSERT_FALSE(packer.hasFeasiblePartition({3, 3, 3, 3}));
+  ASSERT_TRUE(packer.hasFeasiblePartition({2, 2, 3, 4}));
 }
 }  // namespace bin_packing
 }  // namespace kahypar
