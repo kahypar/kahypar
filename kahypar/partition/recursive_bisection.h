@@ -35,6 +35,8 @@
 
 namespace kahypar {
 namespace recursive_bisection {
+using bin_packing::IBinPacker;
+
 static constexpr bool debug = false;
 
 using HypergraphPtr = std::unique_ptr<Hypergraph, void (*)(Hypergraph*)>;
@@ -88,11 +90,29 @@ static inline double calculateRelaxedEpsilon(const HypernodeWeight original_hype
   return std::min(0.99, std::max(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0,0.0));
 }
 
-static inline double calculateEpsilonFromBinImbalance(const double current_bin_imbalance,
-                                                      const PartitionID k,
-                                                      const Context& original_context) {
-  double base = (1.0 + original_context.partition.epsilon) / current_bin_imbalance;
+static inline double calculateEpsilonFromFraction(const HypernodeWeight allowed_weight,
+                                                  const HypernodeWeight current_weight,
+                                                  const PartitionID k) {
+  if (current_weight == 0) {
+    return 0.0;
+  }
+  double base = allowed_weight / static_cast<double>(current_weight);
   return std::min(0.99, std::max(std::pow(base, 1.0 / ceil(log2(static_cast<double>(k)))) - 1.0,0.0));
+}
+
+static inline void setBinPackingParameters(Context& current_context,
+                                           const Hypergraph& current_hypergraph,
+                                           const Context& original_context,
+                                           const std::vector<HypernodeWeight>& perfect_bin_weights,
+                                           const HypernodeWeight max_part_weight,
+                                           const PartitionID current_k) {
+  std::unique_ptr<IBinPacker> bin_packer(
+    BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo, current_hypergraph, original_context));
+  const HypernodeWeight current_imbalance = bin_packer->currentBinImbalance(perfect_bin_weights);
+  const HypernodeWeight current_max_bin = *std::max_element(perfect_bin_weights.cbegin(), perfect_bin_weights.cend()) + current_imbalance;
+  const double bin_epsilon = calculateEpsilonFromFraction(max_part_weight, current_max_bin, current_k);
+  current_context.initial_partitioning.current_max_bin_weight = current_max_bin;
+  current_context.initial_partitioning.max_allowed_bin_weight = (1 + bin_epsilon) * current_max_bin;
 }
 
 static inline Context createCurrentBisectionContext(const Context& original_context,
@@ -105,38 +125,51 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   Context current_context(original_context);
   current_context.partition.k = 2;
   current_context.initial_partitioning.num_bins_per_part = {k0, k1};
-  current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
-                                                              current_hypergraph.totalWeight(),
-                                                              current_k, original_context);
-  if (current_k > 2 && (original_context.initial_partitioning.enable_early_restart
-      || original_context.initial_partitioning.enable_late_restart)) {
-    const HypernodeWeight current_max_bin_weight = bin_packing::currentMaxBin(current_hypergraph, current_k);
-    const double current_imb = static_cast<double>(current_max_bin_weight)
-                               / ceil(static_cast<double>(original_hypergraph.totalWeight()) / original_context.partition.k);
-    current_context.initial_partitioning.bin_epsilon = calculateEpsilonFromBinImbalance(current_imb, current_k, original_context);
-    current_context.initial_partitioning.current_max_bin_weight = current_max_bin_weight;
-  }
 
   ASSERT(original_context.partition.use_individual_part_weights ||
          current_context.partition.epsilon > 0.0, "start partition already too imbalanced");
-
+  const bool restart_is_possible = current_k > 2 && (original_context.initial_partitioning.enable_early_restart
+                                   || original_context.initial_partitioning.enable_late_restart);
   if (original_context.partition.use_individual_part_weights) {
-    current_context.partition.epsilon = 0;
-    current_context.partition.perfect_balance_part_weights.clear();
-    current_context.partition.perfect_balance_part_weights.push_back(0);
+    HypernodeWeight allowed_part_weight0 = 0;
     for (PartitionID i = 0; i < k0; ++i) {
       const PartitionID block = kl + i;
-      current_context.partition.perfect_balance_part_weights[0] += original_context.partition.perfect_balance_part_weights[block];
+      allowed_part_weight0 += original_context.partition.max_part_weights[block];
     }
-    current_context.partition.perfect_balance_part_weights.push_back(0);
+    HypernodeWeight allowed_part_weight1 = 0;
     for (PartitionID i = 0; i < k1; ++i) {
       const PartitionID block = kl + k0 + i;
-      current_context.partition.perfect_balance_part_weights[1] += original_context.partition.perfect_balance_part_weights[block];
+      allowed_part_weight1 += original_context.partition.max_part_weights[block];
     }
-    current_context.partition.max_part_weights.clear();
-    current_context.partition.max_part_weights.push_back(current_context.partition.perfect_balance_part_weights[0]);
-    current_context.partition.max_part_weights.push_back(current_context.partition.perfect_balance_part_weights[1]);
+    HypernodeWeight total_allowed_part_weight = allowed_part_weight0 + allowed_part_weight1;
+    current_context.partition.epsilon = calculateEpsilonFromFraction(total_allowed_part_weight, current_hypergraph.totalWeight(), current_k);
+    HypernodeWeight diff_to_perfect = floor((total_allowed_part_weight - current_hypergraph.totalWeight()) / current_k);
+    current_context.partition.perfect_balance_part_weights = {allowed_part_weight0 - k0 * diff_to_perfect,
+                                                              allowed_part_weight1 - k1 * diff_to_perfect};
+    HypernodeWeight diff_to_max = floor((total_allowed_part_weight - (1 + current_context.partition.epsilon)
+                                         * current_hypergraph.totalWeight()) / current_k);
+    current_context.partition.max_part_weights = {allowed_part_weight0 - k0 * diff_to_max,
+                                                  allowed_part_weight1 - k1 * diff_to_max};
+    if (restart_is_possible) {
+      std::vector<HypernodeWeight> perfect_bin_weights;
+      for (PartitionID i = 0; i < current_k; ++i) {
+        const PartitionID block = kl + i;
+        perfect_bin_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_perfect);
+      }
+      const HypernodeWeight max_part_weight = *std::max_element(original_context.partition.max_part_weights.cbegin(),
+                                                                original_context.partition.max_part_weights.cend());
+      setBinPackingParameters(current_context, current_hypergraph, original_context, perfect_bin_weights, max_part_weight, current_k);
+      HypernodeWeight diff_to_max_bin = floor(max_part_weight - current_context.initial_partitioning.max_allowed_bin_weight);
+      current_context.partition.max_bins_for_individual_part_weights.clear();
+      for (PartitionID i = 0; i < current_k; ++i) {
+        const PartitionID block = kl + i;
+        current_context.partition.max_bins_for_individual_part_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_max_bin);
+      }
+    }
   } else {
+    current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
+                                                                current_hypergraph.totalWeight(),
+                                                                current_k, original_context);
     current_context.partition.perfect_balance_part_weights.clear();
     current_context.partition.perfect_balance_part_weights.push_back(
       ceil((k0 / static_cast<double>(current_k))
@@ -152,6 +185,14 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
 
     current_context.partition.max_part_weights.push_back(
       (1 + current_context.partition.epsilon) * current_context.partition.perfect_balance_part_weights[1]);
+
+    if (restart_is_possible) {
+      const HypernodeWeight avg_bin_weight = ceil(static_cast<double>(current_hypergraph.totalWeight()) / current_k);
+      const std::vector<HypernodeWeight> perfect_bin_weights(current_k, avg_bin_weight);
+      const HypernodeWeight max_part_weight = floor((1 + original_context.partition.epsilon)
+                                              * ceil(static_cast<double>(original_hypergraph.totalWeight()) / original_context.partition.k));
+      setBinPackingParameters(current_context, current_hypergraph, original_context, perfect_bin_weights, max_part_weight, current_k);
+    }
   }
 
   current_context.coarsening.contraction_limit =

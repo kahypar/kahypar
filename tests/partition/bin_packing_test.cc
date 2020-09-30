@@ -62,7 +62,6 @@ class BinPackingTest : public Test {
       c.partition.rb_lower_k = 0;
       c.partition.rb_upper_k = rb_range_k - 1;
       c.initial_partitioning.current_max_bin_weight = max_bin;
-      c.initial_partitioning.bin_epsilon = 0.0;
       c.initial_partitioning.max_allowed_bin_weight = max_bin;
     }
 
@@ -81,7 +80,6 @@ class BinPackingTest : public Test {
       c.partition.rb_lower_k = 0;
       c.partition.rb_upper_k = rb_range_k - 1;
       c.initial_partitioning.max_allowed_bin_weight = *std::max_element(max_bins.cbegin(), max_bins.cend());
-      c.initial_partitioning.bin_epsilon = 0.0;
       c.partition.max_bins_for_individual_part_weights = max_bins;
       c.partition.use_individual_part_weights = true;
     }

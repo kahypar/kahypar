@@ -266,7 +266,6 @@ struct InitialPartitioningParameters {
   PartitionID unassigned_part = 1;
   std::vector<PartitionID> num_bins_per_part = { };
   HypernodeWeight current_max_bin_weight = 0;
-  double bin_epsilon = 0.0;
   HypernodeWeight max_allowed_bin_weight = 0;
   // If pool initial partitioner is used, the first 13 bits of this number decides
   // which algorithms are used.
