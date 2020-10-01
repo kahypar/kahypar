@@ -35,8 +35,6 @@
 
 namespace kahypar {
 namespace recursive_bisection {
-using bin_packing::IBinPacker;
-
 static constexpr bool debug = false;
 
 using HypergraphPtr = std::unique_ptr<Hypergraph, void (*)(Hypergraph*)>;
@@ -106,6 +104,7 @@ static inline void setBinPackingParameters(Context& current_context,
                                            const std::vector<HypernodeWeight>& perfect_bin_weights,
                                            const HypernodeWeight max_part_weight,
                                            const PartitionID current_k) {
+  ASSERT(perfect_bin_weights.size() == static_cast<size_t>(current_k));
   std::unique_ptr<IBinPacker> bin_packer(
     BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo, current_hypergraph, original_context));
   const HypernodeWeight current_imbalance = bin_packer->currentBinImbalance(perfect_bin_weights);
@@ -150,12 +149,13 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
                                          * current_hypergraph.totalWeight()) / current_k);
     current_context.partition.max_part_weights = {allowed_part_weight0 - k0 * diff_to_max,
                                                   allowed_part_weight1 - k1 * diff_to_max};
+
+    std::vector<HypernodeWeight> perfect_bin_weights;
+    for (PartitionID i = 0; i < current_k; ++i) {
+      const PartitionID block = kl + i;
+      perfect_bin_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_perfect);
+    }
     if (restart_is_possible) {
-      std::vector<HypernodeWeight> perfect_bin_weights;
-      for (PartitionID i = 0; i < current_k; ++i) {
-        const PartitionID block = kl + i;
-        perfect_bin_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_perfect);
-      }
       const HypernodeWeight max_part_weight = *std::max_element(original_context.partition.max_part_weights.cbegin(),
                                                                 original_context.partition.max_part_weights.cend());
       setBinPackingParameters(current_context, current_hypergraph, original_context, perfect_bin_weights, max_part_weight, current_k);
@@ -165,6 +165,9 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
         const PartitionID block = kl + i;
         current_context.partition.max_bins_for_individual_part_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_max_bin);
       }
+    } else {
+      // TODO: always initialize to simplify code at other locations?
+      current_context.partition.max_bins_for_individual_part_weights = std::move(perfect_bin_weights);
     }
   } else {
     current_context.partition.epsilon = calculateRelaxedEpsilon(original_hypergraph.totalWeight(),
@@ -245,7 +248,6 @@ static inline void partition(Hypergraph& input_hypergraph,
                                 RBHypergraphState::unpartitioned, 0,
                                 (original_context.partition.k - 1));
 
-  const HypernodeWeight lmax = original_context.partition.max_part_weights[0];
   const bool restart_if_imbalanced = original_context.initial_partitioning.enable_early_restart
                                      || original_context.initial_partitioning.enable_late_restart;
   int bisection_counter = 0;
@@ -285,12 +287,9 @@ static inline void partition(Hypergraph& input_hypergraph,
       case RBHypergraphState::finished: {
           bool apply_late_restart = false;
           if (original_context.initial_partitioning.enable_late_restart && k > 2) {
-            ASSERT(!original_context.partition.use_individual_part_weights,
-                   "Individual part weights are not allowed for bin packing.");
-
             bool balanced = true;
             for (PartitionID i = k1; i <= k2; ++i) {
-              if (input_hypergraph.partWeight(i) > lmax) {
+              if (input_hypergraph.partWeight(i) > original_context.partition.max_part_weights[i]) {
                 balanced = false;
               }
             }
@@ -376,11 +375,15 @@ static inline void partition(Hypergraph& input_hypergraph,
 
 
           if (current_hypergraph.initialNumNodes() > 0 && restart_if_imbalanced && k > 2) {
-            ASSERT(!original_context.partition.use_individual_part_weights,
-                   "Individual part weights are not allowed for bin packing.");
-            const bool feasible = current_context.initial_partitioning.current_max_bin_weight <= lmax;
+            std::vector<HypernodeWeight> max_bin_weights;
+            for (PartitionID i = k1; i <= k2; ++i) {
+              max_bin_weights.push_back(original_context.partition.max_part_weights[i]);
+            }
+            std::unique_ptr<IBinPacker> bin_packer(
+              BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo, current_hypergraph, current_context));
+            const bool feasible = bin_packer->currentBinImbalance(max_bin_weights) <= 0;
             hypergraph_stack.back().is_feasible = feasible;
-            multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, lmax,
+            multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, max_bin_weights,
                                                       feasible && current_context.initial_partitioning.enable_early_restart);
           } else if (current_hypergraph.initialNumNodes() > 0) {
             std::unique_ptr<ICoarsener> coarsener(

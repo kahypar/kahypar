@@ -255,6 +255,7 @@ class FlowHypergraphExtractor {
       mw1 = a * context.partition.max_part_weights[b1];
     } else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
       double scale;
+      // TODO: remove case distinction?!
       if (!context.partition.use_individual_part_weights) {
         // with a = 16 (default value) this starts to get really slow for epsilon > 0.05.
         // for epsilon > 0.05, whfc flow network size still scales with epsilon,

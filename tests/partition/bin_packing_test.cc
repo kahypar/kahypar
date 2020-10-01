@@ -101,7 +101,7 @@ class BinPackingTest : public Test {
       }
     }
     std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
-    return packer.twoLevelPacking(nodes, max_bin_weight);
+    return packer.twoLevelPacking(nodes, std::vector<HypernodeWeight>(rb_range_k, max_bin_weight));
   }
 
   Hypergraph hypergraph;
@@ -448,7 +448,7 @@ TEST_F(BinPackingTest, PackingIndividualPartWeights) {
   initializeWeights({3, 3, 2, 2});
   createTestContextWithIndividualPartWeights(c, {6, 6}, {5, 5}, {2, 2}, 2, 4, {3, 3, 2, 2});
   std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
-  auto result = packer.twoLevelPacking(nodes, 3);
+  auto result = packer.twoLevelPacking(nodes, c.partition.max_bins_for_individual_part_weights);
   ASSERT_EQ(result.size(), 4);
   ASSERT_EQ(result.at(0), 0);
   ASSERT_EQ(result.at(1), 0);
@@ -458,7 +458,7 @@ TEST_F(BinPackingTest, PackingIndividualPartWeights) {
   initializeWeights({5, 3, 3, 2, 1});
   createTestContextWithIndividualPartWeights(c, {9, 7}, {8, 6}, {3, 2}, 2, 5, {3, 3, 3, 5, 2});
   nodes = nodesInDescendingWeightOrder(hypergraph);
-  result = packer.twoLevelPacking(nodes, 5);
+  result = packer.twoLevelPacking(nodes, c.partition.max_bins_for_individual_part_weights);
   ASSERT_EQ(result.size(), 5);
   ASSERT_EQ(result.at(0), 1);
   ASSERT_EQ(result.at(1), 0);

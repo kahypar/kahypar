@@ -686,11 +686,6 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
       LOG << "Sum of individual part weights is less than sum of vertex weights";
       std::exit(-1);
     }
-    if (context.initial_partitioning.enable_early_restart || context.initial_partitioning.enable_late_restart) {
-      LOG << "Individual part weights are not yet supported by the balancing strategy."
-          << "The parameters <i-bp-early-restart> and <i-bp-late-restart> must be set to false.";
-      std::exit(-1);
-    }
   }
 
   if (context.partition.mode == Mode::direct_kway &&

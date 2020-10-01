@@ -110,9 +110,9 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
       for (size_t i = 0; i < num_bins_per_part.size(); ++i) {
         for (size_t j = 0; j < static_cast<size_t>(num_bins_per_part[i]); ++j) {
           ASSERT(base_index + j < context.partition.max_bins_for_individual_part_weights.size());
-          HypernodeWeight base_weight = max_bin_weight - context.partition.max_bins_for_individual_part_weights[base_index + j];
-          packer.addWeight(static_cast<PartitionID>(base_index + j), base_weight);
-          upper_weight[i] += base_weight;
+          HypernodeWeight initial_weight = max_bin_weight - context.partition.max_bins_for_individual_part_weights[base_index + j];
+          packer.addWeight(static_cast<PartitionID>(base_index + j), initial_weight);
+          upper_weight[i] += initial_weight;
         }
         base_index += num_bins_per_part[i];
       }
@@ -214,8 +214,8 @@ static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& c
   if (context.partition.use_individual_part_weights) {
     ASSERT(context.partition.max_bins_for_individual_part_weights.size() == static_cast<size_t>(rb_range_k));
     for (size_t i = 0; i < context.partition.max_bins_for_individual_part_weights.size(); ++i) {
-      HypernodeWeight base_weight = max_bin_weight - context.partition.max_bins_for_individual_part_weights[i];
-      packer.addWeight(static_cast<PartitionID>(i), base_weight);
+      HypernodeWeight initial_weight = max_bin_weight - context.partition.max_bins_for_individual_part_weights[i];
+      packer.addWeight(static_cast<PartitionID>(i), initial_weight);
     }
   }
 

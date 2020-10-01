@@ -73,16 +73,16 @@ class IBinPacker {
 
   // Calculates a bin packing based on the specified order of the hypernodes. First, the hypernodes are assigned to bins,
   // then the bins are assigned to the parts of the current bisection.
-  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
-    return twoLevelPackingImpl(nodes, max_bin_weight);
+  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const std::vector<HypernodeWeight>& max_bin_weights) const {
+    return twoLevelPackingImpl(nodes, max_bin_weights);
   }
 
-  HypernodeWeight currentBinImbalance(const std::vector<HypernodeWeight>& perfect_bin_weights) const {
-    return currentBinImbalanceImpl(perfect_bin_weights);
+  HypernodeWeight currentBinImbalance(const std::vector<HypernodeWeight>& bin_weights) const {
+    return currentBinImbalanceImpl(bin_weights);
   }
 
-  bool hasFeasiblePartition(const std::vector<HypernodeWeight>& allowed_bin_weights) const {
-    return hasFeasiblePartitionImpl(allowed_bin_weights);
+  bool hasFeasiblePartition(const std::vector<HypernodeWeight>& max_bin_weights) const {
+    return hasFeasiblePartitionImpl(max_bin_weights);
   }
 
   virtual ~IBinPacker() = default;
@@ -92,8 +92,8 @@ class IBinPacker {
 
  private:
   virtual void prepackingImpl(const BalancingLevel level) = 0;
-  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
-  virtual HypernodeWeight currentBinImbalanceImpl(const std::vector<HypernodeWeight>& perfect_bin_weights) const = 0;
-  virtual bool hasFeasiblePartitionImpl(const std::vector<HypernodeWeight>& allowed_bin_weights) const = 0;
+  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
+  virtual HypernodeWeight currentBinImbalanceImpl(const std::vector<HypernodeWeight>& bin_weights) const = 0;
+  virtual bool hasFeasiblePartitionImpl(const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
 };
 } // namespace kahypar
