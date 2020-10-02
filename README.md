@@ -486,7 +486,17 @@ If you use KaHyPar in an academic setting please cite the appropriate papers. If
      year = {2018},
      pages = {347--354},
      numpages = {8}
-    } 
+    }
+    
+    // KaHyPar-SEA20 (KaHyPar-HFC)
+    @InProceedings{gottesbren_et_al:LIPIcs:2020:12085,
+  	author = {Lars Gottesb{\"u}ren and Michael Hamann and Sebastian Schlag and Dorothea Wagner},
+  	title =	{{Advanced Flow-Based Multilevel Hypergraph Partitioning}},
+  	booktitle = {18th International Symposium on Experimental Algorithms (SEA)},
+  	pages =	{11:1--11:15},
+  	series = {Leibniz International Proceedings in Informatics (LIPIcs)},
+  	year =	{2020}
+    }
 
 Contributing
 ------------
