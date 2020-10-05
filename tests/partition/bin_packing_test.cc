@@ -69,8 +69,8 @@ class BinPackingTest : public Test {
                                                   PartitionID rb_range_k,
                                                   HypernodeWeight max_bin_weight,
                                                   std::vector<PartitionID>&& partitions = {}) {
-    BinPacker<BPAlgorithm> packer;
     Context c;
+    BinPacker<BPAlgorithm> packer(hypergraph, c);
     createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
                       upper_weights.size(), rb_range_k, max_bin_weight);
     hypergraph.changeK(rb_range_k);
@@ -80,7 +80,7 @@ class BinPackingTest : public Test {
       }
     }
     std::vector<HypernodeID> nodes = bin_packing::extractNodesWithDescendingWeight(hypergraph);
-    return packer.twoLevelPacking(hypergraph, c, nodes, max_bin_weight);
+    return packer.twoLevelPacking(nodes, max_bin_weight);
   }
 
   Hypergraph hypergraph;

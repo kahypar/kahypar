@@ -153,8 +153,8 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     }
 
     // perform prepacking of heavy vertices
-    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo);
-    bin_packer->prepacking(hypergraph, packing_context, currLevel);
+    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, packing_context);
+    bin_packer->prepacking(currLevel);
 
     std::unique_ptr<ICoarsener> coarsener(
       CoarsenerFactory::getInstance().createObject(context.coarsening.algorithm, hypergraph, context, hypergraph.weightOfHeaviestNode()));

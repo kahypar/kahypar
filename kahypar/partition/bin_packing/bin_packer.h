@@ -21,8 +21,9 @@
 #pragma once
 
 #include "kahypar/definitions.h"
-#include "kahypar/partition/bin_packing/bin_packing.h"
-#include "kahypar/partition/bin_packing/algorithms.h"
+#include "kahypar/partition/bin_packing/bin_packing_utils.h"
+#include "kahypar/partition/bin_packing/bin_packing_algorithms.h"
+#include "kahypar/partition/bin_packing/prepacking.h"
 
 namespace kahypar {
 namespace bin_packing {
@@ -56,13 +57,12 @@ class IBinPacker {
   IBinPacker& operator= (const IBinPacker&) = delete;
   IBinPacker& operator= (IBinPacker&&) = delete;
 
-  void prepacking(Hypergraph& hg, Context& context, const BalancingLevel level) {
-    prepackingImpl(hg, context, level);
+  void prepacking(const BalancingLevel level) {
+    prepackingImpl(level);
   }
 
-  std::vector<PartitionID> twoLevelPacking(const Hypergraph& hg, const Context& context, const std::vector<HypernodeID>& nodes,
-                                           const HypernodeWeight max_bin_weight) {
-    return twoLevelPackingImpl(hg, context, nodes, max_bin_weight);
+  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
+    return twoLevelPackingImpl(nodes, max_bin_weight);
   }
 
   virtual ~IBinPacker() = default;
@@ -71,32 +71,31 @@ class IBinPacker {
   IBinPacker() = default;
 
  private:
-  virtual void prepackingImpl(Hypergraph& hg, Context& context, const BalancingLevel level) = 0;
-  virtual std::vector<PartitionID> twoLevelPackingImpl(const Hypergraph& hg, const Context& context, const std::vector<HypernodeID>& nodes,
-                                                       const HypernodeWeight max_bin_weight) = 0;
+  virtual void prepackingImpl(const BalancingLevel level) = 0;
+  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
 };
 
 template< class BPAlgorithm = WorstFit >
 class BinPacker final : public IBinPacker {
  public:
-  BinPacker() = default;
+  BinPacker(Hypergraph& hypergraph, Context& context) : _hypergraph(hypergraph), _context(context) {}
 
  private:
-  void prepackingImpl(Hypergraph& hg, Context& context, const BalancingLevel level) override {
-    ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
+  void prepackingImpl(const BalancingLevel level) override {
+    ASSERT(!_hypergraph.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
-    const PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
-    const HypernodeWeight max_bin_weight = floor(context.initial_partitioning.current_max_bin * (1.0 + context.initial_partitioning.bin_epsilon));
+    const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
+    const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin * (1.0 + _context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::optimistic) {
-      bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(hg, context, rb_range_k, max_bin_weight);
+      bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
     } else if (level == BalancingLevel::guaranteed) {
-      for (size_t i = 0; i < static_cast<size_t>(context.initial_partitioning.k); ++i) {
-        const HypernodeWeight lower = context.initial_partitioning.perfect_balance_partition_weight[i];
-        const HypernodeWeight upper = context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
+      for (size_t i = 0; i < static_cast<size_t>(_context.initial_partitioning.k); ++i) {
+        const HypernodeWeight lower = _context.initial_partitioning.perfect_balance_partition_weight[i];
+        const HypernodeWeight upper = _context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
         // possibly, the allowed partition weight needs to be adjusted to provide useful input parameters for the prepacking algorithm
-        HypernodeWeight& border = context.initial_partitioning.upper_allowed_partition_weight[i];
+        HypernodeWeight& border = _context.initial_partitioning.upper_allowed_partition_weight[i];
 
         // TODO(maas) Here, some magic numbers are used to check that the different borders for the part weights work
         // for the prepacking algorithm. Unfortunately, I do not know of a more general or elegant solution.
@@ -105,37 +104,36 @@ class BinPacker final : public IBinPacker {
         // bisection which is indeed balanced, but probably has a really poor cut.
         if (upper - border < (border - lower) / 10) {
           border = (lower + upper) / 2;
-          context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
+          _context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
         }
       }
 
-      bin_packing::calculateExactPrepacking<BPAlgorithm>(hg, context, rb_range_k, max_bin_weight);
+      bin_packing::calculateExactPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
     }
   }
 
-  std::vector<PartitionID> twoLevelPackingImpl(const Hypergraph& hg, const Context& context, const std::vector<HypernodeID>& nodes,
-                                               const HypernodeWeight max_bin_weight) override {
-    ASSERT(static_cast<size_t>(context.partition.k) == context.initial_partitioning.upper_allowed_partition_weight.size());
+  std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const override {
+    ASSERT(static_cast<size_t>(_context.partition.k) == _context.initial_partitioning.upper_allowed_partition_weight.size());
 
-    const PartitionID rb_range_k = context.partition.rb_upper_k - context.partition.rb_lower_k + 1;
+    const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
     std::vector<PartitionID> parts(nodes.size(), -1);
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
-    if (hg.containsFixedVertices()) {
-      bin_packing::preassignFixedVertices<BPAlgorithm>(hg, nodes, parts, packer, context.partition.k, rb_range_k);
+    if (_hypergraph.containsFixedVertices()) {
+      bin_packing::preassignFixedVertices<BPAlgorithm>(_hypergraph, nodes, parts, packer, _context.partition.k, rb_range_k);
     }
 
     for (size_t i = 0; i < nodes.size(); ++i) {
       const HypernodeID hn = nodes[i];
 
-      if(!hg.isFixedVertex(hn)) {
-        HypernodeWeight weight = hg.nodeWeight(hn);
+      if(!_hypergraph.isFixedVertex(hn)) {
+        HypernodeWeight weight = _hypergraph.nodeWeight(hn);
         parts[i] = packer.insertElement(weight);
       }
     }
 
-    PartitionMapping packing_result = packer.applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
-                                                              context.initial_partitioning.num_bins_per_part).first;
+    PartitionMapping packing_result = packer.applySecondLevel(_context.initial_partitioning.upper_allowed_partition_weight,
+                                                              _context.initial_partitioning.num_bins_per_part).first;
     packing_result.applyMapping(parts);
 
     ASSERT(nodes.size() == parts.size());
@@ -143,7 +141,7 @@ class BinPacker final : public IBinPacker {
       for (size_t i = 0; i < nodes.size(); ++i) {
         const HypernodeID hn = nodes[i];
 
-        if (hg.isFixedVertex(hn) && (hg.fixedVertexPartID(hn) != parts[i])) {
+        if (_hypergraph.isFixedVertex(hn) && (_hypergraph.fixedVertexPartID(hn) != parts[i])) {
           return false;
         }
       }
@@ -152,12 +150,15 @@ class BinPacker final : public IBinPacker {
 
     return parts;
   }
+
+  Hypergraph& _hypergraph;
+  Context& _context;
 };
 
-static std::unique_ptr<IBinPacker> createBinPacker(const BinPackingAlgorithm& bp_algo) {
+static std::unique_ptr<IBinPacker> createBinPacker(const BinPackingAlgorithm& bp_algo, Hypergraph& hypergraph, Context& context) {
   switch (bp_algo) {
-    case BinPackingAlgorithm::worst_fit: return std::make_unique<BinPacker<WorstFit>>();
-    case BinPackingAlgorithm::first_fit: return std::make_unique<BinPacker<FirstFit>>();
+    case BinPackingAlgorithm::worst_fit: return std::make_unique<BinPacker<WorstFit>>(hypergraph, context);
+    case BinPackingAlgorithm::first_fit: return std::make_unique<BinPacker<FirstFit>>(hypergraph, context);
     case BinPackingAlgorithm::UNDEFINED: break;
     // omit default case to trigger compiler warning for missing cases
   }
