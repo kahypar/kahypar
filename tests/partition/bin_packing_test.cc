@@ -59,7 +59,7 @@ class BinPackingTest : public Test {
       c.initial_partitioning.k = k;
       c.partition.rb_lower_k = 0;
       c.partition.rb_upper_k = rb_range_k - 1;
-      c.initial_partitioning.current_max_bin = max_bin;
+      c.initial_partitioning.current_max_bin_weight = max_bin;
       c.initial_partitioning.bin_epsilon = 0.0;
     }
 
@@ -79,7 +79,7 @@ class BinPackingTest : public Test {
         hypergraph.setFixedVertex(i, partitions[i]);
       }
     }
-    std::vector<HypernodeID> nodes = bin_packing::extractNodesWithDescendingWeight(hypergraph);
+    std::vector<HypernodeID> nodes = bin_packing::nodesInDescendingWeightOrder(hypergraph);
     return packer.twoLevelPacking(nodes, max_bin_weight);
   }
 
@@ -429,11 +429,11 @@ TEST_F(BinPackingTest, PackingBinLimit) {
 TEST_F(BinPackingTest, ExtractNodes) {
   initializeWeights({});
 
-  ASSERT_EQ(extractNodesWithDescendingWeight(hypergraph).size(), 0);
+  ASSERT_EQ(nodesInDescendingWeightOrder(hypergraph).size(), 0);
 
   initializeWeights({2, 1, 3, 6, 4, 5});
 
-  auto result = extractNodesWithDescendingWeight(hypergraph);
+  auto result = nodesInDescendingWeightOrder(hypergraph);
   ASSERT_EQ(result.size(), 6);
   ASSERT_EQ(result.at(0), 3);
   ASSERT_EQ(result.at(1), 5);

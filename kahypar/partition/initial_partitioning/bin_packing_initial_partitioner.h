@@ -53,7 +53,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
   void initializeNodes() {
     // exctract hypernodes in descending order
     if (_descending_nodes.empty()) {
-      _descending_nodes = bin_packing::extractNodesWithDescendingWeight(_hg);
+      _descending_nodes = bin_packing::nodesInDescendingWeightOrder(_hg);
     }
 
     // TODO(maas) It might be beneficial to add more randomness to the bin packing initial partitioner,

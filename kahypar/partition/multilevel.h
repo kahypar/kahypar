@@ -133,28 +133,28 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
                                                  const Context& context,
                                                  Context::PartitioningStats& stats,
                                                  const BalancingLevel level,
-                                                 const HypernodeWeight maxFeasibleBin,
+                                                 const HypernodeWeight max_allowed_bin_weight,
                                                  const bool repeat) {
   ASSERT((context.partition.rb_upper_k - context.partition.rb_lower_k + 1) > 2,
          "Prepacking is not allowed for k <= 2: " << V(context.partition.rb_upper_k) << " - " << context.partition.rb_lower_k);
 
   Context packing_context = initial::createContext(hypergraph, context);
   packing_context.setupInitialPartitioningPartWeights();
-  BalancingLevel currLevel = level;
+  BalancingLevel current_level = level;
 
   do {
-    if (currLevel != level) {
+    if (current_level != level) {
       hypergraph.reset();
 
       // TODO(maas) Do we want these stats (counting the number of restarts) or better remove them?
       std::string key("restarts_early_level_");
-      key += std::to_string(static_cast<uint8_t>(currLevel));
+      key += std::to_string(static_cast<uint8_t>(current_level));
       stats.add(StatTag::InitialPartitioning, key, 1.0);
     }
 
     // perform prepacking of heavy vertices
     std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, packing_context);
-    bin_packer->prepacking(currLevel);
+    bin_packer->prepacking(current_level);
 
     std::unique_ptr<ICoarsener> coarsener(
       CoarsenerFactory::getInstance().createObject(context.coarsening.algorithm, hypergraph, context, hypergraph.weightOfHeaviestNode()));
@@ -164,9 +164,9 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
 
     partition(hypergraph, *coarsener, *refiner, context, packing_context.initial_partitioning.upper_allowed_partition_weight);
     hypergraph.resetFixedVertices();
-    currLevel = bin_packing::increaseBalancingRestrictions(currLevel);
-  } while (repeat && currLevel != BalancingLevel::STOP
-           && bin_packing::resultingMaxBin(hypergraph, packing_context) > maxFeasibleBin);
+    current_level = bin_packing::increaseBalancingRestrictions(current_level);
+  } while (repeat && current_level != BalancingLevel::STOP
+           && bin_packing::resultingMaxBin(hypergraph, packing_context) > max_allowed_bin_weight);
 }
 }  // namespace multilevel
 }  // namespace kahypar

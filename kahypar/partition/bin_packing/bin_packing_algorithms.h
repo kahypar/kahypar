@@ -27,146 +27,146 @@
 
 namespace kahypar {
 namespace bin_packing {
-  using kahypar::ds::BinaryMinHeap;
+using kahypar::ds::BinaryMinHeap;
 
-  /*
-  * To be a valid bin packing algorithm, the following operations
-  * must be available for a type BPAlgorithm:
-  *
-  * 1)
-  *   PartitionID num_bins = ...;
-  *   HypernodeWeight max_bin_weight = ...;
-  *   BPAlgorithm alg(num_bins, max_bin_weight);
-  *
-  * 2)
-  *   PartitionID bin = ...;
-  *   HypernodeWeight weight = ...;
-  *   alg.addWeight(bin, weight);
-  *
-  * 3)
-  *   HypernodeWeight weight = ...;
-  *   PartitionID resulting_bin = alg.insertElement(weight);
-  *
-  * 4)
-  *   ParititionID bin = ...;
-  *   alg.lockBin(bin);
-  *
-  * 5)
-  *   ParititionID bin = ...;
-  *   HypernodeWeight weight = alg.binWeight(bin);
-  *
-  * 6)
-  *   PartitionID numBins = alg.numBins();
-  */
-  class WorstFit {
-    public:
-      WorstFit(PartitionID num_bins, HypernodeWeight /*max*/) :
-        _bin_queue(num_bins),
-        _weights(),
-        _num_bins(num_bins) {
-        for (PartitionID i = 0; i < num_bins; ++i) {
-          _bin_queue.push(i, 0);
+/*
+* To be a valid bin packing algorithm, the following operations
+* must be available for a type BPAlgorithm:
+*
+* 1)
+*   PartitionID num_bins = ...;
+*   HypernodeWeight max_bin_weight = ...;
+*   BPAlgorithm alg(num_bins, max_bin_weight);
+*
+* 2)
+*   PartitionID bin = ...;
+*   HypernodeWeight weight = ...;
+*   alg.addWeight(bin, weight);
+*
+* 3)
+*   HypernodeWeight weight = ...;
+*   PartitionID resulting_bin = alg.insertElement(weight);
+*
+* 4)
+*   ParititionID bin = ...;
+*   alg.lockBin(bin);
+*
+* 5)
+*   ParititionID bin = ...;
+*   HypernodeWeight weight = alg.binWeight(bin);
+*
+* 6)
+*   PartitionID numBins = alg.numBins();
+*/
+class WorstFit {
+  public:
+    WorstFit(const PartitionID num_bins, const HypernodeWeight /*max*/) :
+      _bin_queue(num_bins),
+      _weights(),
+      _num_bins(num_bins) {
+      for (PartitionID i = 0; i < num_bins; ++i) {
+        _bin_queue.push(i, 0);
+      }
+    }
+
+    void addWeight(const PartitionID bin, const HypernodeWeight weight) {
+      ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+
+      _bin_queue.increaseKeyBy(bin, weight);
+    }
+
+    PartitionID insertElement(const HypernodeWeight weight) {
+      ASSERT(weight >= 0, "Negative weight.");
+      ASSERT(!_bin_queue.empty(), "All available bins are locked.");
+
+      // assign node to bin with lowest weight
+      PartitionID bin = _bin_queue.top();
+      _bin_queue.increaseKeyBy(bin, weight);
+      return bin;
+    }
+
+    void lockBin(const PartitionID bin) {
+      ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+      ASSERT(_bin_queue.contains(bin), "Bin already locked.");
+
+      if (_weights.empty()) {
+        _weights.resize(_num_bins, 0);
+      }
+      _weights[bin] = _bin_queue.getKey(bin);
+      _bin_queue.remove(bin);
+    }
+
+    HypernodeWeight binWeight(const PartitionID bin) const {
+      ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+
+      return _bin_queue.contains(bin) ? _bin_queue.getKey(bin) : _weights[bin];
+    }
+
+    PartitionID numBins() const {
+      return _num_bins;
+    }
+
+  private:
+    BinaryMinHeap<PartitionID, HypernodeWeight> _bin_queue;
+    std::vector<HypernodeWeight> _weights;
+    PartitionID _num_bins;
+};
+
+class FirstFit {
+  public:
+    FirstFit(const PartitionID num_bins, const HypernodeWeight max) :
+      _max_bin_weight(max),
+      _bins(num_bins, {0, false}) { }
+
+    void addWeight(const PartitionID bin, const HypernodeWeight weight) {
+      ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
+
+      _bins[bin].first += weight;
+    }
+
+    PartitionID insertElement(const HypernodeWeight weight) {
+      ASSERT(weight >= 0, "Negative weight.");
+
+      size_t assigned_bin = 0;
+      for (size_t i = 0; i < _bins.size(); ++i) {
+        if (_bins[i].second) {
+          continue;
+        }
+
+        // The node is assigned to the first fitting bin or, if none fits, the smallest bin.
+        if (_bins[i].first + weight <= _max_bin_weight) {
+          assigned_bin = i;
+          break;
+        } else if (_bins[assigned_bin].second || _bins[i].first < _bins[assigned_bin].first) {
+          assigned_bin = i;
         }
       }
 
-      void addWeight(PartitionID bin, HypernodeWeight weight) {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
+      ASSERT(!_bins[assigned_bin].second, "All available bins are locked.");
+      _bins[assigned_bin].first += weight;
+      return assigned_bin;
+    }
 
-        _bin_queue.increaseKeyBy(bin, weight);
-      }
+    void lockBin(const PartitionID bin) {
+      ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
+      ASSERT(!_bins[bin].second, "Bin already locked.");
 
-      PartitionID insertElement(HypernodeWeight weight) {
-        ASSERT(weight >= 0, "Negative weight.");
-        ASSERT(!_bin_queue.empty(), "All available bins are locked.");
+      _bins[bin].second = true;
+    }
 
-        // assign node to bin with lowest weight
-        PartitionID bin = _bin_queue.top();
-        _bin_queue.increaseKeyBy(bin, weight);
-        return bin;
-      }
+    HypernodeWeight binWeight(const PartitionID bin) const {
+      ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
 
-      void lockBin(PartitionID bin) {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
-        ASSERT(_bin_queue.contains(bin), "Bin already locked.");
+      return _bins[bin].first;
+    }
 
-        if (_weights.empty()) {
-          _weights.resize(_num_bins, 0);
-        }
-        _weights[bin] = _bin_queue.getKey(bin);
-        _bin_queue.remove(bin);
-      }
+    PartitionID numBins() const {
+      return _bins.size();
+    }
 
-      HypernodeWeight binWeight(PartitionID bin) const {
-        ASSERT(bin >= 0 && bin < _num_bins, "Invalid bin id: " << V(bin));
-
-        return _bin_queue.contains(bin) ? _bin_queue.getKey(bin) : _weights[bin];
-      }
-
-      PartitionID numBins() const {
-        return _num_bins;
-      }
-
-    private:
-      BinaryMinHeap<PartitionID, HypernodeWeight> _bin_queue;
-      std::vector<HypernodeWeight> _weights;
-      PartitionID _num_bins;
-  };
-
-  class FirstFit {
-    public:
-      FirstFit(PartitionID num_bins, HypernodeWeight max) :
-        _max_bin_weight(max),
-        _bins(num_bins, {0, false}) { }
-
-      void addWeight(PartitionID bin, HypernodeWeight weight) {
-        ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
-
-        _bins[bin].first += weight;
-      }
-
-      PartitionID insertElement(HypernodeWeight weight) {
-        ASSERT(weight >= 0, "Negative weight.");
-
-        size_t assigned_bin = 0;
-        for (size_t i = 0; i < _bins.size(); ++i) {
-          if (_bins[i].second) {
-            continue;
-          }
-
-          // The node is assigned to the first fitting bin or, if none fits, the smallest bin.
-          if (_bins[i].first + weight <= _max_bin_weight) {
-            assigned_bin = i;
-            break;
-          } else if (_bins[assigned_bin].second || _bins[i].first < _bins[assigned_bin].first) {
-            assigned_bin = i;
-          }
-        }
-
-        ASSERT(!_bins[assigned_bin].second, "All available bins are locked.");
-        _bins[assigned_bin].first += weight;
-        return assigned_bin;
-      }
-
-      void lockBin(PartitionID bin) {
-        ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
-        ASSERT(!_bins[bin].second, "Bin already locked.");
-
-        _bins[bin].second = true;
-      }
-
-      HypernodeWeight binWeight(PartitionID bin) const {
-        ASSERT(bin >= 0 && static_cast<size_t>(bin) < _bins.size(), "Invalid bin id: " << V(bin));
-
-        return _bins[bin].first;
-      }
-
-      PartitionID numBins() const {
-        return _bins.size();
-      }
-
-    private:
-      HypernodeWeight _max_bin_weight;
-      std::vector<std::pair<HypernodeWeight, bool>> _bins;
-  };
+  private:
+    HypernodeWeight _max_bin_weight;
+    std::vector<std::pair<HypernodeWeight, bool>> _bins;
+};
 } // namespace bin_packing
 } // namespace kahypar

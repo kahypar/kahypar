@@ -112,13 +112,13 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
   // the overhead is negligible (due to operating on the coarsened hypergraph). If desired, the caching probably should be
   // implemented in the hypergraph data structure.
   // Note that currently the hypernodes are sorted again when the prepacking algorithm is called, and repeatedly so for each bisection.
-  if (current_k > 2 && (original_context.initial_partitioning.infeasible_early_restart
-      || original_context.initial_partitioning.infeasible_late_restart)) {
-    const HypernodeWeight current_max_bin = bin_packing::currentMaxBin(current_hypergraph, current_k);
-    const double current_imb = static_cast<double>(current_max_bin)
+  if (current_k > 2 && (original_context.initial_partitioning.enable_early_restart
+      || original_context.initial_partitioning.enable_late_restart)) {
+    const HypernodeWeight current_max_bin_weight = bin_packing::currentMaxBin(current_hypergraph, current_k);
+    const double current_imb = static_cast<double>(current_max_bin_weight)
                                / ceil(static_cast<double>(original_hypergraph.totalWeight()) / original_context.partition.k);
     current_context.initial_partitioning.bin_epsilon = calculateEpsilonFromBinImbalance(current_imb, current_k, original_context);
-    current_context.initial_partitioning.current_max_bin = current_max_bin;
+    current_context.initial_partitioning.current_max_bin_weight = current_max_bin_weight;
   }
 
   ASSERT(original_context.partition.use_individual_part_weights ||
@@ -209,8 +209,8 @@ static inline void partition(Hypergraph& input_hypergraph,
                                 (original_context.partition.k - 1));
 
   const HypernodeWeight lmax = original_context.partition.max_part_weights[0];
-  const bool restart = original_context.initial_partitioning.infeasible_early_restart
-                       || original_context.initial_partitioning.infeasible_late_restart;
+  const bool restart_if_imbalanced = original_context.initial_partitioning.enable_early_restart
+                       || original_context.initial_partitioning.enable_late_restart;
   int bisection_counter = 0;
 
   if ((original_context.type == ContextType::main && original_context.partition.verbose_output) ||
@@ -246,7 +246,7 @@ static inline void partition(Hypergraph& input_hypergraph,
 
     switch (state) {
       case RBHypergraphState::finished: {
-          if (original_context.initial_partitioning.infeasible_late_restart && k > 2) {
+          if (original_context.initial_partitioning.enable_late_restart && k > 2) {
             ASSERT(!original_context.partition.use_individual_part_weights,
                    "Individual part weights are not allowed for bin packing.");
 
@@ -334,13 +334,13 @@ static inline void partition(Hypergraph& input_hypergraph,
           }
 
 
-          if (current_hypergraph.initialNumNodes() > 0 && restart && k > 2) {
+          if (current_hypergraph.initialNumNodes() > 0 && restart_if_imbalanced && k > 2) {
             ASSERT(!original_context.partition.use_individual_part_weights,
                    "Individual part weights are not allowed for bin packing.");
-            const bool feasible = current_context.initial_partitioning.current_max_bin <= lmax;
+            const bool feasible = current_context.initial_partitioning.current_max_bin_weight <= lmax;
             hypergraph_stack.back().isFeasible = feasible;
             multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, lmax,
-                                                      feasible && current_context.initial_partitioning.infeasible_early_restart);
+                                                      feasible && current_context.initial_partitioning.enable_early_restart);
           } else if (current_hypergraph.initialNumNodes() > 0) {
             std::unique_ptr<ICoarsener> coarsener(
               CoarsenerFactory::getInstance().createObject(

@@ -86,7 +86,7 @@ class BinPacker final : public IBinPacker {
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
     const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
-    const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin * (1.0 + _context.initial_partitioning.bin_epsilon));
+    const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin_weight * (1.0 + _context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::optimistic) {
       bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);

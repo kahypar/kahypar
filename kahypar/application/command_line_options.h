@@ -394,11 +394,11 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     " - first_fit"
     "(default: worst_fit)")
     ("i-bp-early-restart",
-    po::value<bool>(&context.initial_partitioning.infeasible_early_restart)->value_name("<bool>"),
+    po::value<bool>(&context.initial_partitioning.enable_early_restart)->value_name("<bool>"),
     "Enable early restart with prepacking of current bisection if infeasible"
     "(default: false)")
     ("i-bp-late-restart",
-    po::value<bool>(&context.initial_partitioning.infeasible_late_restart)->value_name("<bool>"),
+    po::value<bool>(&context.initial_partitioning.enable_late_restart)->value_name("<bool>"),
     "Enable late restart with prepacking of bisections, i.e. if the resulting partition is imbalanced"
     "(default: false)")
     ("i-runs",

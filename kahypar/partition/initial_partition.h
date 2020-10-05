@@ -149,7 +149,6 @@ static inline void partition(Hypergraph& hg,
     fixed_vertex_subgraph_imbalance = metrics::imbalanceFixedVertices(hg, context.partition.k);
   }
 
-  init_hg.resetPartitioning();
   // we do not want to use the community structure used during coarsening in initial partitioning
   init_hg.resetCommunities();
   Context init_context = createContext(init_hg, context);

@@ -254,8 +254,8 @@ struct InitialPartitioningParameters {
   // belongs to the recursive bisection.
   // Therefore, it might be more appropriate to use the PartitioningParameters or introduce a new parameter set.
   BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
-  bool infeasible_early_restart = false;
-  bool infeasible_late_restart = false;
+  bool enable_early_restart = false;
+  bool enable_late_restart = false;
   CoarseningParameters coarsening = { };
   LocalSearchParameters local_search = { };
   uint32_t nruns = std::numeric_limits<uint32_t>::max();
@@ -267,7 +267,7 @@ struct InitialPartitioningParameters {
   HypernodeWeightVector perfect_balance_partition_weight = { };
   PartitionID unassigned_part = 1;
   std::vector<PartitionID> num_bins_per_part = { };
-  HypernodeWeight current_max_bin = 0;
+  HypernodeWeight current_max_bin_weight = 0;
   double bin_epsilon = 0.0;
   // If pool initial partitioner is used, the first 13 bits of this number decides
   // which algorithms are used.
@@ -290,8 +290,8 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Algorithm:                          " << params.algo << std::endl;
   str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
   str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
-  str << "    early restart on infeasible:      " << params.infeasible_early_restart << std::endl;
-  str << "    late restart on infeasible:       " << params.infeasible_late_restart << std::endl;
+  str << "    early restart on infeasible:      " << params.enable_early_restart << std::endl;
+  str << "    late restart on infeasible:       " << params.enable_late_restart << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
     str << "IP Coarsening:                        " << std::endl;
     str << params.coarsening;
@@ -688,7 +688,7 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
       LOG << "Sum of individual part weights is less than sum of vertex weights";
       std::exit(-1);
     }
-    if (context.initial_partitioning.infeasible_early_restart || context.initial_partitioning.infeasible_late_restart) {
+    if (context.initial_partitioning.enable_early_restart || context.initial_partitioning.enable_late_restart) {
       LOG << "Individual part weights are not yet supported by the balancing strategy."
           << "The parameters <i-bp-early-restart> and <i-bp-late-restart> must be set to false.";
       std::exit(-1);

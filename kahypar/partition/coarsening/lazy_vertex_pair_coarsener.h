@@ -102,7 +102,8 @@ class LazyVertexPairCoarsener final : public ICoarsener,
 
         ASSERT(_hg.nodeWeight(rep_node) + _hg.nodeWeight(_target[rep_node])
                <= _rater.thresholdNodeWeight());
-        ASSERT(_pq.topKey() == _rater.rate(rep_node).value,
+        // In the presence of fixed vertices the top rating might be outdated.
+        ASSERT((_pq.topKey() == _rater.rate(rep_node).value) || _hg.isFixedVertex(rep_node) || _hg.isFixedVertex(_rater.rate(rep_node).target),
                V(_pq.topKey()) << V(_rater.rate(rep_node).value));
 
         Base::performContraction(rep_node, contracted_node);
