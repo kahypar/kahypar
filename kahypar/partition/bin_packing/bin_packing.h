@@ -207,18 +207,15 @@ namespace bin_packing {
 
 
   // segment tree that is used to ensure the balance of a prepacking
-  template<typename S>
-  S balance_max(const S& v1, const S& v2, const std::vector<std::pair<S, S>>& /*seq*/, const S& /*k*/) {
+  HypernodeWeight balance_max(const HypernodeWeight& v1, const HypernodeWeight& v2, const HypernodeWeight& /*k*/) {
     return std::max(v1, v2);
   }
 
-  template<typename S>
-  S balance_base(const size_t& i, const std::vector<std::pair<S, S>>& seq, const S& k) {
+  HypernodeWeight balance_base(const size_t& i, const std::vector<std::pair<HypernodeWeight, HypernodeWeight>>& seq, const HypernodeWeight& k) {
     return k * seq[i].first - seq[i].second;
   }
 
-  template<typename S>
-  using BalanceSegTree = ds::ParametrizedSegmentTree<std::pair<S, S>, S, S, balance_max<S>, balance_base<S>>;
+  using BalanceSegTree = ds::ParametrizedSegmentTree<std::pair<HypernodeWeight, HypernodeWeight>, HypernodeWeight, balance_max, balance_base>;
 
   static inline size_t getMaxPartIndex(const Context& context, const std::vector<HypernodeWeight>& part_weight,
                                        HypernodeWeight next_element, bool skip_full_parts, HypernodeWeight max_bin_weight) {
@@ -269,7 +266,7 @@ namespace bin_packing {
       sum += w;
       weights[i - 1] = {w, sum};
     }
-    const BalanceSegTree<HypernodeWeight> seg_tree(weights, max_k);
+    const BalanceSegTree seg_tree(weights, max_k);
     std::vector<PartitionID> parts;
 
     ASSERT(nodes.size() > 0);
