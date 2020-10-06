@@ -21,60 +21,13 @@
 #pragma once
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/bin_packing/i_bin_packer.h"
 #include "kahypar/partition/bin_packing/bin_packing_utils.h"
 #include "kahypar/partition/bin_packing/bin_packing_algorithms.h"
 #include "kahypar/partition/bin_packing/prepacking.h"
 
 namespace kahypar {
 namespace bin_packing {
-  enum class BalancingLevel : uint8_t {
-    none,
-    optimistic,
-    guaranteed,
-    STOP
-  };
-
-  BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
-    switch (previous) {
-      case BalancingLevel::none:
-        return BalancingLevel::optimistic;
-      case BalancingLevel::optimistic:
-        return BalancingLevel::guaranteed;
-      case BalancingLevel::guaranteed:
-        return BalancingLevel::STOP;
-      case BalancingLevel::STOP:
-        break;
-        // omit default case to trigger compiler warning for missing cases
-    }
-    ASSERT(false, "Tried to increase invalid balancing level: " << static_cast<uint8_t>(previous));
-    return previous;
-  }
-
-class IBinPacker {
- public:
-  IBinPacker(const IBinPacker&) = delete;
-  IBinPacker(IBinPacker&&) = delete;
-  IBinPacker& operator= (const IBinPacker&) = delete;
-  IBinPacker& operator= (IBinPacker&&) = delete;
-
-  void prepacking(const BalancingLevel level) {
-    prepackingImpl(level);
-  }
-
-  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
-    return twoLevelPackingImpl(nodes, max_bin_weight);
-  }
-
-  virtual ~IBinPacker() = default;
-
- protected:
-  IBinPacker() = default;
-
- private:
-  virtual void prepackingImpl(const BalancingLevel level) = 0;
-  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
-};
-
 template< class BPAlgorithm = WorstFit >
 class BinPacker final : public IBinPacker {
  public:

@@ -1,0 +1,75 @@
+/*******************************************************************************
+ * This file is part of KaHyPar.
+ *
+ * Copyright (C) 2020 Nikolai Maas <nikolai.maas@student.kit.edu>
+ *
+ * KaHyPar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * KaHyPar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with KaHyPar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+******************************************************************************/
+
+#pragma once
+
+#include "kahypar/definitions.h"
+
+namespace kahypar {
+namespace bin_packing {
+  enum class BalancingLevel : uint8_t {
+    none,
+    optimistic,
+    guaranteed,
+    STOP
+  };
+
+  BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
+    switch (previous) {
+      case BalancingLevel::none:
+        return BalancingLevel::optimistic;
+      case BalancingLevel::optimistic:
+        return BalancingLevel::guaranteed;
+      case BalancingLevel::guaranteed:
+        return BalancingLevel::STOP;
+      case BalancingLevel::STOP:
+        break;
+        // omit default case to trigger compiler warning for missing cases
+    }
+    ASSERT(false, "Tried to increase invalid balancing level: " << static_cast<uint8_t>(previous));
+    return previous;
+  }
+
+class IBinPacker {
+ public:
+  IBinPacker(const IBinPacker&) = delete;
+  IBinPacker(IBinPacker&&) = delete;
+  IBinPacker& operator= (const IBinPacker&) = delete;
+  IBinPacker& operator= (IBinPacker&&) = delete;
+
+  void prepacking(const BalancingLevel level) {
+    prepackingImpl(level);
+  }
+
+  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
+    return twoLevelPackingImpl(nodes, max_bin_weight);
+  }
+
+  virtual ~IBinPacker() = default;
+
+ protected:
+  IBinPacker() = default;
+
+ private:
+  virtual void prepackingImpl(const BalancingLevel level) = 0;
+  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
+};
+} // namespace bin_packing
+} // namespace kahypar
