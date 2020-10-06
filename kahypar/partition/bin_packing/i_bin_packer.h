@@ -24,29 +24,31 @@
 
 namespace kahypar {
 namespace bin_packing {
-  enum class BalancingLevel : uint8_t {
-    none,
-    optimistic,
-    guaranteed,
-    STOP
-  };
+// Represents the level of the applied prepacking.
+enum class BalancingLevel : uint8_t {
+  none,
+  heuristic,
+  guaranteed,
+  STOP
+};
 
-  BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
-    switch (previous) {
-      case BalancingLevel::none:
-        return BalancingLevel::optimistic;
-      case BalancingLevel::optimistic:
-        return BalancingLevel::guaranteed;
-      case BalancingLevel::guaranteed:
-        return BalancingLevel::STOP;
-      case BalancingLevel::STOP:
-        break;
-        // omit default case to trigger compiler warning for missing cases
-    }
-    ASSERT(false, "Tried to increase invalid balancing level: " << static_cast<uint8_t>(previous));
-    return previous;
+BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
+  switch (previous) {
+    case BalancingLevel::none:
+      return BalancingLevel::heuristic;
+    case BalancingLevel::heuristic:
+      return BalancingLevel::guaranteed;
+    case BalancingLevel::guaranteed:
+      return BalancingLevel::STOP;
+    case BalancingLevel::STOP:
+      break;
+      // omit default case to trigger compiler warning for missing cases
   }
+  ASSERT(false, "Tried to increase invalid balancing level: " << static_cast<uint8_t>(previous));
+  return previous;
+}
 
+// Provides access to bin packing methdos. This class is required to select the applied bin packing algorithm via dynamic dispatch.
 class IBinPacker {
  public:
   IBinPacker(const IBinPacker&) = delete;
@@ -54,10 +56,13 @@ class IBinPacker {
   IBinPacker& operator= (const IBinPacker&) = delete;
   IBinPacker& operator= (IBinPacker&&) = delete;
 
+  // Applies a prepacking with the specified level to the hypergraph.
   void prepacking(const BalancingLevel level) {
     prepackingImpl(level);
   }
 
+  // Calculates a bin packing based on the specified order of the hypernodes. First, the hypernodes are assigned to bins,
+  // then the bins are assigned to the parts of the current bisection.
   std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
     return twoLevelPackingImpl(nodes, max_bin_weight);
   }

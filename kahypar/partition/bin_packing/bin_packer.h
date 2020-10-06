@@ -28,6 +28,7 @@
 
 namespace kahypar {
 namespace bin_packing {
+// Implementation of IBinPacker for a generic bin packing algorithm.
 template< class BPAlgorithm = WorstFit >
 class BinPacker final : public IBinPacker {
  public:
@@ -41,20 +42,20 @@ class BinPacker final : public IBinPacker {
     const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
     const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin_weight * (1.0 + _context.initial_partitioning.bin_epsilon));
 
-    if (level == BalancingLevel::optimistic) {
+    if (level == BalancingLevel::heuristic) {
       bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
     } else if (level == BalancingLevel::guaranteed) {
       for (size_t i = 0; i < static_cast<size_t>(_context.initial_partitioning.k); ++i) {
         const HypernodeWeight lower = _context.initial_partitioning.perfect_balance_partition_weight[i];
         const HypernodeWeight upper = _context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
-        // possibly, the allowed partition weight needs to be adjusted to provide useful input parameters for the prepacking algorithm
         HypernodeWeight& border = _context.initial_partitioning.upper_allowed_partition_weight[i];
 
-        // TODO(maas) Here, some magic numbers are used to check that the different borders for the part weights work
-        // for the prepacking algorithm. Unfortunately, I do not know of a more general or elegant solution.
-        // The basic problem is, if <border> (the allowed partition weight) is too close to <upper>, the prepacking
-        // algorithm performs badly in the sense that almost every vertex will be prepacked, thus resulting in a
-        // bisection which is indeed balanced, but probably has a really poor cut.
+        // The performance of the prepacking algorithm depends on the perfect part weight, the allowed weight for each bin
+        // and the allowed part weight, which must be between those, i.e. lower <= border <= upper. If border has a value close
+        // to lower, the possibilities of the initial partitioning algorithm are rather restricted, but only few vertices need
+        // to be prepacked. On the other hand, if border has a value close to upper, almost every vertex will be prepacked,
+        // resulting in a bisection with a poor cut.
+        // To avoid this, we check for this case and adjust the allowed part weight if necessary.
         if (upper - border < (border - lower) / 10) {
           border = (lower + upper) / 2;
           _context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
@@ -76,6 +77,7 @@ class BinPacker final : public IBinPacker {
       bin_packing::preassignFixedVertices<BPAlgorithm>(_hypergraph, nodes, parts, packer, _context.partition.k, rb_range_k);
     }
 
+    // At the first level, a packing with rb_range_k bins is calculated ...
     for (size_t i = 0; i < nodes.size(); ++i) {
       const HypernodeID hn = nodes[i];
 
@@ -85,6 +87,7 @@ class BinPacker final : public IBinPacker {
       }
     }
 
+    // ... and at the second level, the resulting bins are packed into the final parts.
     PartitionMapping packing_result = packer.applySecondLevel(_context.initial_partitioning.upper_allowed_partition_weight,
                                                               _context.initial_partitioning.num_bins_per_part).first;
     packing_result.applyMapping(parts);

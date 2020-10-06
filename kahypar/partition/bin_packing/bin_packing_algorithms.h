@@ -30,34 +30,32 @@ namespace bin_packing {
 using kahypar::ds::BinaryMinHeap;
 
 /*
-* To be a valid bin packing algorithm, the following operations
-* must be available for a type BPAlgorithm:
-*
+* An (online) bin packing algorithm is represented by a class that holds the internal state
+* and provides methods to insert elements or add initial weight to a bin. Additionally, it
+* is supported to lock a bin, which means that no more elements can be inserted to this bin.
+* For a type BPAlgorithm, the following operations must be available:
 * 1)
 *   PartitionID num_bins = ...;
 *   HypernodeWeight max_bin_weight = ...;
 *   BPAlgorithm alg(num_bins, max_bin_weight);
-*
 * 2)
 *   PartitionID bin = ...;
 *   HypernodeWeight weight = ...;
 *   alg.addWeight(bin, weight);
-*
 * 3)
 *   HypernodeWeight weight = ...;
 *   PartitionID resulting_bin = alg.insertElement(weight);
-*
 * 4)
 *   ParititionID bin = ...;
 *   alg.lockBin(bin);
-*
 * 5)
 *   ParititionID bin = ...;
 *   HypernodeWeight weight = alg.binWeight(bin);
-*
 * 6)
 *   PartitionID numBins = alg.numBins();
 */
+
+// Worst Fit algorithm - inserts an element to the bin with the lowest weight.
 class WorstFit {
   public:
     WorstFit(const PartitionID num_bins, const HypernodeWeight /*max*/) :
@@ -112,6 +110,7 @@ class WorstFit {
     PartitionID _num_bins;
 };
 
+// First Fit algorithm - inserts an element to the first fitting bin.
 class FirstFit {
   public:
     FirstFit(const PartitionID num_bins, const HypernodeWeight max) :
