@@ -175,6 +175,8 @@ TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
   context.partition.objective = Objective::km1;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
   context.partition.use_individual_part_weights = true;
+  context.initial_partitioning.enable_early_restart = false;
+  context.initial_partitioning.enable_late_restart = false;
   context.partition.verbose_output = true;
   context.partition.max_part_weights = { 2750, 1000, 3675, 2550, 2550, 250 };
 
@@ -207,7 +209,7 @@ TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
 }
 
 TEST_F(KaHyParWF, ComputesBalancedSolutionWithNodeWeights) {
-  parseIniToContext(context, "../../../config/old_reference_configs/km1_kKaHyPar_dissertation.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
   context.partition.k = 32;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
@@ -242,6 +244,7 @@ TEST_F(KaHyParE, ComputesDirectKwayKm1Partitioning) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   context.partition.quiet_mode = true;
@@ -271,6 +274,7 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
 
   reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
+  reinterpret_cast<kahypar::Context*>(context)->initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
 
   HypernodeID num_hypernodes = 0;
   HyperedgeID num_hyperedges = 0;

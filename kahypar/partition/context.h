@@ -289,7 +289,6 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
   str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
-  str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
   str << "    early restart on infeasible:      " << params.enable_early_restart << std::endl;
   str << "    late restart on infeasible:       " << params.enable_late_restart << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
