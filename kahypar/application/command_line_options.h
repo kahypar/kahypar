@@ -371,7 +371,7 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
       context.initial_partitioning.technique =
-        kahypar::inititalPartitioningTechniqueFromString(ip_technique);
+        kahypar::initialPartitioningTechniqueFromString(ip_technique);
     }),
     "IP Technique:\n"
     " - flat\n"

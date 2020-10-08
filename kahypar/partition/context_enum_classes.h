@@ -586,7 +586,7 @@ static InitialPartitionerAlgorithm initialPartitioningAlgorithmFromString(const 
   return InitialPartitionerAlgorithm::greedy_global;
 }
 
-static InitialPartitioningTechnique inititalPartitioningTechniqueFromString(const std::string& technique) {
+static InitialPartitioningTechnique initialPartitioningTechniqueFromString(const std::string& technique) {
   if (technique == "flat") {
     return InitialPartitioningTechnique::flat;
   } else if (technique == "multi") {

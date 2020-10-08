@@ -81,8 +81,8 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     }
 
     if (_context.type == ContextType::main) {
-      _context.stats.set(StatTag::InitialPartitioning, "inititalCut", current_metrics.cut);
-      _context.stats.set(StatTag::InitialPartitioning, "inititalKm1", current_metrics.km1);
+      _context.stats.set(StatTag::InitialPartitioning, "initialCut", current_metrics.cut);
+      _context.stats.set(StatTag::InitialPartitioning, "initialKm1", current_metrics.km1);
       _context.stats.set(StatTag::InitialPartitioning, "initialImbalance",
                          current_metrics.imbalance);
     }
