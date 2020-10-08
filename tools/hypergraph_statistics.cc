@@ -101,7 +101,26 @@ int main(int argc, char* argv[]) {
   }
   density = density / (num_hypernodes * (num_hypernodes - 1));
 
-  HypernodeWeight min_hn_weight = 0;
+  HyperedgeWeight min_he_weight = std::numeric_limits<HyperedgeWeight>::max();
+  HyperedgeWeight max_he_weight = 0;
+  HypernodeWeight total_he_weight = 0;
+  double sd_he_weight = 0.0;
+  std::vector<HyperedgeWeight> he_weights;
+  he_weights.reserve(hypergraph.currentNumEdges());
+  for (const auto& he : hypergraph.edges()) {
+    min_he_weight = std::min(min_he_weight, hypergraph.edgeWeight(he));
+    max_he_weight = std::max(max_he_weight, hypergraph.edgeWeight(he));
+    total_he_weight += hypergraph.edgeWeight(he);
+    sd_he_weight += std::pow(hypergraph.edgeWeight(he), 2);
+    he_weights.push_back(hypergraph.edgeWeight(he));
+  }
+  double avg_he_weight = static_cast<double>(total_he_weight) / num_hyperedges;
+  sd_he_weight = std::sqrt((sd_he_weight / num_hyperedges) - std::pow(avg_he_weight, 2));
+
+  std::sort(he_weights.begin(), he_weights.end());
+  auto he_weight_quartiles = kahypar::math::firstAndThirdQuartile(he_weights);
+
+  HypernodeWeight min_hn_weight = std::numeric_limits<HypernodeWeight>::max();
   double avg_hn_weight = kahypar::metrics::avgHypernodeWeight(hypergraph);
   double sd_hn_weight = 0.0;
   std::vector<HypernodeWeight> hn_weights;
@@ -129,6 +148,14 @@ int main(int argc, char* argv[]) {
              << " medHEsize=" << kahypar::math::median(he_sizes)
              << " Q3HEsize=" << he_size_quartiles.second
              << " maxHEsize=" << max_he_size
+             << " totalHEweight=" << total_he_weight
+             << " avgHEweight=" << avg_he_weight
+             << " sdHEweight=" << sd_he_weight
+             << " minHEweight=" << min_he_weight
+             << " Q1HEweight=" << he_weight_quartiles.first
+             << " medHEweight=" << kahypar::math::median(he_weights)
+             << " Q3HEweight=" << he_weight_quartiles.second
+             << " maxHEweight=" << max_he_weight
              << " avgHNdegree=" << avg_hn_degree
              << " sdHNdegree=" << sd_hn_degree
              << " minHnDegree=" << min_hn_degree
