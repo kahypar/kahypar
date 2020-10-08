@@ -58,6 +58,7 @@ TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.partition.graph_filename = "../../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
@@ -75,6 +76,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithDiverseStrategy) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   population.generateIndividual(hypergraph, context);
@@ -144,6 +146,7 @@ TEST_F(APopulation, IsCorrectlyReplacingWithStrongDiverseStrategy) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::strong_diverse;
   population.generateIndividual(hypergraph, context);
@@ -242,6 +245,7 @@ TEST_F(APopulation, IsPerformingTournamentSelection) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   population.generateIndividual(hypergraph, context);

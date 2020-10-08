@@ -54,6 +54,7 @@ TEST_F(AMutation, IsPerformingVcyclesCorrectly) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.partition_evolutionary = true;
   context.local_search.algorithm = RefinementAlgorithm::do_nothing;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
@@ -79,6 +80,7 @@ TEST_F(AMutation, IsPerformingVcyclesNewIPCorrectly) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::cut;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::do_nothing;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
   context.evolutionary.mutate_strategy = EvoMutateStrategy::new_initial_partitioning_vcycle;
