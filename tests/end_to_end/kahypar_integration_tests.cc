@@ -275,6 +275,8 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
 
   reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
   reinterpret_cast<kahypar::Context*>(context)->initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+  reinterpret_cast<kahypar::Context*>(context)->initial_partitioning.enable_early_restart = false;
+  reinterpret_cast<kahypar::Context*>(context)->initial_partitioning.enable_late_restart = false;
 
   HypernodeID num_hypernodes = 0;
   HyperedgeID num_hyperedges = 0;
