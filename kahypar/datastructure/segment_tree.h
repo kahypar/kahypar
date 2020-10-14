@@ -42,10 +42,10 @@ template<typename S, typename T, T (*COMBINE)(const T &, const T &, const T &),
          T (*BASE)(const size_t &, const std::vector<S> &, const T &)>
 class ParametrizedSegmentTree {
 public:
-  typedef S seq_type;
-  typedef T tree_type;
+  using seq_type = S;
+  using tree_type = T;
 
-  explicit ParametrizedSegmentTree(std::vector<seq_type>& seq, T param) : _size(seq.size()), _seq(seq), _seg_tree(2*_size), _param(param) {
+  explicit ParametrizedSegmentTree(std::vector<seq_type>& seq, tree_type param) : _size(seq.size()), _seq(seq), _seg_tree(2*_size), _param(param) {
     buildSegmentTree(0, 0, _size-1);
   }
 
@@ -89,9 +89,9 @@ private:
   }
 
   size_t _size;
-  std::reference_wrapper<std::vector<S>> _seq;
-  std::vector<T> _seg_tree;
-  T _param;
+  std::reference_wrapper<std::vector<seq_type>> _seq;
+  std::vector<tree_type> _seg_tree;
+  tree_type _param;
 };
 }  // namespace ds
 }  // namespace kahypar

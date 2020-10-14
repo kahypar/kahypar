@@ -43,7 +43,7 @@ class BinPacker final : public IBinPacker {
     const HypernodeWeight max_bin_weight = floor(_context.initial_partitioning.current_max_bin_weight * (1.0 + _context.initial_partitioning.bin_epsilon));
 
     if (level == BalancingLevel::heuristic) {
-      bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
+      calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
     } else if (level == BalancingLevel::guaranteed) {
       Context prepacking_context(_context);
       for (size_t i = 0; i < static_cast<size_t>(_context.initial_partitioning.k); ++i) {
@@ -63,7 +63,7 @@ class BinPacker final : public IBinPacker {
         }
       }
 
-      bin_packing::calculateExactPrepacking<BPAlgorithm>(_hypergraph, prepacking_context, rb_range_k, max_bin_weight);
+      calculateExactPrepacking<BPAlgorithm>(_hypergraph, prepacking_context, rb_range_k, max_bin_weight);
     }
   }
 
@@ -75,7 +75,7 @@ class BinPacker final : public IBinPacker {
     TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
 
     if (_hypergraph.containsFixedVertices()) {
-      bin_packing::preassignFixedVertices<BPAlgorithm>(_hypergraph, nodes, parts, packer, _context.partition.k, rb_range_k);
+      preassignFixedVertices<BPAlgorithm>(_hypergraph, nodes, parts, packer, _context.partition.k, rb_range_k);
     }
 
     // At the first level, a packing with rb_range_k bins is calculated ...
