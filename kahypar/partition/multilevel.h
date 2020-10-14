@@ -41,8 +41,7 @@ static constexpr bool debug = false;
 static inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
-                             const Context& context,
-                             const std::vector<HypernodeWeight>& adjusted_weight = std::vector<HypernodeWeight>()) {
+                             const Context& context) {
   io::printCoarseningBanner(context);
 
   HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
@@ -62,7 +61,7 @@ static inline void partition(Hypergraph& hypergraph,
     io::printInitialPartitioningBanner(context);
 
     start = std::chrono::high_resolution_clock::now();
-    initial::partition(hypergraph, context, adjusted_weight);
+    initial::partition(hypergraph, context);
     end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(context, Timepoint::initial_partitioning,
                           std::chrono::duration<double>(end - start).count());
@@ -138,8 +137,8 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
   ASSERT((context.partition.rb_upper_k - context.partition.rb_lower_k + 1) > 2,
          "Prepacking is not allowed for k <= 2: " << V(context.partition.rb_upper_k) << " - " << context.partition.rb_lower_k);
 
-  Context packing_context = initial::createContext(hypergraph, context);
-  packing_context.setupInitialPartitioningPartWeights();
+  Context prepacking_context = initial::createContext(hypergraph, context);
+  prepacking_context.setupInitialPartitioningPartWeights();
   BalancingLevel current_level = level;
 
   do {
@@ -152,7 +151,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     }
 
     // perform prepacking of heavy vertices
-    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, packing_context);
+    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, prepacking_context);
     bin_packer->prepacking(current_level);
 
     std::unique_ptr<ICoarsener> coarsener(
@@ -161,11 +160,11 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     ASSERT(coarsener.get() != nullptr, "coarsener not found");
     ASSERT(refiner.get() != nullptr, "refiner not found");
 
-    partition(hypergraph, *coarsener, *refiner, context, packing_context.initial_partitioning.upper_allowed_partition_weight);
+    partition(hypergraph, *coarsener, *refiner, context);
     hypergraph.resetFixedVertices();
     current_level = bin_packing::increaseBalancingRestrictions(current_level);
   } while (repeat && current_level != BalancingLevel::STOP
-           && bin_packing::resultingMaxBin(hypergraph, packing_context) > max_allowed_bin_weight);
+           && bin_packing::resultingMaxBin(hypergraph, prepacking_context) > max_allowed_bin_weight);
 }
 }  // namespace multilevel
 }  // namespace kahypar

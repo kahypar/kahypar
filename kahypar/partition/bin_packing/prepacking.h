@@ -64,11 +64,11 @@ static inline size_t getMaxPartIndex(const Context& context, const std::vector<H
 }
 
 template< class BPAlgorithm >
-static inline void calculateExactPrepacking(Hypergraph& hg, Context& context, const PartitionID rb_range_k, const HypernodeWeight max_bin_weight) {
+static inline void calculateExactPrepacking(Hypergraph& hg, const Context& context, const PartitionID rb_range_k, const HypernodeWeight max_bin_weight) {
   ASSERT(rb_range_k > context.partition.k);
   ASSERT(!hg.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
 
-  std::vector<HypernodeWeight>& upper_weight = context.initial_partitioning.upper_allowed_partition_weight;
+  const std::vector<HypernodeWeight>& upper_weight = context.initial_partitioning.upper_allowed_partition_weight;
   const std::vector<PartitionID>& num_bins_per_part = context.initial_partitioning.num_bins_per_part;
 
   ASSERT(upper_weight.size() == static_cast<size_t>(context.partition.k)
@@ -135,34 +135,6 @@ static inline void calculateExactPrepacking(Hypergraph& hg, Context& context, co
   packing_result.first.applyMapping(parts);
   for (size_t i = 0; i < parts.size(); ++i) {
     hg.setFixedVertex(nodes[i], parts[i]);
-  }
-
-  // TODO(maas) It is questionable whether this last part of the algorithm is required.
-  // It is an optimization which theoretically allows to relax the upper allowed partition
-  // weights for the bisection in some cases. However, we also do know that more relaxed weights
-  // in a higher bisection level might lead to worse results in lower levels or in the refinement.
-  // Thus, in practice it is probably no improvement.
-  //
-  // The ugly aspect here is that it also complicates code at other positions, because the changed
-  // weights need to be propagated to the initial partitioning algorithm (see initial_partition::partition).
-  const size_t max_part_idx = getMaxPartIndex(context, packing_result.second, 0, false, max_bin_weight);
-  HypernodeWeight range_weight = packing_result.second[max_part_idx];
-  HypernodeWeight imbalance = 0;
-  HypernodeWeight optimized = 0;
-  for (size_t j = i; j < nodes.size(); ++j) {
-    HypernodeWeight weight = weights[j].first;
-    imbalance = std::max(imbalance - weight, (max_k - 1) * weight);
-    range_weight += weight;
-    HypernodeWeight bin_weight = range_weight * max_k / num_bins_per_part[max_part_idx];
-
-    if (bin_weight + imbalance > max_k * max_bin_weight) {
-      break;
-    }
-    optimized = max_k * max_bin_weight - imbalance;
-  }
-
-  for (size_t i = 0; i < upper_weight.size(); ++i) {
-    upper_weight[i] = std::max(upper_weight[i], num_bins_per_part[i] * optimized / max_k);
   }
 }
 

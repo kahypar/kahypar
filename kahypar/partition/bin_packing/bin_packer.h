@@ -32,7 +32,7 @@ namespace bin_packing {
 template< class BPAlgorithm = WorstFit >
 class BinPacker final : public IBinPacker {
  public:
-  BinPacker(Hypergraph& hypergraph, Context& context) : _hypergraph(hypergraph), _context(context) {}
+  BinPacker(Hypergraph& hypergraph, const Context& context) : _hypergraph(hypergraph), _context(context) {}
 
  private:
   void prepackingImpl(const BalancingLevel level) override {
@@ -45,10 +45,11 @@ class BinPacker final : public IBinPacker {
     if (level == BalancingLevel::heuristic) {
       bin_packing::calculateHeuristicPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
     } else if (level == BalancingLevel::guaranteed) {
+      Context prepacking_context(_context);
       for (size_t i = 0; i < static_cast<size_t>(_context.initial_partitioning.k); ++i) {
-        const HypernodeWeight lower = _context.initial_partitioning.perfect_balance_partition_weight[i];
-        const HypernodeWeight upper = _context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
-        HypernodeWeight& border = _context.initial_partitioning.upper_allowed_partition_weight[i];
+        const HypernodeWeight lower = prepacking_context.initial_partitioning.perfect_balance_partition_weight[i];
+        const HypernodeWeight upper = prepacking_context.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
+        HypernodeWeight& border = prepacking_context.initial_partitioning.upper_allowed_partition_weight[i];
 
         // The performance of the prepacking algorithm depends on the perfect part weight, the allowed weight for each bin
         // and the allowed part weight, which must be between those, i.e. lower <= border <= upper. If border has a value close
@@ -58,11 +59,11 @@ class BinPacker final : public IBinPacker {
         // To avoid this, we check for this case and adjust the allowed part weight if necessary.
         if (upper - border < (border - lower) / 10) {
           border = (lower + upper) / 2;
-          _context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
+          prepacking_context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
         }
       }
 
-      bin_packing::calculateExactPrepacking<BPAlgorithm>(_hypergraph, _context, rb_range_k, max_bin_weight);
+      bin_packing::calculateExactPrepacking<BPAlgorithm>(_hypergraph, prepacking_context, rb_range_k, max_bin_weight);
     }
   }
 
@@ -108,10 +109,10 @@ class BinPacker final : public IBinPacker {
   }
 
   Hypergraph& _hypergraph;
-  Context& _context;
+  const Context& _context;
 };
 
-static std::unique_ptr<IBinPacker> createBinPacker(const BinPackingAlgorithm& bp_algo, Hypergraph& hypergraph, Context& context) {
+static std::unique_ptr<IBinPacker> createBinPacker(const BinPackingAlgorithm& bp_algo, Hypergraph& hypergraph, const Context& context) {
   switch (bp_algo) {
     case BinPackingAlgorithm::worst_fit: return std::make_unique<BinPacker<WorstFit>>(hypergraph, context);
     case BinPackingAlgorithm::first_fit: return std::make_unique<BinPacker<FirstFit>>(hypergraph, context);
