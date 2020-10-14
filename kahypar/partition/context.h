@@ -249,10 +249,6 @@ struct InitialPartitioningParameters {
   Mode mode = Mode::UNDEFINED;
   InitialPartitioningTechnique technique = InitialPartitioningTechnique::UNDEFINED;
   InitialPartitionerAlgorithm algo = InitialPartitionerAlgorithm::UNDEFINED;
-  // TODO(maas) Is this a sensible placement for these parameters? While for kKaHyPar the prepacking
-  // is part of the initial partitioning, this is not true for rKaHyPar. Fundamentally, the prepacking
-  // belongs to the recursive bisection.
-  // Therefore, it might be more appropriate to use the PartitioningParameters or introduce a new parameter set.
   BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
   bool enable_early_restart = false;
   bool enable_late_restart = false;
