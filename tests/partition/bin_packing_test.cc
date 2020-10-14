@@ -205,7 +205,7 @@ TEST_F(Test, PartitionMapping) {
   ASSERT_FALSE(mapping.isFixedBin(0));
   ASSERT_FALSE(mapping.isFixedBin(1));
   ASSERT_FALSE(mapping.isFixedBin(2));
-  ASSERT_EQ(mapping.binPartition(0), -1);
+  ASSERT_EQ(mapping.getPart(0), -1);
 
   mapping.setPart(0, 2);
   mapping.setPart(1, 1);
@@ -214,9 +214,9 @@ TEST_F(Test, PartitionMapping) {
   ASSERT_TRUE(mapping.isFixedBin(0));
   ASSERT_TRUE(mapping.isFixedBin(1));
   ASSERT_TRUE(mapping.isFixedBin(2));
-  ASSERT_EQ(mapping.binPartition(0), 2);
-  ASSERT_EQ(mapping.binPartition(1), 1);
-  ASSERT_EQ(mapping.binPartition(2), 0);
+  ASSERT_EQ(mapping.getPart(0), 2);
+  ASSERT_EQ(mapping.getPart(1), 1);
+  ASSERT_EQ(mapping.getPart(2), 0);
 
   mapping.applyMapping(_parts);
 
@@ -518,8 +518,6 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(4), false);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 8);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 8);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 13);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 13);
 
   initializeWeights({7, 7, 5, 5, 3, 2, 1, 1, 1});
   createTestContext(c, {17, 17}, {16, 16}, {2, 2}, 2, 4, 10);
@@ -532,8 +530,6 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(4), false);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(0), 12);
   ASSERT_EQ(hypergraph.fixedVertexPartWeight(1), 12);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 19);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 19);
 
   // tests for end of range failure
   initializeWeights({50, 50, 50, 1});
@@ -565,32 +561,6 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(6), true);
   ASSERT_EQ(hypergraph.isFixedVertex(7), true);
   ASSERT_EQ(hypergraph.isFixedVertex(8), true);
-
-  // tests optimization in full partition edge case
-  initializeWeights({5, 5, 3, 3, 3, 2, 1, 1});
-  createTestContext(c, {12, 12}, {12, 12}, {2, 2}, 2, 4, 7);
-
-  calculateExactPrepacking<FirstFit>(hypergraph, c, 4, 7);
-  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
-  ASSERT_EQ(hypergraph.isFixedVertex(3), false);
-  ASSERT_EQ(hypergraph.isFixedVertex(4), false);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 12);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 12);
-
-  // invalid packing - test for resulting upper part weight
-  initializeWeights({8, 8, 8, 7, 7});
-  createTestContext(c, {19, 19}, {19, 19}, {2, 2}, 2, 4, 10);
-
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 10);
-  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(4), true);
-  ASSERT_LE(c.initial_partitioning.upper_allowed_partition_weight[0], 20);
-  ASSERT_LE(c.initial_partitioning.upper_allowed_partition_weight[1], 20);
 
   // impossible packing test
   initializeWeights({2, 2, 2, 2, 2});
@@ -635,27 +605,6 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(3), true);
   ASSERT_EQ(hypergraph.isFixedVertex(4), false);
   ASSERT_EQ(hypergraph.isFixedVertex(5), false);
-
-  // small final optimization
-  initializeWeights({8, 8, 3, 2, 2});
-  createTestContext(c, {12, 12}, {12, 12}, {2, 2}, 2, 4, 8);
-
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 8);
-  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 14);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 14);
-
-  initializeWeights({10, 10, 3, 2, 1});
-  createTestContext(c, {16, 16}, {13, 13}, {2, 2}, 2, 4, 10);
-
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 10);
-  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
-  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 19);
-  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 19);
 }
 
 TEST_F(BinPackingTest, ExactPrepackingUnequal) {
