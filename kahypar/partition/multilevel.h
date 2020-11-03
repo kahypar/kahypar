@@ -163,7 +163,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
 
     partition(hypergraph, *coarsener, *refiner, context);
     hypergraph.resetFixedVertices();
-    current_level = bin_packing::increaseBalancingRestrictions(current_level);
+    current_level = bin_packing::increaseBalancingRestrictions(current_level, context.initial_partitioning.use_heuristic_prepacking);
   } while (repeat && current_level != BalancingLevel::STOP
            && bin_packing::resultingMaxBin(hypergraph, prepacking_context) > max_allowed_bin_weight);
 }

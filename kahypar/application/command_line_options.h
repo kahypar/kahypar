@@ -401,6 +401,10 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     po::value<bool>(&context.initial_partitioning.enable_late_restart)->value_name("<bool>"),
     "Enable late restart with prepacking of bisections, i.e. if the resulting partition is imbalanced"
     "(default: false)")
+    ("i-bp-heuristic-prepacking",
+    po::value<bool>(&context.initial_partitioning.use_heuristic_prepacking)->value_name("<bool>"),
+    "Try a heuristic prepacking berfore using the one with balance guarantees"
+    "(default: true)")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials");

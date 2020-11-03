@@ -253,7 +253,8 @@ static inline void partition(Hypergraph& input_hypergraph,
               }
             }
 
-            hypergraph_stack.back().level = bin_packing::increaseBalancingRestrictions(level);
+            hypergraph_stack.back().level = bin_packing::increaseBalancingRestrictions(level,
+                                            original_context.initial_partitioning.use_heuristic_prepacking);
 
             if (!balanced && hypergraph_stack.back().is_feasible && hypergraph_stack.back().level != BalancingLevel::STOP) {
               current_hypergraph.reset();

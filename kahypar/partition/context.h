@@ -252,6 +252,7 @@ struct InitialPartitioningParameters {
   BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
   bool enable_early_restart = false;
   bool enable_late_restart = false;
+  bool use_heuristic_prepacking = true;
   CoarseningParameters coarsening = { };
   LocalSearchParameters local_search = { };
   uint32_t nruns = std::numeric_limits<uint32_t>::max();

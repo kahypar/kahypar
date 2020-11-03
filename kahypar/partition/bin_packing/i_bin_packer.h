@@ -35,10 +35,10 @@ enum class BalancingLevel : uint8_t {
   STOP
 };
 
-BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
+BalancingLevel increaseBalancingRestrictions(BalancingLevel previous, bool use_heuristic_prepacking) {
   switch (previous) {
     case BalancingLevel::none:
-      return BalancingLevel::heuristic;
+      return use_heuristic_prepacking ? BalancingLevel::heuristic : BalancingLevel::guaranteed;
     case BalancingLevel::heuristic:
       return BalancingLevel::guaranteed;
     case BalancingLevel::guaranteed:
