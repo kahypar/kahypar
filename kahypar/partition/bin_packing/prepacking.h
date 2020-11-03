@@ -32,7 +32,7 @@ namespace {
   }
 
   HypernodeWeight balance_base(const size_t& i, const std::vector<std::pair<HypernodeWeight, HypernodeWeight>>& seq, const HypernodeWeight& k) {
-    return k * seq[i].first - seq[i].second;
+    return k * seq[i].first + seq[i].second;
   }
 
   using BalanceSegTree = ds::ParametrizedSegmentTree<std::pair<HypernodeWeight, HypernodeWeight>, HypernodeWeight, balance_max, balance_base>;
@@ -75,18 +75,19 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
          && num_bins_per_part.size() == static_cast<size_t>(context.partition.k));
   ASSERT(std::accumulate(num_bins_per_part.cbegin(), num_bins_per_part.cend(), 0) >= rb_range_k);
 
-  // initialization: exctract descending nodes, calculate suffix sums of weights and initialize segment tree
-  const PartitionID max_k = *std::max_element(num_bins_per_part.cbegin(), num_bins_per_part.cend());
+  // initialization: exctract descending nodes, calculate prefix sums of weights and initialize segment tree
   const std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hg);
   TwoLevelPacker<BPAlgorithm> packer(rb_range_k, max_bin_weight);
-  std::vector<std::pair<HypernodeWeight, HypernodeWeight>> weights(nodes.size() + 1);
+  std::vector<std::pair<HypernodeWeight, HypernodeWeight>> weights;
+  weights.reserve(nodes.size() + 1);
   HypernodeWeight sum = 0;
-  weights[nodes.size()] = {0, 0};
-  for (size_t i = nodes.size(); i > 0; --i) {
-    HypernodeWeight w = hg.nodeWeight(nodes[i - 1]);
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    HypernodeWeight w = hg.nodeWeight(nodes[i]);
+    weights.emplace_back(w, sum);
     sum += w;
-    weights[i - 1] = {w, sum};
   }
+  weights.emplace_back(0, sum);
+  const PartitionID max_k = *std::max_element(num_bins_per_part.cbegin(), num_bins_per_part.cend());
   const BalanceSegTree seg_tree(weights, max_k);
   std::vector<PartitionID> parts;
 
@@ -108,21 +109,19 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
     ASSERT(upper_weight.size() == packing_result.second.size());
 
     const size_t max_part_idx = getMaxPartIndex(context, packing_result.second, weights[i].first, true, max_bin_weight);
-    const HypernodeWeight remaining = std::max(0, std::min(packing_result.second[max_part_idx] - upper_weight[max_part_idx]
-                                      + weights[i].second, weights[i].second));
+    const HypernodeWeight remaining_weight_for_max_part = upper_weight[max_part_idx] - packing_result.second[max_part_idx];
+    const HypernodeWeight searched_weight = weights[i].second + remaining_weight_for_max_part;
 
     // find subrange of specified weight
-    const size_t j = weights.crend() - std::lower_bound(weights.crbegin(), weights.crend() - i, std::make_pair(0, remaining),
+    const size_t j = std::lower_bound(weights.cbegin() + i, weights.cend(), std::make_pair(0, searched_weight),
                      [&](const auto& v1, const auto& v2) {
                        return v1.second < v2.second;
-                     }) - 1;
+                     }) - weights.cbegin();
 
-    // calculate the bound for the subrange
+    // calculate upper bound for the additional weight required by vertices that are not prepacked
     if (j > i) {
-      const HypernodeWeight imbalance = seg_tree.query(i, j - 1) + weights[j].second;
-      const HypernodeWeight partWeight = (j == nodes.size() ? packing_result.second[max_part_idx] + weights[i].second : upper_weight[max_part_idx])
-                                         * max_k / num_bins_per_part[max_part_idx];
-      if (partWeight + imbalance <= max_k * max_bin_weight) {
+      const HypernodeWeight upper_bound = seg_tree.query(i, j - 1) - weights[i].second;
+      if (packing_result.second[max_part_idx] + upper_bound <= num_bins_per_part[max_part_idx] * max_bin_weight) {
         break;
       }
     }

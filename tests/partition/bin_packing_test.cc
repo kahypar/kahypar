@@ -605,6 +605,31 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(3), true);
   ASSERT_EQ(hypergraph.isFixedVertex(4), false);
   ASSERT_EQ(hypergraph.isFixedVertex(5), false);
+
+  // invalid combination of balance property formulations
+  initializeWeights({8, 8, 8, 4, 4, 4, 4});
+  createTestContext(c, {26, 26}, {20, 20}, {2, 2}, 2, 4, 15);
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 15);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+
+  // Assert that the correct variant of the balance property formulation is used.
+  // For the alternative formulation, the other case won't have a fixed vertex
+  initializeWeights({12, 12, 3, 3, 3, 3, 3, 3});
+  createTestContext(c, {28, 28}, {21, 21}, {2, 2}, 2, 4, 18);
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 18);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), false);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), false);
+
+  initializeWeights({8, 8, 8, 8, 3, 3, 3, 3});
+  createTestContext(c, {28, 28}, {22, 22}, {2, 2}, 2, 4, 18);
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 18);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
 }
 
 TEST_F(BinPackingTest, ExactPrepackingUnequal) {
