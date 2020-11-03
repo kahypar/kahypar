@@ -24,16 +24,17 @@
 
 using namespace kahypar;
 
-HypernodeID removeHeavyNodes(Hypergraph& hypergraph, HypernodeID k) {
+HypernodeID removeHeavyNodes(Hypergraph& hypergraph, HypernodeID k, double epsilon) {
   HypernodeWeight total_weight = hypergraph.totalWeight();
   HypernodeID new_k = k;
   std::vector<HypernodeID> to_remove;
 
   do {
-    HypernodeWeight avg_block_weight = (total_weight + new_k - 1) / new_k;
+    HypernodeWeight allowed_block_weight = std::floor((1 + epsilon)
+                                           * ceil(static_cast<double>(total_weight) / new_k));
     to_remove.clear();
     for (const HypernodeID& hn : hypergraph.nodes()) {
-      if (hypergraph.nodeWeight(hn) > avg_block_weight) {
+      if (hypergraph.nodeWeight(hn) > allowed_block_weight) {
         to_remove.push_back(hn);
       }
     }
@@ -48,19 +49,20 @@ HypernodeID removeHeavyNodes(Hypergraph& hypergraph, HypernodeID k) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 4) {
+  if (argc != 5) {
     std::cout << "Wrong number of arguments" << std::endl;
-    std::cout << "Usage: BalanceConstraint <.hgr> <output_file> <k>" << std::endl;
+    std::cout << "Usage: RemoveHeavyNodes <.hgr> <output_file> <k> <e>" << std::endl;
     exit(0);
   }
 
   std::string hgr_filename(argv[1]);
   std::string output_filename(argv[2]);
   HypernodeID k = std::stoul(argv[3]);
+  double epsilon = std::stod(argv[4]);
 
   Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k));
 
-  HypernodeID new_k = removeHeavyNodes(hypergraph, k);
+  HypernodeID new_k = removeHeavyNodes(hypergraph, k, epsilon);
   for (const HyperedgeID& he : hypergraph.edges()) {
     auto pins_start_end = hypergraph.pins(he);
     if (pins_start_end.first == pins_start_end.second) {
