@@ -113,9 +113,8 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       _quotient_graph = new QuotientGraphBlockScheduler(_hg, _context);
       _quotient_graph->buildQuotientGraph();
     }
-
-    hfc.cs.setMaxBlockWeight(0, _context.partition.max_part_weights[b0]);
-    hfc.cs.setMaxBlockWeight(1, _context.partition.max_part_weights[b1]);
+    hfc.cs.setMaxBlockWeight(0, std::max(_hg.partWeight(b0), _context.partition.max_part_weights[b0]));
+    hfc.cs.setMaxBlockWeight(1, std::max(_hg.partWeight(b1), _context.partition.max_part_weights[b1]));
 
     DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 
