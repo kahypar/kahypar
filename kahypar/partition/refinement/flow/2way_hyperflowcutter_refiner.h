@@ -114,8 +114,11 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
       _quotient_graph->buildQuotientGraph();
     }
 
-    hfc.cs.setMaxBlockWeight(0, _context.partition.max_part_weights[b0]);
-    hfc.cs.setMaxBlockWeight(1, _context.partition.max_part_weights[b1]);
+    // If the solution returned from the refinement is imbalanced, it is necessary to adjust the max block weights
+    // accordingly. Then, the hyperflow cutter can at least calculate an imbalanced solution. (Otherwise, a runtime
+    // exception would be thrown.)
+    hfc.cs.setMaxBlockWeight(0, std::max(_hg.partWeight(b0), _context.partition.max_part_weights[b0]));
+    hfc.cs.setMaxBlockWeight(1, std::max(_hg.partWeight(b1), _context.partition.max_part_weights[b1]));
 
     DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 
