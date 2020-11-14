@@ -64,8 +64,7 @@ int main(int argc, char *argv[]) {
 
   HypernodeID new_k = removeHeavyNodes(hypergraph, k, epsilon);
   for (const HyperedgeID& he : hypergraph.edges()) {
-    auto pins_start_end = hypergraph.pins(he);
-    if (pins_start_end.first == pins_start_end.second) {
+    if (hypergraph.edgeSize(he) <= 1) {
       hypergraph.removeEdge(he);
     }
   }
