@@ -117,8 +117,10 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
     // If the solution returned from the refinement is imbalanced, it is necessary to adjust the max block weights
     // accordingly. Then, the hyperflow cutter can at least calculate an imbalanced solution. (Otherwise, a runtime
     // exception would be thrown.)
-    hfc.cs.setMaxBlockWeight(0, std::max(_hg.partWeight(b0), _context.partition.max_part_weights[b0]));
-    hfc.cs.setMaxBlockWeight(1, std::max(_hg.partWeight(b1), _context.partition.max_part_weights[b1]));
+    const HypernodeWeight max_weight_b0 = std::max(_hg.partWeight(b0), _context.partition.max_part_weights[b0]);
+    const HypernodeWeight max_weight_b1 = std::max(_hg.partWeight(b1), _context.partition.max_part_weights[b1]);
+    hfc.cs.setMaxBlockWeight(0, max_weight_b0);
+    hfc.cs.setMaxBlockWeight(1, max_weight_b1);
 
     DBG << "2way HFC. Refine " << V(b0) << "and" << V(b1);
 
@@ -182,9 +184,9 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
         HEAVY_REFINEMENT_ASSERT(best_metrics.km1 == metrics::km1(_hg), V(best_metrics.km1) << V(metrics::km1(_hg)));
 
         DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
-        if (_hg.partWeight(b0) > _context.partition.max_part_weights[b0] || _hg.partWeight(b1) > _context.partition.max_part_weights[b1]) {
+        if (_hg.partWeight(b0) > max_weight_b0 || _hg.partWeight(b1) > max_weight_b1) {
           LOG << "HFC refinement violated imbalance" << std::fixed << std::setprecision(12) << V(_context.partition.epsilon) << V(metrics::imbalance(_hg, _context));
-          LOG << V(_hg.partWeight(b0)) << V(_context.partition.max_part_weights[b0]) << V(_hg.partWeight(b1)) << V(_context.partition.max_part_weights[b1]);
+          LOG << V(_hg.partWeight(b0)) << V(max_weight_b0) << V(_hg.partWeight(b1)) << V(max_weight_b1);
           LOG << "This is a bug. Please send us an email.";
           throw std::runtime_error("imbalance violated");
         }
