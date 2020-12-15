@@ -68,17 +68,17 @@ matrix:
         - sudo apt-get -y install libboost1.70-dev
 
     # clang 3.7 on MacOSX
-    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
-      os: osx
-      before_install:
-        - brew update
-        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+    #- env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Debug" COV="OFF"
+    #  os: osx
+    #  before_install:
+    #    - brew update
+    #    - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
 
-    - env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COV="OFF"
-      os: osx
-      before_install:
-        - brew update
-        - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
+    #- env: CMAKE_CC="clang" CMAKE_CXX="clang++" BUILD_TYPE="Release" COV="OFF"
+    #  os: osx
+    #  before_install:
+    #    - brew update
+    #    - HOMEBREW_NO_AUTO_UPDATE=1 brew install cppcheck
       
 install:
   - export DEPS_DIR="${HOME}/deps"
