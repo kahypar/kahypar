@@ -248,13 +248,17 @@ class FlowHypergraphExtractor {
       mw0 = a * context.partition.max_part_weights[b0];
       mw1 = a * context.partition.max_part_weights[b1];
     } else if (context.local_search.hyperflowcutter.flowhypergraph_size_constraint == FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side) {
+      double scale;
       if (!context.partition.use_individual_part_weights) {
-        mw0 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b1);
-        mw1 = (1.0 + a * context.partition.epsilon) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b0);
+        // with a = 16 (default value) this starts to get really slow for epsilon > 0.05.
+        // for epsilon > 0.05, whfc flow network size still scales with epsilon,
+        // if hg.partWeight(b1) is close to max_part_weight. but only with multiplier 1
+        scale = 1.0 + a * std::min(0.05, context.partition.epsilon);
       } else {
-        mw0 = (1.0 + (a-1) * context.partition.adjusted_epsilon_for_individual_part_weights) * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b1);
-        mw1 = (1.0 + (a-1) * context.partition.adjusted_epsilon_for_individual_part_weights) * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b0);
+        scale = 1.0 + (a-1) * std::min(0.05, context.partition.adjusted_epsilon_for_individual_part_weights);
       }
+      mw0 = scale * context.partition.perfect_balance_part_weights[b1] - hg.partWeight(b1);
+      mw1 = scale * context.partition.perfect_balance_part_weights[b0] - hg.partWeight(b0);
     } else {
       throw std::runtime_error("Unknown flow hypergraph size constraint option");
     }
