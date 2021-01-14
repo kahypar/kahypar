@@ -34,7 +34,6 @@
 namespace kahypar {
 namespace multilevel {
 using bin_packing::BalancingLevel;
-using bin_packing::IBinPacker;
 
 static constexpr bool debug = false;
 
@@ -151,7 +150,8 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     }
 
     // perform prepacking of heavy vertices
-    std::unique_ptr<IBinPacker> bin_packer = bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, prepacking_context);
+    std::unique_ptr<IBinPacker> bin_packer(
+      BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo, hypergraph, prepacking_context));
     bin_packer->prepacking(current_level);
 
     std::unique_ptr<ICoarsener> coarsener(

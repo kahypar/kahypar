@@ -24,3 +24,4 @@
 #include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
 #include "kahypar/partition/registries/register_policies.h"
 #include "kahypar/partition/registries/register_refinement_algorithms.h"
+#include "kahypar/partition/registries/register_bin_packing_algorithms.h"

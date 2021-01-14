@@ -40,6 +40,7 @@
 #include "kahypar/partition/refinement/kway_fm_cut_refiner.h"
 #include "kahypar/partition/refinement/kway_fm_km1_refiner.h"
 #include "kahypar/partition/refinement/policies/fm_stop_policy.h"
+#include "kahypar/partition/bin_packing/i_bin_packer.h"
 
 namespace kahypar {
 using CoarsenerFactory = meta::Factory<CoarseningAlgorithm,
@@ -51,6 +52,9 @@ using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
 
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
                                      IRefiner* (*)(Hypergraph&, const Context&)>;
+
+using BinPackerFactory = meta::Factory<BinPackingAlgorithm,
+                                       IBinPacker* (*)(Hypergraph&, const Context&)>;
 
 using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
                                       CommunityPolicies, PartitionPolicies, AcceptancePolicies,

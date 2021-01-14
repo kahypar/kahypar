@@ -117,6 +117,12 @@ enum class InitialPartitionerAlgorithm : uint8_t {
   UNDEFINED
 };
 
+enum class BinPackingAlgorithm : uint8_t {
+  worst_fit,
+  first_fit,
+  UNDEFINED
+};
+
 enum class LouvainEdgeWeight : uint8_t {
   hybrid,
   uniform,
@@ -171,12 +177,6 @@ enum class FlowHypergraphSizeConstraint : uint8_t {
   part_weight_fraction,
   max_part_weight_fraction,
   scaled_max_part_weight_fraction_minus_opposite_side
-};
-
-enum class BinPackingAlgorithm : uint8_t {
-  worst_fit,
-  first_fit,
-  UNDEFINED
 };
 
 static std::ostream& operator<< (std::ostream& os, const EvoReplaceStrategy& replace) {

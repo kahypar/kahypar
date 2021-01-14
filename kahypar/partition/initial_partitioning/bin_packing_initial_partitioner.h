@@ -26,8 +26,6 @@
 #include "kahypar/utils/randomize.h"
 
 namespace kahypar {
-using bin_packing::IBinPacker;
-
 class BinPackingInitialPartitioner : public IInitialPartitioner,
                                      private InitialPartitionerBase<BinPackingInitialPartitioner> {
   using Base = InitialPartitionerBase<BinPackingInitialPartitioner>;
@@ -37,7 +35,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
   BinPackingInitialPartitioner(Hypergraph& hypergraph, Context& context) :
     Base(hypergraph, context),
     _descending_nodes(),
-    _bin_packer(bin_packing::createBinPacker(context.initial_partitioning.bp_algo, hypergraph, context)) { 
+    _bin_packer(BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo, hypergraph, context)) {
       ASSERT(_bin_packer.get() != nullptr, "bin packing algorithm not found");
     }
 

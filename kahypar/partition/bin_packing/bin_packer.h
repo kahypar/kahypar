@@ -111,15 +111,5 @@ class BinPacker final : public IBinPacker {
   Hypergraph& _hypergraph;
   const Context& _context;
 };
-
-static std::unique_ptr<IBinPacker> createBinPacker(const BinPackingAlgorithm& bp_algo, Hypergraph& hypergraph, const Context& context) {
-  switch (bp_algo) {
-    case BinPackingAlgorithm::worst_fit: return std::make_unique<BinPacker<WorstFit>>(hypergraph, context);
-    case BinPackingAlgorithm::first_fit: return std::make_unique<BinPacker<FirstFit>>(hypergraph, context);
-    case BinPackingAlgorithm::UNDEFINED: break;
-    // omit default case to trigger compiler warning for missing cases
-  }
-  return std::unique_ptr<IBinPacker>();
-}
 } // namespace bin_packing
 } // namespace kahypar

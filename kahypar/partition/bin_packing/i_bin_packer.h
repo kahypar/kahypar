@@ -47,6 +47,9 @@ BalancingLevel increaseBalancingRestrictions(BalancingLevel previous) {
   ASSERT(false, "Tried to increase invalid balancing level: " << static_cast<uint8_t>(previous));
   return previous;
 }
+} // namespace bin_packing
+
+using bin_packing::BalancingLevel;
 
 // Provides access to bin packing methdos. This class is required to select the applied bin packing algorithm via dynamic dispatch.
 class IBinPacker {
@@ -76,5 +79,4 @@ class IBinPacker {
   virtual void prepackingImpl(const BalancingLevel level) = 0;
   virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
 };
-} // namespace bin_packing
 } // namespace kahypar
