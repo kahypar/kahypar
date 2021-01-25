@@ -137,6 +137,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
   ASSERT((context.partition.rb_upper_k - context.partition.rb_lower_k + 1) > 2,
          "Prepacking is not allowed for k <= 2: " << V(context.partition.rb_upper_k) << " - " << context.partition.rb_lower_k);
 
+  std::unique_ptr<IBinPacker> bin_packer(BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo));
   Context prepacking_context = initial::createContext(hypergraph, context);
   prepacking_context.setupInitialPartitioningPartWeights();
   BalancingLevel current_level = level;
@@ -151,9 +152,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     }
 
     // perform prepacking of heavy vertices
-    std::unique_ptr<IBinPacker> bin_packer(
-      BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo, hypergraph, prepacking_context));
-    bin_packer->prepacking(current_level);
+    bin_packer->prepacking(hypergraph, prepacking_context, current_level);
 
     std::unique_ptr<ICoarsener> coarsener(
       CoarsenerFactory::getInstance().createObject(context.coarsening.algorithm, hypergraph, context, hypergraph.weightOfHeaviestNode()));

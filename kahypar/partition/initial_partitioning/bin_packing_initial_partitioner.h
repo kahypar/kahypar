@@ -38,7 +38,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
   BinPackingInitialPartitioner(Hypergraph& hypergraph, Context& context) :
     Base(hypergraph, context),
     _descending_nodes(),
-    _bin_packer(BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo, hypergraph, context)) {
+    _bin_packer(BinPackerFactory::getInstance().createObject(context.initial_partitioning.bp_algo)) {
       ASSERT(_bin_packer.get() != nullptr, "bin packing algorithm not found");
     }
 
@@ -94,7 +94,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
       const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
       max_bin_weights = std::vector<HypernodeWeight>(rb_range_k, (1.0 + _context.partition.epsilon) * ceil(static_cast<double>(_hg.totalWeight()) / rb_range_k));
     }
-    const std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_descending_nodes, max_bin_weights);
+    const std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, max_bin_weights);
 
     for (size_t i = 0; i < _descending_nodes.size(); ++i) {
       const HypernodeID hn = _descending_nodes[i];

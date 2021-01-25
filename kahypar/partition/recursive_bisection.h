@@ -105,9 +105,8 @@ static inline void setBinPackingParameters(Context& current_context,
                                            const HypernodeWeight max_part_weight,
                                            const PartitionID current_k) {
   ASSERT(perfect_bin_weights.size() == static_cast<size_t>(current_k));
-  std::unique_ptr<IBinPacker> bin_packer(
-    BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo, current_hypergraph, original_context));
-  const HypernodeWeight current_imbalance = bin_packer->currentBinImbalance(perfect_bin_weights);
+  std::unique_ptr<IBinPacker> bin_packer(BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo));
+  const HypernodeWeight current_imbalance = bin_packer->currentBinImbalance(current_hypergraph, perfect_bin_weights);
   const HypernodeWeight current_max_bin = *std::max_element(perfect_bin_weights.cbegin(), perfect_bin_weights.cend()) + current_imbalance;
   const double bin_epsilon = calculateEpsilonFromFraction(max_part_weight, current_max_bin, current_k);
   current_context.initial_partitioning.current_max_bin_weight = current_max_bin;
@@ -380,8 +379,8 @@ static inline void partition(Hypergraph& input_hypergraph,
               max_bin_weights.push_back(original_context.partition.max_part_weights[i]);
             }
             std::unique_ptr<IBinPacker> bin_packer(
-              BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo, current_hypergraph, current_context));
-            const bool feasible = bin_packer->currentBinImbalance(max_bin_weights) <= 0;
+              BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo));
+            const bool feasible = bin_packer->currentBinImbalance(current_hypergraph, max_bin_weights) <= 0;
             hypergraph_stack.back().is_feasible = feasible;
             multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, max_bin_weights,
                                                       feasible && current_context.initial_partitioning.enable_early_restart);

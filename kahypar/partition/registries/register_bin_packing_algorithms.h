@@ -28,8 +28,8 @@
 #define REGISTER_BIN_PACKER(id, bin_packer)                               \
   static meta::Registrar<BinPackerFactory> register_ ## bin_packer(      \
     id,                                                                 \
-    [](Hypergraph& hypergraph, const Context& context) -> IBinPacker* {  \
-    return new bin_packer(hypergraph, context); \
+    []() -> IBinPacker* {  \
+    return new bin_packer{}; \
   })
 
 namespace kahypar {
