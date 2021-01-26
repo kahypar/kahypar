@@ -92,7 +92,6 @@ class BinPacker final : public IBinPacker {
     }
 
     if (hypergraph.containsFixedVertices()) {
-      // TODO
       ASSERT(context.initial_partitioning.num_bins_per_part[0] >= context.initial_partitioning.num_bins_per_part[1]);
       preassignFixedVertices<BPAlgorithm>(hypergraph, nodes, parts, packer, context.partition.k, rb_range_k);
     }

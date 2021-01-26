@@ -48,8 +48,6 @@ namespace {
                                        const std::vector<HypernodeWeight>& part_weight,
                                        const std::vector<PartitionID>& num_bins_per_part,
                                        HypernodeWeight next_element,
-                                       // TODO: remove
-                                       bool skip_full_parts,
                                        HypernodeWeight max_bin_weight) {
   ASSERT(part_weight.size() == upper_weight.size() && part_weight.size() == num_bins_per_part.size());
 
@@ -59,7 +57,7 @@ namespace {
     // skip valid full parts - those can not provide an upper bound, because the weight sequence is empty
     const HypernodeWeight remaining = upper_weight[j] - part_weight[j];
     const HypernodeWeight allowed = num_bins_per_part[j] * max_bin_weight - upper_weight[j];
-    if (skip_full_parts && (next_element > remaining) && ((num_bins_per_part[j] - 1) * remaining <= allowed)) {
+    if ((next_element > remaining) && ((num_bins_per_part[j] - 1) * remaining <= allowed)) {
       continue;
     }
 
@@ -144,7 +142,7 @@ static inline void calculateExactPrepacking(Hypergraph& hg, const Context& conte
   for (i = 0; i < nodes.size(); ++i) {
     ASSERT(upper_weight.size() == packing_result.second.size());
 
-    const size_t max_part_idx = getMaxPartIndex(upper_weight, packing_result.second, num_bins_per_part, weights[i].first, true, max_bin_weight);
+    const size_t max_part_idx = getMaxPartIndex(upper_weight, packing_result.second, num_bins_per_part, weights[i].first, max_bin_weight);
     const HypernodeWeight remaining_weight_for_max_part = upper_weight[max_part_idx] - packing_result.second[max_part_idx];
     const HypernodeWeight searched_weight = weights[i].second + remaining_weight_for_max_part;
 

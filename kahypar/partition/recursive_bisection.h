@@ -165,7 +165,7 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
         current_context.partition.max_bins_for_individual_part_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_max_bin);
       }
     } else {
-      // TODO: always initialize to simplify code at other locations?
+      // TODO(maas): always initialize to simplify code at other locations?
       current_context.partition.max_bins_for_individual_part_weights = std::move(perfect_bin_weights);
     }
   } else {

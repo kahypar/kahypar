@@ -90,21 +90,41 @@ class BinPackingTest : public Test {
                                                   PartitionID rb_range_k,
                                                   HypernodeWeight max_bin_weight,
                                                   std::vector<PartitionID>&& partitions = {}) {
-    Context c;
-    BinPacker<BPAlgorithm> packer;
-    createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
-                      upper_weights.size(), rb_range_k, max_bin_weight);
-    hypergraph.changeK(rb_range_k);
-    for (size_t i = 0; i < partitions.size(); ++i) {
-      if (partitions[i] != -1) {
-        hypergraph.setFixedVertex(i, partitions[i]);
+      Context c;
+      BinPacker<BPAlgorithm> packer;
+      createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
+                        upper_weights.size(), rb_range_k, max_bin_weight);
+      hypergraph.changeK(rb_range_k);
+      for (size_t i = 0; i < partitions.size(); ++i) {
+        if (partitions[i] != -1) {
+          hypergraph.setFixedVertex(i, partitions[i]);
+        }
       }
+      std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
+      return packer.twoLevelPacking(hypergraph, c, nodes, std::vector<HypernodeWeight>(rb_range_k, max_bin_weight));
     }
-    std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
-    return packer.twoLevelPacking(hypergraph, c, nodes, std::vector<HypernodeWeight>(rb_range_k, max_bin_weight));
-  }
 
-  Hypergraph hypergraph;
+    template< class BPAlgorithm >
+      std::vector<PartitionID> applyTwoLevelPackingWithIndividualPartWeights(const std::vector<HypernodeWeight>& upper_weights,
+                                                                             const std::vector<PartitionID>& num_bins_per_part,
+                                                                             PartitionID rb_range_k,
+                                                                             const std::vector<HypernodeWeight>& max_bins,
+                                                                             std::vector<PartitionID>&& partitions = {}) {
+      Context c;
+      BinPacker<BPAlgorithm> packer;
+      createTestContextWithIndividualPartWeights(c, upper_weights, upper_weights, num_bins_per_part,
+                        upper_weights.size(), rb_range_k, max_bins);
+      hypergraph.changeK(rb_range_k);
+      for (size_t i = 0; i < partitions.size(); ++i) {
+        if (partitions[i] != -1) {
+          hypergraph.setFixedVertex(i, partitions[i]);
+        }
+      }
+      std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
+      return packer.twoLevelPacking(hypergraph, c, nodes, max_bins);
+    }
+
+    Hypergraph hypergraph;
 };
 
 class HasFeasiblePartition : public Test {
@@ -442,13 +462,8 @@ TEST_F(BinPackingTest, PackingBinLimit) {
 }
 
 TEST_F(BinPackingTest, PackingIndividualPartWeights) {
-  Context c;
-  BinPacker<WorstFit> packer;
-
   initializeWeights({3, 3, 2, 2});
-  createTestContextWithIndividualPartWeights(c, {6, 6}, {5, 5}, {2, 2}, 2, 4, {3, 3, 2, 2});
-  std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
-  auto result = packer.twoLevelPacking(hypergraph, c, nodes, c.partition.max_bins_for_individual_part_weights);
+  auto result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({6, 6}, {2, 2}, 4, {3, 3, 2, 2});
   ASSERT_EQ(result.size(), 4);
   ASSERT_EQ(result.at(0), 0);
   ASSERT_EQ(result.at(1), 0);
@@ -456,15 +471,24 @@ TEST_F(BinPackingTest, PackingIndividualPartWeights) {
   ASSERT_EQ(result.at(3), 1);
 
   initializeWeights({5, 3, 3, 2, 1});
-  createTestContextWithIndividualPartWeights(c, {9, 7}, {8, 6}, {3, 2}, 2, 5, {3, 3, 3, 5, 2});
-  nodes = nodesInDescendingWeightOrder(hypergraph);
-  result = packer.twoLevelPacking(hypergraph, c, nodes, c.partition.max_bins_for_individual_part_weights);
+  result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({9, 7}, {3, 2}, 5, {3, 3, 3, 5, 2});
   ASSERT_EQ(result.size(), 5);
   ASSERT_EQ(result.at(0), 1);
   ASSERT_EQ(result.at(1), 0);
   ASSERT_EQ(result.at(2), 0);
   ASSERT_EQ(result.at(3), 0);
   ASSERT_EQ(result.at(4), 1);
+
+  initializeWeights({4, 4, 2, 2, 1, 1, 1});
+  result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({8, 8}, {2, 2}, 4, {2, 6, 4, 4}, {0, -1, -1, -1, -1, -1, 0});
+  HypernodeWeight weight_p0 = 0;
+  for (size_t i = 0; i < result.size(); ++i) {
+    ASSERT(result[i] != -1);
+    if (result[i] == 0) {
+      weight_p0 += hypergraph.nodeWeight(i);
+    }
+  }
+  ASSERT(weight_p0 == 7 || weight_p0 == 8);
 }
 
 TEST_F(BinPackingTest, ExtractNodes) {
