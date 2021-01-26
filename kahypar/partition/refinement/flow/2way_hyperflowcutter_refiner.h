@@ -25,21 +25,26 @@
 #include <string>
 #include <vector>
 
+#include "kahypar/partition/context.h"
+#include "kahypar/partition/refinement/flow/flow_refiner_base.h"
+#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
+#include "kahypar/partition/refinement/flow/whfc_flow_hypergraph_extraction.h"
+#include "kahypar/partition/refinement/move.h"
+#include "kahypar/utils/time_limit.h"
+#include "kahypar/partition/refinement/i_refiner.h"
+#include "kahypar/utils/timer.h"
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+
 #include <WHFC/algorithm/dinic.h>
 #include <WHFC/algorithm/ford_fulkerson.h>
 #include <WHFC/algorithm/hyperflowcutter.h>
 #include <WHFC/io/hmetis_io.h>
 #include <WHFC/io/whfc_io.h>
 
-#include "kahypar/partition/context.h"
-#include "kahypar/partition/refinement/flow/flow_refiner_base.h"
-#include "kahypar/partition/refinement/flow/quotient_graph_block_scheduler.h"
-#include "kahypar/partition/refinement/move.h"
-#include "kahypar/utils/time_limit.h"
-#include <kahypar/partition/refinement/i_refiner.h>
-#include <kahypar/utils/timer.h>
-
-#include "whfc_flow_hypergraph_extraction.h"
+#pragma GCC diagnostic pop
 
 namespace kahypar {
 enum class RefinementResult : uint8_t {

@@ -25,14 +25,17 @@
 #include <kahypar/definitions.h>
 #include <kahypar/partition/context.h>
 #include <kahypar/utils/randomize.h>
+#include "kahypar/datastructure/fast_reset_flag_array.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 
 #include <WHFC/datastructure/flow_hypergraph_builder.h>
 #include <WHFC/datastructure/node_border.h>
-
-#include "kahypar/datastructure/fast_reset_flag_array.h"
-
 #include "WHFC/datastructure/flow_hypergraph.h"
 #include "WHFC/datastructure/queue.h"
+
+#pragma GCC diagnostic pop
 
 namespace kahypar {
 namespace whfcInterface {
@@ -216,8 +219,8 @@ class FlowHypergraphExtractor {
   whfc::FlowHypergraphBuilder flow_hg_builder;
 
  private:
-  PartitionID b0, b1 = invalid_part;
-  HypernodeID globalSourceID, globalTargetID = invalid_node;
+  PartitionID b0 = invalid_part, b1 = invalid_part;
+  HypernodeID globalSourceID = invalid_node, globalTargetID = invalid_node;
   std::vector<whfc::Node> nodeIDMap;
   ds::FastResetFlagArray<> visitedNode;
   ds::FastResetFlagArray<> visitedHyperedge;
