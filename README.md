@@ -143,6 +143,7 @@ We provide additional resources for all KaHyPar-related publications:
  - [**LSOracle** - The Logic Synthesis Oracle](https://github.com/LNIS-Projects/LSOracle)
  - [**Plasmo.jl** - Platform for Scalable Modeling and Optimization](https://github.com/zavalab/Plasmo.jl)
  - [**GraphDot** - A GPU-accelerated Python library for graph similarity computation](https://github.com/yhtang/GraphDot)
+ - [**ACQDP** - Alibaba Cloud Quantum Development Platform](https://github.com/alibaba/acqdp)
  
 Requirements
 -----------
