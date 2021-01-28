@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <limits>
+#include <utility>
+#include <vector>
+
 #include "kahypar/partition/context.h"
 #include "kahypar/datastructure/segment_tree.h"
 

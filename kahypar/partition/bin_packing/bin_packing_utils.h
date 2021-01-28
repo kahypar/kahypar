@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <numeric>
+#include <utility>
+#include <vector>
+
 #include "kahypar/partition/context.h"
 #include "kahypar/datastructure/binary_heap.h"
 

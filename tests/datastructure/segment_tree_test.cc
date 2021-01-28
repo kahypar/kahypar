@@ -21,6 +21,11 @@
 
 #include "gmock/gmock.h"
 
+#include <cmath>
+#include <limits>
+#include <random>
+#include <vector>
+
 #include "kahypar/datastructure/segment_tree.h"
 #include "kahypar/utils/randomize.h"
 
