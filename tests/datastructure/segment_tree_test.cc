@@ -144,6 +144,11 @@ void check_query_result(size_t size, SegTree seg_tree, const std::vector<int>& s
   // std::cout << std::endl;
 }
 
+TEST_F(ASequence, EmptyCase) {
+  sequence.resize(0);
+  RangeMinimum tree(sequence, 0);
+}
+
 TEST_F(ASequence, RangeMinimumQuery) {
   RangeMinimum tree(sequence, 0);
   check_query_result<RangeMinimum, naive_min>(sequence.size(), tree, sequence, 0);

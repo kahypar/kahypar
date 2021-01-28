@@ -46,7 +46,9 @@ public:
   using tree_type = T;
 
   explicit ParametrizedSegmentTree(std::vector<seq_type>& seq, tree_type param) : _size(seq.size()), _seq(seq), _seg_tree(2*_size), _param(param) {
-    buildSegmentTree(0, 0, _size-1);
+    if (_size > 0) {
+      buildSegmentTree(0, 0, _size-1);
+    }
   }
 
   tree_type query(const size_t i, const size_t j) const {
