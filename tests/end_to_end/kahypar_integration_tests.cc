@@ -167,7 +167,7 @@ TEST_F(KaHyParCA, ComputesDirectKwayKm1Partitioning) {
 }
 
 TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
-  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
+  parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
   context.partition.k = 6;
 
   context.partition.epsilon = 0;
@@ -208,9 +208,9 @@ TEST_F(KaHyParCA, HandlesIndividualBlockWeights) {
   ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
 }
 
-TEST_F(KaHyParWF, ComputesBalancedSolutionWithNodeWeights) {
+TEST_F(KaHyParBP, ComputesBalancedSolutionWithNodeWeights) {
   parseIniToContext(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
-  context.partition.k = 32;
+  context.partition.k = 8;
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.local_search.algorithm = RefinementAlgorithm::kway_fm_km1;
@@ -271,7 +271,7 @@ TEST_F(KaHyParE, ComputesDirectKwayKm1Partitioning) {
 
 TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
-  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea18.ini");
+  kahypar_configure_context_from_file(context, "../../../config/old_reference_configs/km1_direct_kway_sea17.ini");
 
   reinterpret_cast<kahypar::Context*>(context)->preprocessing.enable_community_detection = false;
   reinterpret_cast<kahypar::Context*>(context)->initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;

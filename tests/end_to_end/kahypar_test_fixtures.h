@@ -74,9 +74,9 @@ class KaHyParCA : public ::testing::Test {
 };
 
 
-class KaHyParWF : public ::testing::Test {
+class KaHyParBP : public ::testing::Test {
  public:
-  KaHyParWF() :
+  KaHyParBP() :
     context() {
     context.partition.mode = Mode::direct_kway;
     context.partition.objective = Objective::cut;
@@ -100,7 +100,7 @@ class KaHyParWF : public ::testing::Test {
     context.local_search.iterations_per_level = std::numeric_limits<int>::max();
     context.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
     context.local_search.fm.adaptive_stopping_alpha = 1;
-    context.partition.graph_filename = "test_instances/ISPD98_ibm16.weighted.hgr";
+    context.partition.graph_filename = "test_instances/ISPD98_ibm01.artificial.hgr";
 
     kahypar::Randomize::instance().setSeed(context.partition.seed);
   }
