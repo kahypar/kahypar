@@ -81,6 +81,7 @@ class MultilevelPartitioning : public Test {
     context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     context.initial_partitioning.nruns = 20;
     context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    context.initial_partitioning.use_heuristic_prepacking = false;
     context.initial_partitioning.enable_early_restart = true;
     context.initial_partitioning.enable_late_restart = true;
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
