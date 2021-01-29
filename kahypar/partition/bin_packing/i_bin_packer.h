@@ -29,9 +29,13 @@ namespace kahypar {
 namespace bin_packing {
 // Represents the level of the applied prepacking.
 enum class BalancingLevel : uint8_t {
+  // do not apply any prepacking
   none,
+  // apply a heuristic prepacking without balance guarantees
   heuristic,
+  // apply an exact prepacking with balance guaranties
   guaranteed,
+  // if this level is reached, prepacking was unsuccessful and we need to accept an imbalanced solution
   STOP
 };
 

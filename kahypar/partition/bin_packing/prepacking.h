@@ -31,7 +31,7 @@
 namespace kahypar {
 namespace bin_packing {
 namespace {
-  // segment tree that is used to ensure the balance of a prepacking
+  // define segment tree that is used for checking the balance property of a prepacking
   HypernodeWeight balance_max(const HypernodeWeight& v1, const HypernodeWeight& v2, const HypernodeWeight& /*k*/) {
     return std::max(v1, v2);
   }
