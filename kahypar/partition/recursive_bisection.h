@@ -242,6 +242,7 @@ static inline void partition(Hypergraph& input_hypergraph,
 
     switch (state) {
       case RBHypergraphState::finished: {
+          bool apply_late_restart = false;
           if (original_context.initial_partitioning.enable_late_restart && k > 2) {
             ASSERT(!original_context.partition.use_individual_part_weights,
                    "Individual part weights are not allowed for bin packing.");
@@ -255,22 +256,24 @@ static inline void partition(Hypergraph& input_hypergraph,
 
             hypergraph_stack.back().level = bin_packing::increaseBalancingRestrictions(level,
                                             original_context.initial_partitioning.use_heuristic_prepacking);
+            apply_late_restart = !balanced && hypergraph_stack.back().is_feasible &&
+                                 hypergraph_stack.back().level != BalancingLevel::STOP;
+          }
 
-            if (!balanced && hypergraph_stack.back().is_feasible && hypergraph_stack.back().level != BalancingLevel::STOP) {
-              current_hypergraph.reset();
-              hypergraph_stack.back().state = RBHypergraphState::unpartitioned;
+          if (apply_late_restart) {
+            current_hypergraph.reset();
+            hypergraph_stack.back().state = RBHypergraphState::unpartitioned;
 
-              std::string key("restarts_late_level_");
-              key += std::to_string(static_cast<uint8_t>(hypergraph_stack.back().level));
-              original_context.stats.add(StatTag::InitialPartitioning, key, 1.0);
-              break;
+            std::string key("restarts_late_level_");
+            key += std::to_string(static_cast<uint8_t>(hypergraph_stack.back().level));
+            original_context.stats.add(StatTag::InitialPartitioning, key, 1.0);
+          } else {
+            hypergraph_stack.pop_back();
+            if (!mapping_stack.empty()) {
+              mapping_stack.pop_back();
             }
           }
 
-          hypergraph_stack.pop_back();
-          if (!mapping_stack.empty()) {
-            mapping_stack.pop_back();
-          }
           break;
         }
       case RBHypergraphState::unpartitioned: {
