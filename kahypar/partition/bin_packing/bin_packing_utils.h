@@ -167,7 +167,7 @@ class TwoLevelPacker {
     for (PartitionID part = 0; static_cast<size_t>(part) < num_bins_per_part.size(); ++part) {
       PartitionID num_bins = num_bins_per_part[part];
       for (PartitionID j = 0; j < num_bins; ++j) {
-        ASSERT(!mapping.isFixedBin(bin) || mapping.binPartition(bin) == part, "Fixed vertex assigned to invalid part.");
+        ASSERT(!mapping.isFixedBin(bin) || mapping.getPart(bin) == part, "Fixed vertex assigned to invalid part.");
         mapping.setPart(bin, part);
         part_weights[static_cast<size_t>(part)] += _alg.binWeight(bin);
         ++bin;
