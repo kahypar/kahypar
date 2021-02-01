@@ -155,8 +155,8 @@ static inline Context createCurrentBisectionContext(const Context& original_cont
       perfect_bin_weights.push_back(original_context.partition.max_part_weights[block] - diff_to_perfect);
     }
     if (restart_is_possible) {
-      const HypernodeWeight max_part_weight = *std::max_element(original_context.partition.max_part_weights.cbegin(),
-                                                                original_context.partition.max_part_weights.cend());
+      const HypernodeWeight max_part_weight = *std::max_element(original_context.partition.max_part_weights.cbegin() + kl,
+                                                                original_context.partition.max_part_weights.cbegin() + kl + current_k);
       setBinPackingParameters(current_context, current_hypergraph, original_context, perfect_bin_weights, max_part_weight, current_k);
       HypernodeWeight diff_to_max_bin = floor(max_part_weight - current_context.initial_partitioning.max_allowed_bin_weight);
       current_context.partition.max_bins_for_individual_part_weights.clear();

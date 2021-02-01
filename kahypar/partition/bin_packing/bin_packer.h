@@ -39,26 +39,24 @@ class BinPacker final : public IBinPacker {
     ASSERT(!hypergraph.containsFixedVertices(), "No fixed vertices allowed before prepacking.");
     ASSERT(level != BalancingLevel::STOP, "Invalid balancing level: STOP");
 
-    const HypernodeWeight max_bin_weight = context.initial_partitioning.max_allowed_bin_weight;
-
     if (level == BalancingLevel::heuristic) {
       calculateHeuristicPrepacking<BPAlgorithm>(hypergraph, context);
     } else if (level == BalancingLevel::guaranteed) {
-      Context prepackingcontext(context);
+      Context prepacking_context(context);
       size_t base_index = 0;
-      for (PartitionID i = 0; i < prepackingcontext.initial_partitioning.k; ++i) {
-        const HypernodeWeight lower = prepackingcontext.initial_partitioning.perfect_balance_partition_weight[i];
+      for (PartitionID i = 0; i < prepacking_context.initial_partitioning.k; ++i) {
+        const HypernodeWeight lower = prepacking_context.initial_partitioning.perfect_balance_partition_weight[i];
         HypernodeWeight upper = 0;
-        if (prepackingcontext.partition.use_individual_part_weights) {
-          for (PartitionID j = 0; j < prepackingcontext.initial_partitioning.num_bins_per_part[i]; ++j) {
-            upper += prepackingcontext.partition.max_bins_for_individual_part_weights.at(base_index + j);
+        if (prepacking_context.partition.use_individual_part_weights) {
+          for (PartitionID j = 0; j < prepacking_context.initial_partitioning.num_bins_per_part[i]; ++j) {
+            upper += prepacking_context.partition.max_bins_for_individual_part_weights[base_index + j];
           }
-          ASSERT(upper > lower, "Invalid bin weights.");
+          ASSERT(upper > lower, "Invalid bin weights: " << V(upper) << "; " << V(lower));
         } else {
-          upper = prepackingcontext.initial_partitioning.num_bins_per_part[i] * max_bin_weight;
+          upper = prepacking_context.initial_partitioning.num_bins_per_part[i] * context.initial_partitioning.max_allowed_bin_weight;
         }
         // possibly, the allowed partition weight needs to be adjusted to provide useful input parameters for the prepacking algorithm
-        HypernodeWeight& border = prepackingcontext.initial_partitioning.upper_allowed_partition_weight[i];
+        HypernodeWeight& border = prepacking_context.initial_partitioning.upper_allowed_partition_weight[i];
 
         // The performance of the prepacking algorithm depends on the perfect part weight, the allowed weight for each bin
         // and the allowed part weight, which must be between those, i.e. lower <= border <= upper. If border has a value close
@@ -68,12 +66,12 @@ class BinPacker final : public IBinPacker {
         // To avoid this, we check for this case and adjust the allowed part weight if necessary.
         if (upper - border < (border - lower) / 10) {
           border = (lower + upper) / 2;
-          prepackingcontext.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
+          prepacking_context.partition.epsilon = static_cast<double>(border) / static_cast<double>(lower) - 1.0;
         }
         base_index += context.initial_partitioning.num_bins_per_part[i];
       }
 
-      calculateExactPrepacking<BPAlgorithm>(hypergraph, prepackingcontext);
+      calculateExactPrepacking<BPAlgorithm>(hypergraph, prepacking_context);
     }
   }
 
