@@ -105,14 +105,7 @@ class BinPacker final : public IBinPacker {
     }
 
     // ... and at the second level, the resulting bins are packed into the final parts.
-    if (context.partition.use_individual_part_weights) {
-      PartitionMapping packing_result = packer.secondLevelWithFixedBins(context.initial_partitioning.num_bins_per_part).first;
-      packing_result.applyMapping(parts);
-    } else {
-      PartitionMapping packing_result = packer.applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
-                                                                context.initial_partitioning.num_bins_per_part).first;
-      packing_result.applyMapping(parts);
-    }
+    packer.applySecondLevelAndMapping(context, parts);
 
     ASSERT(nodes.size() == parts.size());
     ASSERT([&]() {

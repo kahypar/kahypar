@@ -177,6 +177,17 @@ class TwoLevelPacker {
     return {std::move(mapping), std::move(part_weights)};
   }
 
+  void applySecondLevelAndMapping(const Context& context, std::vector<PartitionID>& parts) const {
+    if (context.partition.use_individual_part_weights) {
+      PartitionMapping packing_result = secondLevelWithFixedBins(context.initial_partitioning.num_bins_per_part).first;
+      packing_result.applyMapping(parts);
+    } else {
+      PartitionMapping packing_result = applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
+                                                         context.initial_partitioning.num_bins_per_part).first;
+      packing_result.applyMapping(parts);
+    }
+  }
+
  private:
   BPAlgorithm _alg;
   PartitionMapping _bins_to_parts;

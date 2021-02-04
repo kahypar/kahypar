@@ -222,15 +222,7 @@ static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& c
     parts[i] = packer.insertElement(weight);
   }
 
-  if (context.partition.use_individual_part_weights) {
-    PartitionMapping packing_result = packer.secondLevelWithFixedBins(context.initial_partitioning.num_bins_per_part).first;
-    packing_result.applyMapping(parts);
-  } else {
-    PartitionMapping packing_result = packer.applySecondLevel(context.initial_partitioning.upper_allowed_partition_weight,
-                                                              context.initial_partitioning.num_bins_per_part).first;
-    packing_result.applyMapping(parts);
-  }
-
+  packer.applySecondLevelAndMapping(context, parts);
   for (size_t i = 0; i < nodes.size(); ++i) {
     hg.setFixedVertex(nodes[i], parts[i]);
   }
