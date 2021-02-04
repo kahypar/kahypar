@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of KaHyPar.
  *
- * Copyright (C) 2016 Sebastian Schlag <sebastian.schlag@kit.edu>
+ * Copyright (C) 2019 Nikolai Maas <nikolai.maas@kit.edu>
  *
  * KaHyPar is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,21 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include <iostream>
+#include <string>
 
-#include "kahypar/partition/registries/register_coarsening_algorithms.h"
-#include "kahypar/partition/registries/register_initial_partitioning_algorithms.h"
-#include "kahypar/partition/registries/register_policies.h"
-#include "kahypar/partition/registries/register_refinement_algorithms.h"
-#include "kahypar/partition/registries/register_bin_packing_algorithms.h"
+#include "kahypar/macros.h"
+#include "tools/mtx_to_hgr_conversion.h"
+
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    std::cout << "No .mtx file specified" << std::endl;
+  }
+  std::string mtx_filename(argv[1]);
+  std::string hgr_filename(mtx_filename + ".hgr");
+  std::cout << "Converting MTX matrix " << mtx_filename << " to weighted HGR hypergraph format: "
+            << hgr_filename << "..." << std::endl;
+  mtxconversion::convertMtxToWeightedHgr(mtx_filename, hgr_filename);
+  std::cout << " ... done!" << std::endl;
+  return 0;
+}

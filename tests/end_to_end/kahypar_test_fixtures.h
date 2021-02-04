@@ -54,6 +54,10 @@ class KaHyParCA : public ::testing::Test {
     context.initial_partitioning.coarsening.contraction_limit_multiplier = 150;
     context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    context.initial_partitioning.use_heuristic_prepacking = false;
+    context.initial_partitioning.enable_early_restart = true;
+    context.initial_partitioning.enable_late_restart = true;
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
     context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
@@ -63,6 +67,42 @@ class KaHyParCA : public ::testing::Test {
     context.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
     context.local_search.fm.adaptive_stopping_alpha = 1;
     context.partition.graph_filename = "test_instances/ISPD98_ibm01.hgr";
+
+    kahypar::Randomize::instance().setSeed(context.partition.seed);
+  }
+
+  Context context;
+};
+
+
+class KaHyParBP : public ::testing::Test {
+ public:
+  KaHyParBP() :
+    context() {
+    context.partition.mode = Mode::direct_kway;
+    context.partition.objective = Objective::cut;
+    context.partition.seed = 2;
+    context.partition.rb_lower_k = 0;
+    context.partition.rb_upper_k = 0;
+    context.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+    context.coarsening.max_allowed_weight_multiplier = 1;
+    context.coarsening.contraction_limit_multiplier = 160;
+    context.initial_partitioning.mode = Mode::recursive_bisection;
+    context.initial_partitioning.technique = InitialPartitioningTechnique::multilevel;
+    context.initial_partitioning.coarsening.algorithm = CoarseningAlgorithm::ml_style;
+    context.initial_partitioning.coarsening.max_allowed_weight_multiplier = 1;
+    context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
+    context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    context.initial_partitioning.use_heuristic_prepacking = false;
+    context.initial_partitioning.enable_early_restart = true;
+    context.initial_partitioning.enable_late_restart = true;
+    context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
+    context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    context.local_search.iterations_per_level = std::numeric_limits<int>::max();
+    context.local_search.fm.stopping_rule = RefinementStoppingRule::adaptive_opt;
+    context.local_search.fm.adaptive_stopping_alpha = 1;
+    context.partition.graph_filename = "test_instances/ISPD98_ibm01.artificial.hgr";
 
     kahypar::Randomize::instance().setSeed(context.partition.seed);
   }
@@ -89,6 +129,10 @@ class KaHyParK : public ::testing::Test {
     context.initial_partitioning.coarsening.max_allowed_weight_multiplier = 1;
     context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    context.initial_partitioning.use_heuristic_prepacking = false;
+    context.initial_partitioning.enable_early_restart = true;
+    context.initial_partitioning.enable_late_restart = true;
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
     context.local_search.iterations_per_level = std::numeric_limits<int>::max();
@@ -119,6 +163,10 @@ class KaHyParR : public ::testing::Test {
     context.initial_partitioning.technique = InitialPartitioningTechnique::flat;
     context.initial_partitioning.algo = InitialPartitionerAlgorithm::pool;
     context.initial_partitioning.nruns = 20;
+    context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
+    context.initial_partitioning.use_heuristic_prepacking = false;
+    context.initial_partitioning.enable_early_restart = true;
+    context.initial_partitioning.enable_late_restart = true;
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.initial_partitioning.local_search.iterations_per_level = std::numeric_limits<int>::max();
     context.local_search.iterations_per_level = std::numeric_limits<int>::max();

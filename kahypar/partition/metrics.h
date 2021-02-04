@@ -194,7 +194,7 @@ static inline double avgHypernodeWeight(const Hypergraph& hypergraph) {
   for (const HypernodeID& hn : hypergraph.nodes()) {
     sum += hypergraph.nodeWeight(hn);
   }
-  return sum / hypergraph.currentNumNodes();
+  return static_cast<double>(sum) / hypergraph.currentNumNodes();
 }
 
 static inline double hypernodeWeightVariance(const Hypergraph& hypergraph) {

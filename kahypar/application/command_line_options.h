@@ -371,7 +371,7 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
     po::value<std::string>()->value_name("<string>")->notifier(
       [&](const std::string& ip_technique) {
       context.initial_partitioning.technique =
-        kahypar::inititalPartitioningTechniqueFromString(ip_technique);
+        kahypar::initialPartitioningTechniqueFromString(ip_technique);
     }),
     "IP Technique:\n"
     " - flat\n"
@@ -383,6 +383,28 @@ po::options_description createInitialPartitioningOptionsDescription(Context& con
         kahypar::initialPartitioningAlgorithmFromString(ip_algo);
     }),
     "Algorithm used to create initial partition: pool ")
+    ("i-bp-algorithm",
+    po::value<std::string>()->value_name("<string>")->notifier(
+      [&](const std::string& ip_bp_algo) {
+      context.initial_partitioning.bp_algo =
+        kahypar::binPackingAlgorithmFromString(ip_bp_algo);
+    }),
+    "Bin packing algorithm:\n"
+    " - worst_fit\n"
+    " - first_fit"
+    "(default: worst_fit)")
+    ("i-bp-early-restart",
+    po::value<bool>(&context.initial_partitioning.enable_early_restart)->value_name("<bool>"),
+    "Enable early restart with prepacking of current bisection if infeasible"
+    "(default: false)")
+    ("i-bp-late-restart",
+    po::value<bool>(&context.initial_partitioning.enable_late_restart)->value_name("<bool>"),
+    "Enable late restart with prepacking of bisections, i.e. if the resulting partition is imbalanced"
+    "(default: false)")
+    ("i-bp-heuristic-prepacking",
+    po::value<bool>(&context.initial_partitioning.use_heuristic_prepacking)->value_name("<bool>"),
+    "Try a heuristic prepacking berfore using the one with balance guarantees"
+    "(default: true)")
     ("i-runs",
     po::value<uint32_t>(&context.initial_partitioning.nruns)->value_name("<uint32_t>"),
     "# initial partition trials");

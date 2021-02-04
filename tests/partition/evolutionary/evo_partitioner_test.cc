@@ -48,6 +48,7 @@ class TheEvoPartitioner : public Test {
     context.partition.epsilon = 0.03;
     context.partition.objective = Objective::cut;
     context.partition.mode = Mode::direct_kway;
+    context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
     context.local_search.algorithm = RefinementAlgorithm::kway_fm;
     context.partition_evolutionary = true;
     context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;

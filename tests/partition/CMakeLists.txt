@@ -1,3 +1,4 @@
 add_gmock_test(partitioner_test partitioner_test.cc)
 add_gmock_test(fixed_vertex_test fixed_vertex_test.cc)
 add_gmock_test(metrics_test metrics_test.cc)
+add_gmock_test(bin_packing_test bin_packing_test.cc)

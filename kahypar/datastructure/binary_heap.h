@@ -60,7 +60,7 @@ class BinaryHeapBase {
     _compare(),
     _next_slot(0),
     _max_size(size + 1) {
-    for (size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < static_cast<size_t>(size); ++i) {
       _heap[i] = HeapElement(BinaryHeapTraits<Derived>::sentinel());
       _handles[i] = 0;
     }

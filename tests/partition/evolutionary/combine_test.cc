@@ -57,6 +57,7 @@ TEST_F(ACombine, RespectsItsParents) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::do_nothing;
   context.partition.quiet_mode = true;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;
@@ -95,6 +96,7 @@ TEST_F(ACombine, TakesTheBetterParent) {
   context.partition.epsilon = 0.03;
   context.partition.objective = Objective::km1;
   context.partition.mode = Mode::direct_kway;
+  context.initial_partitioning.bp_algo = BinPackingAlgorithm::worst_fit;
   context.local_search.algorithm = RefinementAlgorithm::do_nothing;
   context.partition.quiet_mode = true;
   context.evolutionary.replace_strategy = EvoReplaceStrategy::diverse;

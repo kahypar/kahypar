@@ -249,6 +249,10 @@ struct InitialPartitioningParameters {
   Mode mode = Mode::UNDEFINED;
   InitialPartitioningTechnique technique = InitialPartitioningTechnique::UNDEFINED;
   InitialPartitionerAlgorithm algo = InitialPartitionerAlgorithm::UNDEFINED;
+  BinPackingAlgorithm bp_algo = BinPackingAlgorithm::UNDEFINED;
+  bool enable_early_restart = false;
+  bool enable_late_restart = false;
+  bool use_heuristic_prepacking = true;
   CoarseningParameters coarsening = { };
   LocalSearchParameters local_search = { };
   uint32_t nruns = std::numeric_limits<uint32_t>::max();
@@ -259,12 +263,12 @@ struct InitialPartitioningParameters {
   HypernodeWeightVector upper_allowed_partition_weight = { };
   HypernodeWeightVector perfect_balance_partition_weight = { };
   PartitionID unassigned_part = 1;
-  // Is used to get a tighter balance constraint for initial partitioning.
-  // Before initial partitioning epsilon is set to init_alpha*epsilon.
-  double init_alpha = 1;
-  // If pool initial partitioner is used, the first 12 bits of this number decides
+  std::vector<PartitionID> num_bins_per_part = { };
+  HypernodeWeight current_max_bin_weight = 0;
+  double bin_epsilon = 0.0;
+  // If pool initial partitioner is used, the first 13 bits of this number decides
   // which algorithms are used.
-  unsigned int pool_type = 1975;
+  unsigned int pool_type = 0b1011110110111;
   // Maximum iterations of the Label Propagation IP over all hypernodes
   int lp_max_iteration = 100;
   // Amount of hypernodes which are assigned around each start vertex (LP)
@@ -281,6 +285,9 @@ inline std::ostream& operator<< (std::ostream& str, const InitialPartitioningPar
   str << "  Mode:                               " << params.mode << std::endl;
   str << "  Technique:                          " << params.technique << std::endl;
   str << "  Algorithm:                          " << params.algo << std::endl;
+  str << "  Bin Packing algorithm:              " << params.bp_algo << std::endl;
+  str << "    early restart on infeasible:      " << params.enable_early_restart << std::endl;
+  str << "    late restart on infeasible:       " << params.enable_late_restart << std::endl;
   if (params.technique == InitialPartitioningTechnique::multilevel) {
     str << "IP Coarsening:                        " << std::endl;
     str << params.coarsening;
@@ -464,6 +471,26 @@ class Context {
                                            * partition.perfect_balance_part_weights[0]);
       for (PartitionID part = 1; part != partition.k; ++part) {
         partition.max_part_weights.push_back(partition.max_part_weights[0]);
+      }
+    }
+  }
+
+  void setupInitialPartitioningPartWeights() {
+    initial_partitioning.perfect_balance_partition_weight.clear();
+    initial_partitioning.upper_allowed_partition_weight.clear();
+
+    if (partition.use_individual_part_weights) {
+      initial_partitioning.perfect_balance_partition_weight =
+        partition.perfect_balance_part_weights;
+      initial_partitioning.upper_allowed_partition_weight =
+        initial_partitioning.perfect_balance_partition_weight;
+    } else {
+      for (int i = 0; i < initial_partitioning.k; ++i) {
+        initial_partitioning.perfect_balance_partition_weight.push_back(
+          partition.perfect_balance_part_weights[i]);
+        initial_partitioning.upper_allowed_partition_weight.push_back(
+          initial_partitioning.perfect_balance_partition_weight[i]
+          * (1.0 + partition.epsilon));
       }
     }
   }
@@ -655,6 +682,11 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
                       0);
     if (sum_part_weights < hypergraph.totalWeight()) {
       LOG << "Sum of individual part weights is less than sum of vertex weights";
+      std::exit(-1);
+    }
+    if (context.initial_partitioning.enable_early_restart || context.initial_partitioning.enable_late_restart) {
+      LOG << "Individual part weights are not yet supported by the balancing strategy."
+          << "The parameters <i-bp-early-restart> and <i-bp-late-restart> must be set to false.";
       std::exit(-1);
     }
   }

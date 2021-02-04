@@ -34,8 +34,9 @@
 
 using kahypar::HypernodeID;
 
-static inline void convertBookshelfToHgr(const std::string& bookshelf_source_filename,
-                                         const std::string& hgr_target_filename) {
+// returns the mapping of node names to hypernode IDs
+static inline std::unordered_map<std::string, HypernodeID> convertBookshelfToHgr(const std::string& bookshelf_source_filename,
+                                         const std::string& hgr_target_filename, bool weighted=false) {
   std::ifstream bookshelf_stream(bookshelf_source_filename);
   std::string line;
 
@@ -121,7 +122,7 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
   ALWAYS_ASSERT(num_actual_pins + num_duplicate_pins == num_pins, "wrong # pins");
 
   std::ofstream out_stream(hgr_target_filename.c_str());
-  out_stream << num_hyperedges << " " << num_hypernodes << std::endl;
+  out_stream << num_hyperedges << " " << num_hypernodes << (weighted ? " 10" : "") << std::endl;
   for (const auto& hyperedge : hyperedges) {
     ALWAYS_ASSERT(!hyperedge.empty(), "Instance contains empty hypereges");
     for (auto pin_iter = hyperedge.cbegin(); pin_iter != hyperedge.cend(); ++pin_iter) {
@@ -134,4 +135,6 @@ static inline void convertBookshelfToHgr(const std::string& bookshelf_source_fil
     out_stream << std::endl;
   }
   out_stream.close();
+
+  return std::move(node_to_hn);
 }
