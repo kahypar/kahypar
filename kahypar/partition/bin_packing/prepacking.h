@@ -189,3 +189,4 @@ static inline void calculateHeuristicPrepacking(Hypergraph& hg, const Context& c
 }
 } // namespace bin_packing
 } // namespace kahypar
+
