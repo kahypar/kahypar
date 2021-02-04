@@ -79,12 +79,15 @@ class IBinPacker {
     return twoLevelPackingImpl(hypergraph, context, nodes, max_bin_weights);
   }
 
+  // Calculates the imbalance of the current hypergraph with respect to deep balance.
   HypernodeWeight currentBinImbalance(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const {
     return currentBinImbalanceImpl(hypergraph, bin_weights);
   }
 
-  bool hasFeasiblePartition(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
-    return hasFeasiblePartitionImpl(hypergraph, context, max_bin_weights);
+  // Tests for an already assigned partition of the hypergraph whether the partition is deeply balanced,
+  // i.e. whether the parts can be subdivided further in a balanced way.
+  bool partitionIsDeeplyBalanced(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
+    return partitionIsDeeplyBalancedImpl(hypergraph, context, max_bin_weights);
   }
 
   virtual ~IBinPacker() = default;
@@ -97,6 +100,6 @@ class IBinPacker {
   virtual std::vector<PartitionID> twoLevelPackingImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeID>& nodes,
                                                        const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
   virtual HypernodeWeight currentBinImbalanceImpl(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const = 0;
-  virtual bool hasFeasiblePartitionImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
+  virtual bool partitionIsDeeplyBalancedImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
 };
 } // namespace kahypar

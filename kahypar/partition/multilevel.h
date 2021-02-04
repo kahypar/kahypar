@@ -164,7 +164,7 @@ static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
     hypergraph.resetFixedVertices();
     current_level = bin_packing::increaseBalancingRestrictions(current_level, context.initial_partitioning.use_heuristic_prepacking);
   } while (repeat && current_level != BalancingLevel::STOP
-           && !bin_packer->hasFeasiblePartition(hypergraph, prepacking_context, max_bin_weights));
+           && !bin_packer->partitionIsDeeplyBalanced(hypergraph, prepacking_context, max_bin_weights));
 }
 }  // namespace multilevel
 }  // namespace kahypar

@@ -143,7 +143,7 @@ class BinPacker final : public IBinPacker {
     return std::max(0, max - max_bin_weight);
   }
 
-  bool hasFeasiblePartitionImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
+  bool partitionIsDeeplyBalancedImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
     const HypernodeWeight max_bin_weight = *std::max_element(max_bin_weights.cbegin(), max_bin_weights.cend());
     const PartitionID num_parts = context.initial_partitioning.k;
 

@@ -127,9 +127,9 @@ class BinPackingTest : public Test {
     Hypergraph hypergraph;
 };
 
-class HasFeasiblePartition : public Test {
+class partitionIsDeeplyBalanced : public Test {
   public:
-    HasFeasiblePartition() :
+    partitionIsDeeplyBalanced() :
     hypergraph(0, 0,
                HyperedgeIndexVector { 0 },
                HyperedgeVector {}),
@@ -851,41 +851,41 @@ TEST_F(BinPackingTest, CurrentBinImbalance) {
   ASSERT_EQ(packer.currentBinImbalance(hypergraph, {13, 13, 1, 1}), 3);
 }
 
-TEST_F(HasFeasiblePartition, FeasiblePartitionWithoutBinImbalance) {
+TEST_F(partitionIsDeeplyBalanced, FeasiblePartitionWithoutBinImbalance) {
   BinPacker<WorstFit> packer;
 
   initialize({1, 1}, {0, 1}, 2, 2);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {0, 0}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {1, 1}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {0, 0}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 1}));
 
   initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {1, 2, 2, 2}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {2, 2, 2, 2}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 2, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2, 2}));
 
   initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {2, 3, 3}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {3, 3, 3}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 3, 3}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 3, 3}));
 
   initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {1, 2, 2}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {2, 2, 2}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2}));
 }
 
-TEST_F(HasFeasiblePartition, FeasiblePartitionWithBinImbalance) {
+TEST_F(partitionIsDeeplyBalanced, FeasiblePartitionWithBinImbalance) {
   BinPacker<WorstFit> packer;
 
   initialize({1, 4}, {0, 1}, 2, 2);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {3, 1}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {1, 4}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {4, 4}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 1}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 4}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {4, 4}));
 
   initialize({3, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1}, 2, 4);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {2, 2, 2, 2}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {3, 1, 2, 2}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 1, 2, 2}));
 
   initialize({3, 1, 2, 1, 2, 2}, {1, 0, 0, 0, 2, 2}, 3, 4);
-  ASSERT_FALSE(packer.hasFeasiblePartition(hypergraph, context, {3, 3, 3, 3}));
-  ASSERT_TRUE(packer.hasFeasiblePartition(hypergraph, context, {2, 2, 3, 4}));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 3, 3, 3}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 3, 4}));
 }
 }  // namespace bin_packing
 }  // namespace kahypar
