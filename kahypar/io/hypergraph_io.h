@@ -126,6 +126,10 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
           std::istringstream line_stream(line);
           HypernodeWeight node_weight;
           line_stream >> node_weight;
+          if (node_weight == 0) {
+             std::cerr << "Vertices with a weight of 0 are not supported. The minimum allowed vertex weight is 1." << std::endl;
+             std::exit(-1);
+          }
           hypernode_weights->push_back(node_weight);
         }
       }
