@@ -638,7 +638,7 @@ static inline void sanityCheck(const Hypergraph& hypergraph, Context& context) {
 
   if (!context.partition.use_individual_part_weights &&
       !context.partition.max_part_weights.empty()) {
-    LOG << "Individual block weights specified, but --use-individual-blockweights=false.";
+    LOG << "Individual block weights specified, but --use-individual-part-weights=false.";
     LOG << "Do you want to use the block weights you specified (Y/N)?";
     char answer = 'N';
     std::cin >> answer;
