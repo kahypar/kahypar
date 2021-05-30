@@ -22,8 +22,8 @@
 
 #include <boost/program_options.hpp>
 
-#if defined(_MSC_VER)
-#include <Windows.h>
+#if defined(_WIN32)
+#include <windows.h>
 #include <process.h>
 #else
 #include <sys/ioctl.h>
@@ -42,7 +42,7 @@ namespace kahypar {
 namespace platform {
 int getTerminalWidth() {
   int columns = 0;
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   CONSOLE_SCREEN_BUFFER_INFO csbi;
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
   columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
@@ -55,7 +55,7 @@ int getTerminalWidth() {
 }
 
 int getProcessID() {
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   return _getpid();
 #else
   return getpid();
