@@ -72,17 +72,16 @@ add_executable(MtxToWeightedHgr mtx_to_weighted_hgr_converter.cc mtx_to_hgr_conv
 set_property(TARGET MtxToWeightedHgr PROPERTY CXX_STANDARD 14)
 set_property(TARGET MtxToWeightedHgr PROPERTY CXX_STANDARD_REQUIRED ON)
 
-
-
-# This test needs test instance files, so we copy them to the corresponding build dir
-file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-add_gmock_test(bookshelf_to_hgr_converter_test bookshelf_to_hgr_converter_test.cc)
-add_gmock_test(mtx_to_hgr_converter_test mtx_to_hgr_converter_test.cc mtx_to_hgr_conversion.cc)
-add_gmock_test(cnf_to_hgr_converter_test cnf_to_hgr_converter_test.cc)
-add_gmock_test(hgr_to_edge_list_conversion_test hgr_to_edge_list_conversion_test.cc)
-add_gmock_test(repeats_to_hgr_conversion_test repeats_to_hgr_conversion_test.cc)
-add_gmock_test(hgr_to_mtx_test hgr_to_mtx_conversion_test.cc)
-
+if(BUILD_TESTING)
+  # This test needs test instance files, so we copy them to the corresponding build dir
+  file(COPY test_instances DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  add_gmock_test(bookshelf_to_hgr_converter_test bookshelf_to_hgr_converter_test.cc)
+  add_gmock_test(mtx_to_hgr_converter_test mtx_to_hgr_converter_test.cc mtx_to_hgr_conversion.cc)
+  add_gmock_test(cnf_to_hgr_converter_test cnf_to_hgr_converter_test.cc)
+  add_gmock_test(hgr_to_edge_list_conversion_test hgr_to_edge_list_conversion_test.cc)
+  add_gmock_test(repeats_to_hgr_conversion_test repeats_to_hgr_conversion_test.cc)
+  add_gmock_test(hgr_to_mtx_test hgr_to_mtx_conversion_test.cc)
+endif()
 
 #set_source_files_properties(hmetis_lib_test.cc PROPERTIES COMPILE_FLAGS -m32)
 #add_executable(hmetis_lib_test hmetis_lib_test.cc)
