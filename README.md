@@ -324,7 +324,7 @@ make uninstall-kahypar
 To compile the Python interface, do the following:
 
 1. Create a build directory: `mkdir build && cd build`
-2. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE`
+2. Run cmake: `cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DKAHYPAR_PYTHON_INTERFACE=1`
 3. Go to libary folder: `cd python`
 4. Compile the libarary: `make`
 5. Copy the libary to your site-packages directory: `cp kahypar.so <path-to-site-packages>`

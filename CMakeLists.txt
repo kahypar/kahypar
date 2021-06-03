@@ -24,6 +24,9 @@ include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOU
 # add third-party algorithms to project
 include_directories(external_tools)
 
+option(KAHYPAR_PYTHON_INTERFACE
+  "Enable building the python interface" OFF)
+
 option(KAHYPAR_USE_MINIMAL_BOOST
   "Download boost automatically and compile required libraries." OFF)
 
@@ -98,9 +101,6 @@ if(KAHYPAR_USE_CPPCHECK)
       )
   endif(CMAKE_CXX_CPPCHECK)
 endif(KAHYPAR_USE_CPPCHECK)
-
-#find_package(Python ${PY_VERSION} REQUIRED)
-#find_package(PythonLibs ${PY_VERSION} REQUIRED)
 
 if(KAHYPAR_USE_GCOV)
    include(CodeCoverage)
@@ -335,4 +335,7 @@ endif()
 
 add_subdirectory(tools)
 add_subdirectory(lib)
-add_subdirectory(python)
+
+if(KAHYPAR_PYTHON_INTERFACE)
+  add_subdirectory(python)
+endif()
