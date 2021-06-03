@@ -9,6 +9,8 @@ set(PROJECT_DESCRIPTION "KaHyPar: Karlsruhe Hypergraph Partitioning")
 
 set(CMAKE_CXX_STANDARD 17)
 
+include(CTest)
+
 include_directories(${PROJECT_SOURCE_DIR})
 
 find_package(Threads REQUIRED)
@@ -322,10 +324,15 @@ message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
-include(gmock)
-enable_testing()
+
 add_subdirectory(kahypar/application)
+
+if(BUILD_TESTING)
+  include(gmock)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
 add_subdirectory(tools)
 add_subdirectory(lib)
-add_subdirectory(tests)
 add_subdirectory(python)
