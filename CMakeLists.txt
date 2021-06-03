@@ -239,11 +239,6 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
   endif()
 
-  include(CheckSSE4_2)
-  if( BUILTIN_POPCNT )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
-  endif()
-
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag(-mcrc32 KAHYPAR_HAS_CRC32)
   if(KAHYPAR_HAS_CRC32)
