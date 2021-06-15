@@ -87,11 +87,12 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
     Base::resetPartitioning();
     initializeNodes();
 
+    const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
+    ASSERT(rb_range_k > 1, V(_context.partition.rb_upper_k) << ", " << V(_context.partition.rb_lower_k));
     std::vector<HypernodeWeight> max_bin_weights;
     if (_context.partition.use_individual_part_weights) {
       max_bin_weights = _context.partition.max_bins_for_individual_part_weights;
     } else {
-      const PartitionID rb_range_k = _context.partition.rb_upper_k - _context.partition.rb_lower_k + 1;
       max_bin_weights = std::vector<HypernodeWeight>(rb_range_k, (1.0 + _context.partition.epsilon) * ceil(static_cast<double>(_hg.totalWeight()) / rb_range_k));
     }
     const std::vector<PartitionID> parts = _bin_packer->twoLevelPacking(_hg, _context, _descending_nodes, max_bin_weights);
