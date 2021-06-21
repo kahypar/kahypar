@@ -187,6 +187,11 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
                                                     * hypergraph.totalWeight());
   context.setupPartWeights(hypergraph.totalWeight());
 
+  // required in case of direct k-way partitioning
+  context.partition.rb_lower_k = 1;
+  context.partition.rb_upper_k = context.partition.k;
+  context.initial_partitioning.num_bins_per_part = std::vector<PartitionID>(context.partition.k, 1);
+
   ASSERT(context.partition.perfect_balance_part_weights.size() ==
          static_cast<size_t>(context.partition.k));
   ASSERT(context.partition.max_part_weights.size() ==
