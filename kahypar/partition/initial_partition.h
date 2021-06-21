@@ -159,20 +159,8 @@ static inline void partition(Hypergraph& hg,
         << "(k=" << init_context.initial_partitioning.k << ", epsilon="
         << init_context.partition.epsilon << ")";
   }
-  if ((context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-        context.initial_partitioning.mode == Mode::direct_kway) ||
-      fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
-    // NOTE: If the fixed vertex subgraph is imbalanced, we cannot guarantee
-    //       a balanced initial partition with recursive bisection. Therefore,
-    //       we switch to direct k-way flat mode in that case.
-    if (!(context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
-          context.initial_partitioning.mode == Mode::direct_kway) &&
-        fixed_vertex_subgraph_imbalance > context.partition.epsilon) {
-      LOG << "WARNING: Fixed vertex subgraph is imbalanced."
-              " Switching to direct k-way initial partitioning!";
-    }
-
-
+  if (context.initial_partitioning.technique == InitialPartitioningTechnique::flat &&
+      context.initial_partitioning.mode == Mode::direct_kway) {
     // If the direct k-way flat initial partitioner is used we call the
     // corresponding initial partitioing algorithm, otherwise...
     std::unique_ptr<IInitialPartitioner> partitioner(
