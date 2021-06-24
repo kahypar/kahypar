@@ -53,8 +53,7 @@ using InitialPartitioningFactory = meta::Factory<InitialPartitionerAlgorithm,
 using RefinerFactory = meta::Factory<RefinementAlgorithm,
                                      IRefiner* (*)(Hypergraph&, const Context&)>;
 
-using BinPackerFactory = meta::Factory<BinPackingAlgorithm,
-                                       IBinPacker* (*)(Hypergraph&, const Context&)>;
+using BinPackerFactory = meta::Factory<BinPackingAlgorithm, IBinPacker* (*)()>;
 
 using RatingPolicies = meta::Typelist<RatingScorePolicies, HeavyNodePenaltyPolicies,
                                       CommunityPolicies, PartitionPolicies, AcceptancePolicies,

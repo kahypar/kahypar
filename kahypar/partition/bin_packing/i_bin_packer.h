@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 namespace bin_packing {
@@ -67,14 +68,26 @@ class IBinPacker {
   IBinPacker& operator= (IBinPacker&&) = delete;
 
   // Applies a prepacking with the specified level to the hypergraph.
-  void prepacking(const BalancingLevel level) {
-    prepackingImpl(level);
+  void prepacking(Hypergraph& hypergraph, const Context& context, const BalancingLevel level) const {
+    prepackingImpl(hypergraph, context, level);
   }
 
   // Calculates a bin packing based on the specified order of the hypernodes. First, the hypernodes are assigned to bins,
   // then the bins are assigned to the parts of the current bisection.
-  std::vector<PartitionID> twoLevelPacking(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const {
-    return twoLevelPackingImpl(nodes, max_bin_weight);
+  std::vector<PartitionID> twoLevelPacking(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeID>& nodes,
+                                           const std::vector<HypernodeWeight>& max_bin_weights) const {
+    return twoLevelPackingImpl(hypergraph, context, nodes, max_bin_weights);
+  }
+
+  // Calculates the imbalance of the current hypergraph with respect to deep balance.
+  HypernodeWeight currentBinImbalance(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const {
+    return currentBinImbalanceImpl(hypergraph, bin_weights);
+  }
+
+  // Tests for an already assigned partition of the hypergraph whether the partition is deeply balanced,
+  // i.e. whether the parts can be subdivided further in a balanced way.
+  bool partitionIsDeeplyBalanced(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
+    return partitionIsDeeplyBalancedImpl(hypergraph, context, max_bin_weights);
   }
 
   virtual ~IBinPacker() = default;
@@ -83,7 +96,10 @@ class IBinPacker {
   IBinPacker() = default;
 
  private:
-  virtual void prepackingImpl(const BalancingLevel level) = 0;
-  virtual std::vector<PartitionID> twoLevelPackingImpl(const std::vector<HypernodeID>& nodes, const HypernodeWeight max_bin_weight) const = 0;
+  virtual void prepackingImpl(Hypergraph& hypergraph, const Context& context, const BalancingLevel level) const = 0;
+  virtual std::vector<PartitionID> twoLevelPackingImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeID>& nodes,
+                                                       const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
+  virtual HypernodeWeight currentBinImbalanceImpl(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const = 0;
+  virtual bool partitionIsDeeplyBalancedImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const = 0;
 };
 } // namespace kahypar

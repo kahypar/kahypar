@@ -62,7 +62,26 @@ class BinPackingTest : public Test {
       c.partition.rb_lower_k = 0;
       c.partition.rb_upper_k = rb_range_k - 1;
       c.initial_partitioning.current_max_bin_weight = max_bin;
-      c.initial_partitioning.bin_epsilon = 0.0;
+      c.initial_partitioning.max_allowed_bin_weight = max_bin;
+    }
+
+    void createTestContextWithIndividualPartWeights(Context& c,
+                                                    const std::vector<HypernodeWeight>& upper_weights,
+                                                    const std::vector<HypernodeWeight>& perfect_weights,
+                                                    const std::vector<PartitionID>& num_bins_per_part,
+                                                    const PartitionID k,
+                                                    const PartitionID rb_range_k,
+                                                    const std::vector<HypernodeWeight>& max_bins) {
+      c.initial_partitioning.upper_allowed_partition_weight = upper_weights;
+      c.initial_partitioning.perfect_balance_partition_weight = perfect_weights;
+      c.initial_partitioning.num_bins_per_part = num_bins_per_part;
+      c.partition.k = k;
+      c.initial_partitioning.k = k;
+      c.partition.rb_lower_k = 0;
+      c.partition.rb_upper_k = rb_range_k - 1;
+      c.initial_partitioning.max_allowed_bin_weight = *std::max_element(max_bins.cbegin(), max_bins.cend());
+      c.partition.max_bins_for_individual_part_weights = max_bins;
+      c.partition.use_individual_part_weights = true;
     }
 
     template< class BPAlgorithm >
@@ -71,26 +90,46 @@ class BinPackingTest : public Test {
                                                   PartitionID rb_range_k,
                                                   HypernodeWeight max_bin_weight,
                                                   std::vector<PartitionID>&& partitions = {}) {
-    Context c;
-    BinPacker<BPAlgorithm> packer(hypergraph, c);
-    createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
-                      upper_weights.size(), rb_range_k, max_bin_weight);
-    hypergraph.changeK(rb_range_k);
-    for (size_t i = 0; i < partitions.size(); ++i) {
-      if (partitions[i] != -1) {
-        hypergraph.setFixedVertex(i, partitions[i]);
+      Context c;
+      BinPacker<BPAlgorithm> packer;
+      createTestContext(c, upper_weights, upper_weights, num_bins_per_part,
+                        upper_weights.size(), rb_range_k, max_bin_weight);
+      hypergraph.changeK(rb_range_k);
+      for (size_t i = 0; i < partitions.size(); ++i) {
+        if (partitions[i] != -1) {
+          hypergraph.setFixedVertex(i, partitions[i]);
+        }
       }
+      std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
+      return packer.twoLevelPacking(hypergraph, c, nodes, std::vector<HypernodeWeight>(rb_range_k, max_bin_weight));
     }
-    std::vector<HypernodeID> nodes = bin_packing::nodesInDescendingWeightOrder(hypergraph);
-    return packer.twoLevelPacking(nodes, max_bin_weight);
-  }
 
-  Hypergraph hypergraph;
+    template< class BPAlgorithm >
+      std::vector<PartitionID> applyTwoLevelPackingWithIndividualPartWeights(const std::vector<HypernodeWeight>& upper_weights,
+                                                                             const std::vector<PartitionID>& num_bins_per_part,
+                                                                             PartitionID rb_range_k,
+                                                                             const std::vector<HypernodeWeight>& max_bins,
+                                                                             std::vector<PartitionID>&& partitions = {}) {
+      Context c;
+      BinPacker<BPAlgorithm> packer;
+      createTestContextWithIndividualPartWeights(c, upper_weights, upper_weights, num_bins_per_part,
+                        upper_weights.size(), rb_range_k, max_bins);
+      hypergraph.changeK(rb_range_k);
+      for (size_t i = 0; i < partitions.size(); ++i) {
+        if (partitions[i] != -1) {
+          hypergraph.setFixedVertex(i, partitions[i]);
+        }
+      }
+      std::vector<HypernodeID> nodes = nodesInDescendingWeightOrder(hypergraph);
+      return packer.twoLevelPacking(hypergraph, c, nodes, max_bins);
+    }
+
+    Hypergraph hypergraph;
 };
 
-class ResultingMaxBin : public Test {
+class partitionIsDeeplyBalanced : public Test {
   public:
-    ResultingMaxBin() :
+    partitionIsDeeplyBalanced() :
     hypergraph(0, 0,
                HyperedgeIndexVector { 0 },
                HyperedgeVector {}),
@@ -318,14 +357,8 @@ TEST_F(BinPackingTest, TwoLevelPackingComplex) {
 }
 
 TEST_F(BinPackingTest, PackingFixedVerticesOneLevel) {
-  initializeWeights({1, 1});
-  auto result = applyTwoLevelPacking<WorstFit>({2}, {1}, 1, 0, {0, 0});
-  ASSERT_EQ(result.size(), 2);
-  ASSERT_EQ(result.at(0), 0);
-  ASSERT_EQ(result.at(1), 0);
-
   initializeWeights({4, 3, 2, 1});
-  result = applyTwoLevelPacking<WorstFit>({6, 6}, {1, 1}, 2, 0, {0, 1, 0, 1});
+  auto result = applyTwoLevelPacking<WorstFit>({6, 6}, {1, 1}, 2, 0, {0, 1, 0, 1});
   ASSERT_EQ(result.size(), 4);
   ASSERT_EQ(result.at(0), 0);
   ASSERT_EQ(result.at(1), 1);
@@ -428,6 +461,36 @@ TEST_F(BinPackingTest, PackingBinLimit) {
   ASSERT_EQ(result.at(3), 1);
 }
 
+TEST_F(BinPackingTest, PackingIndividualPartWeights) {
+  initializeWeights({3, 3, 2, 2});
+  auto result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({6, 6}, {2, 2}, 4, {3, 3, 2, 2});
+  ASSERT_EQ(result.size(), 4);
+  ASSERT_EQ(result.at(0), 0);
+  ASSERT_EQ(result.at(1), 0);
+  ASSERT_EQ(result.at(2), 1);
+  ASSERT_EQ(result.at(3), 1);
+
+  initializeWeights({5, 3, 3, 2, 1});
+  result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({9, 7}, {3, 2}, 5, {3, 3, 3, 5, 2});
+  ASSERT_EQ(result.size(), 5);
+  ASSERT_EQ(result.at(0), 1);
+  ASSERT_EQ(result.at(1), 0);
+  ASSERT_EQ(result.at(2), 0);
+  ASSERT_EQ(result.at(3), 0);
+  ASSERT_EQ(result.at(4), 1);
+
+  initializeWeights({4, 4, 2, 2, 1, 1, 1});
+  result = applyTwoLevelPackingWithIndividualPartWeights<WorstFit>({8, 8}, {2, 2}, 4, {2, 6, 4, 4}, {0, -1, -1, -1, -1, -1, 0});
+  HypernodeWeight weight_p0 = 0;
+  for (size_t i = 0; i < result.size(); ++i) {
+    ASSERT(result[i] != -1);
+    if (result[i] == 0) {
+      weight_p0 += hypergraph.nodeWeight(i);
+    }
+  }
+  ASSERT(weight_p0 == 7 || weight_p0 == 8);
+}
+
 TEST_F(BinPackingTest, ExtractNodes) {
   initializeWeights({});
 
@@ -449,22 +512,25 @@ TEST_F(BinPackingTest, HeuristicPrepacking) {
   Context c;
 
   initializeWeights({6, 5, 4, 3, 2, 1});
-  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 10);
+  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 12);
+  c.initial_partitioning.current_max_bin_weight = 10;
 
-  calculateHeuristicPrepacking<WorstFit>(hypergraph, c, 4, 12);
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), false);
 
   initializeWeights({22, 3, 1, 1});
-  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 22);
+  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 24);
+  c.initial_partitioning.current_max_bin_weight = 22;
 
-  calculateHeuristicPrepacking<WorstFit>(hypergraph, c, 4, 24);
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), false);
 
   initializeWeights({22, 18, 17, 8, 7, 3, 1, 1});
-  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 22);
+  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4,24);
+  c.initial_partitioning.current_max_bin_weight = 22;
 
-  calculateHeuristicPrepacking<WorstFit>(hypergraph, c, 4, 24);
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -473,13 +539,43 @@ TEST_F(BinPackingTest, HeuristicPrepacking) {
   ASSERT_EQ(hypergraph.isFixedVertex(5), false);
 
   initializeWeights({22, 18, 17, 8, 7, 3, 1, 1});
-  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 22);
+  createTestContext(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, 26);
+  c.initial_partitioning.current_max_bin_weight = 22;
 
-  calculateHeuristicPrepacking<WorstFit>(hypergraph, c, 4, 26);
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
   ASSERT_EQ(hypergraph.isFixedVertex(3), false);
+}
+
+TEST_F(BinPackingTest, HeuristicPrepackingIndividualPartWeights) {
+  Context c;
+
+  initializeWeights({4, 4, 2, 1});
+  createTestContextWithIndividualPartWeights(c, {50, 50}, {50, 50}, {1, 2}, 2, 3, {9, 3, 3});
+  c.initial_partitioning.current_max_bin_weight = 8;
+
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(0), 0);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(1), 0);
+
+  initializeWeights({6, 5, 4, 3});
+  createTestContextWithIndividualPartWeights(c, {50, 50}, {50, 50}, {2, 2}, 2, 4, {4, 5, 6, 7});
+  c.initial_partitioning.current_max_bin_weight = 6;
+
+  calculateHeuristicPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(0), 1);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(1), 1);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(2), 0);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(3), 0);
 }
 
 TEST_F(BinPackingTest, ExactPrepackingBase) {
@@ -488,7 +584,7 @@ TEST_F(BinPackingTest, ExactPrepackingBase) {
   initializeWeights({4, 4, 4, 4});
   createTestContext(c, {12, 12}, {8, 8}, {2, 2}, 2, 4, 7);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 7);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -498,7 +594,7 @@ TEST_F(BinPackingTest, ExactPrepackingBase) {
   initializeWeights({4, 4, 4, 4});
   createTestContext(c, {12, 12}, {8, 8}, {2, 2}, 2, 4, 7);
 
-  calculateExactPrepacking<FirstFit>(hypergraph, c, 4, 7);
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -512,7 +608,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1});
   createTestContext(c, {13, 13}, {12, 12}, {2, 2}, 2, 4, 7);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 7);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -524,7 +620,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({7, 7, 5, 5, 3, 2, 1, 1, 1});
   createTestContext(c, {17, 17}, {16, 16}, {2, 2}, 2, 4, 10);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 10);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -537,7 +633,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({50, 50, 50, 1});
   createTestContext(c, {140, 140}, {76, 76}, {2, 2}, 2, 4, 75);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 75);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), false);
@@ -546,7 +642,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({50, 50, 26, 1});
   createTestContext(c, {140, 140}, {51, 51}, {2, 2}, 2, 4, 75);
 
-  calculateExactPrepacking<FirstFit>(hypergraph, c, 4, 75);
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -556,7 +652,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({4, 4, 4, 3, 3, 3, 3, 3, 3});
   createTestContext(c, {15, 15}, {15, 15}, {3, 3}, 2, 6, 6);
 
-  calculateExactPrepacking<FirstFit>(hypergraph, c, 6, 6);
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(3), true);
   ASSERT_EQ(hypergraph.isFixedVertex(4), true);
   ASSERT_EQ(hypergraph.isFixedVertex(5), true);
@@ -564,11 +660,37 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   ASSERT_EQ(hypergraph.isFixedVertex(7), true);
   ASSERT_EQ(hypergraph.isFixedVertex(8), true);
 
+  // tests optimization in full partition edge case
+  initializeWeights({5, 5, 3, 3, 3, 2, 1, 1});
+  createTestContext(c, {12, 12}, {12, 12}, {2, 2}, 2, 4, 7);
+
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), false);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), false);
+  ASSERT_EQ(hypergraph.isFixedVertex(4), false);
+  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[0], 12);
+  ASSERT_EQ(c.initial_partitioning.upper_allowed_partition_weight[1], 12);
+
+  // invalid packing - test for resulting upper part weight
+  initializeWeights({8, 8, 8, 7, 7});
+  createTestContext(c, {19, 19}, {19, 19}, {2, 2}, 2, 4, 10);
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(4), true);
+  ASSERT_LE(c.initial_partitioning.upper_allowed_partition_weight[0], 20);
+  ASSERT_LE(c.initial_partitioning.upper_allowed_partition_weight[1], 20);
+
   // impossible packing test
   initializeWeights({2, 2, 2, 2, 2});
   createTestContext(c, {5, 5}, {5, 5}, {2, 2}, 2, 4, 3);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 3);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -579,7 +701,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({8, 8, 8, 8, 4, 4, 3});
   createTestContext(c, {26, 26}, {22, 22}, {2, 2}, 2, 4, 14);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 14);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -592,7 +714,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({4, 4, 4, 4});
   createTestContext(c, {10, 10}, {8, 8}, {2, 2}, 2, 4, 6);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 6);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -600,7 +722,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({6, 4, 4, 4, 2, 2});
   createTestContext(c, {12, 12}, {11, 11}, {2, 2}, 2, 4, 7);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 7);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -612,7 +734,7 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({8, 8, 8, 4, 4, 4, 4});
   createTestContext(c, {26, 26}, {20, 20}, {2, 2}, 2, 4, 15);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 15);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
 
@@ -621,14 +743,14 @@ TEST_F(BinPackingTest, ExactPrepackingExtended) {
   initializeWeights({12, 12, 3, 3, 3, 3, 3, 3});
   createTestContext(c, {28, 28}, {21, 21}, {2, 2}, 2, 4, 18);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 18);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), false);
   ASSERT_EQ(hypergraph.isFixedVertex(1), false);
 
   initializeWeights({8, 8, 8, 8, 3, 3, 3, 3});
   createTestContext(c, {28, 28}, {22, 22}, {2, 2}, 2, 4, 18);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 4, 18);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), false);
@@ -641,7 +763,7 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   initializeWeights({5, 5, 5, 5, 4, 3, 2, 1});
   createTestContext(c, {30, 15}, {20, 10}, {4, 2}, 2, 6, 9);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 6, 9);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -651,7 +773,7 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   initializeWeights({6, 4, 4, 4, 4, 4});
   createTestContext(c, {10, 20}, {10, 20}, {2, 4}, 2, 6, 7);
 
-  calculateExactPrepacking<FirstFit>(hypergraph, c, 6, 7);
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), false);
@@ -659,7 +781,7 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   initializeWeights({7, 4, 4, 4, 4});
   createTestContext(c, {18, 12}, {15, 10}, {3, 2}, 2, 5, 7);
 
-  calculateExactPrepacking<WorstFit>(hypergraph, c, 5, 7);
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
   ASSERT_EQ(hypergraph.isFixedVertex(0), true);
   ASSERT_EQ(hypergraph.isFixedVertex(1), true);
   ASSERT_EQ(hypergraph.isFixedVertex(2), true);
@@ -667,29 +789,103 @@ TEST_F(BinPackingTest, ExactPrepackingUnequal) {
   ASSERT_EQ(hypergraph.isFixedVertex(4), true);
 }
 
-TEST_F(ResultingMaxBin, NoBinImbalance) {
-  initialize({1, 1}, {0, 1}, 2, 2);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(1));
+TEST_F(BinPackingTest, ExactPrepackingIndividualPartWeights) {
+  Context c;
 
-  initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+  initializeWeights({6, 4, 2, 2, 1});
+  createTestContextWithIndividualPartWeights(c, {8, 8}, {8, 8}, {2, 2}, 2, 4, {5, 5, 8, 2});
 
-  initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), false);
 
-  initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(2));
+  initializeWeights({10, 10, 4, 4, 4, 1, 1});
+  createTestContextWithIndividualPartWeights(c, {28, 12}, {24, 10}, {2, 2}, 2, 4, {15, 15, 7, 7});
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(4), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(5), false);
+
+  initializeWeights({7, 6, 4, 3, 3, 3});
+  createTestContextWithIndividualPartWeights(c, {11, 15}, {11, 15}, {2, 2}, 2, 4, {6, 7, 8, 9});
+
+  calculateExactPrepacking<WorstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(4), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(5), true);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(4), 0);
+  ASSERT_EQ(hypergraph.fixedVertexPartID(5), 0);
+
+  initializeWeights({5, 3, 3, 2, 1});
+  createTestContextWithIndividualPartWeights(c, {12, 3}, {11, 3}, {2, 1}, 2, 3, {8, 6, 4});
+
+  calculateExactPrepacking<FirstFit>(hypergraph, c);
+  ASSERT_EQ(hypergraph.isFixedVertex(0), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(1), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(2), true);
+  ASSERT_EQ(hypergraph.isFixedVertex(3), false);
 }
 
-TEST_F(ResultingMaxBin, WithBinImbalance) {
+TEST_F(BinPackingTest, CurrentBinImbalance) {
+  BinPacker<WorstFit> packer;
+
+  initializeWeights({4, 3, 2, 1});
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {5, 5}), 0);
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {7, 3}), 0);
+
+  initializeWeights({6, 6, 5, 2, 1});
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {10, 10}), 1);
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {14, 6}), 0);
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {9, 5, 6}), 0);
+
+  initializeWeights({11, 9, 7, 1});
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {14, 14}), 2);
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {10, 9, 9}), 1);
+  ASSERT_EQ(packer.currentBinImbalance(hypergraph, {13, 13, 1, 1}), 3);
+}
+
+TEST_F(partitionIsDeeplyBalanced, FeasiblePartitionWithoutBinImbalance) {
+  BinPacker<WorstFit> packer;
+
+  initialize({1, 1}, {0, 1}, 2, 2);
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {0, 0}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 1}));
+
+  initialize({1, 2, 1, 1, 1, 2}, {0, 1, 0, 0, 0, 1}, 2, 4);
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 2, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2, 2}));
+
+  initialize({2, 3, 1, 3}, {0, 1, 0, 2}, 3, 3);
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 3, 3}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 3, 3}));
+
+  initialize({2, 2, 2}, {0, 0, 1}, 2, 3);
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2}));
+}
+
+TEST_F(partitionIsDeeplyBalanced, FeasiblePartitionWithBinImbalance) {
+  BinPacker<WorstFit> packer;
+
   initialize({1, 4}, {0, 1}, 2, 2);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 1}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {1, 4}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {4, 4}));
 
   initialize({3, 1, 1, 1, 1, 1}, {0, 0, 1, 1, 1, 1}, 2, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(3));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 2, 2}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 1, 2, 2}));
 
   initialize({3, 1, 2, 1, 2, 2}, {1, 0, 0, 0, 2, 2}, 3, 4);
-  ASSERT_THAT(resultingMaxBin(hypergraph, context), Eq(4));
+  ASSERT_FALSE(packer.partitionIsDeeplyBalanced(hypergraph, context, {3, 3, 3, 3}));
+  ASSERT_TRUE(packer.partitionIsDeeplyBalanced(hypergraph, context, {2, 2, 3, 4}));
 }
 }  // namespace bin_packing
 }  // namespace kahypar
