@@ -26,7 +26,7 @@ jobs:
           git submodule init
           git submodule update
           rm -rf debug && mkdir debug && cd debug
-          cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_USE_GCOV="$COV"
+          cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_USE_GCOV="$COV" -DKAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS=OFF -KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS=OFF -KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS=OFF -KAHYPAR_ENABLE_HEAVY_INITIAL_PARTITIONING_ASSERTIONS=OFF -DKAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS=OFF
 
       - name: Install KaHyPar & Run Tests
         run: |
@@ -72,7 +72,6 @@ jobs:
         run: |
           cd build
           make integration_tests
-          ../scripts/run_regression_tests.sh
 
       - name: Run Regression Tests
         run: |
