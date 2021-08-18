@@ -23,4 +23,5 @@ tuning/*
 debug152/*
 profile/*
 external_tools/*
+!external_tools/primes
 .idea*

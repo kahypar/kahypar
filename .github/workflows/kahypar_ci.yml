@@ -1,0 +1,80 @@
+name: KaHyPar CI
+
+on: [ push, pull_request ]
+
+jobs:
+  kahypar_debug_tests:
+    runs-on: ubuntu-latest
+    env:
+      BOOST_ROOT : "/usr/local/share/boost/1.72.0"
+      CI_ACTIVE : 1
+      BUILD_TYPE : "Debug"
+      COV : "ON"
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v2
+        with:
+         fetch-depth: 1
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install libboost-program-options-dev lcov gcovr libpython3-all-dev cppcheck
+
+      - name: Setup KaHyPar
+        run: |
+          git submodule init
+          git submodule update
+          rm -rf debug && mkdir debug && cd debug
+          cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_USE_GCOV="$COV"
+
+      - name: Install KaHyPar & Run Tests
+        run: |
+          cd debug
+          make clean all
+
+      - name: Report Code Coverage
+        run: |
+          cd debug
+          lcov --directory . --capture --output-file coverage.info;
+          lcov --remove coverage.info '/usr/*' --output-file coverage.info;
+          lcov --list coverage.info;
+          gcovr -r ../ -x > report.xml;
+          cd ..
+          bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+
+  kahypar_regression_tests:
+    runs-on: ubuntu-latest
+    env:
+      BOOST_ROOT : "/usr/local/share/boost/1.72.0"
+      CI_ACTIVE : 1
+      BUILD_TYPE : "Release"
+      COV : "OFF"
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v2
+        with:
+         fetch-depth: 1
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install libboost-program-options-dev lcov gcovr libpython3-all-dev cppcheck
+
+      - name: Setup KaHyPar
+        run: |
+          git submodule init
+          git submodule update
+          rm -rf build && mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DKAHYPAR_USE_GCOV="$COV"
+
+      - name: Install Regression Tests
+        run: |
+          cd build
+          make integration_tests
+          ../scripts/run_regression_tests.sh
+
+      - name: Run Regression Tests
+        run: |
+          cd build
+          ../scripts/run_regression_tests.sh
