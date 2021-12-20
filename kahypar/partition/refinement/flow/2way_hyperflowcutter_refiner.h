@@ -39,7 +39,6 @@
 #pragma GCC diagnostic ignored "-Weffc++"
 
 #include <WHFC/algorithm/dinic.h>
-#include <WHFC/algorithm/ford_fulkerson.h>
 #include <WHFC/algorithm/hyperflowcutter.h>
 #include <WHFC/io/hmetis_io.h>
 #include <WHFC/io/whfc_io.h>
