@@ -24,7 +24,7 @@
 #if defined(_MSC_VER)
 #include <intrin.h>
 #else
-#include <x86intrin.h>
+//#include <immintrin.h>
 #endif
 
 #include <algorithm>
