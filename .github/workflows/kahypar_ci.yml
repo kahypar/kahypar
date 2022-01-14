@@ -19,6 +19,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install libboost-program-options-dev lcov gcovr libpython3-all-dev cppcheck
 
       - name: Setup KaHyPar
