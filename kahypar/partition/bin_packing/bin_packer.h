@@ -122,7 +122,7 @@ class BinPacker final : public IBinPacker {
     return parts;
   }
 
-  HypernodeWeight currentBinImbalanceImpl(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const {
+  HypernodeWeight currentBinImbalanceImpl(const Hypergraph& hypergraph, const std::vector<HypernodeWeight>& bin_weights) const override {
     const HypernodeWeight max_bin_weight = *std::max_element(bin_weights.cbegin(), bin_weights.cend());
     BPAlgorithm packer(bin_weights.size(), max_bin_weight);
 
@@ -143,7 +143,7 @@ class BinPacker final : public IBinPacker {
     return std::max(0, max - max_bin_weight);
   }
 
-  bool partitionIsDeeplyBalancedImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const {
+  bool partitionIsDeeplyBalancedImpl(const Hypergraph& hypergraph, const Context& context, const std::vector<HypernodeWeight>& max_bin_weights) const override {
     const HypernodeWeight max_bin_weight = *std::max_element(max_bin_weights.cbegin(), max_bin_weights.cend());
     const PartitionID num_parts = context.initial_partitioning.k;
 
