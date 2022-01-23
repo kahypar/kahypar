@@ -53,6 +53,11 @@ class CMakeBuild(build_ext):
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
             env.get('CXXFLAGS', ''), self.distribution.get_version())
 
+        if env.get('KAHYPAR_USE_MINIMAL_BOOST', 'OFF').upper() == 'ON':
+            cmake_args += ['-DKAHYPAR_PYTHON_INTERFACE=ON', 
+                           '-DKAHYPAR_USE_MINIMAL_BOOST=ON']
+            env['CXXFLAGS'] += ' -fPIC'
+
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         subprocess.check_call(
