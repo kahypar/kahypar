@@ -155,7 +155,7 @@ The Karlsruhe Hypergraph Partitioning Framework requires:
  - A 64-bit operating system. Linux, Mac OS X and Windows are currently supported.
  - A modern, ![C++14](https://img.shields.io/badge/C++-17-blue.svg?style=flat)-ready compiler such as `g++` version 9 or higher or `clang` version 11.0.3 or higher.
  - The [cmake][cmake] build system.
- - The [Boost.Program_options][Boost.Program_options] library and the boost header files.
+ - The [Boost.Program_options][Boost.Program_options] library and the boost header files. If you don't want to install boost yourself, you can add the `-DKAHYPAR_USE_MINIMAL_BOOST=ON` flag to the cmake command to download, extract, and build the necessary dependencies automatically.
 
 
 Building KaHyPar
