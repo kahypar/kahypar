@@ -416,7 +416,7 @@ class BinaryHeapTraits<BinaryMinHeap<IDType_, KeyType_> >{
   using Comparator = std::greater<KeyType>;
 
   static constexpr KeyType sentinel() {
-    return std::numeric_limits<KeyType_>::min();
+    return std::numeric_limits<KeyType_>::lowest();
   }
 };
 }  // namespace ds
