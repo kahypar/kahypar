@@ -1,0 +1,4 @@
+% hypergraph with a hyperedge that contains a pin more than once
+2 3
+1 2 3
+2 2

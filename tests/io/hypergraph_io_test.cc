@@ -248,5 +248,13 @@ TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
               ::testing::ExitedWithCode(1),
               "Error: Hyperedge 1 is empty");
 }
+
+TEST(DuplicatePins, GetRemovedDuringParsing) {
+  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_multiple_identical_pins.hgr", 2);
+  ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
+  ASSERT_THAT(hypergraph.initialNumEdges(), Eq(2));
+  ASSERT_THAT(hypergraph.initialNumPins(), Eq(4));
+}
+
 }  // namespace io
 }  // namespace kahypar
