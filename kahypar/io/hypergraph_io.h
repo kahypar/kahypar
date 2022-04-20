@@ -27,9 +27,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
-#include <cstdlib>
 
 #include "kahypar/definitions.h"
 
@@ -81,7 +79,6 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     index_vector.push_back(edge_vector.size());
 
     std::string line;
-    std::unordered_set<HypernodeID> unique_pins;
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
       std::getline(file, line);
       // skip any comments
@@ -106,16 +103,10 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
         }
       }
       HypernodeID pin;
-      unique_pins.clear();
       while (line_stream >> pin) {
         // Hypernode IDs start from 0
         --pin;
         ASSERT(pin < num_hypernodes, "Invalid hypernode ID");
-        if (unique_pins.count(pin)) {
-          std::cerr << "Warning: Ignoring duplicate pin " << pin << " of hyperedge " << i << std::endl;
-          continue;
-        }
-        unique_pins.insert(pin);
         edge_vector.push_back(pin);
       }
       index_vector.push_back(edge_vector.size());
