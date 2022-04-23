@@ -421,6 +421,21 @@ If you use KaHyPar in an academic setting please cite the appropriate papers. If
       school    = {Karlsruhe Institute of Technology, Germany},
       year      = {2020}
     }
+    
+    @article{10.1145/3529090, 
+      author = {Schlag, Sebastian and 
+                Heuer, Tobias and 
+                Gottesb\"{u}ren, Lars and 
+                Akhremtsev, Yaroslav and 
+                Schulz, Christian and 
+                Sanders, Peter}, 
+      title = {High-Quality Hypergraph Partitioning}, 
+      url = {https://doi.org/10.1145/3529090}, 
+      doi = {10.1145/3529090}, 
+      journal = {ACM J. Exp. Algorithmics},
+      year = {2022}, 
+      month = {mar}
+    }
 
     // KaHyPar-R
     @inproceedings{shhmss2016alenex,
