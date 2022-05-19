@@ -21,6 +21,16 @@ add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOURCE_DIR}/../googlemock/)
 
+if(NOT CMAKE_BUILD_TYPE OR 
+  ((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND 
+    (NOT CMAKE_BUILD_TYPE STREQUAL "DEBUG") AND 
+    (NOT CMAKE_BUILD_TYPE STREQUAL "Release") AND 
+    (NOT CMAKE_BUILD_TYPE STREQUAL "RELEASE") AND 
+    (NOT CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") AND
+    (NOT CMAKE_BUILD_TYPE STREQUAL "RELWITHDEBINFO")))
+    message(FATAL_ERROR "CMAKE_BUILD_TYPE not set correctly. Options are: Release|RELEASE, Debug|DEBUG, RelWithDebInfo|RELWITHDEBINFO." )
+endif()
+
 # add third-party algorithms to project
 include_directories(external_tools)
 
@@ -185,12 +195,6 @@ else()
     endif()
 
   endif()
-endif()
-
-if(NOT CMAKE_BUILD_TYPE)
-  set( CMAKE_BUILD_TYPE Debug CACHE STRING
-       "Choose the type of build, options are: Debug Release, RelWithDebInfo"
-       FORCE )
 endif()
 
 # add a target to generate API documentation with Doxygen
