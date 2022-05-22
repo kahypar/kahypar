@@ -147,6 +147,7 @@ We provide additional resources for all KaHyPar-related publications:
  - [**DECODE** - A Computational Pipeline for discovering TCR Binding Rules](https://github.com/phineasng/DECODE)
  - [**HybridQ** - A Hybrid Simulator for Quantum Circuits](https://github.com/nasa/hybridq)
  - [**ClusterEnsembles** - Consensus Clustering](https://github.com/c0waro1/ClusterEnsembles)
+ - [**TensorCircuit** - Quantum Circuit Simulator](https://github.com/tencent-quantum-lab/tensorcircuit)
 
 Requirements
 -----------
