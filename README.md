@@ -183,6 +183,8 @@ The standalone program can be built via `make KaHyPar`. The binary will be locat
 KaHyPar has several configuration parameters. For a list of all possible parameters please run: `./KaHyPar --help`.
 We use the [hMetis format](http://glaros.dtc.umn.edu/gkhome/fetch/sw/hmetis/manual.pdf) for the input hypergraph file as well as the partition output file.
 
+The command line parameter `--quiet=1` can be used to suppress all logging output. If you are using the library interfaces, adding `quiet=1` to the corresponding .ini configuration file has the same effect.
+
 #### Default / Most Recent Presets
 
 We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for
