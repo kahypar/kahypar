@@ -423,7 +423,7 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     // balanced contraint
     for (PartitionID j = 0; j < k; ++j) {
       if (input_hypergraph.fixedVertexPartWeight(i) + input_hypergraph.partWeight(j) >
-          original_context.partition.max_part_weights[j]) {
+          original_context.partition.max_part_weights[i]) {
         graph[i][j] = 0;
       }
     }
