@@ -363,8 +363,10 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
 
   std::vector<PartitionID> fixed_connectivity(input_hypergraph.initialNumEdges(), 0);
   ds::FastResetFlagArray<> k_visited(k);
+  HyperedgeWeight total_hyperedge_weight = 0;
   for (const HyperedgeID& he : input_hypergraph.edges()) {
     k_visited.reset();
+    total_hyperedge_weight += input_hypergraph.edgeWeight(he);
     for (const HypernodeID& pin : input_hypergraph.pins(he)) {
       if (input_hypergraph.isFixedVertex(pin)) {
         const PartitionID part = input_hypergraph.fixedVertexPartID(pin);
@@ -424,7 +426,7 @@ static inline AdjacencyMatrix setupWeightedBipartiteMatchingGraph(Hypergraph& in
     for (PartitionID j = 0; j < k; ++j) {
       if (input_hypergraph.fixedVertexPartWeight(i) + input_hypergraph.partWeight(j) >
           original_context.partition.max_part_weights[i]) {
-        graph[i][j] = 0;
+        graph[i][j] = -total_hyperedge_weight;
       }
     }
   }
