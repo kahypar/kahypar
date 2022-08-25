@@ -128,4 +128,31 @@ TEST_F(FixedVertex, FlowSnapshotDoesNotContainFixedVertices) {
   ASSERT_EQ(extractor.flow_hg_builder.nodeWeight(r.target), 1);
 }
 
+TEST_F(FixedVertex, AssignmentWithIndividualPartWeights) {
+  context.partition.verbose_output = true;
+  hypergraph->resetFixedVertices();
+  hypergraph->reset();
+  hypergraph->setNodeWeight(5, 5);
+  hypergraph->setEdgeWeight(2, 3);
+
+  hypergraph->setNodePart(0, 0);
+  hypergraph->setFixedVertex(1, 0);
+  hypergraph->setNodePart(2, 0);
+  hypergraph->setNodePart(3, 0);
+  hypergraph->setNodePart(4, 0);
+  hypergraph->setNodePart(5, 1);
+  hypergraph->setFixedVertex(6, 1);
+
+  context.partition.use_individual_part_weights = true;
+  context.partition.max_part_weights[0] = 5;
+  context.partition.max_part_weights[1] = 6;
+  context.setupPartWeights(hypergraph->totalWeight());
+
+  context.partition.objective = Objective::km1;
+  fixed_vertices::partition(*hypergraph, context);
+
+  ASSERT_LE(hypergraph->partWeight(0), context.partition.max_part_weights[0]);
+  ASSERT_LE(hypergraph->partWeight(1), context.partition.max_part_weights[1]);
+}
+
 }  // namespace kahypar

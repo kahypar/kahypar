@@ -143,11 +143,6 @@ static inline void partition(Hypergraph& hg,
   Hypergraph& init_hg = *extracted_init_hypergraph.first;
   std::vector<HypernodeID> mapping(std::move(extracted_init_hypergraph.second));
 
-  double fixed_vertex_subgraph_imbalance = 0.0;
-  if (hg.numFixedVertices() > 0) {
-    fixed_vertex_subgraph_imbalance = metrics::imbalanceFixedVertices(hg, context.partition.k);
-  }
-
   // we do not want to use the community structure used during coarsening in initial partitioning
   init_hg.resetCommunities();
   Context init_context = createContext(init_hg, context);
