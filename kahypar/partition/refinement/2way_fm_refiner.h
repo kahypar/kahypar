@@ -573,7 +573,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
       if (_hg.edgeSize(he) == 2) {
         for (const HypernodeID& pin : _hg.pins(he)) {
-          const char factor = (_hg.partID(pin) == from_part ? 2 : -2);
+          const Gain factor = (_hg.partID(pin) == from_part ? 2 : -2);
           if (update_local_search_pq && !_hg.marked(pin)) {
             updatePin(pin, factor * he_weight);
             continue;      // caching is done in updatePin in this case
