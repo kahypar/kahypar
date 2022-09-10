@@ -148,6 +148,8 @@ We provide additional resources for all KaHyPar-related publications:
  - [**HybridQ** - A Hybrid Simulator for Quantum Circuits](https://github.com/nasa/hybridq)
  - [**ClusterEnsembles** - Consensus Clustering](https://github.com/c0waro1/ClusterEnsembles)
  - [**TensorCircuit** - Quantum Circuit Simulator](https://github.com/tencent-quantum-lab/tensorcircuit)
+ - [**simulate_symacore** - Simulation of the Sycamore quantum supremacy circuit](https://github.com/Fanerst/simulate_sycamore)
+ - [**QML** - PennyLane Quantum Machine Learning Demos](https://github.com/PennyLaneAI/qml)
 
 Requirements
 -----------
