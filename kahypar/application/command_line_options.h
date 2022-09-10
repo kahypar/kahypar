@@ -466,7 +466,10 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
     " - degree")
     ("p-reuse-communities",
     po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
-    "Reuse the community structure identified in the first bisection for all other bisections.");
+    "Reuse the community structure identified in the first bisection for all other bisections.")
+    ("p-maxnet-removal-factor",
+    po::value<double>(&context.partition.max_he_size_threshold_factor)->value_name("<double>"),
+    "Hyperedges larger than |V| * (this factor) are removed before partitioning.");
   return options;
 }
 
