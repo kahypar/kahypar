@@ -324,6 +324,7 @@ struct PartitioningParameters {
   double adjusted_epsilon_for_individual_part_weights = 0.0;
 
   HypernodeID max_he_size_threshold = std::numeric_limits<HypernodeID>::max();
+  HypernodeID smallest_max_he_size_threshold = std::numeric_limits<HypernodeID>::max();
   double max_he_size_threshold_factor = 1.0;
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
 

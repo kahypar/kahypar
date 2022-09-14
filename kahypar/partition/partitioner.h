@@ -192,7 +192,8 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 
   context.partition.max_he_size_threshold =
     std::max(hypergraph.initialNumNodes() *
-      context.partition.max_he_size_threshold_factor, 50000.0);
+      context.partition.max_he_size_threshold_factor,
+      static_cast<double>(context.partition.smallest_max_he_size_threshold));
 
   // required in case of direct k-way partitioning
   context.partition.rb_lower_k = 1;

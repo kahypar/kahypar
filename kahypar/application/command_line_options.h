@@ -467,9 +467,12 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
     ("p-reuse-communities",
     po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
     "Reuse the community structure identified in the first bisection for all other bisections.")
+    ("p-smallest-maxnet-threshold",
+    po::value<uint32_t>(&context.partition.smallest_max_he_size_threshold)->value_name("<uint32_t>"),
+    "No hyperedge whose size is smaller than this threshold is removed in the large hyperedge removal step (see p-maxnet-removal-factor)")
     ("p-maxnet-removal-factor",
     po::value<double>(&context.partition.max_he_size_threshold_factor)->value_name("<double>"),
-    "Hyperedges larger than |V| * (this factor) are removed before partitioning.");
+    "Hyperedges larger than max(|V| * (this factor), p-smallest-maxnet-threshold) are removed before partitioning.");
   return options;
 }
 

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 
@@ -71,10 +73,6 @@ class LargeHyperedgeRemover {
           << context.partition.max_he_size_threshold << ") increased" << context.partition.objective
           << "by" << delta << END;
     }
-  }
-
-  void reset() {
-    _removed_hes.clear();
   }
 
  private:
