@@ -169,6 +169,43 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
+  // use additional rating
+  template<typename F>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxWithRater(IDType& max_id, KeyType& max_key,
+                                                          PartitionID& max_part, F rater) {
+    max_key = MetaKey::min();
+    size_t max_index = kInvalidIndex;
+    for (size_t index = 0; index < _num_enabled_pqs; ++index) {
+      ASSERT(!_queues[index].empty(), V(index));
+      IDType id = 0;
+      KeyType key = 0;
+      const PartitionID part = _mapping[index].part;
+      deleteMaxFromPartitionWithRater(id, key, _mapping[index].part, [&](const HypernodeID& node) {
+        return rater(node, part);
+      }, false);
+      if (key > max_key) {
+        if (max_index != kInvalidIndex) {
+          _queues[max_index].push(max_id, max_key);
+        }
+        max_id = id;
+        max_key = key;
+        max_index = index;
+      } else {
+        _queues[index].push(id, key);
+      }
+    }
+    max_part = _mapping[max_index].part;
+
+    ASSERT(_mapping[_mapping[max_part].index].part == max_part, V(max_part));
+    ASSERT(max_index != kInvalidIndex, V(max_index));
+    ASSERT(max_key != MetaKey::max(), V(max_key));
+    ASSERT(max_part != kInvalidPart, V(max_part) << V(max_id));
+    ASSERT(static_cast<unsigned int>(max_part) < _queues.size(), "Invalid" << V(max_part));
+
+    checkEmpty(max_index, max_part);
+    --_num_entries;
+  }
+
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxFromPartition(IDType& max_id, KeyType& max_key,
                                                               PartitionID part) {
     ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
@@ -184,15 +221,59 @@ class KWayPriorityQueue {
     ASSERT(part != kInvalidPart, V(part) << V(max_id));
 
     _queues[part_index].pop();
-    if (_queues[part_index].empty()) {
-      ASSERT(isEnabled(part), V(part));
-      --_num_enabled_pqs;  // now points to the last enabled pq
-      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
-      swap(_mapping[part].index, _num_enabled_pqs);
-      swap(_mapping[part].index, _num_nonempty_pqs);
-      markUnused(part);
-    }
+    checkEmpty(part_index, part);
     --_num_entries;
+  }
+
+  // use additional rating
+  template<typename F>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxFromPartitionWithRater(IDType& max_id, KeyType& max_key,
+                                                                       PartitionID part, F rater, bool do_delete = true) {
+    static const size_t min_popped = 5;
+
+    ASSERT(static_cast<unsigned int>(part) < _queues.size(), "Invalid" << V(part));
+    size_t part_index = _mapping[part].index;
+    ASSERT(part_index < _num_enabled_pqs, V(part_index));
+    ASSERT(_mapping[part_index].part == part, V(part));
+
+    KeyType max = MetaKey::min();
+    size_t max_index = std::numeric_limits<size_t>::max();
+    std::vector<std::pair<IDType, KeyType>> removed;
+    removed.reserve(20);
+    KeyType highest_rating = MetaKey::min();
+    do {
+      KeyType current = _queues[part_index].topKey();
+      IDType current_id = _queues[part_index].top();
+      if (removed.size() >= min_popped
+          && (static_cast<double>(current) + 1.5 * highest_rating) < static_cast<double>(max)) {
+        break;
+      }
+      ASSERT(current != MetaKey::max());
+      const KeyType rating = rater(current_id);
+      highest_rating = std::max(highest_rating, rating);
+      current += rating;
+      if (current > max) {
+        max = current;
+        max_index = removed.size();
+      }
+      removed.emplace_back(current_id, current);
+      _queues[part_index].pop();
+    } while(!_queues[part_index].empty());
+
+    max_key = max;
+    max_id = removed[max_index].first;
+
+    for (size_t i = 0; i < removed.size(); ++i) {
+      if (i != max_index) {
+        const auto& [id, key] = removed[i];
+        _queues[part_index].push(id, key);
+      }
+    }
+
+    if (do_delete) {
+      checkEmpty(part_index, part);
+      --_num_entries;
+    }
   }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE KeyType key(const IDType id,
@@ -290,6 +371,17 @@ class KWayPriorityQueue {
   FRIEND_TEST(AKWayPriorityQueue, DoesNotConsiderDisabledHeapForChoosingMax);
   FRIEND_TEST(AKWayPriorityQueue, ReconsidersDisabledHeapAgainAfterEnabling);
   FRIEND_TEST(AKWayPriorityQueue, PQIsUnusedAndDisableIfItBecomesEmptyAfterDeleteMaxFromPartition);
+
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void checkEmpty(size_t part_index, PartitionID part) {
+    if (_queues[part_index].empty()) {
+      ASSERT(isEnabled(part), V(part));
+      --_num_enabled_pqs;  // now points to the last enabled pq
+      --_num_nonempty_pqs;  // now points to the last non-empty disbabled pq
+      swap(_mapping[part].index, _num_enabled_pqs);
+      swap(_mapping[part].index, _num_nonempty_pqs);
+      markUnused(part);
+    }
+  }
 
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void swap(const size_t index_a, const size_t index_b) {
     using std::swap;
