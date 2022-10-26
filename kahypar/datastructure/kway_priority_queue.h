@@ -169,9 +169,16 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  // use additional rating
   template<typename F>
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxWithRater(IDType& max_id, KeyType& max_key,
+                                                          PartitionID& max_part, F rater) {
+    KeyType dummy = MetaKey::min();
+    deleteMaxWithRater(max_id, max_key, dummy, max_part, rater);
+  }
+
+  // use additional rating
+  template<typename F>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxWithRater(IDType& max_id, KeyType& max_key, KeyType& original_key,
                                                           PartitionID& max_part, F rater) {
     max_key = MetaKey::min();
     size_t max_index = kInvalidIndex;
@@ -179,19 +186,21 @@ class KWayPriorityQueue {
       ASSERT(!_queues[index].empty(), V(index));
       IDType id = 0;
       KeyType key = 0;
+      KeyType orig = 0;
       const PartitionID part = _mapping[index].part;
-      deleteMaxFromPartitionWithRater(id, key, _mapping[index].part, [&](const HypernodeID& node) {
+      deleteMaxFromPartitionWithRater(id, key, orig, _mapping[index].part, [&](const HypernodeID& node) {
         return rater(node, part);
       }, false);
       if (key > max_key) {
         if (max_index != kInvalidIndex) {
-          _queues[max_index].push(max_id, max_key);
+          _queues[max_index].push(max_id, original_key);
         }
         max_id = id;
         max_key = key;
+        original_key = orig;
         max_index = index;
       } else {
-        _queues[index].push(id, key);
+        _queues[index].push(id, orig);
       }
     }
     max_part = _mapping[max_index].part;
@@ -225,9 +234,16 @@ class KWayPriorityQueue {
     --_num_entries;
   }
 
-  // use additional rating
   template<typename F>
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxFromPartitionWithRater(IDType& max_id, KeyType& max_key,
+                                                                       PartitionID part, F rater, bool do_delete = true) {
+    KeyType dummy = MetaKey::min();
+    deleteMaxFromPartitionWithRater(max_id, max_key, dummy, part, rater, do_delete);
+  }
+
+  // use additional rating
+  template<typename F>
+  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE void deleteMaxFromPartitionWithRater(IDType& max_id, KeyType& max_key, KeyType& original_key,
                                                                        PartitionID part, F rater, bool do_delete = true) {
     static const size_t min_popped = 5;
 
@@ -242,8 +258,8 @@ class KWayPriorityQueue {
     removed.reserve(20);
     KeyType highest_rating = MetaKey::min();
     do {
-      KeyType current = _queues[part_index].topKey();
-      IDType current_id = _queues[part_index].top();
+      const KeyType current = _queues[part_index].topKey();
+      const IDType current_id = _queues[part_index].top();
       if (removed.size() >= min_popped
           && (static_cast<double>(current) + 1.5 * highest_rating) < static_cast<double>(max)) {
         break;
@@ -251,9 +267,9 @@ class KWayPriorityQueue {
       ASSERT(current != MetaKey::max());
       const KeyType rating = rater(current_id);
       highest_rating = std::max(highest_rating, rating);
-      current += rating;
-      if (current > max) {
-        max = current;
+      if (current + rating > max) {
+        max = current + rating;
+        original_key = current;
         max_index = removed.size();
       }
       removed.emplace_back(current_id, current);
