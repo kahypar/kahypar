@@ -117,6 +117,15 @@ enum class PrintingAlgorithms : std::uint8_t {
   Printer2
 };
 
+static std::ostream& operator<< (std::ostream& os, const PrintingAlgorithms& algo) {
+  switch (algo) {
+    case PrintingAlgorithms::Printer1: return os << "Printer1";
+    case PrintingAlgorithms::Printer2: return os << "Printer2";
+      // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint8_t>(algo);
+}
+
 enum class PrinterPolicyClasses : std::uint16_t {
   PrintA,
   PrintB,
@@ -126,6 +135,20 @@ enum class PrinterPolicyClasses : std::uint16_t {
   PrintDollar,
   PrintAt
 };
+
+static std::ostream& operator<< (std::ostream& os, const PrinterPolicyClasses& algo) {
+  switch (algo) {
+    case PrinterPolicyClasses::PrintA: return os << "PrintA";
+    case PrinterPolicyClasses::PrintB: return os << "PrintB";
+    case PrinterPolicyClasses::Print1: return os << "Print1";
+    case PrinterPolicyClasses::Print2: return os << "Print2";
+    case PrinterPolicyClasses::PrintHash: return os << "PrintHash";
+    case PrinterPolicyClasses::PrintDollar: return os << "PrintDollar";
+    case PrinterPolicyClasses::PrintAt: return os << "PrintAt";
+    // omit default case to trigger compiler warning for missing cases
+  }
+  return os << static_cast<uint16_t>(algo);
+}
 
 TEST(AStaticMultiDispatchFactory, AllowsDynamicSelectionOfStaticPolicies) {
   // Create a registry for printer policy classes
