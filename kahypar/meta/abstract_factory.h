@@ -65,7 +65,7 @@ class Factory {
       return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
     LOG << "Could not load" << templateToString<IdentifierType>() << ": " << id;
-    LOG << "Please check you .ini config file.";
+    LOG << "Please check your .ini config file.";
     std::exit(-1);
   }
 
