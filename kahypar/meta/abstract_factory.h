@@ -26,6 +26,8 @@
 #include "kahypar/macros.h"
 #include "kahypar/meta/function_traits.h"
 #include "kahypar/meta/mandatory.h"
+#include "kahypar/meta/template_parameter_to_string.h"
+
 
 namespace kahypar {
 namespace meta {
@@ -62,7 +64,8 @@ class Factory {
     if (creator != _callbacks.end()) {
       return AbstractProductPtr((creator->second)(std::forward<ProductParameters>(params) ...));
     }
-    LOG << "Invalid object identifier";
+    LOG << "Could not load" << templateToString<IdentifierType>() << ": " << id;
+    LOG << "Please check you .ini config file.";
     std::exit(-1);
   }
 
