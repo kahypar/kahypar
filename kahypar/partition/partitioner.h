@@ -38,6 +38,7 @@
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/min_hash_sparsifier.h"
 #include "kahypar/partition/preprocessing/single_node_hyperedge_remover.h"
+#include "kahypar/partition/preprocessing/large_he_remover.h"
 #include "kahypar/partition/recursive_bisection.h"
 
 namespace kahypar {
@@ -89,6 +90,7 @@ class Partitioner {
  public:
   Partitioner() :
     _single_node_he_remover(),
+    _large_he_remover(),
     _pin_sparsifier(),
     _deduplicator() { }
 
@@ -132,11 +134,12 @@ class Partitioner {
   inline void preprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                          const Context& context);
 
-  inline void postprocess(Hypergraph& hypergraph);
+  inline void postprocess(Hypergraph& hypergraph, const Context& context);
   inline void postprocess(Hypergraph& hypergraph, Hypergraph& sparse_hypergraph,
                           const Context& context);
 
   SingleNodeHyperedgeRemover _single_node_he_remover;
+  LargeHyperedgeRemover _large_he_remover;
   MinHashSparsifier _pin_sparsifier;
   HypergraphDeduplicator _deduplicator;
 };
@@ -187,6 +190,11 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
                                                     * hypergraph.totalWeight());
   context.setupPartWeights(hypergraph.totalWeight());
 
+  context.partition.max_he_size_threshold =
+    std::max(hypergraph.initialNumNodes() *
+      context.partition.max_he_size_threshold_factor,
+      static_cast<double>(context.partition.smallest_max_he_size_threshold));
+
   // required in case of direct k-way partitioning
   context.partition.rb_lower_k = 1;
   context.partition.rb_upper_k = context.partition.k;
@@ -200,13 +208,20 @@ inline void Partitioner::setupContext(const Hypergraph& hypergraph, Context& con
 
 inline void Partitioner::sanitize(Hypergraph& hypergraph, const Context& context) {
   const auto result = _single_node_he_remover.removeSingleNodeHyperedges(hypergraph);
-  if (context.partition.verbose_output && result.num_removed_single_node_hes > 0) {
+  const HypernodeID num_removed_large_hes = _large_he_remover.removeLargeHyperedges(hypergraph, context);
+  if ( context.partition.verbose_output &&
+       ( result.num_removed_single_node_hes > 0 || num_removed_large_hes > 0 ) ) {
     LOG << "Performing single-node HE removal:";
     LOG << "\033[1m\033[31m" << " # removed hyperedges with |e|=1 = "
         << result.num_removed_single_node_hes
         << "\033[0m";
     LOG << "\033[1m\033[31m" << " ===>" << result.num_unconnected_hns
         << "unconnected HNs could have been removed" << "\033[0m";
+    LOG << "Performing large HE removal:";
+    LOG << "\033[1m\033[31m" << " # removed hyperedges with |e|>"
+        << context.partition.max_he_size_threshold << " = "
+        << num_removed_large_hes
+        << "\033[0m";
     io::printStripe();
   }
 }
@@ -249,8 +264,9 @@ inline void Partitioner::preprocess(Hypergraph& hypergraph, Hypergraph& sparse_h
   preprocess(sparse_hypergraph, context);
 }
 
-inline void Partitioner::postprocess(Hypergraph& hypergraph) {
+inline void Partitioner::postprocess(Hypergraph& hypergraph, const Context& context) {
   _single_node_he_remover.restoreSingleNodeHyperedges(hypergraph);
+  _large_he_remover.restoreLargeHyperedges(hypergraph, context);
 }
 
 
@@ -262,7 +278,7 @@ inline void Partitioner::postprocess(Hypergraph& hypergraph, Hypergraph& sparse_
   const HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
   Timer::instance().add(context, Timepoint::post_sparsifier_restore,
                         std::chrono::duration<double>(end - start).count());
-  postprocess(hypergraph);
+  postprocess(hypergraph, context);
 }
 
 inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
@@ -301,7 +317,7 @@ inline void Partitioner::partition(Hypergraph& hypergraph, Context& context) {
   } else {
     preprocess(hypergraph, context);
     partition::partition(hypergraph, context);
-    postprocess(hypergraph);
+    postprocess(hypergraph, context);
   }
 
   _deduplicator.restoreRedundancy(hypergraph);

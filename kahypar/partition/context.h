@@ -323,6 +323,9 @@ struct PartitioningParameters {
   std::vector<HypernodeWeight> max_bins_for_individual_part_weights;
   double adjusted_epsilon_for_individual_part_weights = 0.0;
 
+  HypernodeID max_he_size_threshold = std::numeric_limits<HypernodeID>::max();
+  HypernodeID smallest_max_he_size_threshold = std::numeric_limits<HypernodeID>::max();
+  double max_he_size_threshold_factor = 1.0;
   HyperedgeID hyperedge_size_threshold = std::numeric_limits<HyperedgeID>::max();
 
   bool verbose_output = false;
@@ -355,7 +358,8 @@ inline std::ostream& operator<< (std::ostream& str, const PartitioningParameters
   str << "  seed:                               " << params.seed << std::endl;
   str << "  # V-cycles:                         " << params.global_search_iterations << std::endl;
   str << "  time limit:                         " << params.time_limit << "s" << std::endl;
-  str << "  hyperedge size threshold:           " << params.hyperedge_size_threshold << std::endl;
+  str << "  hyperedge size ignore threshold:    " << params.hyperedge_size_threshold << std::endl;
+  str << "  hyperedge size removal threshold:   " << params.max_he_size_threshold << std::endl;
   str << "  use individual block weights:       " << std::boolalpha
       << params.use_individual_part_weights << std::endl;
   if (params.use_individual_part_weights) {
