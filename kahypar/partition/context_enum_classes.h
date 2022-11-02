@@ -410,7 +410,7 @@ static std::ostream& operator<< (std::ostream& os, const FlowExecutionMode& mode
   return os << static_cast<uint8_t>(mode);
 }
 
-std::ostream& operator<< (std::ostream& os, const BinPackingAlgorithm& bp_algo) {
+static std::ostream& operator<< (std::ostream& os, const BinPackingAlgorithm& bp_algo) {
   switch (bp_algo) {
     case BinPackingAlgorithm::worst_fit: return os << "worst_fit";
     case BinPackingAlgorithm::first_fit: return os << "first_fit";
