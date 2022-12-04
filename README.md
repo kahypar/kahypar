@@ -1,8 +1,8 @@
   <p align="center"><img src="https://user-images.githubusercontent.com/484403/70459249-0fd0d080-1ab4-11ea-833b-17130ecafc0a.png" alt="KaHyPar - Karlsruhe Hypergraph Partitioning" width="60%" height="60%"></p>
 
-License|Linux & macOS Build|Windows Build|Fossa|Zenodo
-:--:|:--:|:--:|:--:|:--:
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Build Status](https://github.com/kahypar/kahypar/actions/workflows/kahypar_ci.yml/badge.svg)](https://github.com/kahypar/kahypar/actions/workflows/kahypar_ci.yml)|[![Appveyor Status](https://ci.appveyor.com/api/projects/status/s7dagw0l6s8kgmui?svg=true)](https://ci.appveyor.com/project/SebastianSchlag/kahypar-vr7q9)|[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_small)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
+License|Linux & macOS Build|Fossa|Zenodo
+:--:|:--:|:--:|:--:
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)|[![Build Status](https://github.com/kahypar/kahypar/actions/workflows/kahypar_ci.yml/badge.svg)](https://github.com/kahypar/kahypar/actions/workflows/kahypar_ci.yml)|[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSebastianSchlag%2Fkahypar.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2FSebastianSchlag%2Fkahypar?ref=badge_small)|[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2555059.svg)](https://doi.org/10.5281/zenodo.2555059)
 
 Code Coverage|Code Quality|Coverity Scan|SonarCloud|Issues
 :--:|:--:|:--:|:--:|:--:
@@ -159,7 +159,7 @@ Requirements
 -----------
 The Karlsruhe Hypergraph Partitioning Framework requires:
 
- - A 64-bit operating system. Linux, Mac OS X and Windows are currently supported.
+ - A 64-bit operating system. Linux, Mac OS X and Windows (through the Windows Subsystem for Linux) are currently supported.
  - A modern, ![C++14](https://img.shields.io/badge/C++-17-blue.svg?style=flat)-ready compiler such as `g++` version 9 or higher or `clang` version 11.0.3 or higher.
  - The [cmake][cmake] build system.
  - The [Boost.Program_options][Boost.Program_options] library and the boost header files. If you don't want to install boost yourself, you can add the `-DKAHYPAR_USE_MINIMAL_BOOST=ON` flag to the cmake command to download, extract, and build the necessary dependencies automatically.
