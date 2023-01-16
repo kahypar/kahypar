@@ -157,4 +157,13 @@ TEST_F(MultilevelPartitioning, CanUseVcyclesAsGlobalSearchStrategy) {
   DBG1 << metrics::hyperedgeCut(*hypergraph);
   metrics::hyperedgeCut(*hypergraph);
 }
+
+TEST_F(MultilevelPartitioning, CanHandleSingleBlockPartitioning) {
+  context.partition.k = 1;
+  multilevel::partition(*hypergraph, *coarsener, *refiner, context);
+  for (auto const& hn : hypergraph->nodes()) {
+      ASSERT_THAT(hypergraph->partID(hn), 0);
+  }
+}
+
 }  // namespace kahypar
