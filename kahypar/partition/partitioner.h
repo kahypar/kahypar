@@ -67,18 +67,22 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
         }
         return true;
       } ());
-  switch (context.partition.mode) {
-    case Mode::recursive_bisection:
-
-      recursive_bisection::partition(hypergraph, context);
-
-      break;
-    case Mode::direct_kway:
-      direct_kway::partition(hypergraph, context);
-      break;
-    case Mode::UNDEFINED:
-      LOG << "Partitioning Mode undefined!";
-      std::exit(-1);
+  if (context.partition.k == 1) {
+    for (const auto& hn : hypergraph.nodes()) {
+      hypergraph.setNodePart(hn, 0);
+    }
+  } else {
+    switch (context.partition.mode) {
+      case Mode::recursive_bisection:
+        recursive_bisection::partition(hypergraph, context);
+        break;
+      case Mode::direct_kway:
+        direct_kway::partition(hypergraph, context);
+        break;
+      case Mode::UNDEFINED:
+        LOG << "Partitioning Mode undefined!";
+        std::exit(-1);
+    }
   }
 }
 }  // namespace partition
