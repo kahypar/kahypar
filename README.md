@@ -256,7 +256,7 @@ Using the Library Interfaces
 -----------
 
 #### The C-Style Interface
-We provide a simple C-style interface to use KaHyPar as a library.  The library can be built and installed via
+We provide a simple C-style interface to use KaHyPar as a library. Note that this interface is not thread-safe yet. However there are some existing [workarounds](https://github.com/kahypar/kahypar/issues/142#issuecomment-1410015774). The library can be built and installed via
 
 ```sh
 make install.library
