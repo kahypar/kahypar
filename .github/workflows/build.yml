@@ -1,4 +1,4 @@
-name: KaHyPar CI
+name: SonarCloud
 
 on: [ push, pull_request ]
 
