@@ -630,5 +630,19 @@ TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoKaHyParAH
                                                     hypergraph));
   kahypar_hypergraph_free(kahypar_hypergraph);
 }
+
+TEST(Seed, CanBeSetViaLibraryInterface) {
+  kahypar_context_t* context = kahypar_context_new();
+
+  kahypar_configure_context_from_file(context, "../../../config/km1_kKaHyPar_sea20.ini");
+
+  kahypar_set_seed(context, 42);
+
+  kahypar::Context& kahypar_context = *reinterpret_cast<kahypar::Context*>(context);
+
+  ASSERT_EQ(kahypar_context.partition.seed, 42);
+
+  kahypar_context_free(context);
+}
 }  // namespace io
 }  // namespace kahypar
