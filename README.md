@@ -275,6 +275,8 @@ int main(int argc, char* argv[]) {
 
   kahypar_context_t* context = kahypar_context_new();
   kahypar_configure_context_from_file(context, "/path/to/config.ini");
+  
+  kahypar_set_seed(context, 42);
 
   const kahypar_hypernode_id_t num_vertices = 7;
   const kahypar_hyperedge_id_t num_hyperedges = 4;
