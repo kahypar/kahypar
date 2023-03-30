@@ -235,16 +235,11 @@ static inline void partition(Hypergraph& input_hypergraph,
                     delete_hypergraph);
     fixed_vertex_free_to_input = hg_without_fixed_vertices.second;
 
-    const bool epsilon = original_context.partition.use_individual_part_weights ?
-      original_context.partition.adjusted_epsilon_for_individual_part_weights : original_context.partition.epsilon;
-    if ( metrics::imbalanceFixedVertices(input_hypergraph,
-          original_context.partition.k) > epsilon ) {
-      for ( PartitionID block = 0; block < original_context.partition.k; ++block ) {
-        rb_context.partition.max_part_weights[block] -= input_hypergraph.fixedVertexPartWeight(block);
-      }
-      rb_context.partition.use_individual_part_weights = true;
-      rb_context.setupPartWeights(input_hypergraph_without_fixed_vertices->totalWeight());
+    for ( PartitionID block = 0; block < original_context.partition.k; ++block ) {
+      rb_context.partition.max_part_weights[block] -= input_hypergraph.fixedVertexPartWeight(block);
     }
+    rb_context.partition.use_individual_part_weights = true;
+    rb_context.setupPartWeights(input_hypergraph_without_fixed_vertices->totalWeight());
   } else {
     // The original input hypergraph that did not contain any fixed vertices should not
     // be deleted.
