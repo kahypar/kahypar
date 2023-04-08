@@ -25,8 +25,9 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/kahypar.h"
 #include "kahypar/partitioner_facade.h"
+#include "kahypar/partition/context.h"
+#include "kahypar/utils/randomize.h"
 #include "tests/end_to_end/kahypar_test_fixtures.h"
-
 #include "include/libkahypar.h"
 
 namespace kahypar {
@@ -369,5 +370,43 @@ TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   ASSERT_EQ(objective, metrics::km1(verification_hypergraph));
 
   kahypar_context_free(context);
+}
+
+TEST(KaHyPar, ComputesBalancedSolutionForHypergraphsWithFixedVerticesAndIndividualBlockWeights) {
+  Context context;
+  parseIniToContext(context, "../../../config/km1_kKaHyPar_sea20.ini");
+  context.partition.k = 2;
+  context.partition.epsilon = 0.03;
+  context.partition.objective = Objective::km1;
+  context.partition.use_individual_part_weights = true;
+  context.partition.max_part_weights = { 466, 1875 };
+  context.partition.graph_filename = "../../../tests/end_to_end/test_instances/example_hypergraph_fixed_vertex_partitioning_with_custom_block_weights.hgr";
+  context.partition.fixed_vertex_filename = "../../../tests/end_to_end/test_instances/fixed_vertices_for_example_hypergraph_fixed_vertex_partitioning_with_custom_block_weights.fix";
+
+  kahypar::Randomize::instance().setSeed(context.partition.seed);
+
+  Hypergraph hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  PartitionerFacade().partition(hypergraph, context);
+  kahypar::io::printPartitioningResults(hypergraph, context, std::chrono::duration<double>(0.0));
+
+  ASSERT_LE(hypergraph.partWeight(0), 466);
+  ASSERT_LE(hypergraph.partWeight(1), 1875);
+
+
+  Hypergraph verification_hypergraph(
+    kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
+                                          context.partition.k));
+
+  for (const HypernodeID& hn : hypergraph.nodes()) {
+    verification_hypergraph.setNodePart(hn, hypergraph.partID(hn));
+  }
+
+  ASSERT_EQ(metrics::hyperedgeCut(hypergraph), metrics::hyperedgeCut(verification_hypergraph));
+  ASSERT_EQ(metrics::soed(hypergraph), metrics::soed(verification_hypergraph));
+  ASSERT_EQ(metrics::km1(hypergraph), metrics::km1(verification_hypergraph));
+  ASSERT_EQ(metrics::imbalance(hypergraph, context), metrics::imbalance(verification_hypergraph, context));
 }
 }  // namespace kahypar

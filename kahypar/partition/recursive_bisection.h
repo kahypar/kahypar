@@ -221,6 +221,7 @@ static inline void partition(Hypergraph& input_hypergraph,
                              delete h;
                            };
 
+  Context rb_context(original_context);
   HypergraphPtr input_hypergraph_without_fixed_vertices = HypergraphPtr(nullptr, no_delete);
   std::vector<HypernodeID> fixed_vertex_free_to_input;
   if (input_hypergraph.containsFixedVertices()) {
@@ -233,6 +234,12 @@ static inline void partition(Hypergraph& input_hypergraph,
       HypergraphPtr(hg_without_fixed_vertices.first.release(),
                     delete_hypergraph);
     fixed_vertex_free_to_input = hg_without_fixed_vertices.second;
+
+    for ( PartitionID block = 0; block < original_context.partition.k; ++block ) {
+      rb_context.partition.max_part_weights[block] -= input_hypergraph.fixedVertexPartWeight(block);
+    }
+    rb_context.partition.use_individual_part_weights = true;
+    rb_context.setupPartWeights(input_hypergraph_without_fixed_vertices->totalWeight());
   } else {
     // The original input hypergraph that did not contain any fixed vertices should not
     // be deleted.
@@ -244,15 +251,15 @@ static inline void partition(Hypergraph& input_hypergraph,
 
   hypergraph_stack.emplace_back(HypergraphPtr(input_hypergraph_without_fixed_vertices.get(), no_delete),
                                 RBHypergraphState::unpartitioned, 0,
-                                (original_context.partition.k - 1));
+                                (rb_context.partition.k - 1));
 
-  const bool restart_if_imbalanced = original_context.initial_partitioning.enable_early_restart
-                                     || original_context.initial_partitioning.enable_late_restart;
+  const bool restart_if_imbalanced = rb_context.initial_partitioning.enable_early_restart
+                                     || rb_context.initial_partitioning.enable_late_restart;
   int bisection_counter = 0;
 
-  if ((original_context.type == ContextType::main && original_context.partition.verbose_output) ||
-      (original_context.type == ContextType::initial_partitioning &&
-       original_context.initial_partitioning.verbose_output)) {
+  if ((rb_context.type == ContextType::main && rb_context.partition.verbose_output) ||
+      (rb_context.type == ContextType::initial_partitioning &&
+       rb_context.initial_partitioning.verbose_output)) {
     LOG << "================================================================================";
   }
 
@@ -284,16 +291,16 @@ static inline void partition(Hypergraph& input_hypergraph,
     switch (state) {
       case RBHypergraphState::finished: {
           bool apply_late_restart = false;
-          if (original_context.initial_partitioning.enable_late_restart && k > 2) {
+          if (rb_context.initial_partitioning.enable_late_restart && k > 2) {
             bool balanced = true;
             for (PartitionID i = k1; i <= k2; ++i) {
-              if (input_hypergraph.partWeight(i) > original_context.partition.max_part_weights[i]) {
+              if (input_hypergraph.partWeight(i) > rb_context.partition.max_part_weights[i]) {
                 balanced = false;
               }
             }
 
             hypergraph_stack.back().level = bin_packing::increaseBalancingRestrictions(level,
-                                            original_context.initial_partitioning.use_heuristic_prepacking);
+                                            rb_context.initial_partitioning.use_heuristic_prepacking);
             apply_late_restart = !balanced && hypergraph_stack.back().is_feasible &&
                                  hypergraph_stack.back().level != BalancingLevel::STOP;
           }
@@ -304,7 +311,7 @@ static inline void partition(Hypergraph& input_hypergraph,
 
             std::string key("restarts_late_level_");
             key += std::to_string(static_cast<uint8_t>(hypergraph_stack.back().level));
-            original_context.stats.add(StatTag::InitialPartitioning, key, 1.0);
+            rb_context.stats.add(StatTag::InitialPartitioning, key, 1.0);
           } else {
             hypergraph_stack.pop_back();
             if (!mapping_stack.empty()) {
@@ -316,7 +323,7 @@ static inline void partition(Hypergraph& input_hypergraph,
         }
       case RBHypergraphState::unpartitioned: {
           Context current_context =
-            createCurrentBisectionContext(original_context,
+            createCurrentBisectionContext(rb_context,
                                           *input_hypergraph_without_fixed_vertices,
                                           current_hypergraph, k, km, k - km, k1);
           current_context.partition.rb_lower_k = k1;
@@ -375,13 +382,13 @@ static inline void partition(Hypergraph& input_hypergraph,
           if (current_hypergraph.initialNumNodes() > 0 && restart_if_imbalanced && k > 2) {
             std::vector<HypernodeWeight> max_bin_weights;
             for (PartitionID i = k1; i <= k2; ++i) {
-              max_bin_weights.push_back(original_context.partition.max_part_weights[i]);
+              max_bin_weights.push_back(rb_context.partition.max_part_weights[i]);
             }
             std::unique_ptr<IBinPacker> bin_packer(
-              BinPackerFactory::getInstance().createObject(original_context.initial_partitioning.bp_algo));
+              BinPackerFactory::getInstance().createObject(rb_context.initial_partitioning.bp_algo));
             const bool feasible = bin_packer->currentBinImbalance(current_hypergraph, max_bin_weights) <= 0;
             hypergraph_stack.back().is_feasible = feasible;
-            multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, original_context.stats, level, max_bin_weights,
+            multilevel::partitionRepeatedOnInfeasible(current_hypergraph, current_context, rb_context.stats, level, max_bin_weights,
                                                       feasible && current_context.initial_partitioning.enable_early_restart);
           } else if (current_hypergraph.initialNumNodes() > 0) {
             std::unique_ptr<ICoarsener> coarsener(
@@ -418,7 +425,7 @@ static inline void partition(Hypergraph& input_hypergraph,
       case RBHypergraphState::partitionedAndPart1Extracted: {
           auto extractedHypergraph_0 =
             ds::extractPartAsUnpartitionedHypergraphForBisection(
-              current_hypergraph, 0, original_context.partition.objective);
+              current_hypergraph, 0, rb_context.partition.objective);
           mapping_stack.emplace_back(std::move(extractedHypergraph_0.second));
           hypergraph_stack.back().state = RBHypergraphState::finished;
           hypergraph_stack.emplace_back(HypergraphPtr(extractedHypergraph_0.first.release(),
