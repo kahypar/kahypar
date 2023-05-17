@@ -249,6 +249,16 @@ If only one type of weights is required, the other argument has to be an empty l
         },
         "Seed for the random number generator",
         py::arg("seed"))
+       .def("writePartitionFile",[](Context& c, const bool decision) {
+          c.partition.write_partition_file = decision;
+        },
+        "Write the computed partition to the file specified with setPartitionFileName",
+        py::arg("bool"))
+      .def("setPartitionFileName",[](Context& c, const std::string file_name) {
+          c.partition.graph_partition_filename = file_name;
+        },
+        "Set the filename of the computed partition",
+        py::arg("file_name"))
       .def("suppressOutput",[](Context& c, const bool decision) {
           c.partition.quiet_mode = decision;
         },
