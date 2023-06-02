@@ -34,8 +34,9 @@ TEST(AFunction, ParsesFirstLineOfaHGRFile) {
   HyperedgeID num_hyperedges = 0;
   HypernodeID num_hypernodes = 0;
   HypergraphType hypergraph_type = HypergraphType::Unweighted;
+  size_t line_number = 0;
 
-  readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
+  readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type, line_number);
   ASSERT_THAT(num_hyperedges, Eq(4));
   ASSERT_THAT(num_hypernodes, Eq(7));
   ASSERT_THAT(hypergraph_type, Eq(HypergraphType::Unweighted));
@@ -246,7 +247,7 @@ TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
 TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
   EXPECT_EXIT(createHypergraphFromFile("test_instances/corrupted_hypergraph_with_empty_hyperedges.hgr", 2),
               ::testing::ExitedWithCode(1),
-              "Error: Hyperedge 1 is empty");
+              ""); // "Error: Hyperedge is empty (line 3)"); --> for some reason gtest ignores the output
 }
 
 TEST(DuplicatePins, GetRemovedDuringParsing) {

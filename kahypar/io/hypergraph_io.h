@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -37,20 +38,85 @@ namespace kahypar {
 namespace io {
 using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
 
-static inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
-                                 HypernodeID& num_hypernodes, HypergraphType& hypergraph_type) {
-  std::string line;
+class CheckedIStream {
+ public:
+  explicit CheckedIStream(const std::string& line, size_t line_number = 0):
+    _current(line.c_str()), _next(nullptr), _end(line.c_str() + line.size()), _line_number(line_number) {
+      // whitespace at end of line is not considered an error
+      while (_end > _current && *(_end - 1) == ' ') {
+        --_end;
+      }
+    }
+
+  template<typename ResultT>
+  bool operator>>(ResultT& result) {
+    unsigned long long val = std::strtoull(_current, &_next, 10);
+    if (val == 0 && _next == _current && _next != _end) {
+      std::cerr << "Error: Expected positive number";
+      if (_line_number != 0) {
+        std::cerr << " (line " << _line_number << ")";
+      }
+      std::cerr << std::endl;
+      exit(1);
+    }
+
+    const ResultT max = std::numeric_limits<ResultT>::max();
+    if (val > static_cast<unsigned long long>(max)) {
+      std::cerr << "Error: ID is out of range: " << val << ", but maximum is " << max;
+      if (_line_number != 0) {
+        std::cerr << " (line " << _line_number << ")";
+      }
+      std::cerr << std::endl;
+      exit(1);
+    }
+
+    if (_current != _next) {
+      _current = _next;
+      result = static_cast<ResultT>(val);
+      return true;
+    }
+    return false;
+  }
+
+  bool empty() const {
+    char* p = nullptr;
+    std::strtoull(_current, &p, 10);
+    return p == _current && p == _end;
+  }
+
+ private:
+  const char* _current;
+  char* _next;
+  const char* _end;
+  size_t _line_number;
+};
+
+static inline void getNextLine(std::ifstream& file, std::string& line, size_t& line_number) {
   std::getline(file, line);
+  ++line_number;
 
   // skip any comments
   while (line[0] == '%') {
     std::getline(file, line);
+    ++line_number;
   }
+}
 
-  std::istringstream sstream(line);
+static inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
+                                 HypernodeID& num_hypernodes, HypergraphType& hypergraph_type,
+                                 size_t& line_number) {
+  std::string line;
+  getNextLine(file, line, line_number);
+
+  CheckedIStream sstream(line, line_number);
   int i = 0;
-  sstream >> num_hyperedges >> num_hypernodes >> i;
-  hypergraph_type = static_cast<HypergraphType>(i);
+  if (sstream >> num_hyperedges && sstream >> num_hypernodes &&
+      // note: hypergraph type may be omitted, assuming unweighted
+      ( sstream.empty() || (sstream >> i && sstream.empty()) )) {
+    hypergraph_type = static_cast<HypergraphType>(i);
+  } else {
+    ERROR("Invalid Header. Expected <num_hyperedges> <num_hypernodes> <type>", line_number);
+  }
 }
 
 static inline void readHypergraphFile(const std::string& filename, HypernodeID& num_hypernodes,
@@ -58,17 +124,20 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
                                       HyperedgeIndexVector& index_vector,
                                       HyperedgeVector& edge_vector,
                                       HyperedgeWeightVector* hyperedge_weights = nullptr,
-                                      HypernodeWeightVector* hypernode_weights = nullptr) {
+                                      HypernodeWeightVector* hypernode_weights = nullptr,
+                                      bool validate_input = true) {
   ASSERT(!filename.empty(), "No filename for hypergraph file specified");
   HypergraphType hypergraph_type = HypergraphType::Unweighted;
   std::ifstream file(filename);
+  size_t line_number = 0;
   if (file) {
-    readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type);
-    ASSERT(hypergraph_type == HypergraphType::Unweighted ||
-           hypergraph_type == HypergraphType::EdgeWeights ||
-           hypergraph_type == HypergraphType::NodeWeights ||
-           hypergraph_type == HypergraphType::EdgeAndNodeWeights,
-           "Hypergraph in file has wrong type");
+    readHGRHeader(file, num_hyperedges, num_hypernodes, hypergraph_type, line_number);
+    if (hypergraph_type != HypergraphType::Unweighted &&
+        hypergraph_type != HypergraphType::EdgeWeights &&
+        hypergraph_type != HypergraphType::NodeWeights &&
+        hypergraph_type != HypergraphType::EdgeAndNodeWeights) {
+      ERROR("Invalid hypergraph type" << " (line " << line_number << ")");
+    }
 
     const bool has_hyperedge_weights = hypergraph_type == HypergraphType::EdgeWeights ||
                                        hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
@@ -77,22 +146,22 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
                                        hypergraph_type == HypergraphType::EdgeAndNodeWeights ?
                                        true : false;
 
+    std::vector<size_t> line_number_vector;
     index_vector.reserve(static_cast<size_t>(num_hyperedges) +  /*sentinel*/ 1);
     index_vector.push_back(edge_vector.size());
+    if (line_number_vector != nullptr) {
+      line_number_vector.reserve(static_cast<size_t>(num_hyperedges) +
+                                 has_hypernode_weights ? static_cast<size_t>(num_hypernodes) : 0);
+      line_number_vector.clear();
+    }
 
     std::string line;
     std::unordered_set<HypernodeID> unique_pins;
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
-      std::getline(file, line);
-      // skip any comments
-      while (line[0] == '%') {
-        std::getline(file, line);
-      }
-
-      std::istringstream line_stream(line);
-      if (line_stream.peek() == EOF) {
-        std::cerr << "Error: Hyperedge " << i << " is empty" << std::endl;
-        exit(1);
+      getNextLine(file, line, line_number);
+      CheckedIStream line_stream(line, line_number);
+      if (line_stream.empty()) {
+        ERROR("Hyperedge is empty", line_number);
       }
 
       if (has_hyperedge_weights) {
@@ -108,17 +177,23 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
       HypernodeID pin;
       unique_pins.clear();
       while (line_stream >> pin) {
+        if (pin == 0) {
+          ERROR("Invalid index 0 for pin. Vertex indices start with 1", line_number);
+        }
         // Hypernode IDs start from 0
         --pin;
         ASSERT(pin < num_hypernodes, "Invalid hypernode ID");
         if (unique_pins.count(pin)) {
-          std::cerr << "Warning: Ignoring duplicate pin " << pin << " of hyperedge " << i << std::endl;
+          WARNING("Ignoring duplicate pin " << (pin + 1) << " of hyperedge", line_number);
           continue;
         }
         unique_pins.insert(pin);
         edge_vector.push_back(pin);
       }
       index_vector.push_back(edge_vector.size());
+      if (validate_input) {
+        line_number_vector.push_back(line_number);
+      }
     }
 
     if (has_hypernode_weights) {
@@ -127,25 +202,31 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
       } else {
         ASSERT(hypernode_weights != nullptr, "Hypergraph has hypernode weights");
         for (HypernodeID i = 0; i < num_hypernodes; ++i) {
-          std::getline(file, line);
-          // skip any comments
-          while (line[0] == '%') {
-            std::getline(file, line);
-          }
-          std::istringstream line_stream(line);
+          getNextLine(file, line, line_number);
+          CheckedIStream line_stream(line, line_number);
           HypernodeWeight node_weight;
-          line_stream >> node_weight;
-          if (node_weight == 0) {
-             std::cerr << "Vertices with a weight of 0 are not supported. The minimum allowed vertex weight is 1." << std::endl;
-             std::exit(-1);
+          if (line_stream >> node_weight) {
+            hypernode_weights->push_back(node_weight);
+          } else {
+            ERROR("Hypergraph has " << num_hypernodes << " hypernodes, but found only " << i << " weights");
           }
-          hypernode_weights->push_back(node_weight);
+          if (!line_stream.empty()) {
+            ERROR("Expected hypernode weight, but line contains multiple entries", line_number);
+          }
+          if (validate_input) {
+            line_number_vector.push_back(line_number);
+          }
         }
       }
     }
+
+    getNextLine(file, line, line_number);
+    if (!CheckedIStream(line).empty()) {
+      WARNING("Unexpected content after end of hypergraph data", line_number);
+    }
     file.close();
   } else {
-    std::cerr << "Error: File not found: " << std::endl;
+    ERROR("File not found.");
   }
 }
 
@@ -391,7 +472,7 @@ static inline void readPartitionFile(const std::string& filename, std::vector<Pa
     }
     file.close();
   } else {
-    std::cerr << "Error: File not found: " << std::endl;
+    ERROR("File not found.");
   }
 }
 
@@ -419,7 +500,7 @@ static inline void readFixedVertexFile(Hypergraph& hypergraph, const std::string
     }
     file.close();
   } else {
-    std::cerr << "Error: File not found: " << filename << std::endl;
+    ERROR("File not found: " << filename);
   }
 }
 

@@ -306,3 +306,14 @@ void unused(T&&) {
 #define RED "\033[1;91m"
 #define BOLD "\033[1m"
 #define END "\033[0m"
+
+// Errors and warnings
+#define MESSAGE_1(msg) msg
+#define MESSAGE_2(msg, line_number) msg << " (line " << static_cast<size_t>(line_number) << ")"
+
+#define MESSAGE_(N) MESSAGE_ ## N
+#define MESSAGE_EVAL(N) MESSAGE_(N)
+#define MESSAGE(...) EXPAND(MESSAGE_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
+
+#define WARNING(...) std::cerr << "Warning: " << MESSAGE(__VA_ARGS__) << std::endl
+#define ERROR(...) std::cerr << "Error: " << MESSAGE(__VA_ARGS__) << std::endl; std::exit(1)
