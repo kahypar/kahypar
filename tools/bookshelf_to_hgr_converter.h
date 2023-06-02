@@ -136,5 +136,5 @@ static inline std::unordered_map<std::string, HypernodeID> convertBookshelfToHgr
   }
   out_stream.close();
 
-  return std::move(node_to_hn);
+  return node_to_hn;
 }

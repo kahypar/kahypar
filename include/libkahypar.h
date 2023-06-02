@@ -99,8 +99,6 @@ KAHYPAR_API void kahypar_improve_hypergraph_partition(kahypar_hypergraph_t* kahy
                                                       kahypar_partition_id_t* improved_partition);
 
 
-KAHYPAR_API void kahypar_hypergraph_free(kahypar_hypergraph_t* kahypar_hypergraph);
-
 KAHYPAR_API void kahypar_read_hypergraph_from_file(const char* file_name,
                                                    kahypar_hypernode_id_t* num_vertices,
                                                    kahypar_hyperedge_id_t* num_hyperedges,

@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 enum class Timepoint : uint8_t {
