@@ -257,5 +257,12 @@ TEST(DuplicatePins, GetRemovedDuringParsing) {
   ASSERT_THAT(hypergraph.initialNumPins(), Eq(4));
 }
 
+TEST(DuplicatePinsAndInvalidHes, GetRemovedDuringParsing) {
+  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_identical_pins_and_invalid_edges.hgr", 2);
+  ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
+  ASSERT_THAT(hypergraph.initialNumEdges(), Eq(3));
+  ASSERT_THAT(hypergraph.initialNumPins(), Eq(6));
+}
+
 }  // namespace io
 }  // namespace kahypar
