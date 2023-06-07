@@ -60,6 +60,21 @@ if(KAHYPAR_USE_STANDARD_ASSERTIONS)
   add_compile_definitions(KAHYPAR_USE_STANDARD_ASSERTIONS)
 endif(KAHYPAR_USE_STANDARD_ASSERTIONS)
 
+# definitions for input validation
+option(KAHYPAR_INPUT_VALIDATION
+  "Validate that the input is a correct hypergraph (both for CLI and C interface)." ON)
+
+option(KAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS
+  "During input validation, consider even recoverable issues as a fatal error." OFF)
+
+if(KAHYPAR_INPUT_VALIDATION)
+  add_compile_definitions(KAHYPAR_INPUT_VALIDATION)
+endif(KAHYPAR_INPUT_VALIDATION)
+
+if(KAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS)
+  add_compile_definitions(KAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS)
+endif(KAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS)
+
 # defintions for heavy asserts
 option(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS
   "Enable costly assertions for data structures." ON)
