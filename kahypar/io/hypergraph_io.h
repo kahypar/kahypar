@@ -242,6 +242,8 @@ static inline Hypergraph createHypergraphFromFile(const std::string& filename,
     HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
     Timer::instance().add(Timepoint::input_validation,
                           std::chrono::duration<double>(end - start).count());
+    return Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
+                      num_parts, &hyperedge_weights, &hypernode_weights, ignored_hes, ignored_pins);
   }
 
   return Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
