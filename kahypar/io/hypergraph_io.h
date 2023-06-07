@@ -33,63 +33,12 @@
 #include <cstdlib>
 
 #include "kahypar/definitions.h"
+#include "kahypar/utils/validate.h"
 
 namespace kahypar {
 namespace io {
 using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
-
-class CheckedIStream {
- public:
-  explicit CheckedIStream(const std::string& line, size_t line_number = 0):
-    _current(line.c_str()), _next(nullptr), _end(line.c_str() + line.size()), _line_number(line_number) {
-      // whitespace at end of line is not considered an error
-      while (_end > _current && *(_end - 1) == ' ') {
-        --_end;
-      }
-    }
-
-  template<typename ResultT>
-  bool operator>>(ResultT& result) {
-    unsigned long long val = std::strtoull(_current, &_next, 10);
-    if (val == 0 && _next == _current && _next != _end) {
-      std::cerr << "Error: Expected positive number";
-      if (_line_number != 0) {
-        std::cerr << " (line " << _line_number << ")";
-      }
-      std::cerr << std::endl;
-      exit(1);
-    }
-
-    const ResultT max = std::numeric_limits<ResultT>::max();
-    if (val > static_cast<unsigned long long>(max)) {
-      std::cerr << "Error: ID is out of range: " << val << ", but maximum is " << max;
-      if (_line_number != 0) {
-        std::cerr << " (line " << _line_number << ")";
-      }
-      std::cerr << std::endl;
-      exit(1);
-    }
-
-    if (_current != _next) {
-      _current = _next;
-      result = static_cast<ResultT>(val);
-      return true;
-    }
-    return false;
-  }
-
-  bool empty() const {
-    char* p = nullptr;
-    std::strtoull(_current, &p, 10);
-    return p == _current && p == _end;
-  }
-
- private:
-  const char* _current;
-  char* _next;
-  const char* _end;
-  size_t _line_number;
-};
+using validate::CheckedIStream;
 
 static inline void getNextLine(std::ifstream& file, std::string& line, size_t& line_number) {
   std::getline(file, line);
