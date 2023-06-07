@@ -283,6 +283,13 @@ void printErrors(const HypernodeID num_hypernodes, const HyperedgeID num_hypered
       size_t line = references_hypernode ? num_hyperedges + e.element_index : e.element_index;
       out << " (line " << line_numbers[line] << ")" << std::endl;
     }
+    if (e.element_index + 1 == num_hyperedges
+        && (e.error_type == InputErrorType::HyperedgeIndexDescending
+            || e.error_type == InputErrorType::HyperedgeOutOfBounds)) {
+      // output additional help if the likely cause for the error is a missing sentinel element
+      out << "Help: The last element of 'hyperedge_indices' must be a sentinel with value equal to the number of pins"
+          << " (hyperedge_indices has one more element than the number of hyperedges)" << std::endl;
+    }
   }
 }
 
