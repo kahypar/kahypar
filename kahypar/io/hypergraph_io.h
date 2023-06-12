@@ -208,6 +208,25 @@ static inline void readHypergraphFile(const std::string& filename,
   }
 }
 
+static inline void validateAndPrintErrors(const HypernodeID num_hypernodes, const HyperedgeID num_hyperedges,
+                                          const size_t* hyperedge_indices, const HypernodeID* hyperedges,
+                                          const HyperedgeWeight* hyperedge_weights, const HypernodeWeight* vertex_weights,
+                                          const std::vector<size_t> line_numbers,
+                                          std::vector<HyperedgeID>& ignored_hes,
+                                          std::vector<size_t>& ignored_pins,
+                                          const bool promote_warnings_to_errors) {
+    ErrorList errors;
+    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
+    validate::validateInput(num_hypernodes, num_hyperedges, hyperedge_indices, hyperedges,
+                            hyperedge_weights, vertex_weights, &errors, &ignored_hes, &ignored_pins);
+    validate::printErrors(num_hypernodes, num_hyperedges, errors, line_numbers, promote_warnings_to_errors);
+    if (validate::containsFatalError(errors, promote_warnings_to_errors)) {
+      exit(1);
+    }
+    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
+    Timer::instance().add(Timepoint::input_validation,
+                          std::chrono::duration<double>(end - start).count());
+}
 
 static inline Hypergraph createHypergraphFromFile(const std::string& filename,
                                                   const PartitionID num_parts,
@@ -225,21 +244,12 @@ static inline Hypergraph createHypergraphFromFile(const std::string& filename,
                      validate_input ? &line_numbers : nullptr);
 
   if (validate_input) {
-    ErrorList errors;
     std::vector<HyperedgeID> ignored_hes;
     std::vector<size_t> ignored_pins;
-    HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
-    validate::validateInput(num_hypernodes, num_hyperedges, index_vector.data(), edge_vector.data(),
-                            hyperedge_weights.empty() ? nullptr : hyperedge_weights.data(),
-                            hypernode_weights.empty() ? nullptr : hypernode_weights.data(),
-                            &errors, &ignored_hes, &ignored_pins);
-    validate::printErrors(num_hypernodes, num_hyperedges, errors, line_numbers, promote_warnings_to_errors);
-    if (validate::containsFatalError(errors, promote_warnings_to_errors)) {
-      exit(1);
-    }
-    HighResClockTimepoint end = std::chrono::high_resolution_clock::now();
-    Timer::instance().add(Timepoint::input_validation,
-                          std::chrono::duration<double>(end - start).count());
+    validateAndPrintErrors(num_hypernodes, num_hyperedges, index_vector.data(), edge_vector.data(),
+                           hyperedge_weights.empty() ? nullptr : hyperedge_weights.data(),
+                           hypernode_weights.empty() ? nullptr : hypernode_weights.data(),
+                           line_numbers, ignored_hes, ignored_pins, promote_warnings_to_errors);
     return Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
                       num_parts, &hyperedge_weights, &hypernode_weights, ignored_hes, ignored_pins);
   }
