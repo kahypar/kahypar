@@ -26,6 +26,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partitioner_facade.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/utils/validate.h"
 
 
 kahypar_context_t* kahypar_context_new() {
@@ -117,6 +118,26 @@ KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partit
                                                                          num_blocks,
                                                                          hyperedge_weights,
                                                                          vertex_weights));
+}
+
+KAHYPAR_API bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertices,
+                                        const kahypar_hyperedge_id_t num_hyperedges,
+                                        const size_t* hyperedge_indices,
+                                        const kahypar_hyperedge_id_t* hyperedges,
+                                        const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                        const kahypar_hypernode_weight_t* vertex_weights,
+                                        const bool print_errors) {
+  // The C interface provides no API for constructing a hypergraph from input with duplicate pins if input
+  // validation is disabled. Thus we always treat this (and other warnings) as an error.
+  const bool promote_warnings_to_errors = true;
+
+  std::vector<kahypar::validate::InputError> errors;
+  bool found_error = kahypar::validate::validateInput(num_vertices, num_hyperedges, hyperedge_indices, hyperedges,
+                                                      hyperedge_weights, vertex_weights, &errors);
+  if (print_errors && found_error) {
+    kahypar::validate::printErrors(num_vertices, num_hyperedges, errors, {}, promote_warnings_to_errors);
+  }
+  return !found_error;
 }
 
 void kahypar_partition_hypergraph(kahypar_hypergraph_t* kahypar_hypergraph,

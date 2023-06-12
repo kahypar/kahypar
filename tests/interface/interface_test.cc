@@ -380,6 +380,18 @@ TEST(KaHyPar, RejectsInvalidHypergraphViaInterface) {
               ::testing::ExitedWithCode(1), "");
 }
 
+TEST(KaHyPar, ValidatesInputViaInterface) {
+  kahypar_hypernode_id_t num_vertices = 2;
+  kahypar_hyperedge_id_t num_hyperedges = 2;
+  size_t hyperedge_indices[3] = {0, 2, 1}; // invalid index array
+  kahypar_hyperedge_id_t hyperedges[4] = {0, 1, 0, 1};
+
+  ASSERT_FALSE(kahypar_validate_input(num_vertices, num_hyperedges, hyperedge_indices,
+                                      hyperedges, nullptr, nullptr, false));
+  hyperedge_indices[2] = 4;
+  ASSERT_TRUE(kahypar_validate_input(num_vertices, num_hyperedges, hyperedge_indices,
+                                      hyperedges, nullptr, nullptr, false));
+}
 
 TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
