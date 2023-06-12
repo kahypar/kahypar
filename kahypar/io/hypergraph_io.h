@@ -42,15 +42,14 @@ using Mapping = std::unordered_map<HypernodeID, HypernodeID>;
 using ErrorList = std::vector<validate::InputError>;
 using validate::CheckedIStream;
 
-static inline void getNextLine(std::ifstream& file, std::string& line, size_t& line_number) {
-  std::getline(file, line);
-  ++line_number;
-
-  // skip any comments
-  while (line[0] == '%') {
-    std::getline(file, line);
+static bool getNextLine(std::ifstream& file, std::string& line, size_t& line_number) {
+  bool success = false;
+  do {
+    success = static_cast<bool>(std::getline(file, line));
     ++line_number;
-  }
+    // skip any comments
+  } while (success && line[0] == '%');
+  return success;
 }
 
 static inline void readHGRHeader(std::ifstream& file, HyperedgeID& num_hyperedges,
@@ -162,8 +161,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
       }
     }
 
-    getNextLine(file, line, line_number);
-    if (!CheckedIStream(line).empty()) {
+    if (getNextLine(file, line, line_number) && !CheckedIStream(line).empty()) {
       WARNING("Unexpected content after end of hypergraph data", line_number);
     }
     file.close();
