@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
 To compile the program using `g++` run:
 
 ```sh
-g++ -std=c++14 -DNDEBUG -O3 -I/usr/local/include -L/usr/local/lib -lkahypar -L/path/to/boost/lib -I/path/to/boost/include -lboost_program_options program.cc -o program
+g++ -std=c++14 -DNDEBUG -O3 -I/usr/local/include -L/usr/local/lib program.cc -o program -lkahypar
 ```
 
 To remove the library from your system use the provided uninstall target:
