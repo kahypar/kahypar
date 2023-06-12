@@ -252,6 +252,15 @@ To start KaHyPar in recursive bisection mode (KaHyPar-R) optimizing the cut-net 
 
 All preset parameters can be overwritten by using the corresponding command line options.
 
+#### Input Validation
+
+When creating a hypergraph KaHyPar validates that the input is actually a correct hypergraph, otherwise printing an error and aborting.
+This applies both to hgr input files, the C interface and the Python interface. The runtime cost of the validation should be negligible in almost all cases.
+However, the input validation can also be disabled using the cmake flag `-DKAHYPAR_INPUT_VALIDATION=OFF`.
+
+Additionally, warnings are printed for non-fatal issues (e.g. hyperedges with duplicate pins).
+To treat non-fatal issues as hard errors instead, use the cmake flag `-DKAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS=ON`.
+
 Using the Library Interfaces
 -----------
 
