@@ -245,20 +245,22 @@ TEST(AHypergraph, CanBeSerializedToPaToHFormat) {
 }
 
 TEST(AHypergraphDeathTest, WithEmptyHyperedgesLeadsToProgramExit) {
-  EXPECT_EXIT(createHypergraphFromFile("test_instances/corrupted_hypergraph_with_empty_hyperedges.hgr", 2),
+  EXPECT_EXIT(createHypergraphFromFile("test_instances/corrupted_hypergraph_with_empty_hyperedges.hgr", 2, true, false),
               ::testing::ExitedWithCode(1),
               ""); // "Error: Hyperedge is empty (line 3)"); --> for some reason gtest ignores the output
 }
 
 TEST(DuplicatePins, GetRemovedDuringParsing) {
-  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_multiple_identical_pins.hgr", 2);
+  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_multiple_identical_pins.hgr",
+                                                         2, true, false);
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(2));
   ASSERT_THAT(hypergraph.initialNumPins(), Eq(4));
 }
 
 TEST(DuplicatePinsAndInvalidHes, GetRemovedDuringParsing) {
-  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_identical_pins_and_invalid_edges.hgr", 2);
+  Hypergraph const hypergraph = createHypergraphFromFile("test_instances/corrupted_hypergraph_with_identical_pins_and_invalid_edges.hgr",
+                                                         2, true, false);
   ASSERT_THAT(hypergraph.initialNumNodes(), Eq(3));
   ASSERT_THAT(hypergraph.initialNumEdges(), Eq(3));
   ASSERT_THAT(hypergraph.initialNumPins(), Eq(6));

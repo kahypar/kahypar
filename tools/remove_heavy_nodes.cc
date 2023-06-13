@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
   HypernodeID k = std::stoul(argv[3]);
   double epsilon = std::stod(argv[4]);
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k, true, false));
 
   HypernodeID new_k = removeHeavyNodes(hypergraph, k, epsilon);
   for (const HyperedgeID& he : hypergraph.edges()) {

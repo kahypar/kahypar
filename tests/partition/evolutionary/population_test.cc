@@ -63,7 +63,7 @@ TEST_F(APopulation, IsCorrectlyGeneratingIndividuals) {
   context.partition.graph_filename = "../../../../tests/partition/evolutionary/TestHypergraph";
   Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
-                                          context.partition.k));
+                                          context.partition.k, false, false));
   population.generateIndividual(hypergraph, context);
   population.individualAt(0).printDebug();
   ASSERT_EQ(population.size(), 1);

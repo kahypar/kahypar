@@ -230,8 +230,8 @@ static inline void validateAndPrintErrors(const HypernodeID num_hypernodes, cons
 
 static inline Hypergraph createHypergraphFromFile(const std::string& filename,
                                                   const PartitionID num_parts,
-                                                  bool validate_input = true,
-                                                  bool promote_warnings_to_errors = false) {
+                                                  bool validate_input,
+                                                  bool promote_warnings_to_errors) {
   HypernodeID num_hypernodes;
   HyperedgeID num_hyperedges;
   HyperedgeIndexVector index_vector;

@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
             << out_filename << "..." << std::endl;
 
   Hypergraph hypergraph(
-    io::createHypergraphFromFile(hgr_filename, 2));
+    io::createHypergraphFromFile(hgr_filename, 2, true, false));
 
   io::writeHypergraphForPaToHPartitioning(hypergraph, out_filename);
 
