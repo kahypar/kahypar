@@ -90,6 +90,7 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 class Partitioner {
  private:
   static constexpr bool debug = false;
+  static constexpr HypernodeID LARGE_HE_THRESHOLD = 1000;
 
  public:
   Partitioner() :
@@ -177,7 +178,18 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
     if (density < 0.75) {
       context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::degree;
     } else {
-      context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::uniform;
+      bool contains_large_he = false;
+      for ( const HyperedgeID he : hypergraph.edges() ) {
+        if ( hypergraph.edgeSize(he) > LARGE_HE_THRESHOLD ) {
+          contains_large_he = true;
+          break;
+        }
+      }
+      if ( density < 2 && contains_large_he ) {
+        context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
+      } else {
+        context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::uniform;
+      }
     }
   }
 }
