@@ -55,7 +55,7 @@ class AnUnweightedHypergraphFile : public Test {
     _control_num_hyperedges(4),
     _control_num_hypernodes(7),
     _control_index_vector({ 0, 2, 6, 9, 12 }),
-    _control_edge_vector({ 0, 1, 0, 6, 4, 5, 4, 5, 3, 1, 2, 3 }) { }
+    _control_edge_vector({ 0, 1, 0, 4, 5, 6, 3, 4, 5, 1, 2, 3 }) { }
 
   void SetUp() {
     _filename = "test_instances/unweighted_hypergraph.hgr";
