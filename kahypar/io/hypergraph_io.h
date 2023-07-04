@@ -81,7 +81,6 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     index_vector.push_back(edge_vector.size());
 
     std::string line;
-    std::unordered_set<HypernodeID> unique_pins;
     for (HyperedgeID i = 0; i < num_hyperedges; ++i) {
       std::getline(file, line);
       // skip any comments
@@ -106,17 +105,26 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
         }
       }
       HypernodeID pin;
-      unique_pins.clear();
+      const size_t start_pos = edge_vector.size();
       while (line_stream >> pin) {
         // Hypernode IDs start from 0
         --pin;
         ASSERT(pin < num_hypernodes, "Invalid hypernode ID");
-        if (unique_pins.count(pin)) {
-          std::cerr << "Warning: Ignoring duplicate pin " << pin << " of hyperedge " << i << std::endl;
-          continue;
-        }
-        unique_pins.insert(pin);
         edge_vector.push_back(pin);
+      }
+      // Remove duplicated pins
+      std::sort(edge_vector.begin() + start_pos, edge_vector.end());
+      size_t unique_pin_idx = start_pos + 1;
+      for ( size_t j = unique_pin_idx; j < edge_vector.size(); ++j ) {
+        if ( edge_vector[unique_pin_idx - 1] != edge_vector[j] ) {
+          std::swap(edge_vector[j], edge_vector[unique_pin_idx++]);
+        } else {
+          std::cerr << "Warning: Ignoring duplicate pin " << edge_vector[j] << " of hyperedge " << i << std::endl;
+        }
+      }
+      // Pop duplicated pins from end of edge vector
+      for ( size_t j = unique_pin_idx; j < edge_vector.size(); ++j ) {
+        edge_vector.pop_back();
       }
       index_vector.push_back(edge_vector.size());
     }
