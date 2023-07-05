@@ -186,6 +186,14 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
         }
       }
       if ( density < 2 && contains_large_he ) {
+        // In our paper 'Improving coarsening schemes for hypergraph partitioning by exploting community structure',
+        // we use the uniform edge weight function for all hypergraph with a density > 0.75.
+        // The uniform edge weight function assign all edges of a hyperedge e the weight w(e) in the bipartite
+        // graph representation. However, we recently found some VLSI instances where this edge weight function
+        // leads to poor partitioning results. The instances are characterized by a power-law edge size distribution.
+        // Giving large hyperedges the same weight as small hyperedges leaded to a bad community structure.
+        // We therefore introduced this workaround and use for these types of instances the edge weight
+        // function w(e)/|e|. This way, large hyperedges have only a small impact on the final community structure.
         context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;
       } else {
         context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::uniform;
