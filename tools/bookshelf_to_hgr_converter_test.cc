@@ -46,7 +46,7 @@ TEST(TheBookshelfToHgrConverter, ConvertsBookshelfInstancesIntoHypergraphInstanc
   }
 
   i = 0;
-  std::vector<HypernodeID> pins_he_1({ 1, 4, 5, 6, 7, 8, 3 });
+  std::vector<HypernodeID> pins_he_1({ 1, 3, 4, 5, 6, 7, 8 });
   for (const HypernodeID& pin : hypergraph.pins(1)) {
     ASSERT_EQ(pin, pins_he_1[i++]);
   }
