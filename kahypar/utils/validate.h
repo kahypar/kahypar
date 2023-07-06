@@ -34,6 +34,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar/macros.h"
 
 namespace kahypar {
 namespace validate {
@@ -60,22 +61,12 @@ class CheckedIStream {
   bool operator>>(ResultT& result) {
     unsigned long long val = std::strtoull(_current, &_next, 10);
     if (val == 0 && _next == _current && _next != _end) {
-      std::cerr << "Error: Expected positive number";
-      if (_line_number != 0) {
-        std::cerr << " (line " << _line_number << ")";
-      }
-      std::cerr << std::endl;
-      exit(1);
+      ERROR("Expected positive number", _line_number);
     }
 
     const ResultT max = std::numeric_limits<ResultT>::max();
     if (val > static_cast<unsigned long long>(max)) {
-      std::cerr << "Error: ID is out of range: " << val << ", but maximum is " << max;
-      if (_line_number != 0) {
-        std::cerr << " (line " << _line_number << ")";
-      }
-      std::cerr << std::endl;
-      exit(1);
+      ERROR("ID is out of range: " << val << ", but maximum is " << max, _line_number);
     }
 
     if (_current != _next) {

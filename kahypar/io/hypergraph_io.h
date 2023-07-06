@@ -86,7 +86,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
         hypergraph_type != HypergraphType::EdgeWeights &&
         hypergraph_type != HypergraphType::NodeWeights &&
         hypergraph_type != HypergraphType::EdgeAndNodeWeights) {
-      ERROR("Invalid hypergraph type" << " (line " << line_number << ")");
+      ERROR("Invalid hypergraph type", line_number);
     }
 
     const bool has_hyperedge_weights = hypergraph_type == HypergraphType::EdgeWeights ||
