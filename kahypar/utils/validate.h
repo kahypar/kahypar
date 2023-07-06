@@ -249,7 +249,6 @@ bool validateInput(const HypernodeID num_hypernodes, const HyperedgeID num_hyper
 /*!
 * Prints the list of errors, including line numbers if provided.
 *
-* \param num_hypernodes Number of hypernodes |V|
 * \param num_hyperedges Number of hyperedges |E|
 * \param errors List of errors from call to validateInput
 * \param line_numbers Mapping of hyperedge/vertex IDs to line of input file.
@@ -257,13 +256,12 @@ bool validateInput(const HypernodeID num_hypernodes, const HyperedgeID num_hyper
 * \param promote_warnings_to_errors If true, non-fatal errors are reported as error instead of warning
 * \param out Output stream (default: stderr)
 */
-void printErrors(const HypernodeID num_hypernodes, const HyperedgeID num_hyperedges,
+void printErrors(const HyperedgeID num_hyperedges,
                  const std::vector<InputError>& errors,
                  const std::vector<size_t>& line_numbers = {},
                  bool promote_warnings_to_errors = false,
                  std::ostream& out = std::cerr) {
   ASSERT(line_numbers.empty() || line_numbers.size() >= static_cast<size_t>(num_hyperedges));
-  unused(num_hypernodes);
 
   for (const InputError& e: errors) {
     bool print_as_warning = !promote_warnings_to_errors && !isFatal(e.error_type);

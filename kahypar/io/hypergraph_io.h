@@ -219,7 +219,7 @@ static inline void validateAndPrintErrors(const HypernodeID num_hypernodes, cons
     HighResClockTimepoint start = std::chrono::high_resolution_clock::now();
     validate::validateInput(num_hypernodes, num_hyperedges, hyperedge_indices, hyperedges,
                             hyperedge_weights, vertex_weights, &errors, &ignored_hes, &ignored_pins);
-    validate::printErrors(num_hypernodes, num_hyperedges, errors, line_numbers, promote_warnings_to_errors);
+    validate::printErrors(num_hyperedges, errors, line_numbers, promote_warnings_to_errors);
     if (validate::containsFatalError(errors, promote_warnings_to_errors)) {
       exit(1);
     }

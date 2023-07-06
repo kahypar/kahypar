@@ -135,7 +135,7 @@ KAHYPAR_API bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertice
   bool found_error = kahypar::validate::validateInput(num_vertices, num_hyperedges, hyperedge_indices, hyperedges,
                                                       hyperedge_weights, vertex_weights, &errors);
   if (print_errors && found_error) {
-    kahypar::validate::printErrors(num_vertices, num_hyperedges, errors, {}, promote_warnings_to_errors);
+    kahypar::validate::printErrors(num_hyperedges, errors, {}, promote_warnings_to_errors);
   }
   return !found_error;
 }
