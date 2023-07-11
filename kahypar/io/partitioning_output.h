@@ -232,6 +232,9 @@ inline void printPartitioningResults(const Hypergraph& hypergraph,
 
     LOG << "\nTimings:";
     LOG << "Partition time                     =" << elapsed_seconds.count() << "s";
+    if (timings.input_validation > 0) {
+      LOG << "  + Input Validation               =" << timings.input_validation << "s";
+    }
     if (!context.partition_evolutionary && !context.partition.time_limited_repeated_partitioning) {
       LOG << "  + Preprocessing                  =" << timings.total_preprocessing << "s";
       LOG << "    | min hash sparsifier          =" << timings.pre_sparsifier << "s";

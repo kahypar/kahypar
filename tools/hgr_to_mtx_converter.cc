@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   const std::string out_filename(argv[2]);
   LOG << "Converting hypergraph " << hypergraph_filename << "to mtx format:"
       << out_filename << "...";
-  Hypergraph hypergraph(io::createHypergraphFromFile(hypergraph_filename, 2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hypergraph_filename, 2, true, false));
   kahypar::writeHypergraphInMatrixMarketFormat(hypergraph, out_filename);
   LOG << "... done!";
   return 0;

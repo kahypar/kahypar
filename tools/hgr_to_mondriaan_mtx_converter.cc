@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   const std::string mtx_filename(hypergraph_filename + ".mondriaan.mtx");
   LOG << "Converting hypergraph " << hypergraph_filename << "to mondriaan mtx format:"
       << mtx_filename << "...";
-  kahypar::Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(hypergraph_filename, 2);
+  kahypar::Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(hypergraph_filename, 2, true, false);
   kahypar::writeHypergraphInMatrixMarketFormat(input_hypergraph, mtx_filename);
   LOG << "... done!";
   return 0;

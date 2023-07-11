@@ -33,7 +33,7 @@ TEST(TheBookshelfToHgrConverter, ConvertsBookshelfInstancesIntoHypergraphInstanc
   const std::string hgr_filename("test_instances/bookshelf_format.nets.hgr");
   convertBookshelfToHgr(bookshelf_filename, hgr_filename);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 11);
   ASSERT_EQ(hypergraph.initialNumPins(), 13);

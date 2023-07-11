@@ -550,6 +550,8 @@ class GenericHypergraph {
    * \param k Number of blocks the hypergraph should be partitioned in
    * \param hyperedge_weights Optional weight for each hyperedge
    * \param hypernode_weights Optional weight for each hypernode
+   * \param ignored_hyperedges Hyperedges that are ignored during construction
+   * \param ignored_pins Pins that are ignored during construction
    */
   GenericHypergraph(const HypernodeID num_hypernodes,
                     const HyperedgeID num_hyperedges,
@@ -557,14 +559,18 @@ class GenericHypergraph {
                     const HyperedgeVector& edge_vector,
                     const PartitionID k = 2,
                     const HyperedgeWeightVector* hyperedge_weights = nullptr,
-                    const HypernodeWeightVector* hypernode_weights = nullptr) :
+                    const HypernodeWeightVector* hypernode_weights = nullptr,
+                    const std::vector<HyperedgeID>& ignored_hyperedges = {},
+                    const std::vector<size_t>& ignored_pins = {}) :
     GenericHypergraph(num_hypernodes,
                       num_hyperedges,
                       index_vector.data(),
                       edge_vector.data(),
                       k,
                       hyperedge_weights == nullptr ? nullptr : hyperedge_weights->data(),
-                      hypernode_weights == nullptr ? nullptr : hypernode_weights->data()) {
+                      hypernode_weights == nullptr ? nullptr : hypernode_weights->data(),
+                      ignored_hyperedges,
+                      ignored_pins) {
     ASSERT(edge_vector.size() == index_vector[num_hyperedges]);
   }
 
@@ -582,6 +588,8 @@ class GenericHypergraph {
  * \param k Number of blocks the hypergraph should be partitioned in
  * \param hyperedge_weights Weight for each hyperedge
  * \param hypernode_weights Weight for each hypernode
+ * \param ignored_hyperedges Hyperedges that are ignored during construction
+ * \param ignored_pins Pins that are ignored during construction
  */
   GenericHypergraph(const HypernodeID num_hypernodes,
                     const HyperedgeID num_hyperedges,
@@ -589,14 +597,18 @@ class GenericHypergraph {
                     const HyperedgeVector& edge_vector,
                     const PartitionID k,
                     const HyperedgeWeightVector& hyperedge_weights,
-                    const HypernodeWeightVector& hypernode_weights) :
+                    const HypernodeWeightVector& hypernode_weights,
+                    const std::vector<HyperedgeID>& ignored_hyperedges = {},
+                    const std::vector<size_t>& ignored_pins = {}) :
     GenericHypergraph(num_hypernodes,
                       num_hyperedges,
                       index_vector.data(),
                       edge_vector.data(),
                       k,
                       hyperedge_weights.empty() ? nullptr : hyperedge_weights.data(),
-                      hypernode_weights.empty() ? nullptr : hypernode_weights.data()) {
+                      hypernode_weights.empty() ? nullptr : hypernode_weights.data(),
+                      ignored_hyperedges,
+                      ignored_pins) {
     ASSERT(edge_vector.size() == index_vector[num_hyperedges]);
   }
 
@@ -606,10 +618,12 @@ class GenericHypergraph {
                     const HypernodeID* edge_vector,
                     const PartitionID k = 2,
                     const HyperedgeWeight* hyperedge_weights = nullptr,
-                    const HypernodeWeight* hypernode_weights = nullptr) :
+                    const HypernodeWeight* hypernode_weights = nullptr,
+                    const std::vector<HyperedgeID>& ignored_hyperedges = {},
+                    const std::vector<size_t>& ignored_pins = {}) :
     _num_hypernodes(num_hypernodes),
-    _num_hyperedges(num_hyperedges),
-    _num_pins(index_vector[num_hyperedges]),
+    _num_hyperedges(num_hyperedges - ignored_hyperedges.size()),
+    _num_pins(index_vector[num_hyperedges] - ignored_pins.size()),
     _total_weight(0),
     _fixed_vertex_total_weight(0),
     _k(k),
@@ -629,24 +643,61 @@ class GenericHypergraph {
     _pins_in_part(static_cast<size_t>(_num_hyperedges) * k),
     _connectivity_sets(_num_hyperedges),
     _hes_not_containing_u(_num_hyperedges) {
-    VertexID edge_vector_index = 0;
-    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      hyperedge(i).setFirstEntry(edge_vector_index);
-      for (VertexID pin_index = index_vector[i];
-           pin_index < index_vector[static_cast<size_t>(i) + 1]; ++pin_index) {
-        hyperedge(i).incrementSize();
-        hyperedge(i).hash += math::hash(edge_vector[pin_index]);
-        _incidence_array[pin_index] = edge_vector[pin_index];
-        ++edge_vector_index;
+    // define functionality for skipping ignored hyperedges and pins
+    size_t he_ignore_index = 0;
+    size_t pin_ignore_index = 0;
+    auto ignore_he = [&](const HyperedgeID he) {
+      ASSERT(he_ignore_index == ignored_hyperedges.size() || ignored_hyperedges[he_ignore_index] >= he);
+      if (he_ignore_index != ignored_hyperedges.size() && ignored_hyperedges[he_ignore_index] == he) {
+        ++he_ignore_index;
+        return true;
       }
+      return false;
+    };
+    auto skip_ignored_hes = [&](HyperedgeID& current_he) {
+      while ( ignore_he(current_he) ) { ++current_he; }
+      ASSERT(current_he < num_hyperedges);
+    };
+    auto ignore_pin = [&](const size_t pin_index) {
+      bool found_pin = false;
+      while (pin_ignore_index != ignored_pins.size() && ignored_pins[pin_ignore_index] <= pin_index) {
+        found_pin = (ignored_pins[pin_ignore_index] == pin_index);
+        ++pin_ignore_index;
+      }
+      return found_pin;
+    };
+
+    VertexID edge_vector_index = 0;
+    HyperedgeID original_index = 0;
+    for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
+      skip_ignored_hes(original_index);
+      hyperedge(i).setFirstEntry(edge_vector_index);
+      for (VertexID pin_index = index_vector[original_index];
+           pin_index < index_vector[static_cast<size_t>(original_index) + 1]; ++pin_index) {
+        if (!ignore_pin(pin_index)) {
+          ASSERT(edge_vector_index < _num_pins);
+          hyperedge(i).incrementSize();
+          hyperedge(i).hash += math::hash(edge_vector[pin_index]);
+          _incidence_array[edge_vector_index] = edge_vector[pin_index];
+          ++edge_vector_index;
+        }
+      }
+      ++original_index;
     }
 
+    he_ignore_index = 0;
+    pin_ignore_index = 0;
+    original_index = 0;
     for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-      for (VertexID pin_index = index_vector[i]; pin_index <
-           index_vector[static_cast<size_t>(i) + 1]; ++pin_index) {
-        const HypernodeID pin = edge_vector[pin_index];
-        hypernode(pin).incidentNets().push_back(i);
+      skip_ignored_hes(original_index);
+      for (VertexID pin_index = index_vector[original_index]; pin_index <
+           index_vector[static_cast<size_t>(original_index) + 1]; ++pin_index) {
+        if (!ignore_pin(pin_index)) {
+          const HypernodeID pin = edge_vector[pin_index];
+          hypernode(pin).incidentNets().push_back(i);
+        }
       }
+      ++original_index;
     }
 
     // sentinel for peeks during uncontraction
@@ -659,8 +710,12 @@ class GenericHypergraph {
     bool has_hyperedge_weights = false;
     if (hyperedge_weights != nullptr) {
       has_hyperedge_weights = true;
+      he_ignore_index = 0;
+      original_index = 0;
       for (HyperedgeID i = 0; i < _num_hyperedges; ++i) {
-        hyperedge(i).setWeight(hyperedge_weights[i]);
+        skip_ignored_hes(original_index);
+        hyperedge(i).setWeight(hyperedge_weights[original_index]);
+        ++original_index;
       }
     }
 

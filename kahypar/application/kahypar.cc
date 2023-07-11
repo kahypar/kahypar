@@ -41,7 +41,9 @@ int main(int argc, char* argv[]) {
 
   kahypar::Hypergraph hypergraph(
     kahypar::io::createHypergraphFromFile(context.partition.graph_filename,
-                                          context.partition.k));
+                                          context.partition.k,
+                                          VALIDATE_INPUT,
+                                          PROMOTE_WARNINGS_TO_ERRORS));
 
   kahypar::SerializeOnSignal::initialize(hypergraph, context);
 

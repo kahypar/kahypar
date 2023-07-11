@@ -54,6 +54,28 @@ TEST_F(AHypergraph, InitializesInternalHypergraphRepresentation) {
   ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
 }
 
+TEST_F(Test, InitializesInternalHypergraphRepresentationWithSkippedHEsAndPins) {
+  Hypergraph hypergraph(7, 6,
+    HyperedgeIndexVector { 0, /*ignored->*/3, 3, 7, /*ignored->*/10, 13,  /*sentinel*/ 17 },
+    HyperedgeVector { 0, 2, /*ignored->*/2, 0, 1, 3, 4, 3, 4, 6, /*ignored->*/0, 0, 0,/*<-ignored*/ 2, 5, /*ignored->*/6, 6 },
+    2, {1, 2, 3, 4, 5, 6}, {}, {1, 4}, {2, 10, 11, 12, 15});
+  ASSERT_THAT(hypergraph.currentNumNodes(), Eq(7));
+  ASSERT_THAT(hypergraph.currentNumEdges(), Eq(4));
+  ASSERT_THAT(hypergraph.currentNumPins(), Eq(12));
+  ASSERT_THAT(hypergraph.nodeDegree(0), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(1), Eq(1));
+  ASSERT_THAT(hypergraph.nodeDegree(2), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(3), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(4), Eq(2));
+  ASSERT_THAT(hypergraph.nodeDegree(5), Eq(1));
+  ASSERT_THAT(hypergraph.nodeDegree(6), Eq(2));
+
+  ASSERT_THAT(hypergraph.edgeSize(0), Eq(2));
+  ASSERT_THAT(hypergraph.edgeSize(1), Eq(4));
+  ASSERT_THAT(hypergraph.edgeSize(2), Eq(3));
+  ASSERT_THAT(hypergraph.edgeSize(3), Eq(3));
+}
+
 TEST_F(AHypergraph, ReturnsHyperNodeDegree) {
   ASSERT_THAT(hypergraph.nodeDegree(6), Eq(2));
 }

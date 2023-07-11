@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   }
   std::string hgr_filename(argv[1]);
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2, true, false));
 
   std::map<HypernodeID, size_t> neighborhood_sizes;
   ds::FastResetFlagArray<> seen_hns(hypergraph.initialNumNodes());

@@ -30,7 +30,7 @@ using ::testing::Eq;
 namespace kahypar {
 TEST(TheLSHSparsifier, HandlesWeightedNodesAndEdges) {
   Hypergraph hypergraph = io::createHypergraphFromFile(
-    std::string("test_instances/WeightedHypergraph.hgr"), 2);
+    std::string("test_instances/WeightedHypergraph.hgr"), 2, false, false);
   Context context;
   context.partition.k = 2;
   context.preprocessing.enable_min_hash_sparsifier = true;

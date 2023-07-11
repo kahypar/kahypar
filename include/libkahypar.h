@@ -22,6 +22,7 @@
 #define LIBKAHYPAR_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,6 +83,14 @@ KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partit
                                                             const kahypar_hyperedge_weight_t* hyperedge_weights,
                                                             const kahypar_hypernode_weight_t* vertex_weights);
 
+KAHYPAR_API bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertices,
+                                        const kahypar_hyperedge_id_t num_hyperedges,
+                                        const size_t* hyperedge_indices,
+                                        const kahypar_hyperedge_id_t* hyperedges,
+                                        const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                        const kahypar_hypernode_weight_t* vertex_weights,
+                                        const bool print_errors);
+
 KAHYPAR_API void kahypar_partition_hypergraph(kahypar_hypergraph_t* kahypar_hypergraph,
                                               const kahypar_partition_id_t num_blocks,
                                               const double epsilon,
@@ -98,8 +107,6 @@ KAHYPAR_API void kahypar_improve_hypergraph_partition(kahypar_hypergraph_t* kahy
                                                       const size_t num_improvement_iterations,
                                                       kahypar_partition_id_t* improved_partition);
 
-
-KAHYPAR_API void kahypar_hypergraph_free(kahypar_hypergraph_t* kahypar_hypergraph);
 
 KAHYPAR_API void kahypar_read_hypergraph_from_file(const char* file_name,
                                                    kahypar_hypernode_id_t* num_vertices,

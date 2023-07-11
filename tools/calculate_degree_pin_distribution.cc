@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
   }
   std::string hgr_filename(argv[1]);
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2, true, false));
 
   std::map<HyperedgeID, size_t> degree_distribution;
   std::map<HypernodeID, size_t> pin_distribution;

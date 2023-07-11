@@ -25,9 +25,11 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
+#include "kahypar/partition/context.h"
 
 namespace kahypar {
 enum class Timepoint : uint8_t {
+  input_validation,
   pre_sparsifier,
   pre_community_detection,
   coarsening,
@@ -78,10 +80,20 @@ class Timer {
       lk(context.partition.rb_lower_k),
       rk(context.partition.rb_upper_k),
       time(time) { }
+
+    Timing(const Timepoint& timepoint, const double& time) :
+      type(ContextType::main),
+      mode(Mode::direct_kway),
+      timepoint(timepoint),
+      v_cycle(0),
+      lk(0),
+      rk(0),
+      time(time) { }
   };
 
 
   struct Result {
+    double input_validation = 0.0;
     double pre_sparsifier = 0.0;
     double pre_community_detection = 0.0;
     double total_preprocessing = 0.0;
@@ -108,6 +120,10 @@ class Timer {
  public:
   void add(const Context& context, const Timepoint& timepoint, const double& time) {
     _timings.emplace_back(context, timepoint, time);
+  }
+
+  void add(const Timepoint& timepoint, const double& time) {
+    _timings.emplace_back(timepoint, time);
   }
 
   static Timer & instance() {
@@ -161,6 +177,9 @@ class Timer {
 
       if (timing.type == ContextType::main) {
         switch (timing.timepoint) {
+          case Timepoint::input_validation:
+            _result.input_validation = timing.time;
+            break;
           case Timepoint::pre_sparsifier:
             _result.pre_sparsifier = timing.time;
             break;

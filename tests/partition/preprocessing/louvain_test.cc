@@ -229,7 +229,7 @@ TEST(Louvain, WorksOnGraphDSThatChangesHypergraphIntoGraph) {
 
   Hypergraph hypergraph(
     io::createHypergraphFromFile(context.partition.graph_filename,
-                                 context.partition.k));
+                                 context.partition.k, false, false));
 
   Louvain<Modularity, false> louvain(hypergraph, context);
 

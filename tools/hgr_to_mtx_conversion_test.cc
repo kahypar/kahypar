@@ -30,7 +30,7 @@ using ::testing::Test;
 namespace kahypar {
 TEST(AHypergraph, CanBeConvertedToMatrixMarketFormatForMondriaanPartitioning) {
   const std::string input_hypergraph_filename("test_instances/mondriaan_example.hgr");
-  Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(input_hypergraph_filename, 2);
+  Hypergraph input_hypergraph = kahypar::io::createHypergraphFromFile(input_hypergraph_filename, 2, false, false);
 
   const std::string mtx_filename("test_instances/mondriaan_example.mtx");
 

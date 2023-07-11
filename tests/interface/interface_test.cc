@@ -368,6 +368,30 @@ TEST(KaHyPar, CanCreateHypergraphsViaInterface) {
   kahypar_hypergraph_free(kahypar_hypergraph);
 }
 
+TEST(KaHyPar, RejectsInvalidHypergraphViaInterface) {
+  kahypar_partition_id_t num_blocks = 2;
+  kahypar_hypernode_id_t num_vertices = 2;
+  kahypar_hyperedge_id_t num_hyperedges = 2;
+  size_t hyperedge_indices[3] = {0, 2, 1}; // invalid index array
+  kahypar_hyperedge_id_t hyperedges[2] = {0, 1};
+
+  EXPECT_EXIT(kahypar_create_hypergraph(num_blocks, num_vertices, num_hyperedges,
+                                        hyperedge_indices, hyperedges, nullptr, nullptr),
+              ::testing::ExitedWithCode(1), "");
+}
+
+TEST(KaHyPar, ValidatesInputViaInterface) {
+  kahypar_hypernode_id_t num_vertices = 2;
+  kahypar_hyperedge_id_t num_hyperedges = 2;
+  size_t hyperedge_indices[3] = {0, 2, 1}; // invalid index array
+  kahypar_hyperedge_id_t hyperedges[4] = {0, 1, 0, 1};
+
+  ASSERT_FALSE(kahypar_validate_input(num_vertices, num_hyperedges, hyperedge_indices,
+                                      hyperedges, nullptr, nullptr, false));
+  hyperedge_indices[2] = 4;
+  ASSERT_TRUE(kahypar_validate_input(num_vertices, num_hyperedges, hyperedge_indices,
+                                      hyperedges, nullptr, nullptr, false));
+}
 
 TEST(KaHyPar, SupportsIndividualBlockWeightsViaInterface) {
   kahypar_context_t* context = kahypar_context_new();
@@ -629,6 +653,14 @@ TEST_F(AHypergraphFileWithHypernodeAndHyperedgeWeights, CanBeParsedIntoKaHyParAH
                                                                &_control_hypernode_weights),
                                                     hypergraph));
   kahypar_hypergraph_free(kahypar_hypergraph);
+}
+
+TEST(CorruptedHypergraphFile, IsRejectedByInputValidation) {
+  kahypar_partition_id_t num_blocks = 2;
+  std::string filename("test_instances/corrupted_hypergraph_with_invalid_pin.hgr");
+
+  EXPECT_EXIT(kahypar_create_hypergraph_from_file(filename.c_str(), num_blocks),
+              ::testing::ExitedWithCode(1), "");
 }
 
 TEST(Seed, CanBeSetViaLibraryInterface) {
