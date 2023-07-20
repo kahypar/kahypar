@@ -33,7 +33,7 @@ TEST(TheBookshelfToHgrConverter, ConvertsBookshelfInstancesIntoHypergraphInstanc
   const std::string hgr_filename("test_instances/bookshelf_format.nets.hgr");
   convertBookshelfToHgr(bookshelf_filename, hgr_filename);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 11);
   ASSERT_EQ(hypergraph.initialNumPins(), 13);
@@ -46,7 +46,7 @@ TEST(TheBookshelfToHgrConverter, ConvertsBookshelfInstancesIntoHypergraphInstanc
   }
 
   i = 0;
-  std::vector<HypernodeID> pins_he_1({ 1, 3, 4, 5, 6, 7, 8 });
+  std::vector<HypernodeID> pins_he_1({ 1, 4, 5, 6, 7, 8, 3 });
   for (const HypernodeID& pin : hypergraph.pins(1)) {
     ASSERT_EQ(pin, pins_he_1[i++]);
   }

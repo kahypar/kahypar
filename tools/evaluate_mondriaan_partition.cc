@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
   if (boost::algorithm::ends_with(hypergraph_filename, ".mtx")) {
     hypergraph = createHypergraphFromMtx(hypergraph_filename, 2);
   } else {
-    hypergraph = io::createHypergraphFromFile(hypergraph_filename, 2);
+    hypergraph = io::createHypergraphFromFile(hypergraph_filename, 2, true, false);
   }
 
   PartitionID max_part = 1;

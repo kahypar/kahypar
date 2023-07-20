@@ -34,7 +34,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoLiteralHypergraphRepres
   std::string hgr_filename("test_instances/SampleSAT.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Literal);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 8);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
@@ -64,7 +64,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoPrimalHypergraphReprese
   std::string hgr_filename("test_instances/SampleSAT.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Primal);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 5);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
@@ -94,7 +94,7 @@ TEST(ACnfToHgrConversionRoutine, ConvertsCNFinstancesIntoDualHypergraphRepresent
   std::string hgr_filename("test_instances/SampleSAT.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Dual);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 3);
   ASSERT_EQ(hypergraph.initialNumPins(), 8);
@@ -136,7 +136,7 @@ TEST(ACnfToHgrConversionRoutine, IgnoresMissingVariablesInPrimalRepresentation) 
   std::string hgr_filename("test_instances/SampleSAT_missing_variables.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Primal);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 8);
   ASSERT_EQ(hypergraph.initialNumPins(), 10);
@@ -167,7 +167,7 @@ TEST(ACnfToHgrConversionRoutine, IgnoresMissingVariablesInDualRepresentation) {
   std::string hgr_filename("test_instances/SampleSAT_missing_variables.cnf.hgr");
   convertInstance(cnf_filename, hgr_filename, HypergraphRepresentation::Dual);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 3);
   ASSERT_EQ(hypergraph.initialNumPins(), 10);

@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  kahypar_debug_tests:
+  run_sonar_scanner:
     runs-on: ubuntu-latest
     env:
       BOOST_ROOT : "/usr/local/share/boost/1.72.0"

@@ -26,6 +26,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partitioner_facade.h"
 #include "kahypar/utils/randomize.h"
+#include "kahypar/utils/validate.h"
 
 
 kahypar_context_t* kahypar_context_new() {
@@ -82,25 +83,34 @@ void kahypar_set_fixed_vertices(kahypar_hypergraph_t* kahypar_hypergraph,
 }
 
 kahypar_hypergraph_t* kahypar_create_hypergraph_from_file(const char* file_name, const kahypar_partition_id_t num_blocks) {
-  kahypar::HypernodeID num_hypernodes;
-  kahypar::HyperedgeID num_hyperedges;
-  kahypar::HyperedgeIndexVector index_vector;
-  kahypar::HyperedgeVector edge_vector;
-  kahypar::HypernodeWeightVector hypernode_weights;
-  kahypar::HyperedgeWeightVector hyperedge_weights;
-  kahypar::io::readHypergraphFile(file_name, num_hypernodes, num_hyperedges,
-                                  index_vector, edge_vector, &hyperedge_weights, &hypernode_weights);
-  return reinterpret_cast<kahypar_hypergraph_t*>(new kahypar::Hypergraph(num_hypernodes, num_hyperedges, index_vector, edge_vector,
-                                                                         num_blocks, &hyperedge_weights, &hypernode_weights));
+  kahypar::Hypergraph* hypergraph = new kahypar::Hypergraph();
+  *hypergraph = kahypar::io::createHypergraphFromFile(file_name, num_blocks, VALIDATE_INPUT, PROMOTE_WARNINGS_TO_ERRORS);
+  return reinterpret_cast<kahypar_hypergraph_t*>(hypergraph);
 }
 
-KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partition_id_t num_blocks,
-                                                            const kahypar_hypernode_id_t num_vertices,
-                                                            const kahypar_hyperedge_id_t num_hyperedges,
-                                                            const size_t* hyperedge_indices,
-                                                            const kahypar_hyperedge_id_t* hyperedges,
-                                                            const kahypar_hyperedge_weight_t* hyperedge_weights,
-                                                            const kahypar_hypernode_weight_t* vertex_weights) {
+kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partition_id_t num_blocks,
+                                                const kahypar_hypernode_id_t num_vertices,
+                                                const kahypar_hyperedge_id_t num_hyperedges,
+                                                const size_t* hyperedge_indices,
+                                                const kahypar_hyperedge_id_t* hyperedges,
+                                                const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                                const kahypar_hypernode_weight_t* vertex_weights) {
+  if (VALIDATE_INPUT) {
+    std::vector<kahypar_hyperedge_id_t> ignored_hes;
+    std::vector<size_t> ignored_pins;
+    kahypar::io::validateAndPrintErrors(num_vertices, num_hyperedges, hyperedge_indices, hyperedges,
+                                        hyperedge_weights, vertex_weights, {},
+                                        ignored_hes, ignored_pins, PROMOTE_WARNINGS_TO_ERRORS);
+  return reinterpret_cast<kahypar_hypergraph_t*>(new kahypar::Hypergraph(num_vertices,
+                                                                         num_hyperedges,
+                                                                         hyperedge_indices,
+                                                                         hyperedges,
+                                                                         num_blocks,
+                                                                         hyperedge_weights,
+                                                                         vertex_weights,
+                                                                         ignored_hes,
+                                                                         ignored_pins));
+  }
   return reinterpret_cast<kahypar_hypergraph_t*>(new kahypar::Hypergraph(num_vertices,
                                                                          num_hyperedges,
                                                                          hyperedge_indices,
@@ -108,6 +118,26 @@ KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partit
                                                                          num_blocks,
                                                                          hyperedge_weights,
                                                                          vertex_weights));
+}
+
+bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertices,
+                            const kahypar_hyperedge_id_t num_hyperedges,
+                            const size_t* hyperedge_indices,
+                            const kahypar_hyperedge_id_t* hyperedges,
+                            const kahypar_hyperedge_weight_t* hyperedge_weights,
+                            const kahypar_hypernode_weight_t* vertex_weights,
+                            const bool print_errors) {
+  // The C interface provides no API for constructing a hypergraph from input with duplicate pins if input
+  // validation is disabled. Thus we always treat this (and other warnings) as an error.
+  const bool promote_warnings_to_errors = true;
+
+  std::vector<kahypar::validate::InputError> errors;
+  bool found_error = kahypar::validate::validateInput(num_vertices, num_hyperedges, hyperedge_indices, hyperedges,
+                                                      hyperedge_weights, vertex_weights, &errors);
+  if (print_errors && found_error) {
+    kahypar::validate::printErrors(num_hyperedges, errors, {}, promote_warnings_to_errors);
+  }
+  return !found_error;
 }
 
 void kahypar_partition_hypergraph(kahypar_hypergraph_t* kahypar_hypergraph,
@@ -223,40 +253,11 @@ void kahypar_partition(const kahypar_hypernode_id_t num_vertices,
                        kahypar_hyperedge_weight_t* objective,
                        kahypar_context_t* kahypar_context,
                        kahypar_partition_id_t* partition) {
-  kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
-  ASSERT(!context.partition.use_individual_part_weights ||
-         !context.partition.max_part_weights.empty());
-  ASSERT(partition != nullptr);
-
-  context.partition.k = num_blocks;
-  context.partition.epsilon = epsilon;
-  context.partition.write_partition_file = false;
-
-  kahypar::Hypergraph hypergraph(num_vertices,
-                                 num_hyperedges,
-                                 hyperedge_indices,
-                                 hyperedges,
-                                 context.partition.k,
-                                 hyperedge_weights,
-                                 vertex_weights);
-
-  if (context.partition.vcycle_refinement_for_input_partition) {
-    for (const auto hn : hypergraph.nodes()) {
-      hypergraph.setNodePart(hn, partition[hn]);
-    }
-  }
-
-  kahypar::PartitionerFacade().partition(hypergraph, context);
-
-  *objective = kahypar::metrics::correctMetric(hypergraph, context);
-
-  for (const auto hn : hypergraph.nodes()) {
-    partition[hn] = hypergraph.partID(hn);
-  }
-
-  context.partition.perfect_balance_part_weights.clear();
-  context.partition.max_part_weights.clear();
-  context.evolutionary.communities.clear();
+  kahypar_hypergraph_t* hypergraph = kahypar_create_hypergraph(num_blocks, num_vertices, num_hyperedges,
+                                                               hyperedge_indices, hyperedges,
+                                                               hyperedge_weights, vertex_weights);
+  kahypar_partition_hypergraph(hypergraph, num_blocks, epsilon, objective, kahypar_context, partition);
+  kahypar_hypergraph_free(hypergraph);
 }
 
 

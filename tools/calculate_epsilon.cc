@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
   std::string hgr_filename(argv[1]);
   HypernodeID k = std::stoul(argv[2]);
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, k, true, false));
 
   HypernodeWeight weight_per_block = (hypergraph.totalWeight() + k - 1) / k;
   HypernodeWeight max_part = maxPartByLPT(hypergraph, k);

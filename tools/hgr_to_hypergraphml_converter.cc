@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   std::string hgr_filename(argv[1]);
   std::string graphml_filename(hgr_filename + ".graphml");
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, 2, true, false));
 
   std::ofstream out_stream(graphml_filename.c_str());
   out_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;

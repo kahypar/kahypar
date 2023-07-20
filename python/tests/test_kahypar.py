@@ -83,7 +83,7 @@ class MainTest(unittest.TestCase):
     # partition hypergraph
     def test_partition_hypergraph(self):
         context = kahypar.Context()
-        context.loadINIconfiguration(mydir+"/../..//config/km1_kKaHyPar_dissertation.ini")
+        context.loadINIconfiguration(mydir+"/../../config/km1_kKaHyPar_sea20.ini")
 
         ibm01 = kahypar.createHypergraphFromFile(mydir+"/ISPD98_ibm01.hgr",2)
 

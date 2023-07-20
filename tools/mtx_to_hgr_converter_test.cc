@@ -83,8 +83,8 @@ TEST(AnMtxToHgrConversionRoutine, AdjustsNumberOfHyperedgesIfEmptyRowsArePresent
   std::string correct_hgr_filename("test_instances/EmptyRowsCorrect.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 
-  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2);
-  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2, false, false);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(kahypar::ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                correct_hypergraph), true);
@@ -96,8 +96,8 @@ TEST(AnMtxToHgrConversionRoutine, ConvertsWeightedMTXMatrixToHGRFormat) {
   std::string correct_hgr_filename("test_instances/WeightedMtxExampleCorrect.hgr");
   convertMtxToHgr(mtx_filename, hgr_filename);
 
-  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2);
-  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph correct_hypergraph = kahypar::io::createHypergraphFromFile(correct_hgr_filename, 2, false, false);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(kahypar::ds::verifyEquivalenceWithoutPartitionInfo(hypergraph,
                                                                correct_hypergraph), true);
@@ -108,7 +108,7 @@ TEST(MTXfiles, CanBeConvertedToHgrsForNonsymmetricLAMAparitioning) {
   std::string hgr_filename("test_instances/CoordinateGeneral_lama.hgr");
 
   mtxconversion::convertMtxToHgrForNonsymmetricParallelSPM(mtx_filename, hgr_filename);
-  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = kahypar::io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   ASSERT_EQ(hypergraph.initialNumNodes(), 10);
   ASSERT_EQ(hypergraph.initialNumEdges(), 5);

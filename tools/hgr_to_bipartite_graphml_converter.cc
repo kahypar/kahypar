@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, max_part + 1));
+  Hypergraph hypergraph(io::createHypergraphFromFile(hgr_filename, max_part + 1, true, false));
 
   if (partition.size() != 0 && partition.size() != hypergraph.initialNumNodes()) {
     std::cout << "partition file has incorrect size. Exiting." << std::endl;

@@ -33,7 +33,7 @@ TEST(Phylo, Works) {
   const std::string hgr_filename("test_instances/repeats.phylo.hgr");
   convertToHypergraph(file, hgr_filename);
 
-  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2);
+  Hypergraph hypergraph = io::createHypergraphFromFile(hgr_filename, 2, false, false);
 
   hypergraph.printGraphState();
 

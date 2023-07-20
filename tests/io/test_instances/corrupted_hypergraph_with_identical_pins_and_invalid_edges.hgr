@@ -1,0 +1,8 @@
+% hypergraph with a hyperedge that contains a pin more than once,
+% a hyperedge with size one and a hyperedge with weight zero
+5 3 01
+1 1
+2 1 2 3
+1 2 2
+0 1 2 3
+1 2 3

@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   std::string in_hgr_filename(argv[1]);
   std::string out_hgr_filename(argv[2]);
 
-  Hypergraph hypergraph(io::createHypergraphFromFile(in_hgr_filename, 2));
+  Hypergraph hypergraph(io::createHypergraphFromFile(in_hgr_filename, 2, true, false));
 
   for (const HyperedgeID& he : hypergraph.edges()) {
     hypergraph.setEdgeWeight(he, hypergraph.edgeSize(he));

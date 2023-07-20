@@ -306,3 +306,27 @@ void unused(T&&) {
 #define RED "\033[1;91m"
 #define BOLD "\033[1m"
 #define END "\033[0m"
+
+// Errors, warnings and input validation
+#define MESSAGE_1(msg) msg
+#define MESSAGE_2(msg, line_number) msg << " (line " << static_cast<size_t>(line_number) << ")"
+
+#define MESSAGE_(N) MESSAGE_ ## N
+#define MESSAGE_EVAL(N) MESSAGE_(N)
+#define MESSAGE(...) EXPAND(MESSAGE_EVAL(EXPAND(NARG(__VA_ARGS__)))(__VA_ARGS__))
+
+#define ERROR(...) std::cerr << "Error: " << MESSAGE(__VA_ARGS__) << std::endl; std::exit(1)
+
+#ifdef KAHYPAR_INPUT_VALIDATION
+  #define VALIDATE_INPUT true
+#else
+  #define VALIDATE_INPUT false
+#endif
+
+#ifdef KAHYPAR_INPUT_VALIDATION_PROMOTE_WARNINGS_TO_ERRORS
+  #define PROMOTE_WARNINGS_TO_ERRORS true
+  #define WARNING(...) ERROR(__VA_ARGS__)
+#else
+  #define PROMOTE_WARNINGS_TO_ERRORS false
+  #define WARNING(...) std::cerr << "Warning: " << MESSAGE(__VA_ARGS__) << std::endl
+#endif
