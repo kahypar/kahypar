@@ -467,6 +467,12 @@ po::options_description createPreprocessingOptionsDescription(Context& context,
     ("p-reuse-communities",
     po::value<bool>(&context.preprocessing.community_detection.reuse_communities)->value_name("<bool>"),
     "Reuse the community structure identified in the first bisection for all other bisections.")
+    ("p-large-he-threshold",
+    po::value<uint32_t>(&context.preprocessing.community_detection.large_he_threshold)->value_name("<uint32_t>"),
+    "For hypergraphs with a density < 2 and a maximum HE size greater than this threshold, we use non_uniform\n"
+    "instead of uniform edge weights in the bipartite graph representation for community detection. This was introduced since\n"
+    "we found some instances where the previous weighting scheme leads to poor community structures for instances with low\n"
+    "density and power-law edge size distribution.")
     ("p-smallest-maxnet-threshold",
     po::value<uint32_t>(&context.partition.smallest_max_he_size_threshold)->value_name("<uint32_t>"),
     "No hyperedge whose size is smaller than this threshold is removed in the large hyperedge removal step (see p-maxnet-removal-factor)")

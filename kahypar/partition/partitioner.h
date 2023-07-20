@@ -90,7 +90,6 @@ static inline void partition(Hypergraph& hypergraph, const Context& context) {
 class Partitioner {
  private:
   static constexpr bool debug = false;
-  static constexpr HypernodeID LARGE_HE_THRESHOLD = 1000;
 
  public:
   Partitioner() :
@@ -180,7 +179,7 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
     } else {
       bool contains_large_he = false;
       for ( const HyperedgeID he : hypergraph.edges() ) {
-        if ( hypergraph.edgeSize(he) > LARGE_HE_THRESHOLD ) {
+        if ( hypergraph.edgeSize(he) > context.preprocessing.community_detection.large_he_threshold ) {
           contains_large_he = true;
           break;
         }
@@ -191,7 +190,7 @@ inline void Partitioner::configurePreprocessing(const Hypergraph& hypergraph,
         // The uniform edge weight function assign all edges of a hyperedge e the weight w(e) in the bipartite
         // graph representation. However, we recently found some VLSI instances where this edge weight function
         // leads to poor partitioning results. The instances are characterized by a power-law edge size distribution.
-        // Giving large hyperedges the same weight as small hyperedges leaded to a bad community structure.
+        // Giving large hyperedges the same weight as small hyperedges leads to bad community structures.
         // We therefore introduced this workaround and use for these types of instances the edge weight
         // function w(e)/|e|. This way, large hyperedges have only a small impact on the final community structure.
         context.preprocessing.community_detection.edge_weight = LouvainEdgeWeight::non_uniform;

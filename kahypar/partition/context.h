@@ -52,6 +52,7 @@ struct CommunityDetection {
   LouvainEdgeWeight edge_weight = LouvainEdgeWeight::UNDEFINED;
   uint32_t max_pass_iterations = std::numeric_limits<uint32_t>::max();
   long double min_eps_improvement = std::numeric_limits<long double>::max();
+  uint32_t large_he_threshold = std::numeric_limits<uint32_t>::max();
 };
 
 struct PreprocessingParameters {
@@ -93,6 +94,8 @@ inline std::ostream& operator<< (std::ostream& str, const CommunityDetection& pa
       << params.edge_weight << std::endl;
   str << "  reuse community structure:          " << std::boolalpha
       << params.reuse_communities << std::endl;
+  str << "  large HE threshold:                 "
+      << params.large_he_threshold << std::endl;
   return str;
 }
 
