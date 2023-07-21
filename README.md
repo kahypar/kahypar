@@ -194,7 +194,9 @@ The command line parameter `--quiet=1` can be used to suppress all logging outpu
 #### Default / Most Recent Presets
 
 We provide two default framework configurations - one for recursive bipartitioning (*r*KaHyPar) and one for
-direct k-way partitioning (*k*KaHyPar).
+direct k-way partitioning (*k*KaHyPar). 
+
+In general, we recommend using *k*KaHyPar as it performs better than *r*KaHyPar in terms of both running time and solution quality. 
 
 To start ***k*KaHyPar** optimizing the **(connectivity - 1)** objective run:
 
