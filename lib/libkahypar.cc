@@ -88,13 +88,13 @@ kahypar_hypergraph_t* kahypar_create_hypergraph_from_file(const char* file_name,
   return reinterpret_cast<kahypar_hypergraph_t*>(hypergraph);
 }
 
-KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partition_id_t num_blocks,
-                                                            const kahypar_hypernode_id_t num_vertices,
-                                                            const kahypar_hyperedge_id_t num_hyperedges,
-                                                            const size_t* hyperedge_indices,
-                                                            const kahypar_hyperedge_id_t* hyperedges,
-                                                            const kahypar_hyperedge_weight_t* hyperedge_weights,
-                                                            const kahypar_hypernode_weight_t* vertex_weights) {
+kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partition_id_t num_blocks,
+                                                const kahypar_hypernode_id_t num_vertices,
+                                                const kahypar_hyperedge_id_t num_hyperedges,
+                                                const size_t* hyperedge_indices,
+                                                const kahypar_hyperedge_id_t* hyperedges,
+                                                const kahypar_hyperedge_weight_t* hyperedge_weights,
+                                                const kahypar_hypernode_weight_t* vertex_weights) {
   if (VALIDATE_INPUT) {
     std::vector<kahypar_hyperedge_id_t> ignored_hes;
     std::vector<size_t> ignored_pins;
@@ -120,13 +120,13 @@ KAHYPAR_API kahypar_hypergraph_t* kahypar_create_hypergraph(const kahypar_partit
                                                                          vertex_weights));
 }
 
-KAHYPAR_API bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertices,
-                                        const kahypar_hyperedge_id_t num_hyperedges,
-                                        const size_t* hyperedge_indices,
-                                        const kahypar_hyperedge_id_t* hyperedges,
-                                        const kahypar_hyperedge_weight_t* hyperedge_weights,
-                                        const kahypar_hypernode_weight_t* vertex_weights,
-                                        const bool print_errors) {
+bool kahypar_validate_input(const kahypar_hypernode_id_t num_vertices,
+                            const kahypar_hyperedge_id_t num_hyperedges,
+                            const size_t* hyperedge_indices,
+                            const kahypar_hyperedge_id_t* hyperedges,
+                            const kahypar_hyperedge_weight_t* hyperedge_weights,
+                            const kahypar_hypernode_weight_t* vertex_weights,
+                            const bool print_errors) {
   // The C interface provides no API for constructing a hypergraph from input with duplicate pins if input
   // validation is disabled. Thus we always treat this (and other warnings) as an error.
   const bool promote_warnings_to_errors = true;

@@ -126,6 +126,7 @@ static inline void serialize(const Context& context, const Hypergraph& hypergrap
       << " louvain_edge_weight=" << context.preprocessing.community_detection.edge_weight
       << " reuse_community_structure=" << std::boolalpha
       << context.preprocessing.community_detection.reuse_communities
+      << " community_detection_large_he_threshold=" << context.preprocessing.community_detection.large_he_threshold
       << " coarsening_algo=" << context.coarsening.algorithm
       << " coarsening_max_allowed_weight_multiplier="
       << context.coarsening.max_allowed_weight_multiplier
