@@ -25,7 +25,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/partitioning_output.h"
-#include "kahypar/meta/reversed_iterable.h"
+#include "kahypar-resources/meta/reversed_iterable.h"
 #include "kahypar/partition/context.h"
 
 namespace kahypar {

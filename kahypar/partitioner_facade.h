@@ -33,11 +33,11 @@
 #include "kahypar/io/partitioning_output.h"
 #include "kahypar/io/sql_plottools_serializer.h"
 #include "kahypar/kahypar.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/evo_partitioner.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/utils/math.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class PartitionerFacade {

@@ -22,7 +22,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/kahypar.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/i_coarsener.h"
 #include "kahypar/partition/context.h"

@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "kahypar/macros.h"
-#include "kahypar/meta/policy_registry.h"
-#include "kahypar/meta/typelist.h"
+#include "kahypar-resources/macros.h"
+#include "kahypar-resources/meta/policy_registry.h"
+#include "kahypar-resources/meta/typelist.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/utils/float_compare.h"
 

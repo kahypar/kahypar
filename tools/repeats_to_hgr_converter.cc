@@ -21,7 +21,7 @@
 #include <iostream>
 #include <string>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "tools/repeats_to_hgr_conversion.h"
 
 int main(int argc, char* argv[]) {

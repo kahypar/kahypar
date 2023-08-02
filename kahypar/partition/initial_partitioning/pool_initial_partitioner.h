@@ -29,7 +29,7 @@
 #include "kahypar/partition/initial_partitioning/i_initial_partitioner.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 #include "kahypar/partition/partitioner.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class PoolInitialPartitioner : public IInitialPartitioner,

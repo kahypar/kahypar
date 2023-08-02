@@ -30,7 +30,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/fast_reset_array.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"

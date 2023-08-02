@@ -26,7 +26,7 @@
 
 #include "bookshelf_to_hgr_converter.h"
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 using kahypar::HypernodeID;
 using kahypar::HypernodeWeight;

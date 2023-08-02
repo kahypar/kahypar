@@ -26,8 +26,8 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/datastructure/binary_heap.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/partition/initial_partitioning/bfs_initial_partitioner.h"
 #include "kahypar/partition/initial_partitioning/greedy_hypergraph_growing_initial_partitioner.h"

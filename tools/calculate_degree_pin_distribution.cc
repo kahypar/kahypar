@@ -26,7 +26,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 using namespace kahypar;
 

@@ -21,11 +21,11 @@ add_subdirectory(external_tools/googletest EXCLUDE_FROM_ALL)
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(SYSTEM ${gtest_SOURCE_DIR}/../googlemock/include ${gtest_SOURCE_DIR}/../googlemock/)
 
-if(NOT CMAKE_BUILD_TYPE OR 
-  ((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND 
-    (NOT CMAKE_BUILD_TYPE STREQUAL "DEBUG") AND 
-    (NOT CMAKE_BUILD_TYPE STREQUAL "Release") AND 
-    (NOT CMAKE_BUILD_TYPE STREQUAL "RELEASE") AND 
+if(NOT CMAKE_BUILD_TYPE OR
+  ((NOT CMAKE_BUILD_TYPE STREQUAL "Debug") AND
+    (NOT CMAKE_BUILD_TYPE STREQUAL "DEBUG") AND
+    (NOT CMAKE_BUILD_TYPE STREQUAL "Release") AND
+    (NOT CMAKE_BUILD_TYPE STREQUAL "RELEASE") AND
     (NOT CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") AND
     (NOT CMAKE_BUILD_TYPE STREQUAL "RELWITHDEBINFO")))
     message(FATAL_ERROR "CMAKE_BUILD_TYPE not set correctly. Options are: Release|RELEASE, Debug|DEBUG, RelWithDebInfo|RELWITHDEBINFO." )
@@ -33,6 +33,7 @@ endif()
 
 # add third-party algorithms to project
 include_directories(external_tools)
+include_directories(external_tools/kahypar-shared-resources)
 
 option(KAHYPAR_PYTHON_INTERFACE
   "Enable building the python interface" OFF)
@@ -80,7 +81,7 @@ option(KAHYPAR_ENABLE_HEAVY_DATA_STRUCTURE_ASSERTIONS
   "Enable costly assertions for data structures." ON)
 
 option(KAHYPAR_ENABLE_HEAVY_PREPROCESSING_ASSERTIONS
-  "Enable costly assertions in preprocessing phase." ON) 
+  "Enable costly assertions in preprocessing phase." ON)
 
 option(KAHYPAR_ENABLE_HEAVY_COARSENING_ASSERTIONS
   "Enable costly assertions in coarsening phase." ON)
@@ -111,6 +112,8 @@ if(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
   add_compile_definitions(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
 endif(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
 
+add_compile_definitions(KAHYPAR_BUILD)
+
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
@@ -118,10 +121,10 @@ if(KAHYPAR_USE_CPPCHECK)
   find_program(CMAKE_CXX_CPPCHECK cppcheck)
   if(CMAKE_CXX_CPPCHECK)
     list(
-      APPEND CMAKE_CXX_CPPCHECK 
+      APPEND CMAKE_CXX_CPPCHECK
       "--enable=all"
       "--inconclusive"
-      "--force" 
+      "--force"
       "--inline-suppr"
       )
   endif(CMAKE_CXX_CPPCHECK)
@@ -279,7 +282,7 @@ if(NOT MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ")
   endif()
 
-if(DEFINED ENV{TRAVIS_ENV})  
+if(DEFINED ENV{TRAVIS_ENV})
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mno-avx")
 endif()
 

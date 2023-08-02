@@ -29,7 +29,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/meta/mandatory.h"
 #include "kahypar/partition/coarsening/coarsening_memento.h"
 #include "kahypar/partition/coarsening/hypergraph_pruner.h"
 #include "kahypar/partition/context.h"

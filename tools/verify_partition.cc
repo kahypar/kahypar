@@ -26,7 +26,7 @@
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar/io/partitioning_output.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 

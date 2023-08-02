@@ -25,10 +25,10 @@
 #include <limits>
 #include <vector>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 namespace kahypar {
 

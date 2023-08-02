@@ -33,8 +33,8 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/macros.h"
 
 namespace kahypar {
 namespace validate {

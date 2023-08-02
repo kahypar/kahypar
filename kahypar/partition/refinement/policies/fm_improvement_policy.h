@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "kahypar/meta/policy_registry.h"
+#include "kahypar-resources/meta/policy_registry.h"
 
 namespace kahypar {
 struct ImprovementPolicy : meta::PolicyBase { };

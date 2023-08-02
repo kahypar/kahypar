@@ -26,7 +26,7 @@
 
 
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/coarsening/policies/fixed_vertex_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_acceptance_policy.h"
 #include "kahypar/partition/coarsening/policies/rating_community_policy.h"

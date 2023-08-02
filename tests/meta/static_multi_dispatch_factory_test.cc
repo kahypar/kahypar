@@ -20,10 +20,10 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/meta/abstract_factory.h"
-#include "kahypar/meta/policy_registry.h"
-#include "kahypar/meta/registrar.h"
-#include "kahypar/meta/static_multi_dispatch_factory.h"
+#include "kahypar-resources/meta/abstract_factory.h"
+#include "kahypar-resources/meta/policy_registry.h"
+#include "kahypar-resources/meta/registrar.h"
+#include "kahypar-resources/meta/static_multi_dispatch_factory.h"
 
 using ::testing::Test;
 

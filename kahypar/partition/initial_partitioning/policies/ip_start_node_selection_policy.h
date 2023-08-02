@@ -24,9 +24,9 @@
 #include <queue>
 #include <vector>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 template <bool UseRandomStartHypernode = true>

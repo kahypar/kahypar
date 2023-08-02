@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class LastRatingWins {

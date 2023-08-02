@@ -29,8 +29,8 @@
 #include <memory>
 #include <utility>
 
-#include "kahypar/macros.h"
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/macros.h"
+#include "kahypar-resources/meta/mandatory.h"
 
 namespace kahypar {
 namespace ds {

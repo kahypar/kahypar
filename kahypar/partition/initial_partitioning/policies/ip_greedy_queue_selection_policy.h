@@ -22,10 +22,10 @@
 
 #include <limits>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
-#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class RoundRobinQueueSelectionPolicy {

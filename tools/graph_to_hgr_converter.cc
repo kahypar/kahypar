@@ -23,7 +23,7 @@
 #include <sstream>
 #include <string>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 void parseHeader(std::string& header_line, int& num_nodes, int& num_edges) {
   std::istringstream line_stream(header_line);

@@ -28,7 +28,7 @@
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/preprocessing/louvain.h"
 #include "kahypar/partition/preprocessing/modularity.h"
 

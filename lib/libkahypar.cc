@@ -22,10 +22,10 @@
 
 #include "kahypar/application/command_line_options.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partitioner_facade.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 #include "kahypar/utils/validate.h"
 
 

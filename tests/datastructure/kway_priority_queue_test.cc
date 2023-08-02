@@ -20,7 +20,7 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar-resources/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 
 using ::testing::Eq;

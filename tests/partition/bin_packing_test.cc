@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "kahypar/partition/bin_packing/bin_packer.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 using ::testing::Eq;
 using ::testing::Test;

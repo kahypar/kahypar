@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "tools/cnf_to_hgr_conversion.h"
 
 namespace po = boost::program_options;

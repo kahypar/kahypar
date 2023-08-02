@@ -24,7 +24,7 @@
 
 #include "include/libkahypar.h"
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 #include "tests/io/hypergraph_io_test_fixtures.h"
 
