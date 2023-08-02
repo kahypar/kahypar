@@ -112,6 +112,8 @@ if(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
   add_compile_definitions(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
 endif(KAHYPAR_ENABLE_HEAVY_REFINEMENT_ASSERTIONS)
 
+add_compile_definitions(KAHYPAR_BUILD)
+
 # # Remove dependency of "install" target to the "all" target
 # set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 
