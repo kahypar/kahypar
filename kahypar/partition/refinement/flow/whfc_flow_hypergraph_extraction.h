@@ -24,8 +24,8 @@
 
 #include <kahypar/definitions.h>
 #include <kahypar/partition/context.h>
-#include <kahypar/utils/randomize.h>
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include <kahypar-resources/utils/randomize.h>
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"

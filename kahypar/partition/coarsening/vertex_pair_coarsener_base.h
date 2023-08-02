@@ -27,16 +27,16 @@
 #include <utility>
 #include <vector>
 
-#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
 #include "kahypar/definitions.h"
-#include "kahypar/meta/int_to_type.h"
+#include "kahypar-resources/meta/int_to_type.h"
 #include "kahypar/partition/coarsening/coarsener_base.h"
 #include "kahypar/partition/coarsening/vertex_pair_rater.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/i_refiner.h"
 #include "kahypar/utils/progress_bar.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 #include "kahypar/utils/time_limit.h"
 
 namespace kahypar {

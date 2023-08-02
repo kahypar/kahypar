@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
-#include "kahypar/meta/registrar.h"
+#include "kahypar-resources/meta/registrar.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"
 #include "kahypar/partition/refinement/2way_fm_flow_refiner.h"

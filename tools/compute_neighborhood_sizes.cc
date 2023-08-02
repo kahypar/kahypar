@@ -24,10 +24,10 @@
 #include <sstream>
 #include <string>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 using namespace kahypar;
 

@@ -28,7 +28,7 @@
 #include "kahypar/partition/evolutionary/individual.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/partitioner.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class Population {

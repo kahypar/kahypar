@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "kahypar/meta/registrar.h"
+#include "kahypar-resources/meta/registrar.h"
 #include "kahypar/partition/coarsening/do_nothing_coarsener.h"
 #include "kahypar/partition/coarsening/full_vertex_pair_coarsener.h"
 #include "kahypar/partition/coarsening/lazy_vertex_pair_coarsener.h"

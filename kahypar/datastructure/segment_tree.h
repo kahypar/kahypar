@@ -23,7 +23,7 @@
 
 #include <vector>
 
-#include <kahypar/macros.h>
+#include <kahypar-resources/macros.h>
 
 namespace kahypar {
 namespace ds {

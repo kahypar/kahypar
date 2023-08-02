@@ -21,7 +21,7 @@
 #include "gtest/gtest.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "tools/hgr_to_edgelist_conversion.h"
 
 using ::testing::Test;

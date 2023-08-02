@@ -20,7 +20,7 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
 #include "kahypar/definitions.h"
 
 using ::testing::Test;

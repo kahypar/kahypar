@@ -21,7 +21,7 @@
 #include <sstream>
 #include <string>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "tools/mtx_to_hgr_conversion.h"
 
 namespace mtxconversion {

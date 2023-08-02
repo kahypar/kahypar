@@ -27,7 +27,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 namespace cnfconversion {
 // Convert a SAT instance from simplified DIMACS format

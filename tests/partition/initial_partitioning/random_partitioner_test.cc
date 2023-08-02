@@ -30,7 +30,7 @@
 #include "kahypar/partition/initial_partitioning/policies/ip_start_node_selection_policy.h"
 #include "kahypar/partition/initial_partitioning/random_initial_partitioner.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 using ::testing::Eq;
 using ::testing::Test;

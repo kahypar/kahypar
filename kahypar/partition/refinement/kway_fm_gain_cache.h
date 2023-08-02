@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/meta/mandatory.h"
 #include "kahypar/partition/refinement/gain_cache_element.h"
 
 namespace kahypar {

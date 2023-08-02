@@ -32,8 +32,8 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
-#include "kahypar/meta/abstract_factory.h"
+#include "kahypar-resources/macros.h"
+#include "kahypar-resources/meta/abstract_factory.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/uncontraction_gain_changes.h"

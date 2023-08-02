@@ -28,12 +28,12 @@
 #include <utility>
 #include <vector>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class QuotientGraphBlockScheduler {

@@ -24,7 +24,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 class KaHyParCA : public ::testing::Test {

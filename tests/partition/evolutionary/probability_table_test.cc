@@ -23,7 +23,7 @@
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/probability_tables.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 using ::testing::Eq;
 using ::testing::Test;

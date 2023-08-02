@@ -27,7 +27,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/segment_tree.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 using ::testing::Eq;
 using ::testing::Test;
@@ -127,7 +127,7 @@ using SumOfPowers = ParametrizedSegmentTree<int, int, sum_of_powers_func, sum_of
 
 
 // Checks Segment Query Results against naive implementation
-template<typename SegTree, int (*naive)(const size_t &, const size_t &, const std::vector<int>& seq, const int& param)> 
+template<typename SegTree, int (*naive)(const size_t &, const size_t &, const std::vector<int>& seq, const int& param)>
 void check_query_result(size_t size, SegTree seg_tree, const std::vector<int>& seq, const int& param) {
 //   size_t cnt = 1;
   for (size_t i = 0; i < size; ++i) {

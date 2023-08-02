@@ -29,9 +29,9 @@
 #include <utility>
 #include <vector>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
-#include "kahypar/macros.h"
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/macros.h"
+#include "kahypar-resources/meta/mandatory.h"
 #include "kahypar/utils/float_compare.h"
 
 namespace kahypar {

@@ -22,7 +22,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/kahypar.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "kahypar/partition/fixed_vertices.h"
 
 using ::testing::Test;

@@ -29,13 +29,13 @@
 
 #include "gtest/gtest_prod.h"
 
-#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
 #include "kahypar/datastructure/fast_reset_array.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/datastructure/sparse_set.h"
 #include "kahypar/definitions.h"
-#include "kahypar/meta/mandatory.h"
-#include "kahypar/meta/template_parameter_to_string.h"
+#include "kahypar-resources/meta/mandatory.h"
+#include "kahypar-resources/meta/template_parameter_to_string.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/2way_fm_gain_cache.h"
@@ -44,7 +44,7 @@
 #include "kahypar/partition/refinement/move.h"
 #include "kahypar/partition/refinement/policies/fm_improvement_policy.h"
 #include "kahypar/utils/float_compare.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 template <class StoppingPolicy = Mandatory,

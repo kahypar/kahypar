@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 namespace {
 // handle all next_prime(i) for i in [1, 210), special case 0

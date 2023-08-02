@@ -24,7 +24,7 @@
 #include <memory>
 #include <vector>
 
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/meta/mandatory.h"
 
 namespace kahypar {
 namespace ds {

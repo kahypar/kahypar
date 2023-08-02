@@ -21,7 +21,7 @@
 #include "gmock/gmock.h"
 
 #include "kahypar/definitions.h"
-#include "kahypar/meta/registrar.h"
+#include "kahypar-resources/meta/registrar.h"
 #include "kahypar/partition/metrics.h"
 #include "kahypar/partition/refinement/2way_fm_refiner.h"
 #include "kahypar/partition/refinement/do_nothing_refiner.h"

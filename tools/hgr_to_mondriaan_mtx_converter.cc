@@ -23,7 +23,7 @@
 
 #include "kahypar/definitions.h"
 #include "kahypar/io/hypergraph_io.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 #include "tools/hgr_to_mtx_conversion.h"
 
 int main(int argc, char* argv[]) {

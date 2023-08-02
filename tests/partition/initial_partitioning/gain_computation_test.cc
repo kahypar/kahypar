@@ -23,9 +23,9 @@
 
 #include "gmock/gmock.h"
 
-#include "kahypar/datastructure/binary_heap.h"
-#include "kahypar/datastructure/fast_reset_flag_array.h"
-#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioner_base.h"
 #include "kahypar/partition/initial_partitioning/policies/ip_gain_computation_policy.h"

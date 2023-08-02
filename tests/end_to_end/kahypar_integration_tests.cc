@@ -26,7 +26,7 @@
 #include "kahypar/kahypar.h"
 #include "kahypar/partitioner_facade.h"
 #include "kahypar/partition/context.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 #include "tests/end_to_end/kahypar_test_fixtures.h"
 #include "include/libkahypar.h"
 

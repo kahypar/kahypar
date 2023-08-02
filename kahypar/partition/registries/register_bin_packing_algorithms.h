@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "kahypar/meta/registrar.h"
+#include "kahypar-resources/meta/registrar.h"
 #include "kahypar/partition/bin_packing/bin_packer.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/factories.h"

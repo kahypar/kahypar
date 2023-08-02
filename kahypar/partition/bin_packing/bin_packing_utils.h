@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "kahypar/partition/context.h"
-#include "kahypar/datastructure/binary_heap.h"
+#include "kahypar-resources/datastructure/binary_heap.h"
 
 namespace kahypar {
 namespace bin_packing {

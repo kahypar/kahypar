@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "kahypar/datastructure/bucket_queue.h"
-#include "kahypar/datastructure/kway_priority_queue.h"
+#include "kahypar-resources/datastructure/kway_priority_queue.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/refinement/move.h"

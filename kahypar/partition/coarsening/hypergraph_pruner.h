@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "kahypar/datastructure/fast_reset_flag_array.h"
+#include "kahypar-resources/datastructure/fast_reset_flag_array.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/coarsening/coarsening_memento.h"
 #include "kahypar/utils/math.h"

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "kahypar/meta/policy_registry.h"
+#include "kahypar-resources/meta/policy_registry.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/initial_partitioning/initial_partitioning.h"
 

@@ -27,11 +27,11 @@
 
 #include "kahypar/datastructure/graph.h"
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
-#include "kahypar/meta/mandatory.h"
+#include "kahypar-resources/macros.h"
+#include "kahypar-resources/meta/mandatory.h"
 #include "kahypar/partition/context.h"
 #include "kahypar/partition/preprocessing/modularity.h"
-#include "kahypar/utils/randomize.h"
+#include "kahypar-resources/utils/randomize.h"
 #include "kahypar/utils/stats.h"
 #include "kahypar/utils/timer.h"
 

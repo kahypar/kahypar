@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "kahypar/definitions.h"
-#include "kahypar/macros.h"
+#include "kahypar-resources/macros.h"
 
 namespace kahypar {
 namespace phylo {
