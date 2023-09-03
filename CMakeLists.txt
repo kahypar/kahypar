@@ -193,7 +193,7 @@ if(KAHYPAR_USE_MINIMAL_BOOST)
   # glob boost sources
   file(GLOB MINI_BOOST_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/libs/program_options/src/*.cpp)
 
-  add_library(mini_boost STATIC ${MINI_BOOST_SOURCES})
+  add_library(mini_boost ${MINI_BOOST_SOURCES})
   set_target_properties(mini_boost PROPERTIES LINKER_LANGUAGE CXX)
   set(Boost_LIBRARIES mini_boost)
   set(Boost_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/external_tools/boost/boost/)
