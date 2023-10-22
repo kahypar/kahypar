@@ -100,7 +100,7 @@ static inline void readHypergraphFile(const std::string& filename, HypernodeID& 
     index_vector.push_back(edge_vector.size());
     if (line_number_vector != nullptr) {
       line_number_vector->reserve(static_cast<size_t>(num_hyperedges) +
-                                  has_hypernode_weights ? static_cast<size_t>(num_hypernodes) : 0);
+                                  (has_hypernode_weights ? static_cast<size_t>(num_hypernodes) : 0));
       line_number_vector->clear();
     }
 
