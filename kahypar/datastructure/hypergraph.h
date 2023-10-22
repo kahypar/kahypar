@@ -372,15 +372,16 @@ class GenericHypergraph {
    *
    */
   template <typename ElementType>
-  class HypergraphElementIterator :
-    public std::iterator<std::forward_iterator_tag,    // iterator_category
-                         typename ElementType::IDType,   // value_type
-                         std::ptrdiff_t,   // difference_type
-                         const typename ElementType::IDType*,   // pointer
-                         typename ElementType::IDType>{   // reference
+  class HypergraphElementIterator {
     using IDType = typename ElementType::IDType;
 
  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = typename ElementType::IDType;
+    using difference_type = std::ptrdiff_t;
+    using pointer = const typename ElementType::IDType*;
+    using reference = typename ElementType::IDType;
+
     HypergraphElementIterator() = default;
 
     HypergraphElementIterator(const HypergraphElementIterator& other) = default;

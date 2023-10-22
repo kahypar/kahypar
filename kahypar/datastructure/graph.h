@@ -60,13 +60,15 @@ class Graph {
  private:
   static constexpr bool enable_heavy_assert = false;
 
-  class NodeIDIterator : public std::iterator<
-                           std::forward_iterator_tag,  // iterator_category
-                           NodeID,  // value_type
-                           std::ptrdiff_t,  // difference_type
-                           NodeID*,  // pointer
-                           NodeID>{  // reference
+  class NodeIDIterator {
  public:
+
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = NodeID;
+    using difference_type = std::ptrdiff_t;
+    using pointer = NodeID*;
+    using reference = NodeID;
+
     explicit NodeIDIterator(const NodeID start) :
       _i(start) { }
 
