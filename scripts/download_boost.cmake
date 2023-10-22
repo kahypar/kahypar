@@ -1,7 +1,7 @@
 include(FetchContent)
 FetchContent_Populate(
   boost-src
-  URL http://downloads.sourceforge.net/project/boost/boost/1.69.0/boost_1_69_0.tar.bz2
-  URL_HASH MD5=a1332494397bf48332cb152abfefcec2
+  URL https://sourceforge.net/projects/boost/files/boost/1.83.0/boost_1_83_0.tar.bz2
+  URL_HASH MD5=406f0b870182b4eb17a23a9d8fce967d
   SOURCE_DIR external_tools/boost
 )
