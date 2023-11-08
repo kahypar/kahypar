@@ -65,6 +65,10 @@ void kahypar_set_seed(kahypar_context_t* kahypar_context, const int seed) {
   context.partition.seed =seed;
 }
 
+void kahypar_supress_output(kahypar_context_t* kahypar_context, const bool decision) {
+  kahypar::Context& context = *reinterpret_cast<kahypar::Context*>(kahypar_context);
+  context.partition.quiet_mode = decision;
+}
 
 void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
                                          const char* ini_file_name) {
