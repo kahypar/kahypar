@@ -97,7 +97,7 @@ enum class InputErrorType : uint8_t {
   FirstHyperedgeIndexNotZero,   // first entry in index array not zero
   HyperedgeIndexDescending,     // index array is not in ascending order
   HyperedgeOutOfBounds,         // size of hyperedge (according to index array) is larger than number of nodes
-  HyperedgeSizeZeroOrOne,       // size of hyperedge is zero or one
+  HyperedgeSizeZero,            // size of hyperedge is zero
   HyperedgeWeightZero,          // weight of hyperedge is zero
   HyperedgeDuplicatePin,        // hyperedge contains duplicate pins
   HyperedgeInvalidPin,          // pin index is not a valid hypernode ID
@@ -109,7 +109,7 @@ bool isFatal(const InputErrorType& type) {
     case InputErrorType::FirstHyperedgeIndexNotZero:  return true;
     case InputErrorType::HyperedgeIndexDescending:    return true;
     case InputErrorType::HyperedgeOutOfBounds:        return true;
-    case InputErrorType::HyperedgeSizeZeroOrOne:      return false;
+    case InputErrorType::HyperedgeSizeZero:           return false;
     case InputErrorType::HyperedgeWeightZero:         return false;
     case InputErrorType::HyperedgeDuplicatePin:       return false;
     case InputErrorType::HyperedgeInvalidPin:         return true;
@@ -126,8 +126,8 @@ static std::ostream& operator<< (std::ostream& os, const InputErrorType& type) {
       return os << "Hyperedge indices must be in ascending order";
     case InputErrorType::HyperedgeOutOfBounds:
       return os << "Hyperedge has too many entries";
-    case InputErrorType::HyperedgeSizeZeroOrOne:
-      return os << "Hyperedge with size 0 or 1";
+    case InputErrorType::HyperedgeSizeZero:
+      return os << "Hyperedge with size 0";
     case InputErrorType::HyperedgeWeightZero:
       return os << "Hyperedge with weight 0";
     case InputErrorType::HyperedgeDuplicatePin:
@@ -187,13 +187,17 @@ bool validateInput(const HypernodeID num_hypernodes, const HyperedgeID num_hyper
   for (HyperedgeID he = 0; he < num_hyperedges; ++he) {
     // check hyperedge_indices
     bool ignore_hyperedge = false;
+    const size_t hyperedge_size = hyperedge_indices[he + 1] - hyperedge_indices[he];
     if (hyperedge_indices[he + 1] < hyperedge_indices[he]) {
       report_error(InputErrorType::HyperedgeIndexDescending, he);
       continue;  // no hyperedge here in any meaningful sense
-    } else if (hyperedge_indices[he + 1] - hyperedge_indices[he] <= 1) {
-      report_error(InputErrorType::HyperedgeSizeZeroOrOne, he);
+    } else if (hyperedge_size == 0) {
+      report_error(InputErrorType::HyperedgeSizeZero, he);
       ignore_hyperedge = true;
-    } else if (hyperedge_indices[he + 1] - hyperedge_indices[he] > num_hypernodes) {
+    } else if (hyperedge_size == 1) {
+      // remove the hyperedge for efficiency reasons
+      ignore_hyperedge = true;
+    } else if (hyperedge_size > num_hypernodes) {
       // this check should hopefully prevent an overly long running time in case the indices are garbage
       report_error(InputErrorType::HyperedgeOutOfBounds, he);
       continue;

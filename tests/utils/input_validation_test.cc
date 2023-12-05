@@ -81,8 +81,7 @@ TEST_F(ValidateInputTest, ReportsEachError) {
   ASSERT_TRUE(compareToExpected(errors, { InputError{InputErrorType::HyperedgeOutOfBounds, 0} }));
 
   std::tie(errors, hes, pins) = runValidation(1, 2, {0, 0, 1}, {0});
-  ASSERT_TRUE(compareToExpected(errors, { InputError{InputErrorType::HyperedgeSizeZeroOrOne, 0},
-                                          InputError{InputErrorType::HyperedgeSizeZeroOrOne, 1} }));
+  ASSERT_TRUE(compareToExpected(errors, { InputError{InputErrorType::HyperedgeSizeZero, 0} }));
 
   std::tie(errors, hes, pins) = runValidation(2, 1, {0, 2}, {0, 1}, {0});
   ASSERT_TRUE(compareToExpected(errors, { InputError{InputErrorType::HyperedgeWeightZero, 0} }));
@@ -98,19 +97,18 @@ TEST_F(ValidateInputTest, ReportsEachError) {
 }
 
 TEST_F(ValidateInputTest, ReportsMultipleErrors) {
-  auto [errors, hes, pins] = runValidation(4, 3, {0, 1, 4, 13}, {13, 1, 3, 3, 0});
+  auto [errors, hes, pins] = runValidation(4, 4, {0, 0, 1, 4, 13}, {13, 1, 3, 3, 0});
   ASSERT_TRUE(compareToExpected(errors, {
-    InputError{InputErrorType::HyperedgeSizeZeroOrOne, 0}, InputError{InputErrorType::HyperedgeInvalidPin, 0},
-    InputError{InputErrorType::HyperedgeDuplicatePin, 1}, InputError{InputErrorType::HyperedgeOutOfBounds, 2}
+    InputError{InputErrorType::HyperedgeSizeZero, 0}, InputError{InputErrorType::HyperedgeInvalidPin, 1},
+    InputError{InputErrorType::HyperedgeDuplicatePin, 2}, InputError{InputErrorType::HyperedgeOutOfBounds, 3}
   }));
 }
 
 TEST_F(ValidateInputTest, ReportsIgnoredHEsAndPins) {
   auto [errors, hes, pins] = runValidation(4, 5, {0, 0, 1, 4, 6, 10}, {0, 1, 1, 2, 0, 1, 2, 3, 2, 2}, {1, 1, 1, 0, 1});
   ASSERT_TRUE(compareToExpected(errors, {
-    InputError{InputErrorType::HyperedgeSizeZeroOrOne, 0}, InputError{InputErrorType::HyperedgeSizeZeroOrOne, 1},
-    InputError{InputErrorType::HyperedgeDuplicatePin, 2}, InputError{InputErrorType::HyperedgeWeightZero, 3},
-    InputError{InputErrorType::HyperedgeDuplicatePin, 4}
+    InputError{InputErrorType::HyperedgeSizeZero, 0}, InputError{InputErrorType::HyperedgeDuplicatePin, 2},
+    InputError{InputErrorType::HyperedgeWeightZero, 3}, InputError{InputErrorType::HyperedgeDuplicatePin, 4}
   }));
   ASSERT_EQ(hes.size(), 3);
   ASSERT_EQ(hes[0], 0);
