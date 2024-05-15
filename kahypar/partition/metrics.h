@@ -53,6 +53,25 @@ struct Metrics {
     }
   }
 
+  void deltaUpdateMetric(const HyperedgeWeight value, const Mode mode, const Objective objective) {
+    if (mode == Mode::direct_kway) {
+      switch (objective) {
+        case Objective::cut:
+          cut += value;
+          break;
+        case Objective::km1:
+          km1 += value;
+          break;
+        default:
+          LOG << "Unknown Objective";
+          exit(-1);
+      }
+    } else if (mode == Mode::recursive_bisection) {
+      // in recursive bisection, km1 is also optimized via the cut net metric
+      cut += value;
+    }
+  }
+
   HyperedgeWeight getMetric(const Mode mode, const Objective objective) {
     if (mode == Mode::direct_kway) {
       switch (objective) {
@@ -122,6 +141,26 @@ static inline HyperedgeWeight objective(const Hypergraph& hg, const Objective& o
     default:
       LOG << "Unknown Objective";
       exit(-1);
+  }
+}
+
+static inline bool checkMetric(const Hypergraph& hg, const Metrics& metrics, const Mode mode, const Objective objective) {
+  if (mode == Mode::direct_kway) {
+    switch (objective) {
+      case Objective::cut:
+        return metrics::hyperedgeCut(hg) == metrics.cut;
+      case Objective::km1:
+        return metrics::km1(hg) == metrics.km1;
+      default:
+        LOG << "Unknown Objective";
+        exit(-1);
+    }
+  } else if (mode == Mode::recursive_bisection) {
+    // in recursive bisection, km1 is also optimized via the cut net metric
+    return metrics::hyperedgeCut(hg) == metrics.cut;
+  } else {
+    LOG << "Unknown mode";
+    exit(-1);
   }
 }
 
