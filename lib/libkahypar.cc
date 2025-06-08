@@ -24,6 +24,7 @@
 #include "kahypar/io/hypergraph_io.h"
 #include "kahypar-resources/macros.h"
 #include "kahypar/partition/context.h"
+#include "kahypar/partition/metrics.h"
 #include "kahypar/partitioner_facade.h"
 #include "kahypar-resources/utils/randomize.h"
 #include "kahypar/utils/validate.h"
@@ -314,4 +315,36 @@ void kahypar_improve_partition(const kahypar_hypernode_id_t num_vertices,
                     objective,
                     kahypar_context,
                     improved_partition);
+}
+
+
+KAHYPAR_API kahypar_partition_id_t kahypar_hyperedge_connectivity(const kahypar_hypergraph_t* kahypar_hypergraph, const kahypar_hyperedge_id_t he_id) {
+   const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+   return hypergraph.connectivity(he_id);
+}
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_cut_objective(const kahypar_hypergraph_t* kahypar_hypergraph) {
+  const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+  return kahypar::metrics::hyperedgeCut(hypergraph);
+}
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_soed_objective(const kahypar_hypergraph_t* kahypar_hypergraph)  {
+  const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+  return kahypar::metrics::soed(hypergraph);
+}
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_km1_objective(const kahypar_hypergraph_t* kahypar_hypergraph)  {
+  const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+  return kahypar::metrics::km1(hypergraph);
+}
+
+KAHYPAR_API double kahypar_absorption_objective(const kahypar_hypergraph_t* kahypar_hypergraph)  {
+  const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+  return kahypar::metrics::absorption(hypergraph);
+}
+
+KAHYPAR_API double kahypar_imbalance(const kahypar_hypergraph_t* kahypar_hypergraph, const kahypar_context_t* kahypar_context) {
+  const kahypar::Context & context = *reinterpret_cast<const kahypar::Context*>(kahypar_context);
+  const kahypar::Hypergraph& hypergraph = *reinterpret_cast<const kahypar::Hypergraph*>(kahypar_hypergraph);
+  return kahypar::metrics::imbalance(hypergraph, context);
 }
