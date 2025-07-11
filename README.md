@@ -47,7 +47,7 @@ net. By summing the (λ − 1)-values of all nets, one accurately models the tot
 volume of parallel sparse matrix-vector multiplication and once more gets a metric that reverts
 to edge-cut for plain graphs.
 
-<img src="https://cloud.githubusercontent.com/assets/484403/25314222/3a3bdbda-2840-11e7-9961-3bbc59b59177.png" alt="alt text" width="50%" height="50%"><img src="https://cloud.githubusercontent.com/assets/484403/25314225/3e061e42-2840-11e7-860c-028a345d1641.png" alt="alt text" width="50%" height="50%">
+<img src="https://cloud.githubusercontent.com/assets/484403/25314222/3a3bdbda-2840-11e7-9961-3bbc59b59177.png" alt="alt text" width="50%"><img src="https://cloud.githubusercontent.com/assets/484403/25314225/3e061e42-2840-11e7-860c-028a345d1641.png" alt="alt text" width="50%">
 
 What is KaHyPar?
 -----------
@@ -121,12 +121,12 @@ In the figures, we compare KaHyPar with PaToH in quality (PaToH-Q) and default m
 
   <p align="center">
 	<b>Solution Quality</b>
-<img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%" height="50%">
+<img src="https://user-images.githubusercontent.com/484403/67393292-65076000-f5a2-11e9-9605-1dcfd768b045.png" alt="Solution Quality" width="100%">
 	</p>
 
   <p align="center">
 	<b>Running Time</b>
-<img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%" height="50%">
+<img src="https://user-images.githubusercontent.com/484403/67393303-69cc1400-f5a2-11e9-8184-53cf8e5c7cda.png" alt="Running Time" width="100%">
 	</p>
 
 ### Additional Resources
