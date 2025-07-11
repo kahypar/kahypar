@@ -1,4 +1,4 @@
-  <p align="center"><img src="https://user-images.githubusercontent.com/484403/70459249-0fd0d080-1ab4-11ea-833b-17130ecafc0a.png" alt="KaHyPar - Karlsruhe Hypergraph Partitioning" width="60%" height="60%"></p>
+  <p align="center"><img src="https://user-images.githubusercontent.com/484403/70459249-0fd0d080-1ab4-11ea-833b-17130ecafc0a.png" alt="KaHyPar - Karlsruhe Hypergraph Partitioning" ></p>
 
 License|Fossa|Zenodo
 :--:|:--:|:--:
