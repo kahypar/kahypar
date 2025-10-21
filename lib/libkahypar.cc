@@ -77,6 +77,12 @@ void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
                              ini_file_name);
 }
 
+void kahypar_configure_context_from_string(kahypar_context_t* kahypar_context,
+                                         const char* str) {
+  kahypar::parseIniToContextString(*reinterpret_cast<kahypar::Context*>(kahypar_context),
+                             str);
+}
+
 void kahypar_set_fixed_vertices(kahypar_hypergraph_t* kahypar_hypergraph,
                                 const kahypar_partition_id_t* fixed_vertex_blocks) {
   kahypar::Hypergraph& hypergraph = *reinterpret_cast<kahypar::Hypergraph*>(kahypar_hypergraph);
