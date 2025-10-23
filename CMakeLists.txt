@@ -35,6 +35,13 @@ endif()
 include_directories(external_tools)
 include_directories(external_tools/kahypar-shared-resources)
 
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
+option(STATICCOMPILE "Compile to static executable" OFF)
+if (STATICCOMPILE)
+    set(BUILD_SHARED_LIBS OFF)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
+
 option(KAHYPAR_PYTHON_INTERFACE
   "Enable building the python interface" OFF)
 
