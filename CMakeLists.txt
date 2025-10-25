@@ -31,6 +31,8 @@ if(NOT CMAKE_BUILD_TYPE OR
     message(FATAL_ERROR "CMAKE_BUILD_TYPE not set correctly. Options are: Release|RELEASE, Debug|DEBUG, RelWithDebInfo|RELWITHDEBINFO." )
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # add third-party algorithms to project
 include_directories(external_tools)
 include_directories(external_tools/kahypar-shared-resources)
