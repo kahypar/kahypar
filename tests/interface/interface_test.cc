@@ -788,7 +788,7 @@ TEST(Context, CanBeConfiguredFromString) {
   ASSERT_EQ(kahypar_context.preprocessing.community_detection.reuse_communities, false);
   ASSERT_EQ(kahypar_context.preprocessing.community_detection.edge_weight, LouvainEdgeWeight::hybrid);
   ASSERT_EQ(kahypar_context.preprocessing.community_detection.max_pass_iterations, 100);
-  ASSERT_EQ(kahypar_context.preprocessing.community_detection.min_eps_improvement, 0.0001);
+  ASSERT_DOUBLE_EQ(kahypar_context.preprocessing.community_detection.min_eps_improvement, 0.0001);
   ASSERT_EQ(kahypar_context.preprocessing.community_detection.large_he_threshold, 1000);
 
   //# main -> preprocessing -> large he removal
