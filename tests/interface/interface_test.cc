@@ -680,5 +680,183 @@ TEST(Seed, CanBeSetViaLibraryInterface) {
 
   kahypar_context_free(context);
 }
+
+
+TEST(Context, CanBeConfiguredFromString) {
+  kahypar_context_t* context = kahypar_context_new();
+
+  const std::string context_string = R"(
+  # general
+  mode=direct
+  objective=km1
+  seed=23
+  cmaxnet=1000
+  vcycles=1
+  # main -> preprocessing -> min hash sparsifier
+  p-use-sparsifier=true
+  p-sparsifier-min-median-he-size=28
+  p-sparsifier-max-hyperedge-size=1200
+  p-sparsifier-max-cluster-size=10
+  p-sparsifier-min-cluster-size=2
+  p-sparsifier-num-hash-func=5
+  p-sparsifier-combined-num-hash-func=100
+  # main -> preprocessing -> community detection
+  p-detect-communities=true
+  p-detect-communities-in-ip=true
+  p-reuse-communities=false
+  p-max-louvain-pass-iterations=100
+  p-min-eps-improvement=0.0001
+  p-louvain-edge-weight=hybrid
+  p-large-he-threshold=1000
+  # main -> preprocessing -> large he removal
+  p-smallest-maxnet-threshold=50000
+  p-maxnet-removal-factor=0.01
+  # main -> coarsening
+  c-type=ml_style
+  c-s=1
+  c-t=160
+  # main -> coarsening -> rating
+  c-rating-score=heavy_edge
+  c-rating-use-communities=true
+  c-rating-heavy_node_penalty=no_penalty
+  c-rating-acceptance-criterion=best_prefer_unmatched
+  c-fixed-vertex-acceptance-criterion=fixed_vertex_allowed
+  # main -> initial partitioning
+  i-mode=recursive
+  i-technique=multi
+  # initial partitioning -> coarsening
+  i-c-type=ml_style
+  i-c-s=1
+  i-c-t=150
+  # initial partitioning -> coarsening -> rating
+  i-c-rating-score=heavy_edge
+  i-c-rating-use-communities=true
+  i-c-rating-heavy_node_penalty=no_penalty
+  i-c-rating-acceptance-criterion=best_prefer_unmatched
+  i-c-fixed-vertex-acceptance-criterion=fixed_vertex_allowed
+  # initial partitioning -> initial partitioning
+  i-algo=pool
+  i-runs=20
+  # initial partitioning -> bin packing
+  i-bp-algorithm=worst_fit
+  i-bp-heuristic-prepacking=false
+  i-bp-early-restart=true
+  i-bp-late-restart=true
+  # initial partitioning -> local search
+  i-r-type=twoway_fm
+  i-r-runs=-1
+  i-r-fm-stop=simple
+  i-r-fm-stop-i=50
+  # main -> local search
+  r-type=kway_fm_hyperflow_cutter_km1
+  r-runs=-1
+  r-fm-stop=adaptive_opt
+  r-fm-stop-alpha=1
+  r-fm-stop-i=350
+  # local_search -> flow scheduling and heuristics
+  r-flow-execution-policy=exponential
+  # local_search -> hyperflowcutter configuration
+  r-hfc-size-constraint=mf-style
+  r-hfc-scaling=16
+  r-hfc-distance-based-piercing=true
+  r-hfc-mbc=true
+)";
+
+  kahypar_configure_context_from_string(context, context_string.c_str());
+
+  kahypar::Context& kahypar_context = *reinterpret_cast<kahypar::Context*>(context);
+
+  //# general
+  ASSERT_EQ(kahypar_context.partition.mode, Mode::direct_kway);
+  ASSERT_EQ(kahypar_context.partition.objective, Objective::km1);
+  ASSERT_EQ(kahypar_context.partition.seed, 23);
+  ASSERT_EQ(kahypar_context.partition.hyperedge_size_threshold, 1000);
+  ASSERT_EQ(kahypar_context.partition.global_search_iterations, 1);
+
+  // # main -> preprocessing -> min hash sparsifier
+  ASSERT_EQ(kahypar_context.preprocessing.enable_min_hash_sparsifier, true);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.min_median_he_size, 28);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.max_hyperedge_size, 1200);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.max_cluster_size, 10);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.min_cluster_size, 2);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.num_hash_functions, 5);
+  ASSERT_EQ(kahypar_context.preprocessing.min_hash_sparsifier.combined_num_hash_functions, 100);
+
+  // # main -> preprocessing -> community detection
+  ASSERT_EQ(kahypar_context.preprocessing.enable_community_detection, true);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.enable_in_initial_partitioning, true);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.reuse_communities, false);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.edge_weight, LouvainEdgeWeight::hybrid);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.max_pass_iterations, 100);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.min_eps_improvement, 0.0001);
+  ASSERT_EQ(kahypar_context.preprocessing.community_detection.large_he_threshold, 1000);
+
+  //# main -> preprocessing -> large he removal
+  ASSERT_EQ(kahypar_context.partition.smallest_max_he_size_threshold, 50000);
+  ASSERT_EQ(kahypar_context.partition.max_he_size_threshold_factor, 0.01);
+
+  //# main -> coarsening
+  ASSERT_EQ(kahypar_context.coarsening.algorithm, CoarseningAlgorithm::ml_style);
+  ASSERT_EQ(kahypar_context.coarsening.contraction_limit_multiplier, 160);
+  ASSERT_EQ(kahypar_context.coarsening.max_allowed_weight_multiplier, 1);
+
+  //# main -> coarsening -> rating
+  ASSERT_EQ(kahypar_context.coarsening.rating.rating_function, RatingFunction::heavy_edge);
+  ASSERT_EQ(kahypar_context.coarsening.rating.community_policy, CommunityPolicy::use_communities);
+  ASSERT_EQ(kahypar_context.coarsening.rating.heavy_node_penalty_policy, HeavyNodePenaltyPolicy::no_penalty);
+  ASSERT_EQ(kahypar_context.coarsening.rating.acceptance_policy, AcceptancePolicy::best_prefer_unmatched);
+  ASSERT_EQ(kahypar_context.coarsening.rating.fixed_vertex_acceptance_policy, FixVertexContractionAcceptancePolicy::fixed_vertex_allowed);
+
+  //# main -> initial partitioning
+  ASSERT_EQ(kahypar_context.initial_partitioning.mode, Mode::recursive_bisection);
+  ASSERT_EQ(kahypar_context.initial_partitioning.technique, InitialPartitioningTechnique::multilevel);
+
+  //# initial partitioning -> coarsening
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.algorithm, CoarseningAlgorithm::ml_style);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.contraction_limit_multiplier, 150);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.max_allowed_weight_multiplier, 1);
+
+  //# initial partitioning -> coarsening -> rating
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.rating.rating_function, RatingFunction::heavy_edge);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.rating.community_policy, CommunityPolicy::use_communities);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.rating.heavy_node_penalty_policy, HeavyNodePenaltyPolicy::no_penalty);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.rating.acceptance_policy, AcceptancePolicy::best_prefer_unmatched);
+  ASSERT_EQ(kahypar_context.initial_partitioning.coarsening.rating.fixed_vertex_acceptance_policy, FixVertexContractionAcceptancePolicy::fixed_vertex_allowed);
+
+  //# initial partitioning -> initial partitioning
+  ASSERT_EQ(kahypar_context.initial_partitioning.algo, InitialPartitionerAlgorithm::pool);
+  ASSERT_EQ(kahypar_context.initial_partitioning.nruns, 20);
+
+  //# initial partitioning -> bin packing
+  ASSERT_EQ(kahypar_context.initial_partitioning.bp_algo, BinPackingAlgorithm::worst_fit);
+  ASSERT_EQ(kahypar_context.initial_partitioning.use_heuristic_prepacking, false);
+  ASSERT_EQ(kahypar_context.initial_partitioning.enable_early_restart, true);
+  ASSERT_EQ(kahypar_context.initial_partitioning.enable_late_restart, true);
+
+  //# initial partitioning -> local search
+  ASSERT_EQ(kahypar_context.initial_partitioning.local_search.algorithm, RefinementAlgorithm::twoway_fm);
+  ASSERT_EQ(kahypar_context.initial_partitioning.local_search.iterations_per_level, 2147483647);
+  ASSERT_EQ(kahypar_context.initial_partitioning.local_search.fm.stopping_rule, RefinementStoppingRule::simple);
+  ASSERT_EQ(kahypar_context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves, 50);
+
+  //# main -> local search
+  ASSERT_EQ(kahypar_context.local_search.algorithm, RefinementAlgorithm::kway_fm_hyperflow_cutter_km1);
+  ASSERT_EQ(kahypar_context.local_search.iterations_per_level, 2147483647);
+  ASSERT_EQ(kahypar_context.local_search.fm.stopping_rule, RefinementStoppingRule::adaptive_opt);
+  ASSERT_EQ(kahypar_context.local_search.fm.adaptive_stopping_alpha, 1);
+  ASSERT_EQ(kahypar_context.local_search.fm.max_number_of_fruitless_moves, 350);
+
+  //# local_search -> flow scheduling and heuristics
+  ASSERT_EQ(kahypar_context.local_search.flow.execution_policy, FlowExecutionMode::exponential);
+
+  //# local_search -> hyperflowcutter configuration
+  ASSERT_EQ(kahypar_context.local_search.hyperflowcutter.flowhypergraph_size_constraint, FlowHypergraphSizeConstraint::scaled_max_part_weight_fraction_minus_opposite_side);
+  ASSERT_EQ(kahypar_context.local_search.hyperflowcutter.snapshot_scaling, 16);
+  ASSERT_EQ(kahypar_context.local_search.hyperflowcutter.use_distances_from_cut, true);
+  ASSERT_EQ(kahypar_context.local_search.hyperflowcutter.most_balanced_cut, true);
+
+  kahypar_context_free(context);
+}
+
 }  // namespace io
 }  // namespace kahypar
