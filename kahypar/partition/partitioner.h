@@ -55,7 +55,7 @@ class APartitionedHypergraph;
 
 
 namespace partition {
-static inline void partition(Hypergraph& hypergraph, const Context& context) {
+inline void partition(Hypergraph& hypergraph, const Context& context) {
   ASSERT([&]() {
         if (context.partition.mode != Mode::recursive_bisection &&
             context.preprocessing.enable_community_detection) {
@@ -128,9 +128,9 @@ class Partitioner {
   friend class io::APartitionOfAHypergraph_IsCorrectlyWrittenToFile_Test;
   friend class metrics::APartitionedHypergraph;
 
-  static inline void setupContext(const Hypergraph& hypergraph, Context& context);
+  inline void setupContext(const Hypergraph& hypergraph, Context& context);
 
-  static inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context);
+  inline void configurePreprocessing(const Hypergraph& hypergraph, Context& context);
 
   inline void sanitize(Hypergraph& hypergraph, const Context& context);
 

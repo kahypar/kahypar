@@ -42,7 +42,7 @@ class ASequence : public Test {
     sequence() {
       std::mt19937 gen(std::random_device{}());
       int seed = std::uniform_int_distribution<>{ 0 }(gen);
-      Randomize& random = Randomize::instance();
+      Randomize random;
       random.setSeed(seed);
       size_t size = random.getRandomInt(0, max_size);
 

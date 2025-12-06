@@ -209,7 +209,7 @@ class TwoWayFMRefiner final : public IRefiner,
 
     updateGainCacheAfterUncontraction(refinement_nodes, changes);
 
-    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
+    _context.randomize.shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
       activate(hn, max_allowed_part_weights);
 

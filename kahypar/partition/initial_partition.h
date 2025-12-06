@@ -32,13 +32,13 @@
 namespace kahypar {
 namespace partition {
 // forward declaration
-static inline void partition(Hypergraph& hypergraph, const Context& context);
+inline void partition(Hypergraph& hypergraph, const Context& context);
 }
 
 namespace initial {
 static constexpr bool debug = false;
 
-static inline Context createContext(const Hypergraph& hg,
+inline Context createContext(const Hypergraph& hg,
                                     const Context& original_context) {
   Context context(original_context);
 
@@ -137,7 +137,7 @@ static inline Context createContext(const Hypergraph& hg,
 }
 
 
-static inline void partition(Hypergraph& hg,
+inline void partition(Hypergraph& hg,
                              const Context& context) {
   auto extracted_init_hypergraph = ds::reindex(hg);
   Hypergraph& init_hg = *extracted_init_hypergraph.first;

@@ -51,13 +51,6 @@ using LastWinsRater = VertexPairRater<HeavyEdgeScore,
                                       BestRatingWithTieBreaking<LastRatingWins>,
                                       AllowFreeOnFixedFreeOnFreeFixedOnFixed,
                                       RatingType>;
-using RandomWinsRater = VertexPairRater<HeavyEdgeScore,
-                                        MultiplicativePenalty,
-                                        UseCommunityStructure,
-                                        NormalPartitionPolicy,
-                                        BestRatingWithTieBreaking<RandomRatingWins>,
-                                        AllowFreeOnFixedFreeOnFreeFixedOnFixed,
-                                        RatingType>;
 
 class ARater : public Test {
  public:
@@ -91,16 +84,6 @@ class ALastWinsRater : public ARater {
   LastWinsRater rater;
 };
 
-class ARandomWinsRater : public ARater {
- public:
-  ARandomWinsRater() :
-    ARater(new Hypergraph(7, 4, HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
-                          HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 })),
-    rater(*hypergraph, context) { }
-
-  RandomWinsRater rater;
-};
-
 class AHyperedgeRater : public ARater {
  public:
   AHyperedgeRater() :
@@ -127,14 +110,6 @@ TEST_F(ALastWinsRater, UsesLastRatingEntryOfEqualRatings) {
   ASSERT_THAT(rater.rate(6).target, Eq(3));
   ASSERT_THAT(rater.rate(5).value, DoubleEq(0.5));
   ASSERT_THAT(rater.rate(5).target, Eq(2));
-}
-
-
-TEST_F(ARandomWinsRater, UsesRandomRatingEntryOfEqualRatings) {
-  ASSERT_THAT(rater.rate(6).value, DoubleEq(0.5));
-  ASSERT_THAT(rater.rate(6).target, AnyOf(5, 2, 4, 3));
-  ASSERT_THAT(rater.rate(5).value, DoubleEq(0.5));
-  ASSERT_THAT(rater.rate(5).target, AnyOf(2, 6));
 }
 
 TEST_F(AFirstWinsRater, DoesNotRateNodePairsViolatingThresholdNodeWeight) {

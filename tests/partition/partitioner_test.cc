@@ -87,7 +87,7 @@ class MultilevelPartitioning : public Test {
     context.initial_partitioning.local_search.algorithm = RefinementAlgorithm::twoway_fm;
     context.initial_partitioning.local_search.fm.max_number_of_fruitless_moves = 50;
     context.initial_partitioning.local_search.fm.stopping_rule = RefinementStoppingRule::simple;
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
     coarsener.reset(new FirstWinsCoarsener(*hypergraph, context,  /* heaviest_node_weight */ 1));
     refiner.reset(new Refiner(*hypergraph, context));
   }

@@ -47,7 +47,7 @@ class PartitionerFacade {
 
     sanityCheck(hypergraph, context);
 
-    Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
 
     if (!context.partition.fixed_vertex_filename.empty()) {
       io::readFixedVertexFile(hypergraph, context.partition.fixed_vertex_filename);

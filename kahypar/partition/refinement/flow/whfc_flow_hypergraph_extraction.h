@@ -74,7 +74,7 @@ class FlowHypergraphExtractor {
 
     auto[maxW0, maxW1] = flowHyperGraphPartSizes(context, hg);
     HypernodeWeight w0 = 0, w1 = 0;
-    std::shuffle(cut_hes.begin(), cut_hes.end(), Randomize::instance().getGenerator());
+    std::shuffle(cut_hes.begin(), cut_hes.end(), context.randomize.getGenerator());
 
     // collect b0
     result.source = whfc::Node::fromOtherValueType(queue.queueEnd());

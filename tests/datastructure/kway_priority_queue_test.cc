@@ -31,13 +31,16 @@ namespace ds {
 class AKWayPriorityQueue : public Test {
  public:
   AKWayPriorityQueue() :
-    prio_queue(4) {
+    randomize(),
+    prio_queue(4, randomize) {
 #ifdef USE_BUCKET_PQ
     prio_queue.initialize(100, 200);
 #else
     prio_queue.initialize(100);
 #endif
   }
+
+  Randomize randomize;
 
   KWayPriorityQueue<HypernodeID, HyperedgeWeight,
                     std::numeric_limits<HyperedgeWeight> > prio_queue;

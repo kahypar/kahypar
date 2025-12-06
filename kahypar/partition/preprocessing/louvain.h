@@ -173,7 +173,7 @@ class Louvain {
 
     // only false for testing purposes
     if (RandomizeNodes) {
-      Randomize::instance().shuffleVector(_random_node_order, _random_node_order.size());
+      _context.randomize.shuffleVector(_random_node_order, _random_node_order.size());
     }
 
     // PERFORMANCE TUNING:

@@ -61,7 +61,7 @@ class BinPackingInitialPartitioner : public IInitialPartitioner,
     for (size_t j = 1; j < _descending_nodes.size(); ++j) {
       if (_hg.nodeWeight(_descending_nodes[i]) != _hg.nodeWeight(_descending_nodes[j])) {
         if (j > i + 1) {
-          Randomize::instance().shuffleVector(_descending_nodes, i, j);
+          _context.randomize.shuffleVector(_descending_nodes, i, j);
         }
         i = j;
       }

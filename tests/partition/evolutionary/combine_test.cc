@@ -40,8 +40,8 @@ namespace kahypar {
 class ACombine : public Test {
  public:
   ACombine() :
-    population(),
     context(),
+    population(context.randomize),
     hypergraph(8, 7, HyperedgeIndexVector { 0, 2, 4, 6, 8, 10, 14  /*sentinel*/, 18 },
                HyperedgeVector { 0, 1, 2, 3, 4, 5, 6, 7, 0, 4, 0, 1, 2, 3, 4, 5, 6, 7 }) { hypergraph.changeK(2); }
   Population population;

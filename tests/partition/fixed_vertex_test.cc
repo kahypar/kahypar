@@ -57,7 +57,7 @@ class FixedVertex : public Test {
                                                  * context.partition.perfect_balance_part_weights[0]);
     context.partition.max_part_weights.push_back((1 + context.partition.epsilon)
                                                  * context.partition.perfect_balance_part_weights[1]);
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
 
     hypergraph->setFixedVertex(0, 1);
     hypergraph->setNodePart(1, 0);

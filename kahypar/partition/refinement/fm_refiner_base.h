@@ -79,7 +79,7 @@ class FMRefinerBase {
   FMRefinerBase(Hypergraph& hypergraph, const Context& context) :
     _hg(hypergraph),
     _context(context),
-    _pq(context.partition.k),
+    _pq(context.partition.k, context.randomize),
     _performed_moves(),
     _hns_to_activate() {
     _performed_moves.reserve(_hg.initialNumNodes());

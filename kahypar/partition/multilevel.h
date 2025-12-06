@@ -38,7 +38,7 @@ using bin_packing::BalancingLevel;
 
 static constexpr bool debug = false;
 
-static inline void partition(Hypergraph& hypergraph,
+inline void partition(Hypergraph& hypergraph,
                              ICoarsener& coarsener,
                              IRefiner& refiner,
                              const Context& context) {
@@ -128,7 +128,7 @@ static inline void partition(Hypergraph& hypergraph,
   io::printLocalSearchResults(context, hypergraph);
 }
 
-static inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
+inline void partitionRepeatedOnInfeasible(Hypergraph& hypergraph,
                                                  const Context& context,
                                                  Context::PartitioningStats& stats,
                                                  const BalancingLevel level,

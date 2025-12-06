@@ -26,7 +26,7 @@ namespace pick {
 // NOTE: edge-frequency-information will not be picked by the random strategy.
 inline static EvoCombineStrategy appropriateCombineStrategy(const Context& context) {
   if (context.evolutionary.random_combine_strategy) {
-    const float random_pick = Randomize::instance().getRandomFloat(0, 1);
+    const float random_pick = context.randomize.getRandomFloat(0, 1);
     if (context.evolutionary.edge_frequency_chance >= random_pick) {
       return EvoCombineStrategy::edge_frequency;
     } else {
@@ -38,7 +38,7 @@ inline static EvoCombineStrategy appropriateCombineStrategy(const Context& conte
 }
 inline static EvoMutateStrategy appropriateMutateStrategy(const Context& context) {
   if (context.evolutionary.random_vcycles) {
-    if (Randomize::instance().flipCoin()) {
+    if (context.randomize.flipCoin()) {
       return EvoMutateStrategy::vcycle;
     } else {
       return EvoMutateStrategy::new_initial_partitioning_vcycle;

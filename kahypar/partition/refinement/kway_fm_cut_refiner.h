@@ -126,7 +126,7 @@ class KWayFMRefiner final : public IRefiner,
     _locked_hes.resetUsedEntries();
 
 
-    Randomize::instance().shuffleVector(refinement_nodes, refinement_nodes.size());
+    _context.randomize.shuffleVector(refinement_nodes, refinement_nodes.size());
     for (const HypernodeID& hn : refinement_nodes) {
       activate<true>(hn);
     }

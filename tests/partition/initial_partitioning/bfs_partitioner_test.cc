@@ -69,11 +69,12 @@ void initializeContext(Context& context, PartitionID k,
 
 void generateRandomFixedVertices(Hypergraph& hypergraph,
                                  const double fixed_vertices_percentage,
-                                 const PartitionID k) {
+                                 const PartitionID k,
+                                 Randomize& rng) {
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    int p = Randomize::instance().getRandomInt(0, 100);
+    int p = rng.getRandomInt(0, 100);
     if (p < fixed_vertices_percentage * 100) {
-      PartitionID part = Randomize::instance().getRandomInt(0, k - 1);
+      PartitionID part = rng.getRandomInt(0, k - 1);
       hypergraph.setFixedVertex(hn, part);
     }
   }
@@ -194,7 +195,7 @@ TEST_F(ABFSBisectionInitialPartioner, HasCorrectHypernodesInQueueAfterPushingInc
 }
 
 TEST_F(ABFSBisectionInitialPartioner, SetCorrectFixedVertexPart) {
-  generateRandomFixedVertices(hypergraph, 0.1, 2);
+  generateRandomFixedVertices(hypergraph, 0.1, 2, context.randomize);
 
   partitioner->partition();
 
@@ -246,7 +247,7 @@ TEST_F(AKWayBFSInitialPartitioner, GrowPartitionOnPartitionMinus1) {
 }
 
 TEST_F(AKWayBFSInitialPartitioner, SetCorrectFixedVertexPart) {
-  generateRandomFixedVertices(*hypergraph, 0.1, 4);
+  generateRandomFixedVertices(*hypergraph, 0.1, 4, context.randomize);
   ASSERT_GE(hypergraph->numFixedVertices(), 0);
 
   partitioner->partition();

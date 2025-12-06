@@ -76,7 +76,7 @@ class QuotientGraphBlockScheduler {
   }
 
   void randomShuffleQuotientEdges() {
-    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(), Randomize::instance().getGenerator());
+    std::shuffle(_quotient_graph.begin(), _quotient_graph.end(), _context.randomize.getGenerator());
   }
 
   std::pair<ConstIncidenceIterator, ConstIncidenceIterator> quotientGraphEdges() const {

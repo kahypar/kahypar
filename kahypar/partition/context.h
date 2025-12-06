@@ -34,6 +34,7 @@
 #include "kahypar/partition/context_enum_classes.h"
 #include "kahypar/partition/evolutionary/action.h"
 #include "kahypar/utils/stats.h"
+#include "kahypar-resources/utils/randomize.h"
 
 namespace kahypar {
 struct MinHashSparsifierParameters {
@@ -433,9 +434,11 @@ class Context {
   ContextType type = ContextType::main;
   mutable PartitioningStats stats;
   bool partition_evolutionary = false;
+  mutable Randomize randomize;
 
   Context() :
-    stats(*this) { }
+    stats(*this),
+    randomize() { }
 
   ~Context() { }
 
@@ -448,7 +451,10 @@ class Context {
     evolutionary(other.evolutionary),
     type(other.type),
     stats(*this, &other.stats.topLevel()),
-    partition_evolutionary(other.partition_evolutionary) { }
+    partition_evolutionary(other.partition_evolutionary),
+    randomize() {
+      randomize.setSeed(partition.seed);
+  }
 
   Context& operator= (const Context&) = delete;
 
