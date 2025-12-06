@@ -23,6 +23,7 @@
 #include <limits>
 #include <vector>
 
+#include "kahypar-resources/definitions.h"
 #include "kahypar/definitions.h"
 #include "kahypar/partition/bin_packing/bin_packer.h"
 #include "kahypar/partition/context.h"
@@ -63,12 +64,9 @@ inline Context createContext(const Hypergraph& hg,
   context.local_search = context.initial_partitioning.local_search;
 
   // Hypergraph depending parameters
-  context.coarsening.contraction_limit = context.coarsening.contraction_limit_multiplier
-                                         * context.initial_partitioning.k;
-  context.coarsening.hypernode_weight_fraction = context.coarsening.max_allowed_weight_multiplier
-                                                 / context.coarsening.contraction_limit;
-  context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
-                                                    * hg.totalWeight());
+  context.coarsening.contraction_limit = std::numeric_limits<HypernodeID>::max();
+  context.coarsening.hypernode_weight_fraction = std::numeric_limits<double>::max();
+  context.coarsening.max_allowed_node_weight = std::numeric_limits<HypernodeWeight>::max();
 
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration
