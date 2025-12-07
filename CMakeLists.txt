@@ -62,6 +62,12 @@ option(KAHYPAR_USE_STANDARD_ASSERTIONS
 option(KAHYPAR_USE_CPPCHECK
   "Enable static analysis via cppcheck" OFF)
 
+option(KAHYPAR_USE_MTUNE_NATIVE
+  "Enable -mtune=native flag" ON)
+
+option(KAHYPAR_USE_MARCH_NATIVE
+  "Enable -march=native flag" ON)
+
 if(KAHYPAR_DISABLE_ASSERTIONS)
   add_compile_definitions(KAHYPAR_DISABLE_ASSERTIONS)
 endif(KAHYPAR_DISABLE_ASSERTIONS)
@@ -282,6 +288,17 @@ if(NOT MSVC)
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3")
 
+  set(KAHYPAR_NATIVE_FLAGS "")
+  if (KAHYPAR_USE_MTUNE_NATIVE)
+    message(STATUS "Using: -mtune=native")
+    set(KAHYPAR_NATIVE_FLAGS "${KAHYPAR_NATIVE_FLAGS} -mtune=native")
+  endif()
+
+  if (KAHYPAR_USE_MARCH_NATIVE)
+    message(STATUS "Using: -march=native")
+    set(KAHYPAR_NATIVE_FLAGS "${KAHYPAR_NATIVE_FLAGS} -march=native")
+  endif()
+
   # Detect ARM64 on any platform (macOS, Linux, etc.)
   if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64|aarch64|ARM64")
     # ARM64 doesn't use -mtune=native -march=native the same way as x86
@@ -291,8 +308,8 @@ if(NOT MSVC)
     message(STATUS "Building for ARM64 - using generic optimization flags")
   else()
     # x86/x64 can use native tuning
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 ${KAHYPAR_NATIVE_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 ${KAHYPAR_NATIVE_FLAGS} -g3 ")
   endif()
 
   # AVX flags are x86-specific
