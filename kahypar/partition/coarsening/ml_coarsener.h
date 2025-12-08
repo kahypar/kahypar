@@ -89,7 +89,7 @@ class MLCoarsener final : public ICoarsener,
       for (const HypernodeID& hn : _hg.nodes()) {
         current_hns.push_back(hn);
       }
-      Randomize::instance().shuffleVector(current_hns, current_hns.size());
+      _context.randomize.shuffleVector(current_hns, current_hns.size());
 
       // std::sort(std::begin(current_hns), std::end(current_hns),
       //           [&](const HypernodeID l, const HypernodeID r) {

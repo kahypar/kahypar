@@ -45,7 +45,7 @@ class BFSStartNodeSelectionPolicy {
 
     if (start_nodes_empty) {
       if (UseRandomStartHypernode) {
-        const HypernodeID start_hn = Randomize::instance().getRandomInt(0, hg.initialNumNodes() - 1);
+        const HypernodeID start_hn = context.randomize.getRandomInt(0, hg.initialNumNodes() - 1);
         start_nodes[0].push_back(start_hn);
       } else {
         start_nodes[0].push_back(0);
@@ -87,7 +87,7 @@ class BFSStartNodeSelectionPolicy {
             }
           }
           ASSERT(non_touched_hypernodes.size() > 0UL);
-          const int rand_idx = Randomize::instance().getRandomInt(
+          const int rand_idx = context.randomize.getRandomInt(
             0, non_touched_hypernodes.size() - 1);
           lastHypernode = non_touched_hypernodes[rand_idx];
           non_touched_hypernodes.clear();

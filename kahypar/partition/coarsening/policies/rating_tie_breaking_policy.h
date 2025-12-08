@@ -61,19 +61,4 @@ class FirstRatingWins {
   ~FirstRatingWins() = default;
 };
 
-class RandomRatingWins {
- public:
-  KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static bool acceptEqual() {
-    return Randomize::instance().flipCoin();
-  }
-
-  RandomRatingWins(const RandomRatingWins&) = delete;
-  RandomRatingWins& operator= (const RandomRatingWins&) = delete;
-
-  RandomRatingWins(RandomRatingWins&&) = delete;
-  RandomRatingWins& operator= (RandomRatingWins&&) = delete;
-
- protected:
-  ~RandomRatingWins() = default;
-};
 }  // namespace kahypar

@@ -76,7 +76,7 @@ class RandomInitialPartitioner : public IInitialPartitioner,
             break;
           }
         }
-        p = Randomize::instance().getRandomInt(0, _context.initial_partitioning.k - 1);
+        p = _context.randomize.getRandomInt(0, _context.initial_partitioning.k - 1);
       } while (!Base::assignHypernodeToPartition(hn, p));
 
       ASSERT(_hg.partID(hn) == p, "Hypernode" << hn << "should be in part" << p

@@ -40,11 +40,11 @@ class AGainComputationPolicy : public Test {
 
  public:
   AGainComputationPolicy() :
-    pq(2),
+    context(),
+    pq(2, context.randomize),
     hypergraph(7, 4,
                HyperedgeIndexVector { 0, 2, 6, 9,  /*sentinel*/ 12 },
                HyperedgeVector { 0, 2, 0, 1, 3, 4, 3, 4, 6, 2, 5, 6 }),
-    context(),
     visit(hypergraph.initialNumNodes()) {
     HypernodeWeight hypergraph_weight = 0;
     for (const HypernodeID& hn : hypergraph.nodes()) {

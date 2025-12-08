@@ -65,16 +65,17 @@ void initializeContext(Hypergraph& hg, Context& context,
       context.initial_partitioning.perfect_balance_partition_weight[i];
     context.partition.max_part_weights[i] = context.initial_partitioning.upper_allowed_partition_weight[i];
   }
-  Randomize::instance().setSeed(context.partition.seed);
+  context.randomize.setSeed(context.partition.seed);
 }
 
 void generateRandomFixedVertices(Hypergraph& hypergraph,
                                  const double fixed_vertices_percentage,
-                                 const PartitionID k) {
+                                 const PartitionID k,
+                                 Randomize& rng) {
   for (const HypernodeID& hn : hypergraph.nodes()) {
-    int p = Randomize::instance().getRandomInt(0, 100);
+    int p = rng.getRandomInt(0, 100);
     if (p < fixed_vertices_percentage * 100) {
-      PartitionID part = Randomize::instance().getRandomInt(0, k - 1);
+      PartitionID part = rng.getRandomInt(0, k - 1);
       hypergraph.setFixedVertex(hn, part);
     }
   }
@@ -164,7 +165,7 @@ TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, LeavesNoHypernodeUnassig
 }
 
 TYPED_TEST(AKWayLabelPropagationInitialPartitionerTest, SetCorrectFixedVertexPart) {
-  generateRandomFixedVertices(*(this->hypergraph), 0.1, 4);
+  generateRandomFixedVertices(*(this->hypergraph), 0.1, 4, this->context.randomize);
   ASSERT_GE(this->hypergraph->numFixedVertices(), 0);
 
   this->lp->partition();

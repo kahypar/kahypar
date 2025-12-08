@@ -43,9 +43,9 @@ class EvoPartitioner {
   static constexpr bool debug = false;
 
  public:
-  explicit EvoPartitioner(const Context& context) :
+  explicit EvoPartitioner(Context& context) :
     _timelimit(),
-    _population() {
+    _population(context.randomize) {
     _timelimit = context.partition.time_limit;
   }
 
@@ -131,7 +131,7 @@ class EvoPartitioner {
 
 
   inline EvoDecision decideNextMove(const Context& context) {
-    if (Randomize::instance().getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
+    if (context.randomize.getRandomFloat(0, 1) < context.evolutionary.mutation_chance) {
       return EvoDecision::mutation;
     }
     return EvoDecision::combine;

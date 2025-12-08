@@ -60,7 +60,7 @@ class InitialPartitionerBase {
     }
     _unassigned_node_bound = _unassigned_nodes.size();
     if ( _enable_randomization ) {
-      Randomize::instance().shuffleVector(
+      _context.randomize.shuffleVector(
         _unassigned_nodes, _unassigned_nodes.size());
     }
   }
@@ -101,7 +101,7 @@ class InitialPartitionerBase {
     }
     _unassigned_node_bound = _unassigned_nodes.size();
     if ( _enable_randomization ) {
-      Randomize::instance().shuffleVector(
+      _context.randomize.shuffleVector(
         _unassigned_nodes, _unassigned_nodes.size());
     }
   }

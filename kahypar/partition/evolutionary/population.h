@@ -36,8 +36,9 @@ class Population {
   static constexpr bool debug = false;
 
  public:
-  explicit Population() :
-    _individuals() { }
+  explicit Population(Randomize& rng) :
+    _individuals(),
+    _rng(rng) { }
 
   inline size_t insert(Individual&& individual, const Context& context) {
     DBG << context.evolutionary.replace_strategy;
@@ -113,10 +114,10 @@ class Population {
     return _individuals.size();
   }
   inline size_t randomIndividual() const {
-    return Randomize::instance().getRandomInt(0, size() - 1);
+    return _rng.getRandomInt(0, size() - 1);
   }
   inline size_t randomIndividualExcept(const size_t exception) const {
-    size_t target = Randomize::instance().getRandomInt(0, size() - 2);
+    size_t target = _rng.getRandomInt(0, size() - 2);
     if (target == exception) {
       target = size() - 1;
     }
@@ -253,6 +254,7 @@ class Population {
   }
 
   std::vector<Individual> _individuals;
+  Randomize& _rng;
 };
 std::ostream& operator<< (std::ostream& os, const Population& population) {
   for (size_t i = 0; i < population.size(); ++i) {

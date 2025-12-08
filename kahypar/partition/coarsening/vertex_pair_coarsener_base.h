@@ -207,7 +207,7 @@ class VertexPairCoarsenerBase : public CoarsenerBase {
     for (const HypernodeID& hn : _hg.nodes()) {
       permutation.push_back(hn);
     }
-    Randomize::instance().shuffleVector(permutation, permutation.size());
+    _context.randomize.shuffleVector(permutation, permutation.size());
   }
 
   using CoarsenerBase::_hg;

@@ -39,8 +39,8 @@ namespace kahypar {
 class APopulation : public Test {
  public:
   APopulation() :
-    population(),
     context(),
+    population(context.randomize),
     hypergraph(8, 5, HyperedgeIndexVector { 0, 2, 4, 7, 10,  /*sentinel*/ 15 },
                HyperedgeVector { 0, 1, 4, 5, 1, 5, 6, 3, 6, 7, 0, 1, 2, 4, 5 }) {
     hypergraph.changeK(4);

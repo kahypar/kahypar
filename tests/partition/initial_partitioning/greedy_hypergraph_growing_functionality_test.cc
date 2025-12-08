@@ -69,7 +69,7 @@ void initializeContext(Hypergraph& hg, Context& context,
       context.initial_partitioning.perfect_balance_partition_weight[i];
     context.partition.max_part_weights[i] = context.initial_partitioning.upper_allowed_partition_weight[i];
   }
-  Randomize::instance().setSeed(context.partition.seed);
+  context.randomize.setSeed(context.partition.seed);
 }
 
 class AGreedyHypergraphGrowingFunctionalityTest : public Test {

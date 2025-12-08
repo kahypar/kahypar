@@ -32,7 +32,7 @@
 #include "kahypar/partition/coarsening/policies/rating_tie_breaking_policy.h"
 
 namespace kahypar {
-template <class TieBreakingPolicy = RandomRatingWins>
+template <class TieBreakingPolicy = FirstRatingWins>
 class BestRatingWithTieBreaking final : public meta::PolicyBase {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,
@@ -45,7 +45,7 @@ class BestRatingWithTieBreaking final : public meta::PolicyBase {
 };
 
 
-template <class TieBreakingPolicy = RandomRatingWins>
+template <class TieBreakingPolicy = FirstRatingWins>
 class BestRatingPreferringUnmatched final : public meta::PolicyBase {
  public:
   KAHYPAR_ATTRIBUTE_ALWAYS_INLINE static inline bool acceptRating(const RatingType tmp,

@@ -44,12 +44,12 @@ TEST_F(TheProbabilityTable, PicksTheCorrectCombineOperation) {
 
     context.evolutionary.edge_frequency_chance = edge_frequency_chance;
     context.evolutionary.random_combine_strategy = true;
-    Randomize::instance().setSeed(1);
+    context.randomize.setSeed(1);
     float chances[kNumRuns];
     for (int i = 0; i < kNumRuns; ++i) {
-      chances[i] = Randomize::instance().getRandomFloat(0, 1);
+      chances[i] = context.randomize.getRandomFloat(0, 1);
     }
-    Randomize::instance().setSeed(1);
+    context.randomize.setSeed(1);
     EvoCombineStrategy strat;
     for (int i = 0; i < kNumRuns; ++i) {
       strat = pick::appropriateCombineStrategy(context);
@@ -60,12 +60,12 @@ TEST_F(TheProbabilityTable, PicksTheCorrectCombineOperation) {
 }
 TEST_F(TheProbabilityTable, PicksRandomVcycles) {
   context.evolutionary.random_vcycles = true;
-  Randomize::instance().setSeed(1);
+  context.randomize.setSeed(1);
   bool chances[kNumRuns];
   for (int i = 0; i < kNumRuns; ++i) {
-    chances[i] = Randomize::instance().flipCoin();
+    chances[i] = context.randomize.flipCoin();
   }
-  Randomize::instance().setSeed(1);
+  context.randomize.setSeed(1);
   EvoMutateStrategy strat;
   for (int i = 0; i < kNumRuns; ++i) {
     strat = pick::appropriateMutateStrategy(context);

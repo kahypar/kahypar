@@ -68,7 +68,7 @@ class KaHyParCA : public ::testing::Test {
     context.local_search.fm.adaptive_stopping_alpha = 1;
     context.partition.graph_filename = "test_instances/ISPD98_ibm01.hgr";
 
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
   }
 
   Context context;
@@ -104,7 +104,7 @@ class KaHyParBP : public ::testing::Test {
     context.local_search.fm.adaptive_stopping_alpha = 1;
     context.partition.graph_filename = "test_instances/ISPD98_ibm01.artificial.hgr";
 
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
   }
 
   Context context;
@@ -140,7 +140,7 @@ class KaHyParK : public ::testing::Test {
     context.local_search.fm.adaptive_stopping_alpha = 1;
     context.partition.graph_filename = "test_instances/ISPD98_ibm01.hgr";
 
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
   }
 
   Context context;
@@ -174,7 +174,7 @@ class KaHyParR : public ::testing::Test {
     context.local_search.fm.max_number_of_fruitless_moves = 50;
     context.partition.graph_filename = "test_instances/ISPD98_ibm01.hgr";
 
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
   }
 
   Context context;
@@ -197,7 +197,7 @@ class KaHyParE : public ::testing::Test {
     context.partition_evolutionary = true;
     context.partition.graph_filename = "../../../tests/partition/evolutionary/TestHypergraph";
 
-    kahypar::Randomize::instance().setSeed(context.partition.seed);
+    context.randomize.setSeed(context.partition.seed);
   }
   Context context;
 };

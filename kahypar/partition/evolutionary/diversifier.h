@@ -25,10 +25,10 @@ namespace partition {
 static void diversify(Context& context) {
   static constexpr bool debug = false;
   DBG << "diversify";
-  context.coarsening.max_allowed_weight_multiplier = Randomize::instance().getRandomFloat(1.0, 3.25);
-  context.coarsening.contraction_limit_multiplier = Randomize::instance().getRandomInt(100, 160);
+  context.coarsening.max_allowed_weight_multiplier = context.randomize.getRandomFloat(1.0, 3.25);
+  context.coarsening.contraction_limit_multiplier = context.randomize.getRandomInt(100, 160);
 
-  const bool use_lazy_coarsening = Randomize::instance().flipCoin();
+  const bool use_lazy_coarsening = context.randomize.flipCoin();
 
   if (use_lazy_coarsening) {
     context.coarsening.algorithm = CoarseningAlgorithm::heavy_lazy;
