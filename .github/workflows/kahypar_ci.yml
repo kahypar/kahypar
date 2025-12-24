@@ -37,7 +37,7 @@ jobs:
       - name: Report Code Coverage
         run: |
           cd debug
-          lcov --directory . --capture --output-file coverage.info;
+          lcov --ignore-errors mismatch --directory . --capture --output-file coverage.info;
           lcov --remove coverage.info '/usr/*' --output-file coverage.info;
           lcov --list coverage.info;
           gcovr -r ../ -x > report.xml;

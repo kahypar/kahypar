@@ -31,9 +31,18 @@ if(NOT CMAKE_BUILD_TYPE OR
     message(FATAL_ERROR "CMAKE_BUILD_TYPE not set correctly. Options are: Release|RELEASE, Debug|DEBUG, RelWithDebInfo|RELWITHDEBINFO." )
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # add third-party algorithms to project
 include_directories(external_tools)
 include_directories(external_tools/kahypar-shared-resources)
+
+option(BUILD_SHARED_LIBS "Build the shared library" ON)
+option(STATICCOMPILE "Compile to static executable" OFF)
+if (STATICCOMPILE)
+    set(BUILD_SHARED_LIBS OFF)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
 
 option(KAHYPAR_PYTHON_INTERFACE
   "Enable building the python interface" OFF)
@@ -273,18 +282,23 @@ if(NOT MSVC)
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pthread -g3")
 
-  if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64")
-    # M1 doesn't seem to support -mtune=native -march=native
+  # Detect ARM64 on any platform (macOS, Linux, etc.)
+  if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64|aarch64|ARM64")
+    # ARM64 doesn't use -mtune=native -march=native the same way as x86
+    # Just use -O3 for optimization
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g3 ")
+    message(STATUS "Building for ARM64 - using generic optimization flags")
   else()
+    # x86/x64 can use native tuning
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -mtune=native -march=native")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -mtune=native -march=native -g3 ")
   endif()
 
-if(DEFINED ENV{TRAVIS_ENV})
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mno-avx")
-endif()
+  # AVX flags are x86-specific
+  if(DEFINED ENV{TRAVIS_ENV} AND NOT CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm64|aarch64|ARM64")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mno-avx")
+  endif()
 
   if(ENABLE_PROFILE MATCHES ON)
     message(STATUS "Profiling activated")

@@ -44,7 +44,7 @@ void partition(kahypar::Hypergraph& hypergraph,
   kahypar::PartitionerFacade().partition(hypergraph, context);
 }
 
-namespace bind {
+namespace kahypar_bind {
   using kahypar::Hypergraph;
   using kahypar::HypernodeID;
   using kahypar::HyperedgeID;
@@ -81,7 +81,7 @@ Hypergraph createUnweightedHypergraph(const HypernodeID num_nodes, const Hypered
   return createWeightedHypergraph(num_nodes, num_edges, index_vector, edge_vector, k, {}, {});
 }
 
-} // namespace bind
+} // namespace kahypar_bind
 
 
 namespace py = pybind11;
@@ -99,7 +99,7 @@ PYBIND11_MODULE(kahypar, m) {
 
   py::class_<Hypergraph>(
       m, "Hypergraph")
-      .def(py::init(&bind::createUnweightedHypergraph),R"pbdoc(
+      .def(py::init(&kahypar_bind::createUnweightedHypergraph),R"pbdoc(
 Construct an unweighted hypergraph.
 
 :param HypernodeID num_nodes: Number of nodes
@@ -114,7 +114,7 @@ Construct an unweighted hypergraph.
            py::arg("index_vector"),
            py::arg("edge_vector"),
            py::arg("k"))
-       .def(py::init(&bind::createWeightedHypergraph),R"pbdoc(
+       .def(py::init(&kahypar_bind::createWeightedHypergraph),R"pbdoc(
 Construct a hypergraph with node and edge weights.
 
 If only one type of weights is required, the other argument has to be an empty list.
@@ -218,7 +218,7 @@ If only one type of weights is required, the other argument has to be an empty l
            "Iterate over all blocks contained in the connectivity set of the hyperedge");
 
   m.def(
-      "createHypergraphFromFile", &bind::createHypergraphFromFile,
+      "createHypergraphFromFile", &kahypar_bind::createHypergraphFromFile,
       "Construct a hypergraph from a file in hMETIS format",
       py::arg("filename"), py::arg("k"));
 

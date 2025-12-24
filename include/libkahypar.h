@@ -60,6 +60,8 @@ KAHYPAR_API kahypar_context_t* kahypar_context_new();
 KAHYPAR_API void kahypar_context_free(kahypar_context_t* kahypar_context);
 KAHYPAR_API void kahypar_configure_context_from_file(kahypar_context_t* kahypar_context,
                                                      const char* ini_file_name);
+KAHYPAR_API void kahypar_configure_context_from_string(kahypar_context_t* kahypar_context,
+                                                     const char* str);
 
 KAHYPAR_API void kahypar_set_seed(kahypar_context_t* kahypar_context, const int seed);
 KAHYPAR_API void kahypar_supress_output(kahypar_context_t* kahypar_context, const bool decision);
@@ -143,6 +145,19 @@ KAHYPAR_API void kahypar_improve_partition(const kahypar_hypernode_id_t num_vert
                                            kahypar_hyperedge_weight_t* objective,
                                            kahypar_context_t* kahypar_context,
                                            kahypar_partition_id_t* improved_partition);
+
+KAHYPAR_API kahypar_partition_id_t kahypar_hyperedge_connectivity(const kahypar_hypergraph_t* kahypar_hypergraph, const kahypar_hyperedge_id_t he_id);
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_cut_objective(const kahypar_hypergraph_t* kahypar_hypergraph);
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_soed_objective(const kahypar_hypergraph_t* kahypar_hypergraph);
+
+KAHYPAR_API kahypar_hyperedge_weight_t kahypar_km1_objective(const kahypar_hypergraph_t* kahypar_hypergraph);
+
+KAHYPAR_API double kahypar_absorption_objective(const kahypar_hypergraph_t* kahypar_hypergraph);
+
+KAHYPAR_API double kahypar_imbalance(const kahypar_hypergraph_t* kahypar_hypergraph, const kahypar_context_t* kahypar_context);
+
 
 #ifdef __cplusplus
 }
