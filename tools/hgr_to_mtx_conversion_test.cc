@@ -24,6 +24,10 @@
 #include "tools/hgr_to_mtx_conversion.h"
 
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <fstream>
+#include <sstream>
 
 using ::testing::Test;
 

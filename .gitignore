@@ -25,3 +25,5 @@ profile/*
 external_tools/*
 !external_tools/primes
 .idea*
+.cache
+compile_commands.json
