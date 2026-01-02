@@ -184,9 +184,9 @@ class TwoWayHyperFlowCutterRefiner final : public IRefiner,
         }
         
         ASSERT(STF.cutAtStake >= newCut);
-        best_metrics.km1 -= (STF.cutAtStake - newCut);
+        best_metrics.deltaUpdateMetric(newCut - STF.cutAtStake, _context.partition.mode, _context.partition.objective);
         best_metrics.imbalance = metrics::imbalance(_hg, _context);
-        HEAVY_REFINEMENT_ASSERT(best_metrics.km1 == metrics::km1(_hg), V(best_metrics.km1) << V(metrics::km1(_hg)));
+        HEAVY_REFINEMENT_ASSERT(metrics::checkMetric(_hg, best_metrics, _context.partition.mode, _context.partition.objective));
 
         DBG << "Update partition" << V(metrics::imbalance(_hg, _context)) << V(b0) << V(b1) << V(_hg.currentNumNodes());
         if (_hg.partWeight(b0) > max_weight_b0 || _hg.partWeight(b1) > max_weight_b1) {
