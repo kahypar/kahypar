@@ -62,14 +62,6 @@ static inline Context createContext(const Hypergraph& hg,
   // Refinement-Parameters
   context.local_search = context.initial_partitioning.local_search;
 
-  // Hypergraph depending parameters
-  context.coarsening.contraction_limit = context.coarsening.contraction_limit_multiplier
-                                         * context.initial_partitioning.k;
-  context.coarsening.hypernode_weight_fraction = context.coarsening.max_allowed_weight_multiplier
-                                                 / context.coarsening.contraction_limit;
-  context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
-                                                    * hg.totalWeight());
-
   // Reconfiguring the partitioner to act as an initial partitioner
   // on the next partition call using the new configuration
   // based on the initial partitioning settings provided by the
@@ -77,6 +69,15 @@ static inline Context createContext(const Hypergraph& hg,
   switch (original_context.initial_partitioning.technique) {
     case InitialPartitioningTechnique::multilevel:
       context.coarsening.algorithm = context.initial_partitioning.coarsening.algorithm;
+
+      // Hypergraph depending parameters
+      context.coarsening.contraction_limit = context.coarsening.contraction_limit_multiplier
+                                         * context.initial_partitioning.k;
+      context.coarsening.hypernode_weight_fraction = context.coarsening.max_allowed_weight_multiplier
+                                                 / context.coarsening.contraction_limit;                                               
+      context.coarsening.max_allowed_node_weight = ceil(context.coarsening.hypernode_weight_fraction
+                                                    * hg.totalWeight());
+
       switch (original_context.initial_partitioning.mode) {
         case Mode::recursive_bisection:
           context.partition.mode = Mode::recursive_bisection;
