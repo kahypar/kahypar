@@ -11,4 +11,4 @@ export CIBW_SKIP=cp38-macosx_*
 cibuildwheel --platform macos 
 
 # upload
-twine upload wheelhouse/*
+python3 -m twine upload wheelhouse/*
