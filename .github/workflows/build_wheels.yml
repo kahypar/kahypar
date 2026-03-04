@@ -35,12 +35,12 @@ jobs:
           CIBW_ARCHS_LINUX: "x86_64"
           # macos-latest is Apple Silicon (arm64) since mid-2024
           CIBW_ARCHS_MACOS: "arm64"
-          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux_2_17"
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
           # use bundled Boost (FetchContent download of 1.83.0) so we don't
           # need to install Boost in the manylinux container or macOS runner;
           # setup.py reads this and passes -DKAHYPAR_USE_MINIMAL_BOOST=ON
           CIBW_ENVIRONMENT: "KAHYPAR_USE_MINIMAL_BOOST=ON"
-          # the manylinux_2_17 container ships an ancient cmake; get a modern one
+          # the manylinux2014 container ships an ancient cmake; get a modern one
           CIBW_BEFORE_ALL_LINUX: "pip install cmake"
           # cmake must also be on PATH inside each per-Python build venv
           CIBW_BEFORE_BUILD: "pip install cmake"
