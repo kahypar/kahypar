@@ -1,0 +1,77 @@
+name: Build Python Wheels
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==3.3.1
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
+          # Explicitly pin the Linux wheel image for broad (older glibc)
+          # compatibility; remove this to follow cibuildwheel defaults.
+          CIBW_MANYLINUX_X86_64_IMAGE: "manylinux2014"
+          CIBW_MANYLINUX_AARCH64_IMAGE: "manylinux2014"
+          # use bundled Boost (FetchContent download of 1.83.0) so we don't
+          # need to install Boost in the manylinux container or macOS runner;
+          # setup.py reads this and passes -DKAHYPAR_USE_MINIMAL_BOOST=ON
+          CIBW_ENVIRONMENT: "KAHYPAR_USE_MINIMAL_BOOST=ON"
+          # the manylinux2014 container ships an ancient cmake; get a modern one
+          CIBW_BEFORE_ALL_LINUX: "pip install cmake"
+          # cmake must also be on PATH inside each per-Python build venv
+          CIBW_BEFORE_BUILD: "pip install cmake"
+          # run the existing Python test suite against the installed wheel;
+          # {project} resolves to the source checkout so relative paths inside
+          # the tests (to ISPD98_ibm01.hgr and ../../config/*.ini) still work
+          CIBW_TEST_COMMAND: >-
+            python -m unittest discover
+            -s {project}/python/tests -p "test_*.py" -v
+          CIBW_BUILD_VERBOSITY: "1"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build sdist
+        run: pip install build && python -m build --sdist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
