@@ -17,7 +17,8 @@ except ImportError:
 
 def get_version():
     # If on an exact tag (e.g. v1.3.7), use that as the version.
-    # Otherwise fall back to <base>+g<sha> so dev wheels are distinguishable.
+    # Otherwise fall back to <base>.devN using commit count since last tag,
+    # which is PEP 440 compliant and accepted by PyPI.
     base = "1.3.6"
     try:
         tag = (
@@ -33,16 +34,22 @@ def get_version():
     except subprocess.CalledProcessError:
         pass
     try:
-        sha = (
+        desc = (
             subprocess.check_output(
-                ["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL
+                ["git", "describe", "--tags", "--long"],
+                stderr=subprocess.DEVNULL,
             )
             .decode()
             .strip()
         )
-        return "{}.dev+g{}".format(base, sha)
+        # format: v1.3.5-42-g2e07123 → 42 commits since tag
+        match = re.match(r".*-(\d+)-g[0-9a-f]+$", desc)
+        if match:
+            commit_count = match.group(1)
+            return "{}.dev{}".format(base, commit_count)
     except subprocess.CalledProcessError:
-        return base
+        pass
+    return base
 
 
 class CMakeExtension(Extension):
