@@ -43,7 +43,15 @@ def get_version():
                 return "{}.{}.{}.dev{}".format(major, minor, patch + 1, commits)
     except subprocess.CalledProcessError:
         pass
-    return "0.0.0"
+    # No git — fall back to PKG-INFO (available in sdist tarballs)
+    if os.path.exists("PKG-INFO"):
+        with open("PKG-INFO") as f:
+            for line in f:
+                if line.startswith("Version:"):
+                    return line.split(":", 1)[1].strip()
+    raise RuntimeError(
+        "Unable to determine version: no git tags found and no PKG-INFO present"
+    )
 
 
 class CMakeExtension(Extension):
