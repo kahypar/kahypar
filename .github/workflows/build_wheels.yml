@@ -24,6 +24,9 @@ jobs:
 
       - uses: actions/setup-python@v6
 
+      - name: Fetch tags
+        run: git fetch --tags --force
+
       - name: Generate VERSION file
         run: python setup.py --version
 
@@ -68,6 +71,9 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           persist-credentials: false
+
+      - name: Fetch tags
+        run: git fetch --tags --force
 
       - uses: actions/setup-python@v6
         with:
