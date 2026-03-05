@@ -15,6 +15,9 @@ except ImportError:
     from packaging.version import Version as LooseVersion
 
 
+VERSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+
+
 def get_version():
     # Derive version entirely from git tags.
     # On an exact tag (e.g. v1.3.7): returns "1.3.7"
@@ -38,19 +41,28 @@ def get_version():
                 int(match.group(4)),
             )
             if commits == 0:
-                return "{}.{}.{}".format(major, minor, patch)
+                version = "{}.{}.{}".format(major, minor, patch)
             else:
-                return "{}.{}.{}.dev{}".format(major, minor, patch + 1, commits)
-    except subprocess.CalledProcessError:
+                version = "{}.{}.{}.dev{}".format(major, minor, patch + 1, commits)
+            # Cache version so it's available when .git is absent
+            # (e.g., inside cibuildwheel manylinux containers)
+            with open(VERSION_FILE, "w") as f:
+                f.write(version)
+            return version
+    except (subprocess.CalledProcessError, OSError):
         pass
-    # No git — fall back to PKG-INFO (available in sdist tarballs)
+    # No git — fall back to cached VERSION file
+    if os.path.exists(VERSION_FILE):
+        with open(VERSION_FILE) as f:
+            return f.read().strip()
+    # Fall back to PKG-INFO (available in sdist tarballs)
     if os.path.exists("PKG-INFO"):
         with open("PKG-INFO") as f:
             for line in f:
                 if line.startswith("Version:"):
                     return line.split(":", 1)[1].strip()
     raise RuntimeError(
-        "Unable to determine version: no git tags found and no PKG-INFO present"
+        "Unable to determine version: no git tags found and no VERSION/PKG-INFO present"
     )
 
 
