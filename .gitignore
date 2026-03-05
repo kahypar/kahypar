@@ -1,4 +1,4 @@
-VERSION
+release_version.txt
 *.hpp~
 *.cpp~
 *.a

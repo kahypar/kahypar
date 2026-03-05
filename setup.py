@@ -15,7 +15,7 @@ except ImportError:
     from packaging.version import Version as LooseVersion
 
 
-VERSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+VERSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "release_version.txt")
 
 
 def get_version():
