@@ -16,23 +16,9 @@ except ImportError:
 
 
 def get_version():
-    # If on an exact tag (e.g. v1.3.7), use that as the version.
-    # Otherwise fall back to <base>.devN using commit count since last tag,
-    # which is PEP 440 compliant and accepted by PyPI.
-    base = "1.3.6"
-    try:
-        tag = (
-            subprocess.check_output(
-                ["git", "describe", "--tags", "--exact-match"],
-                stderr=subprocess.DEVNULL,
-            )
-            .decode()
-            .strip()
-        )
-        # strip leading 'v' if present
-        return tag.lstrip("v")
-    except subprocess.CalledProcessError:
-        pass
+    # Derive version entirely from git tags.
+    # On an exact tag (e.g. v1.3.7): returns "1.3.7"
+    # N commits after a tag: returns "<next_minor>.devN" (e.g. "1.3.8.dev3")
     try:
         desc = (
             subprocess.check_output(
@@ -42,14 +28,30 @@ def get_version():
             .decode()
             .strip()
         )
-        # format: v1.3.5-42-g2e07123 → 42 commits since tag
-        match = re.match(r".*-(\d+)-g[0-9a-f]+$", desc)
+        # format: v1.3.7-0-g2e07123 (on tag) or v1.3.7-3-g2e07123 (3 after tag)
+        match = re.match(r"v?(\d+)\.(\d+)\.(\d+)-(\d+)-g[0-9a-f]+$", desc)
         if match:
-            commit_count = match.group(1)
-            return "{}.dev{}".format(base, commit_count)
+            major, minor, patch, commits = (
+                int(match.group(1)),
+                int(match.group(2)),
+                int(match.group(3)),
+                int(match.group(4)),
+            )
+            if commits == 0:
+                return "{}.{}.{}".format(major, minor, patch)
+            else:
+                return "{}.{}.{}.dev{}".format(major, minor, patch + 1, commits)
     except subprocess.CalledProcessError:
         pass
-    return base
+    # No git — fall back to PKG-INFO (available in sdist tarballs)
+    if os.path.exists("PKG-INFO"):
+        with open("PKG-INFO") as f:
+            for line in f:
+                if line.startswith("Version:"):
+                    return line.split(":", 1)[1].strip()
+    raise RuntimeError(
+        "Unable to determine version: no git tags found and no PKG-INFO present"
+    )
 
 
 class CMakeExtension(Extension):
