@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="KaHyPar 项目学习第一天：超图划分、工程地图、调用链、两条路线与上手实操。">
+  <title>KaHyPar 项目学习 · Day 01</title>
+  <style>
+    :root {
+      --ink: #182126;
+      --muted: #637078;
+      --line: #d7dfe2;
+      --paper: #ffffff;
+      --canvas: #f2f5f4;
+      --teal: #0c6e71;
+      --teal-dark: #075457;
+      --teal-soft: #e9f4f2;
+      --red: #b4493f;
+      --red-soft: #faeeeb;
+      --yellow: #a86712;
+      --yellow-soft: #fff5dd;
+      --green: #47715b;
+      --green-soft: #edf5ef;
+      --code: #101719;
+      --code-muted: #95a5aa;
+      --sidebar: 280px;
+      --content: 860px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 28px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      font-size: 16px;
+      line-height: 1.78;
+      letter-spacing: 0;
+    }
+
+    a { color: var(--teal-dark); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    button { font: inherit; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code { overflow-wrap: anywhere; }
+
+    .reading-progress {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 50;
+      height: 4px;
+      background: transparent;
+    }
+    .reading-progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--red);
+      transition: width 80ms linear;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      padding: 30px 24px 24px;
+      color: #eef6f4;
+      background: #1f2a2c;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid #5a7774;
+      color: #d8efea;
+      font: 700 18px/1 Georgia, serif;
+      margin-bottom: 18px;
+    }
+    .sidebar h1 {
+      margin: 0;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+    .sidebar .subtitle {
+      margin: 8px 0 24px;
+      color: #aebfbd;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .meta-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 0;
+      border-top: 1px solid #354548;
+      color: #c8d4d2;
+      font-size: 12px;
+    }
+    .meta-line span:last-child { color: #89c6bc; }
+    .toc-label {
+      margin: 26px 0 8px;
+      color: #879a98;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .toc {
+      display: grid;
+      gap: 2px;
+    }
+    .toc a {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      align-items: baseline;
+      padding: 7px 8px;
+      border-left: 2px solid transparent;
+      color: #b9c8c6;
+      font-size: 13px;
+      line-height: 1.45;
+      text-decoration: none;
+    }
+    .toc a .n { color: #708785; font-variant-numeric: tabular-nums; }
+    .toc a:hover { color: #ffffff; background: #293638; }
+    .toc a.active {
+      color: #ffffff;
+      border-left-color: #7cc8bb;
+      background: #293638;
+    }
+    .sidebar-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      margin-top: 24px;
+    }
+    .print-button {
+      border: 1px solid #526664;
+      padding: 9px 12px;
+      color: #e1eeec;
+      background: transparent;
+      cursor: pointer;
+    }
+    .print-button:hover { border-color: #8ab9b1; background: #293638; }
+
+    .mobile-header { display: none; }
+
+    .page {
+      min-width: 0;
+      padding: 0 34px 80px;
+    }
+    .document {
+      width: min(100%, var(--content));
+      margin: 0 auto;
+      background: var(--paper);
+      box-shadow: 0 0 0 1px rgba(24, 33, 38, 0.04);
+    }
+
+    .hero {
+      position: relative;
+      padding: 74px 72px 54px;
+      border-top: 8px solid var(--teal);
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "H = (V, E)";
+      position: absolute;
+      right: 45px;
+      top: 36px;
+      color: #eef2f1;
+      font: italic 700 78px/1 Georgia, serif;
+      pointer-events: none;
+    }
+    .eyebrow {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 34px; height: 2px; background: currentColor; }
+    .hero h2 {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 24px 0 18px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: clamp(38px, 6vw, 64px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+    .hero p {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 30px;
+      margin-top: 34px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .hero-meta strong { color: var(--ink); }
+
+    .content { padding: 28px 72px 72px; }
+    section {
+      padding: 52px 0 14px;
+      border-top: 1px solid var(--line);
+    }
+    section:first-child { border-top: 0; }
+    .section-kicker {
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    h2.section-title {
+      margin: 5px 0 14px;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 31px;
+      line-height: 1.28;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 36px 0 10px;
+      font-size: 21px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+    h4 { margin: 25px 0 8px; font-size: 16px; }
+    p { margin: 10px 0; }
+    .lead { color: #3e4b51; font-size: 18px; line-height: 1.9; }
+    .muted { color: var(--muted); }
+
+    .outcomes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 2px solid var(--teal);
+      border-bottom: 1px solid var(--line);
+      margin: 26px 0 8px;
+    }
+    .outcome {
+      min-height: 124px;
+      padding: 21px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .outcome:nth-child(odd) { border-right: 1px solid var(--line); }
+    .outcome:nth-last-child(-n+2) { border-bottom: 0; }
+    .outcome .num { color: var(--red); font: 700 14px/1 Georgia, serif; }
+    .outcome strong { display: block; margin: 8px 0 3px; font-size: 16px; }
+    .outcome span { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: 90px 90px 1fr;
+      margin: 24px 0;
+      border-top: 1px solid var(--ink);
+    }
+    .schedule > div { padding: 12px 10px; border-bottom: 1px solid var(--line); }
+    .schedule .head { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .schedule .phase { color: var(--teal-dark); font-weight: 700; }
+
+    .roadmap { margin: 26px 0; }
+    .roadmap-row {
+      display: grid;
+      grid-template-columns: 52px 150px 1fr;
+      gap: 18px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .roadmap-row:first-child { border-top: 1px solid var(--ink); }
+    .roadmap-row .day { color: var(--red); font: 700 13px/1.5 Georgia, serif; }
+    .roadmap-row strong { font-size: 15px; }
+    .roadmap-row span { color: var(--muted); font-size: 14px; }
+
+    .callout {
+      margin: 24px 0;
+      padding: 19px 22px;
+      border-left: 4px solid var(--teal);
+      background: var(--teal-soft);
+    }
+    .callout.warn { border-left-color: var(--yellow); background: var(--yellow-soft); }
+    .callout.red { border-left-color: var(--red); background: var(--red-soft); }
+    .callout strong { display: block; margin-bottom: 4px; }
+
+    .formula {
+      margin: 22px 0;
+      padding: 18px 22px;
+      border: 1px solid var(--line);
+      background: #fbfcfc;
+      text-align: center;
+      font: italic 19px/1.7 Georgia, "Times New Roman", serif;
+      overflow-x: auto;
+    }
+    .formula small { display: block; color: var(--muted); font: 13px/1.5 sans-serif; }
+
+    .hypergraph-figure {
+      margin: 28px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 26px 0 16px;
+    }
+    .hypergraph-figure svg { display: block; width: 100%; height: auto; }
+    figcaption { margin-top: 12px; color: var(--muted); font-size: 13px; text-align: center; }
+
+    table {
+      width: 100%;
+      margin: 24px 0;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      padding: 11px 12px;
+      color: #3e4a50;
+      background: #f2f5f4;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+    td { padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td code { color: var(--teal-dark); font-size: 13px; }
+    .table-scroll { overflow-x: auto; }
+
+    .callflow {
+      display: grid;
+      gap: 10px;
+      margin: 26px 0;
+    }
+    .flow-node {
+      position: relative;
+      padding: 13px 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      text-align: center;
+    }
+    .flow-node:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -11px;
+      width: 1px;
+      height: 10px;
+      background: #819096;
+    }
+    .flow-node strong { color: var(--teal-dark); }
+    .flow-node small { margin-left: 8px; color: var(--muted); }
+    .flow-node.route { background: var(--yellow-soft); border-color: #e0c28c; }
+    .flow-node.core { background: var(--green-soft); border-color: #bdd3c5; }
+    .flow-branches {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .flow-branches .flow-node { min-height: 72px; }
+
+    .code-block {
+      position: relative;
+      margin: 20px 0 28px;
+      border: 1px solid #243034;
+      background: var(--code);
+      color: #dce8e7;
+    }
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 40px;
+      padding: 8px 10px 8px 16px;
+      border-bottom: 1px solid #2a393d;
+      color: var(--code-muted);
+      font-size: 12px;
+    }
+    .copy-button {
+      position: relative;
+      width: 31px;
+      height: 28px;
+      border: 0;
+      color: #c7d5d3;
+      background: transparent;
+      cursor: pointer;
+    }
+    .copy-button::before,
+    .copy-button::after {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 12px;
+      border: 1px solid currentColor;
+    }
+    .copy-button::before { left: 8px; top: 6px; }
+    .copy-button::after { left: 12px; top: 10px; background: var(--code); }
+    .copy-button:hover { color: #ffffff; background: #243034; }
+    pre {
+      margin: 0;
+      padding: 18px 20px 20px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+    .kw { color: #62c9d0; }
+    .fn { color: #f0c879; }
+    .cm { color: #7e9597; }
+    .st { color: #a7d59e; }
+
+    .route-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin: 26px 0;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .route-panel { padding: 25px 24px; background: #fff; }
+    .route-panel h4 { margin: 0 0 5px; font-size: 19px; }
+    .route-panel .route-tag { color: var(--red); font: 700 12px/1.5 monospace; }
+    .route-panel ul { padding-left: 18px; margin-bottom: 0; }
+    .route-panel li { margin: 7px 0; color: #47555b; font-size: 14px; }
+
+    .multilevel {
+      display: grid;
+      grid-template-columns: 1fr 42px 1fr 42px 1fr;
+      align-items: stretch;
+      margin: 28px 0;
+    }
+    .level-stage { padding: 20px 18px; border: 1px solid var(--line); }
+    .level-stage strong { display: block; color: var(--teal-dark); }
+    .level-stage span { color: var(--muted); font-size: 13px; }
+    .level-arrow { display: grid; place-items: center; color: var(--red); font-size: 22px; }
+
+    .file-line {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.9fr) 1.1fr;
+      gap: 26px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .file-line:first-child { border-top: 1px solid var(--ink); }
+    .file-line code { color: var(--teal-dark); font-size: 13px; }
+    .file-line span { color: var(--muted); font-size: 14px; }
+
+    .checklist { padding: 0; list-style: none; }
+    .checklist li {
+      position: relative;
+      padding: 12px 10px 12px 36px;
+      border-bottom: 1px solid var(--line);
+    }
+    .checklist li::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 18px;
+      width: 12px;
+      height: 12px;
+      border: 1px solid #7b8b90;
+    }
+
+    details.answer {
+      margin: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    details.answer summary {
+      padding: 12px 0;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    details.answer p { margin: 0 0 16px; color: var(--muted); }
+
+    .closing {
+      margin-top: 50px;
+      padding: 32px;
+      color: #e8f2f0;
+      background: #1f2a2c;
+    }
+    .closing strong { display: block; margin-bottom: 8px; color: #8ed1c6; font-size: 13px; }
+    .closing p { margin: 0; font-family: Georgia, "Songti SC", serif; font-size: 20px; line-height: 1.65; }
+
+    .footer {
+      padding: 28px 72px 42px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .shell { display: block; }
+      .sidebar { display: none; }
+      .mobile-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 54px;
+        padding: 9px 18px;
+        color: #f4f8f7;
+        background: #1f2a2c;
+      }
+      .mobile-header strong { font-family: Georgia, serif; }
+      .mobile-header details { position: relative; }
+      .mobile-header summary { cursor: pointer; color: #c8d7d5; list-style: none; }
+      .mobile-header summary::-webkit-details-marker { display: none; }
+      .mobile-menu {
+        position: absolute;
+        right: 0;
+        top: 38px;
+        width: min(84vw, 330px);
+        padding: 10px;
+        background: #263335;
+        box-shadow: 0 12px 32px rgba(0,0,0,.2);
+      }
+      .mobile-menu a { display: block; padding: 8px; color: #d5e2e0; text-decoration: none; }
+      .page { padding: 0 18px 60px; }
+    }
+
+    @media (max-width: 680px) {
+      body { font-size: 15px; }
+      .page { padding: 0; }
+      .document { box-shadow: none; }
+      .hero { padding: 54px 24px 34px; }
+      .hero::after { right: 8px; top: 22px; font-size: 44px; }
+      .hero h2 { font-size: 39px; }
+      .hero p { font-size: 16px; }
+      .content { padding: 18px 24px 52px; }
+      section { padding-top: 42px; }
+      h2.section-title { font-size: 27px; }
+      .outcomes, .route-compare { grid-template-columns: 1fr; }
+      .outcome { border-right: 0 !important; border-bottom: 1px solid var(--line) !important; }
+      .outcome:last-child { border-bottom: 0 !important; }
+      .schedule { grid-template-columns: 58px 72px 1fr; font-size: 13px; }
+      .roadmap-row { grid-template-columns: 38px 105px 1fr; gap: 10px; }
+      .flow-branches, .file-line { grid-template-columns: 1fr; gap: 0; }
+      .multilevel { grid-template-columns: 1fr; gap: 0; }
+      .level-arrow { min-height: 34px; transform: rotate(90deg); }
+      .formula { text-align: left; font-size: 17px; }
+      .footer { padding: 24px; }
+      table { min-width: 610px; }
+    }
+
+    @media print {
+      :root { --canvas: #fff; }
+      @page { size: A4; margin: 16mm 15mm 18mm; }
+      body { background: #fff; font-size: 10.5pt; }
+      .reading-progress, .sidebar, .mobile-header, .copy-button, .print-button { display: none !important; }
+      .shell { display: block; }
+      .page { padding: 0; }
+      .document { width: 100%; box-shadow: none; }
+      .hero { padding: 12mm 8mm 10mm; }
+      .hero h2 { font-size: 32pt; }
+      .content { padding: 0 8mm 10mm; }
+      section { break-inside: auto; padding-top: 10mm; }
+      h2, h3 { break-after: avoid; }
+      .code-block, .callout, .hypergraph-figure, table, .route-compare, .multilevel, .print-keep, details.answer { break-inside: avoid-page; page-break-inside: avoid; }
+      .callout { margin: 12px 0; padding: 12px 16px; }
+      #routes, #multilevel, #config { break-before: page; page-break-before: always; }
+      .sidebar-actions { display: none; }
+      a { color: inherit; text-decoration: none; }
+      .footer { padding: 8mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+
+  <div class="mobile-header">
+    <strong>KaHyPar · Day 01</strong>
+    <details>
+      <summary>目录</summary>
+      <nav class="mobile-menu" aria-label="移动端目录">
+        <a href="#start">今日目标</a>
+        <a href="#roadmap">完整路线</a>
+        <a href="#problem">问题模型</a>
+        <a href="#map">工程地图</a>
+        <a href="#trace">调用链</a>
+        <a href="#routes">两条路线</a>
+        <a href="#multilevel">多层骨架</a>
+        <a href="#format">输入格式</a>
+        <a href="#practice">实操</a>
+        <a href="#review">复盘</a>
+      </nav>
+    </details>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-mark" aria-hidden="true">K</div>
+      <h1>KaHyPar<br>项目学习</h1>
+      <p class="subtitle">第一天：建立全局地图，跑通完整链路</p>
+      <div class="meta-line"><span>版本</span><span>8917e08a</span></div>
+      <div class="meta-line"><span>建议用时</span><span>3–4 小时</span></div>
+      <div class="meta-line"><span>日期</span><span>2026-08-30</span></div>
+
+      <div class="toc-label">Contents</div>
+      <nav class="toc" aria-label="文章目录">
+        <a href="#start"><span class="n">01</span><span>今日目标</span></a>
+        <a href="#roadmap"><span class="n">02</span><span>完整学习路线</span></a>
+        <a href="#problem"><span class="n">03</span><span>问题模型</span></a>
+        <a href="#map"><span class="n">04</span><span>工程地图</span></a>
+        <a href="#trace"><span class="n">05</span><span>完整调用链</span></a>
+        <a href="#routes"><span class="n">06</span><span>两条顶层路线</span></a>
+        <a href="#multilevel"><span class="n">07</span><span>多层算法骨架</span></a>
+        <a href="#format"><span class="n">08</span><span>输入格式</span></a>
+        <a href="#practice"><span class="n">09</span><span>动手实操</span></a>
+        <a href="#config"><span class="n">10</span><span>读一份配置</span></a>
+        <a href="#review"><span class="n">11</span><span>练习与复盘</span></a>
+      </nav>
+      <div class="sidebar-actions">
+        <button class="print-button" type="button" onclick="window.print()">打印 / 导出 PDF</button>
+      </div>
+    </aside>
+
+    <div class="page">
+      <article class="document">
+        <header class="hero">
+          <div class="eyebrow">Day 01 · Source Tour</div>
+          <h2>先建立地图，<br>再进入算法。</h2>
+          <p>从超图划分问题出发，沿真实运行路径读懂 KaHyPar 的入口、统一编排、两条路线与多层核心。</p>
+          <div class="hero-meta">
+            <span><strong>学习对象</strong> KaHyPar</span>
+            <span><strong>语言</strong> C++17</span>
+            <span><strong>目标</strong> 能定位、能运行、能复述</span>
+          </div>
+        </header>
+
+        <div class="content">
+          <section id="start" data-nav="start">
+            <div class="section-kicker">01 · Start here</div>
+            <h2 class="section-title">今天学完，应该带走什么</h2>
+            <p class="lead">第一天不追求读懂所有启发式算法。今天只做一件更重要的事：在脑中搭好一条不会丢失方向的主线。</p>
+            <div class="outcomes">
+              <div class="outcome"><span class="num">01</span><strong>说清问题</strong><span>解释 hypergraph、pin、平衡约束、cut 与 km1。</span></div>
+              <div class="outcome"><span class="num">02</span><strong>找到入口</strong><span>指出 CLI、Facade、Partitioner 和路线分流的位置。</span></div>
+              <div class="outcome"><span class="num">03</span><strong>跑通两路</strong><span>用同一实例运行 direct k-way 与 recursive bisection。</span></div>
+              <div class="outcome"><span class="num">04</span><strong>知道下一步</strong><span>明白为什么第二天应进入 Hypergraph 数据结构。</span></div>
+            </div>
+
+            <div class="print-keep">
+              <h3>建议安排</h3>
+              <div class="schedule" role="table" aria-label="第一天学习安排">
+                <div class="head">阶段</div><div class="head">用时</div><div class="head">活动</div>
+                <div class="phase">A</div><div>35 分钟</div><div>建立问题模型，手算 cut 与 km1</div>
+                <div class="phase">B</div><div>35 分钟</div><div>浏览目录，给模块贴职责标签</div>
+                <div class="phase">C</div><div>55 分钟</div><div>从 main 跟到路线分流，再进入 multilevel</div>
+                <div class="phase">D</div><div>45 分钟</div><div>运行两条路线，读关键输出</div>
+                <div class="phase">E</div><div>30 分钟</div><div>阅读预设，完成闭卷复述</div>
+              </div>
+            </div>
+          </section>
+
+          <section id="roadmap" data-nav="roadmap">
+            <div class="section-kicker">02 · Course map</div>
+            <h2 class="section-title">整个项目的八天路线</h2>
+            <p>不要从第一个头文件顺序读到最后一个头文件。先沿运行主线下钻，每天只回答一组清楚的问题。</p>
+            <div class="roadmap">
+              <div class="roadmap-row"><div class="day">D01</div><strong>地图与运行</strong><span>问题是什么？程序从哪里开始？两条路线在哪里分流？</span></div>
+              <div class="roadmap-row"><div class="day">D02</div><strong>超图数据结构</strong><span>节点、超边、pin、分区状态如何存储？收缩如何恢复？</span></div>
+              <div class="roadmap-row"><div class="day">D03</div><strong>I/O 与 Context</strong><span>.hgr 怎样解析？配置如何选中一个具体 C++ 实现？</span></div>
+              <div class="roadmap-row"><div class="day">D04</div><strong>Coarsening</strong><span>候选收缩怎样评分？社区与权重约束在哪里生效？</span></div>
+              <div class="roadmap-row"><div class="day">D05</div><strong>Initial partitioning</strong><span>最粗超图如何得到初始解？pool 与重启策略如何协作？</span></div>
+              <div class="roadmap-row"><div class="day">D06</div><strong>Refinement</strong><span>解怎样投影回细层？FM 与 flow refinement 如何改进目标？</span></div>
+              <div class="roadmap-row"><div class="day">D07</div><strong>路线深入比较</strong><span>direct 与 recursive 的状态、平衡和指标语义有何差异？</span></div>
+              <div class="roadmap-row"><div class="day">D08</div><strong>接口、测试与改造</strong><span>C/Python 接口怎样复用核心？如何安全加入一个小改动？</span></div>
+            </div>
+            <div class="callout"><strong>贯穿八天的阅读方法</strong>每读一个模块，都回答四个问题：输入是什么、状态存在哪里、核心动作是什么、输出由谁消费。</div>
+          </section>
+
+          <section id="problem" data-nav="problem">
+            <div class="section-kicker">03 · Mental model</div>
+            <h2 class="section-title">KaHyPar 究竟在优化什么</h2>
+            <h3>从图到超图</h3>
+            <p>普通图的一条边连接两个顶点；超图的一条 <strong>hyperedge</strong> 可以连接任意多个顶点。顶点属于某条超边的关系称为一个 <strong>pin</strong>。</p>
+
+            <figure class="hypergraph-figure">
+              <svg viewBox="0 0 760 310" role="img" aria-labelledby="hg-title hg-desc">
+                <title id="hg-title">一个由六个节点和三条超边构成的超图</title>
+                <desc id="hg-desc">不同颜色的闭合区域代表超边，圆点代表节点。</desc>
+                <path d="M70 70 C145 15, 305 18, 350 92 C370 126, 325 160, 225 156 C125 152, 52 128, 70 70Z" fill="#e9f4f2" stroke="#0c6e71" stroke-width="2"/>
+                <path d="M280 82 C375 28, 535 40, 590 125 C625 180, 555 225, 430 215 C320 207, 252 153, 280 82Z" fill="#fff5dd" stroke="#a86712" stroke-width="2"/>
+                <path d="M120 150 C205 110, 350 150, 405 230 C435 274, 320 298, 205 278 C102 260, 72 192, 120 150Z" fill="#faeeeb" stroke="#b4493f" stroke-width="2"/>
+                <g fill="#182126" stroke="#fff" stroke-width="4">
+                  <circle cx="128" cy="86" r="13"/><circle cx="235" cy="72" r="13"/><circle cx="315" cy="124" r="13"/>
+                  <circle cx="455" cy="102" r="13"/><circle cx="520" cy="169" r="13"/><circle cx="264" cy="235" r="13"/>
+                </g>
+                <g font-family="sans-serif" font-size="16" fill="#182126" text-anchor="middle">
+                  <text x="128" y="91" fill="#fff">1</text><text x="235" y="77" fill="#fff">2</text><text x="315" y="129" fill="#fff">3</text>
+                  <text x="455" y="107" fill="#fff">4</text><text x="520" y="174" fill="#fff">5</text><text x="264" y="240" fill="#fff">6</text>
+                  <text x="160" y="38" fill="#0c6e71">e₁</text><text x="565" y="75" fill="#a86712">e₂</text><text x="145" y="268" fill="#b4493f">e₃</text>
+                </g>
+              </svg>
+              <figcaption>节点可以同时属于多条超边；一条超边也可以包含两个以上的节点。</figcaption>
+            </figure>
+
+            <h3>k-way 划分与平衡</h3>
+            <p>目标是把顶点集合分成 <em>k</em> 个互不相交的块，同时限制每个块的总权重。若顶点权重为 <em>c(v)</em>，典型上界为：</p>
+            <div class="formula">c(V<sub>i</sub>) ≤ L<sub>max</sub> = (1 + ε) · ⌈ c(V) / k ⌉<small>ε 控制允许的不平衡程度</small></div>
+            <p>如果只追求切割质量，把所有节点放进同一块就能得到 cut = 0，但它显然违反负载平衡。因此目标函数与平衡约束必须一起看。</p>
+
+            <h3>cut 与 km1</h3>
+            <p>令 λ(e) 表示超边 <em>e</em> 跨越的块数。cut 只关心“有没有被切”；km1 还关心“跨了多少块”。</p>
+            <div class="formula">cut(Π) = Σ<sub>e : λ(e)&gt;1</sub> ω(e) &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; km1(Π) = Σ<sub>e</sub> (λ(e) − 1)ω(e)</div>
+            <div class="callout warn"><strong>第一个易混点</strong><code>km1</code> 是目标函数；<code>direct</code> 与 <code>recursive</code> 是顶层划分路线。CLI 中分别由 <code>-o</code> 和 <code>-m</code> 指定。</div>
+          </section>
+
+          <section id="map" data-nav="map">
+            <div class="section-kicker">04 · Repository map</div>
+            <h2 class="section-title">目录不是清单，而是职责边界</h2>
+            <div class="file-line"><code>kahypar/application</code><span>CLI 入口与参数解析</span></div>
+            <div class="file-line"><code>kahypar/partitioner_facade.h</code><span>对外统一编排：校验、种子、运行方式、最终输出</span></div>
+            <div class="file-line"><code>kahypar/partition</code><span>算法主干：预处理、多层算法、两条顶层路线</span></div>
+            <div class="file-line"><code>kahypar/datastructure</code><span>Hypergraph 与底层容器，第二天的重点</span></div>
+            <div class="file-line"><code>kahypar/io</code><span>.hgr、partition 文件与运行输出</span></div>
+            <div class="file-line"><code>include + lib + python</code><span>C API、动态库与 Python 绑定</span></div>
+            <div class="file-line"><code>tests + config + tools</code><span>测试、算法预设与辅助程序</span></div>
+            <div class="callout"><strong>迷路时回到哪里</strong><code>kahypar/partition/partitioner.h</code> 上接 Facade，下接 direct/recursive，左右连接预处理与后处理，是整个项目最值得先钉住的“腰部”。</div>
+          </section>
+
+          <section id="trace" data-nav="trace">
+            <div class="section-kicker">05 · Execution path</div>
+            <h2 class="section-title">第一次完整追踪</h2>
+            <h3>入口只做四件事</h3>
+            <p>从 <a href="../../kahypar/application/kahypar.cc"><code>kahypar/application/kahypar.cc:37</code></a> 开始：</p>
+            <div class="code-block">
+              <div class="code-head"><span>kahypar/application/kahypar.cc</span><button class="copy-button" type="button" title="复制代码" aria-label="复制代码"></button></div>
+              <pre><code><span class="kw">int</span> main(<span class="kw">int</span> argc, <span class="kw">char</span>* argv[]) {
+  kahypar::Context context;
+  kahypar::<span class="fn">processCommandLineInput</span>(context, argc, argv);
+
+  kahypar::Hypergraph hypergraph(
+    kahypar::io::<span class="fn">createHypergraphFromFile</span>(
+      context.partition.graph_filename,
+      context.partition.k,
+      VALIDATE_INPUT, PROMOTE_WARNINGS_TO_ERRORS));
+
+  kahypar::<span class="fn">PartitionerFacade</span>().partition(hypergraph, context);
+  <span class="kw">return</span> 0;
+}</code></pre>
+            </div>
+            <ol>
+              <li>创建 <code>Context</code>，承载配置与运行状态。</li>
+              <li>合并命令行参数和 INI 预设。</li>
+              <li>从 <code>.hgr</code> 文件构造 <code>Hypergraph</code>。</li>
+              <li>把图和上下文交给 <code>PartitionerFacade</code>。</li>
+            </ol>
+
+            <div class="print-keep">
+              <h3>总调用链</h3>
+              <div class="callflow" aria-label="KaHyPar 调用链">
+                <div class="flow-node"><strong>processCommandLineInput</strong><small>CLI + INI → Context</small></div>
+                <div class="flow-node"><strong>createHypergraphFromFile</strong><small>.hgr → Hypergraph</small></div>
+                <div class="flow-node"><strong>PartitionerFacade</strong><small>校验、种子、运行方式、最终输出</small></div>
+                <div class="flow-node core"><strong>Partitioner</strong><small>setup → sanitize → preprocess</small></div>
+                <div class="flow-node route"><strong>partition::partition</strong><small>switch(mode)</small></div>
+                <div class="flow-branches">
+                  <div class="flow-node"><strong>direct_kway::partition</strong><br><small>一次构造 k 块</small></div>
+                  <div class="flow-node"><strong>recursive_bisection::partition</strong><br><small>反复二分子超图</small></div>
+                </div>
+                <div class="flow-node core"><strong>multilevel</strong><small>coarsen → initial partition → uncoarsen + refine</small></div>
+                <div class="flow-node"><strong>postprocess + output</strong><small>恢复结构、计算指标、可选写分区</small></div>
+              </div>
+            </div>
+
+            <h3>Facade 与 Partitioner 的边界</h3>
+            <p><code>PartitionerFacade</code> 管“一次任务怎样运行”：随机种子、固定点、已有划分、限时重复、进化模式和最终输出。<code>Partitioner</code> 管“核心算法怎样走完生命周期”：统一预处理、路线分流和结构恢复。</p>
+          </section>
+
+          <section id="routes" data-nav="routes">
+            <div class="section-kicker">06 · Two routes</div>
+            <h2 class="section-title">相同目标，不同分解方式</h2>
+            <p>顶层分流发生在 <a href="../../kahypar/partition/partitioner.h"><code>kahypar/partition/partitioner.h:75</code></a>：</p>
+            <div class="code-block">
+              <div class="code-head"><span>顶层路线分流</span><button class="copy-button" type="button" title="复制代码" aria-label="复制代码"></button></div>
+              <pre><code><span class="kw">switch</span> (context.partition.mode) {
+  <span class="kw">case</span> Mode::recursive_bisection:
+    recursive_bisection::<span class="fn">partition</span>(hypergraph, context);
+    <span class="kw">break</span>;
+  <span class="kw">case</span> Mode::direct_kway:
+    direct_kway::<span class="fn">partition</span>(hypergraph, context);
+    <span class="kw">break</span>;
+  <span class="kw">case</span> Mode::UNDEFINED:
+    std::exit(-1);
+}</code></pre>
+            </div>
+
+            <div class="route-compare">
+              <div class="route-panel">
+                <span class="route-tag">-m direct</span>
+                <h4>Direct k-way</h4>
+                <p>一次顶层多层划分直接构造 k 个块。</p>
+                <ul>
+                  <li>全局同时看到多个块的选择</li>
+                  <li>入口：<code>direct_kway.h</code></li>
+                  <li>先运行 multilevel，再按需做 V-cycle</li>
+                  <li>README 的一般推荐路线</li>
+                </ul>
+              </div>
+              <div class="route-panel">
+                <span class="route-tag">-m recursive</span>
+                <h4>Recursive bisection</h4>
+                <p>把 k-way 问题递归拆成多个 2-way 子问题。</p>
+                <ul>
+                  <li>维护子超图、块区间与映射栈</li>
+                  <li>入口：<code>recursive_bisection.h</code></li>
+                  <li>每次二分重新处理平衡容忍度</li>
+                  <li>状态更多，适合在主线之后阅读</li>
+                </ul>
+              </div>
+            </div>
+            <div class="callout warn"><strong>第二个易混点</strong><code>mode=direct</code> 与 <code>i-mode=recursive</code> 可以同时出现。前者是整次任务的顶层路线；后者只是最粗超图产生初始解的内部策略。</div>
+          </section>
+
+          <section id="multilevel" data-nav="multilevel">
+            <div class="section-kicker">07 · Shared core</div>
+            <h2 class="section-title">两条路线共享的多层骨架</h2>
+            <p>KaHyPar 的核心不是一次把节点扔进不同桶，而是先缩小问题，再在恢复过程中持续改进。</p>
+            <div class="multilevel" aria-label="多层划分三阶段">
+              <div class="level-stage"><strong>1. Coarsening</strong><span>反复收缩相似节点，构造越来越小的超图。</span></div>
+              <div class="level-arrow" aria-hidden="true">→</div>
+              <div class="level-stage"><strong>2. Initial partition</strong><span>在最粗超图上构造满足平衡约束的初始解。</span></div>
+              <div class="level-arrow" aria-hidden="true">→</div>
+              <div class="level-stage"><strong>3. Uncoarsen + refine</strong><span>逐层撤销收缩，并在每一层做局部搜索。</span></div>
+            </div>
+            <p>KaHyPar 使用很细粒度的 n-level 思路，层与层之间通常只收缩一个顶点。层数更多，但局部搜索获得了更细致的改进机会。</p>
+            <div class="callout"><strong>工厂模式在这里的作用</strong>主流程不硬编码 coarsener 或 refiner。INI 写入 <code>Context</code>，工厂据此创建具体实现；主流程保持稳定，算法组合可以替换。</div>
+          </section>
+
+          <section id="format" data-nav="format">
+            <div class="section-kicker">08 · Input</div>
+            <h2 class="section-title">读懂今天的 .hgr 实例</h2>
+            <p>KaHyPar 使用 hMetis 格式。无权超图首行是 <code>&lt;num_hyperedges&gt; &lt;num_hypernodes&gt;</code>，随后每行描述一条超边。文件节点编号从 1 开始，读取后会转成内部 0-based ID。</p>
+            <div class="code-block">
+              <div class="code-head"><span>tests/io/test_instances/unweighted_hypergraph.hgr</span><button class="copy-button" type="button" title="复制代码" aria-label="复制代码"></button></div>
+              <pre><code><span class="cm">% hypergraph without hyperedge and hypernode weights</span>
+4 7
+1 2
+1 7 5 6
+5 6 4
+2 3 4</code></pre>
+            </div>
+            <div class="print-keep">
+              <p>它表示 7 个节点、4 条超边：</p>
+              <div class="formula">E = { {1,2}, {1,7,5,6}, {5,6,4}, {2,3,4} }</div>
+              <div class="callout red"><strong>记住头部顺序</strong>是“超边数、节点数”，与很多人第一眼猜测的顺序相反。</div>
+            </div>
+          </section>
+
+          <section id="practice" data-nav="practice">
+            <div class="section-kicker">09 · Hands-on</div>
+            <h2 class="section-title">同一实例跑通两条路线</h2>
+            <p>当前仓库已经完成 Release 构建。CLI 位于 <code>build/kahypar/application/KaHyPar</code>。</p>
+            <h3>Direct k-way</h3>
+            <div class="code-block">
+              <div class="code-head"><span>从仓库根目录运行</span><button class="copy-button" type="button" title="复制命令" aria-label="复制命令"></button></div>
+              <pre><code>build/kahypar/application/KaHyPar \
+  -h tests/io/test_instances/unweighted_hypergraph.hgr \
+  -k 2 -e 0.03 -o km1 -m direct \
+  -p config/km1_kKaHyPar_sea20.ini \
+  --write-partition=false</code></pre>
+            </div>
+            <h3>Recursive bisection</h3>
+            <div class="code-block">
+              <div class="code-head"><span>从仓库根目录运行</span><button class="copy-button" type="button" title="复制命令" aria-label="复制命令"></button></div>
+              <pre><code>build/kahypar/application/KaHyPar \
+  -h tests/io/test_instances/unweighted_hypergraph.hgr \
+  -k 2 -e 0.03 -o km1 -m recursive \
+  -p config/km1_rKaHyPar_sea20.ini \
+  --write-partition=false</code></pre>
+            </div>
+            <h3>本地实际结果</h3>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>路线</th><th>cut</th><th>km1</th><th>imbalance</th><th>块权重</th></tr></thead>
+                <tbody>
+                  <tr><td>direct</td><td>2</td><td>2</td><td>0</td><td>4 / 3</td></tr>
+                  <tr><td>recursive</td><td>2</td><td>2</td><td>0</td><td>4 / 3</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="muted">不要据此得出“两条路线总会相同”。这个实例只有 7 个节点且 k=2，recursive 只做一次二分。要看出差异，应在更大实例上使用 k=4 或 k=8，并固定随机种子。</p>
+            <div class="callout"><strong>第一次怎样读长输出</strong>只找五件事：Mode、Objective、k/epsilon、最终 cut/km1/imbalance、三阶段 timings。主线稳了，再追几十个具体参数。</div>
+          </section>
+
+          <section id="config" data-nav="config">
+            <div class="section-kicker">10 · Configuration</div>
+            <h2 class="section-title">读一份预设，而不是背参数</h2>
+            <p>打开 <code>config/km1_kKaHyPar_sea20.ini</code>，第一天只抓住层级骨架：</p>
+            <div class="code-block">
+              <div class="code-head"><span>km1_kKaHyPar_sea20.ini · 摘要</span><button class="copy-button" type="button" title="复制配置" aria-label="复制配置"></button></div>
+              <pre><code><span class="cm"># general</span>
+mode=direct
+objective=km1
+seed=-1
+vcycles=0
+
+<span class="cm"># preprocessing</span>
+p-use-sparsifier=true
+p-detect-communities=true
+
+<span class="cm"># main coarsening</span>
+c-type=ml_style
+c-rating-score=heavy_edge
+
+<span class="cm"># initial partitioning</span>
+i-mode=recursive
+i-algo=pool
+i-runs=20
+
+<span class="cm"># main local search</span>
+r-type=kway_fm_hyperflow_cutter_km1</code></pre>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>前缀</th><th>层级</th><th>今天的理解</th></tr></thead>
+                <tbody>
+                  <tr><td><code>p-</code></td><td>preprocessing</td><td>划分前的图结构处理</td></tr>
+                  <tr><td><code>c-</code></td><td>main coarsening</td><td>主多层流程如何收缩</td></tr>
+                  <tr><td><code>i-</code></td><td>initial partitioning</td><td>最粗层怎样构造初始解</td></tr>
+                  <tr><td><code>r-</code></td><td>main refinement</td><td>展开时怎样局部改进</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>整份配置可以先概括为一句话：顶层 direct k-way，优化 km1；使用社区感知的多层收缩、pool 初始划分和 k-way FM/flow refinement。</p>
+          </section>
+
+          <section id="review" data-nav="review">
+            <div class="section-kicker">11 · Retrieval practice</div>
+            <h2 class="section-title">把“看懂”变成“会用”</h2>
+            <h3>动手任务</h3>
+            <ul class="checklist">
+              <li>不看前文，写出从 <code>main</code> 到 <code>multilevel::partition</code> 的函数链。</li>
+              <li>把 <code>-k 2</code> 改为 <code>-k 3</code>，预测 cut 与 km1 是否还一定相等，再运行验证。</li>
+              <li>加入 <code>--seed=42</code> 重复运行两次，比较最终指标与 timing。</li>
+              <li>在配置中定位主 coarsening、initial partitioning 和 main refinement 的算法名。</li>
+              <li>在纸上画出 7 个节点、4 条超边，尝试找一个 cut 为 2 的二分方案。</li>
+            </ul>
+
+            <h3>闭卷自测</h3>
+            <details class="answer"><summary>1. 为什么必须同时关注目标函数和平衡约束？</summary><p>只最小化 cut 会偏好把所有节点放进一个块；平衡约束保证计算或存储负载可用。</p></details>
+            <details class="answer"><summary>2. k=2 时，cut 与 km1 为什么相等？</summary><p>被切超边只能跨两个块，因此每条被切超边对 cut 贡献 ω(e)，对 km1 贡献 (2−1)ω(e)。</p></details>
+            <details class="answer"><summary>3. Facade 与 Partitioner 的职责差别是什么？</summary><p>Facade 负责任务外围编排；Partitioner 负责预处理、核心算法调用与结构恢复。</p></details>
+            <details class="answer"><summary>4. mode=direct 与 i-mode=recursive 为什么能同时出现？</summary><p>前者决定顶层任务路线，后者只决定最粗层内部如何产生初始解，处于不同配置层级。</p></details>
+            <details class="answer"><summary>5. multilevel 的三个阶段是什么？</summary><p>Coarsening、initial partitioning、uncoarsening + refinement。</p></details>
+
+            <h3>明天从哪里继续</h3>
+            <p>第二天进入 <a href="../../kahypar/datastructure/hypergraph.h"><code>kahypar/datastructure/hypergraph.h</code></a>，重点追踪 pins、incident edges、part ID、pin count，以及一次 contract/uncontract 修改和恢复了哪些状态。</p>
+            <div class="closing">
+              <strong>一句话心智模型</strong>
+              <p>KaHyPar 读取一个超图和一组分层配置，在平衡约束下选择 direct 或 recursive 路线；每个子问题再通过收缩、最粗层初始划分、逐层展开与局部改进得到高质量分区。</p>
+            </div>
+          </section>
+        </div>
+
+        <footer class="footer">依据本地仓库 commit <code>8917e08a</code> 与实际 CLI 运行结果整理。页面可直接离线打开，也可通过浏览器打印为 PDF。</footer>
+      </article>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const progress = document.getElementById('progress');
+      const navLinks = [...document.querySelectorAll('.toc a')];
+      const sections = [...document.querySelectorAll('section[data-nav]')];
+
+      const updateProgress = () => {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? window.scrollY / scrollable : 0;
+        progress.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+      };
+      updateProgress();
+      window.addEventListener('scroll', updateProgress, { passive: true });
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (!visible) return;
+        const id = visible.target.dataset.nav;
+        navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${id}`));
+      }, { rootMargin: '-18% 0px -70% 0px', threshold: 0 });
+      sections.forEach(section => observer.observe(section));
+
+      document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', async () => {
+          const code = button.closest('.code-block').querySelector('code').innerText;
+          try {
+            await navigator.clipboard.writeText(code);
+            button.title = '已复制';
+            setTimeout(() => { button.title = '复制代码'; }, 1200);
+          } catch (_) {
+            button.title = '复制失败，请手动选择';
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

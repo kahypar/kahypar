@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="KaHyPar 项目学习第二天：Hypergraph 内存结构、分区状态与 contract/uncontract。">
+  <title>KaHyPar 项目学习 · Day 02</title>
+  <style>
+    :root {
+      --ink:#172126; --muted:#647178; --line:#d8dfe1; --paper:#fff; --canvas:#f1f4f3;
+      --teal:#0b6d70; --teal-dark:#075356; --teal-soft:#e8f4f1;
+      --red:#b4473e; --red-soft:#faeeeb; --amber:#9a6113; --amber-soft:#fff4da;
+      --green:#3f7157; --green-soft:#edf5ef; --blue:#386d8b; --blue-soft:#edf4f8;
+      --code:#101719; --code-muted:#94a4a8; --sidebar:282px; --content:900px;
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth;scroll-padding-top:28px}
+    body{margin:0;color:var(--ink);background:var(--canvas);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;font-size:16px;line-height:1.8;letter-spacing:0}
+    a{color:var(--teal-dark);text-decoration-thickness:1px;text-underline-offset:3px} button{font:inherit}
+    code,pre{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace} code{overflow-wrap:anywhere}
+    .reading-progress{position:fixed;inset:0 0 auto;z-index:60;height:4px}.reading-progress span{display:block;width:0;height:100%;background:var(--red)}
+    .shell{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}
+    .sidebar{position:sticky;top:0;align-self:start;height:100vh;padding:30px 24px 24px;color:#edf5f3;background:#1f2a2c;overflow-y:auto;scrollbar-width:thin}
+    .brand-mark{display:grid;place-items:center;width:44px;height:44px;margin-bottom:18px;border:1px solid #5d7774;color:#d9efea;font:700 16px/1 Georgia,serif}
+    .sidebar h1{margin:0;font-family:Georgia,"Songti SC",serif;font-size:22px;line-height:1.35}.sidebar .subtitle{margin:8px 0 20px;color:#adbfbc;font-size:13px;line-height:1.55}
+    .day-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 20px}.day-nav a{padding:7px 8px;border:1px solid #405154;color:#bdccca;font-size:12px;text-align:center;text-decoration:none}.day-nav a.current{color:#fff;border-color:#70aa9f;background:#293638}
+    .meta-line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #354548;color:#c7d3d1;font-size:12px}.meta-line span:last-child{color:#87c4ba}
+    .toc-label{margin:24px 0 8px;color:#839794;font-size:11px;font-weight:700;text-transform:uppercase}.toc{display:grid;gap:2px}
+    .toc a{display:grid;grid-template-columns:26px 1fr;align-items:baseline;padding:7px 8px;border-left:2px solid transparent;color:#b9c8c6;font-size:13px;line-height:1.45;text-decoration:none}.toc a .n{color:#708785;font-variant-numeric:tabular-nums}.toc a:hover,.toc a.active{color:#fff;background:#293638}.toc a.active{border-left-color:#7cc8bb}
+    .print-button{width:100%;margin-top:22px;padding:9px 12px;border:1px solid #526664;color:#e1eeec;background:transparent;cursor:pointer}.print-button:hover{border-color:#8ab9b1;background:#293638}
+    .mobile-header{display:none}.page{min-width:0;padding:0 34px 80px}.document{width:min(100%,var(--content));margin:0 auto;background:var(--paper);box-shadow:0 0 0 1px rgba(24,33,38,.04)}
+    .hero{position:relative;padding:72px 72px 54px;border-top:8px solid var(--teal);border-bottom:1px solid var(--line);overflow:hidden}.hero::after{content:"u ← v";position:absolute;right:52px;top:35px;color:#eef2f1;font:italic 700 92px/1 Georgia,serif;pointer-events:none}
+    .eyebrow{position:relative;z-index:1;display:flex;align-items:center;gap:10px;color:var(--red);font-size:13px;font-weight:750;text-transform:uppercase}.eyebrow::before{content:"";width:34px;height:2px;background:currentColor}
+    .hero h2{position:relative;z-index:1;max-width:720px;margin:22px 0 17px;font-family:Georgia,"Songti SC",serif;font-size:clamp(40px,6vw,62px);line-height:1.13;letter-spacing:0}.hero p{position:relative;z-index:1;max-width:680px;margin:0;color:var(--muted);font-size:18px}.hero-meta{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:16px 30px;margin-top:32px;color:var(--muted);font-size:13px}.hero-meta strong{color:var(--ink)}
+    .content{padding:28px 72px 72px}section{padding:52px 0 14px;border-top:1px solid var(--line)}section:first-child{border-top:0}.section-kicker{color:var(--red);font-size:12px;font-weight:800;text-transform:uppercase}
+    h2.section-title{margin:5px 0 14px;font-family:Georgia,"Songti SC",serif;font-size:31px;line-height:1.28;letter-spacing:0}h3{margin:34px 0 10px;font-size:21px;line-height:1.4;letter-spacing:0}h4{margin:24px 0 8px;font-size:16px}p{margin:10px 0}.lead{color:#3d4a50;font-size:18px;line-height:1.92}.muted{color:var(--muted)}
+    .outcomes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:26px 0 8px;border-top:2px solid var(--teal);border-bottom:1px solid var(--line)}.outcome{min-height:125px;padding:20px 24px;border-bottom:1px solid var(--line)}.outcome:nth-child(odd){border-right:1px solid var(--line)}.outcome:nth-last-child(-n+2){border-bottom:0}.outcome .num{color:var(--red);font:700 14px/1 Georgia,serif}.outcome strong{display:block;margin:8px 0 3px}.outcome span{color:var(--muted);font-size:14px;line-height:1.6}
+    .schedule{display:grid;grid-template-columns:82px 96px 1fr;margin:24px 0;border-top:1px solid var(--ink)}.schedule>div{padding:12px 10px;border-bottom:1px solid var(--line)}.schedule .head{color:var(--muted);font-size:12px;font-weight:700}.schedule .phase{color:var(--teal-dark);font-weight:700}
+    .callout{margin:24px 0;padding:19px 22px;border-left:4px solid var(--teal);background:var(--teal-soft)}.callout.warn{border-color:var(--amber);background:var(--amber-soft)}.callout.red{border-color:var(--red);background:var(--red-soft)}.callout.blue{border-color:var(--blue);background:var(--blue-soft)}.callout strong{display:block;margin-bottom:4px}
+    .formula{margin:22px 0;padding:18px 22px;border:1px solid var(--line);background:#fbfcfc;text-align:center;font:italic 19px/1.7 Georgia,"Times New Roman",serif;overflow-x:auto}.formula small{display:block;color:var(--muted);font:13px/1.5 sans-serif}
+    .figure{margin:28px 0;padding:26px 0 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.figure svg{display:block;width:100%;height:auto}.figure figcaption{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+    table{width:100%;margin:24px 0;border-collapse:collapse;font-size:14px}th{padding:11px 12px;color:#3d494f;background:#f2f5f4;border-top:1px solid var(--ink);border-bottom:1px solid var(--line);text-align:left}td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}td code{color:var(--teal-dark);font-size:13px}.table-scroll{overflow-x:auto}
+    .memory{display:grid;grid-template-columns:1fr 38px 1fr;align-items:stretch;margin:26px 0}.memory-col{border:1px solid var(--line);background:#fff}.memory-col h4{margin:0;padding:12px 15px;color:var(--teal-dark);background:#f3f6f5}.memory-row{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:10px 14px;border-top:1px solid var(--line);font-size:13px}.memory-row code{color:var(--red)}.memory-arrow{display:grid;place-items:center;color:var(--red);font-size:23px}
+    .cases{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:26px 0;border:1px solid var(--line);background:var(--line)}.case{padding:24px;background:#fff}.case .tag{color:var(--red);font:700 12px/1.5 monospace}.case h4{margin:5px 0 9px;font-size:19px}.case p,.case li{color:#4a575d;font-size:14px}.case ul{padding-left:18px;margin-bottom:0}
+    .state-strip{display:grid;grid-template-columns:repeat(3,1fr);margin:22px 0;border:1px solid var(--line)}.state-cell{padding:18px;border-right:1px solid var(--line)}.state-cell:last-child{border:0}.state-cell strong{display:block;color:var(--teal-dark)}.state-cell span{color:var(--muted);font-size:13px}
+    .code-block{position:relative;margin:20px 0 28px;border:1px solid #243034;background:var(--code);color:#dce8e7}.code-head{display:flex;align-items:center;justify-content:space-between;min-height:40px;padding:8px 10px 8px 16px;border-bottom:1px solid #2a393d;color:var(--code-muted);font-size:12px}.copy-button{position:relative;width:31px;height:28px;border:0;color:#c7d5d3;background:transparent;cursor:pointer}.copy-button::before,.copy-button::after{content:"";position:absolute;width:10px;height:12px;border:1px solid currentColor}.copy-button::before{left:8px;top:6px}.copy-button::after{left:12px;top:10px;background:var(--code)}.copy-button:hover{color:#fff;background:#243034}pre{margin:0;padding:18px 20px 20px;overflow:auto;font-size:13px;line-height:1.65;tab-size:2}.kw{color:#62c9d0}.fn{color:#f0c879}.cm{color:#7e9597}.st{color:#a7d59e}.nu{color:#e5a4a0}
+    .trace{margin:24px 0;border-top:1px solid var(--ink)}.trace-row{display:grid;grid-template-columns:52px 145px 1fr;gap:14px;padding:14px 8px;border-bottom:1px solid var(--line)}.trace-row .step{color:var(--red);font:700 13px/1.6 Georgia,serif}.trace-row strong{font-size:14px}.trace-row span{color:var(--muted);font-size:14px}
+    .source-line{display:grid;grid-template-columns:minmax(220px,.9fr) 1.1fr;gap:24px;padding:12px 0;border-bottom:1px solid var(--line)}.source-line:first-child{border-top:1px solid var(--ink)}.source-line code{color:var(--teal-dark);font-size:13px}.source-line span{color:var(--muted);font-size:14px}
+    .checklist{padding:0;list-style:none}.checklist li{position:relative;padding:12px 10px 12px 36px;border-bottom:1px solid var(--line)}.checklist li::before{content:"";position:absolute;left:8px;top:18px;width:12px;height:12px;border:1px solid #7b8b90}
+    details.answer{margin:10px 0;border-bottom:1px solid var(--line)}details.answer summary{padding:12px 0;cursor:pointer;font-weight:650}details.answer p{margin:0 0 16px;color:var(--muted)}
+    .closing{margin-top:48px;padding:31px;color:#e8f2f0;background:#1f2a2c}.closing strong{display:block;margin-bottom:8px;color:#8ed1c6;font-size:13px}.closing p{margin:0;font-family:Georgia,"Songti SC",serif;font-size:20px;line-height:1.65}.pager{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.pager a{padding:11px 14px;border:1px solid #465a5d;color:#cfddda;text-decoration:none}.pager a:last-child{text-align:right;color:#8ed1c6}.footer{padding:28px 72px 42px;color:var(--muted);border-top:1px solid var(--line);font-size:12px}
+    @media(max-width:980px){.shell{display:block}.sidebar{display:none}.mobile-header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;min-height:54px;padding:9px 18px;color:#f4f8f7;background:#1f2a2c}.mobile-header strong{font-family:Georgia,"Songti SC",serif}.mobile-header details{position:relative}.mobile-header summary{cursor:pointer;color:#c8d7d5;list-style:none}.mobile-menu{position:absolute;right:0;top:38px;width:220px;padding:8px;border:1px solid #405154;background:#1f2a2c;box-shadow:0 10px 28px rgba(0,0,0,.2)}.mobile-menu a{display:block;padding:8px 10px;color:#d5e0de;font-size:13px;text-decoration:none}.page{padding:0 18px 60px}.document{width:100%}}
+    @media(max-width:680px){body{font-size:15px}.page{padding:0}.hero{padding:48px 24px 36px}.hero::after{right:12px;top:24px;font-size:58px}.hero h2{font-size:38px}.hero p,.lead{font-size:16px}.content{padding:18px 24px 52px}section{padding-top:42px}h2.section-title{font-size:27px}.outcomes,.cases{grid-template-columns:1fr}.outcome:nth-child(odd){border-right:0}.outcome:nth-last-child(-n+2){border-bottom:1px solid var(--line)}.outcome:last-child{border-bottom:0}.schedule{grid-template-columns:64px 78px 1fr;font-size:13px}.memory{grid-template-columns:1fr}.memory-arrow{min-height:34px;transform:rotate(90deg)}.state-strip{grid-template-columns:1fr}.state-cell{border-right:0;border-bottom:1px solid var(--line)}.trace-row{grid-template-columns:42px 1fr}.trace-row span{grid-column:2}.source-line{grid-template-columns:1fr;gap:4px}.footer{padding:24px}.pager{grid-template-columns:1fr}.pager a:last-child{text-align:left}pre{font-size:12px;padding:16px}.table-scroll{margin-right:-8px}}
+    @media print{@page{size:A4;margin:14mm 13mm}body{background:#fff;font-size:10.5pt}.reading-progress,.sidebar,.mobile-header,.print-button,.copy-button{display:none!important}.shell{display:block}.page{padding:0}.document{width:auto;box-shadow:none}.hero{padding:12mm 10mm 9mm}.hero h2{font-size:30pt}.hero::after{font-size:50pt}.content{padding:4mm 10mm 8mm}section{padding-top:8mm;break-before:page}section:first-child{break-before:auto}.figure,.code-block,.callout,.cases,.memory,table{break-inside:avoid}.footer{padding:6mm 10mm}a{color:inherit;text-decoration:none}.pager{display:none}}
+  </style>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+  <header class="mobile-header"><strong>KaHyPar · Day 02</strong><details><summary>目录</summary><nav class="mobile-menu"><a href="#start">今日任务</a><a href="#model">结构模型</a><a href="#storage">内存布局</a><a href="#partition">分区状态</a><a href="#contract">收缩原语</a><a href="#trace">手工追踪</a><a href="#uncontract">展开恢复</a><a href="#practice">练习与复盘</a></nav></details></header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-mark">D02</div><h1>Hypergraph<br>状态与收缩</h1><p class="subtitle">从“能读调用链”走到“能解释核心容器为何这样设计”。</p>
+      <div class="day-nav"><a href="day01-kahypar.html">Day 01</a><a class="current" href="#top">Day 02</a></div>
+      <div class="meta-line"><span>预计用时</span><span>3.5 小时</span></div><div class="meta-line"><span>核心文件</span><span>hypergraph.h</span></div><div class="meta-line"><span>实操对象</span><span>7 点 / 4 边</span></div>
+      <div class="toc-label">Contents</div><nav class="toc" aria-label="章节目录">
+        <a href="#start"><span class="n">01</span><span>今天学什么</span></a><a href="#model"><span class="n">02</span><span>超图的双向视角</span></a><a href="#storage"><span class="n">03</span><span>内存布局与迭代器</span></a><a href="#partition"><span class="n">04</span><span>分区状态缓存</span></a><a href="#contract"><span class="n">05</span><span>contract 两种情况</span></a><a href="#trace"><span class="n">06</span><span>7 节点手工追踪</span></a><a href="#uncontract"><span class="n">07</span><span>uncontract 与 LIFO</span></a><a href="#boundary"><span class="n">08</span><span>粗化层的职责边界</span></a><a href="#practice"><span class="n">09</span><span>练习与检查点</span></a>
+      </nav><button class="print-button" onclick="window.print()">打印 / 导出 PDF</button>
+    </aside>
+    <main class="page" id="top"><article class="document">
+      <header class="hero"><div class="eyebrow">KaHyPar Project Study · Day 02</div><h2>读懂核心容器：<br>Hypergraph 如何变形</h2><p>今天不再停留在算法名词。我们打开 <code>hypergraph.h</code>，沿着 pins、incident edges、分区缓存和收缩恢复，建立一张可以用于调试的“状态地图”。</p><div class="hero-meta"><span><strong>主题</strong> 数据结构与可逆修改</span><span><strong>入口</strong> <code>GenericHypergraph</code></span><span><strong>目标</strong> 独立解释一次 contraction</span></div></header>
+      <div class="content">
+        <section id="start"><div class="section-kicker">01 · Orientation</div><h2 class="section-title">今天学完，你要能回答四个问题</h2><p class="lead">第一天我们从命令行一路走到多层框架；第二天把镜头推进到多层算法一直在修改的对象。这里读懂了，后面的粗化、初始划分和细化才不会像在追逐一团状态。</p>
+          <div class="outcomes"><div class="outcome"><span class="num">01</span><strong>拓扑放在哪里？</strong><span>超边的 pins 与节点的 incident nets 分别怎样存储、怎样保持一致。</span></div><div class="outcome"><span class="num">02</span><strong>为什么有两套计数？</strong><span><code>initial*</code> 表示容量边界，<code>current*</code> 表示当前有效规模。</span></div><div class="outcome"><span class="num">03</span><strong>收缩到底改了什么？</strong><span>区分共同超边的“截短”和独占超边的“槽位复用”。</span></div><div class="outcome"><span class="num">04</span><strong>为何能够恢复？</strong><span>被删信息并未彻底擦除，配合 memento 和逆序回放完成恢复。</span></div></div>
+          <h3>建议节奏</h3><div class="schedule"><div class="head">阶段</div><div class="head">用时</div><div class="head">任务</div><div class="phase">A</div><div>35 min</div><div>复习术语，画出 pins / incident edges 双向关系</div><div class="phase">B</div><div>55 min</div><div>阅读构造函数、迭代器和三组规模计数</div><div class="phase">C</div><div>70 min</div><div>逐行拆解 <code>contract(u,v)</code>，手算 7 节点实例</div><div class="phase">D</div><div>35 min</div><div>理解 <code>uncontract</code>、memento 与逆序恢复</div><div class="phase">E</div><div>20 min</div><div>完成源码定位题和口述复盘</div></div>
+          <div class="callout"><strong>今天的唯一主线</strong>把一次 <code>u ← v</code> 看成“保留节点 u，吸收节点 v；所有从 v 出发的关联关系都要被重新解释”。</div>
+        </section>
+
+        <section id="model"><div class="section-kicker">02 · Mental Model</div><h2 class="section-title">同一份拓扑，两种查询方向</h2><p>超图 <em>H=(V,E)</em> 中，超边可以连接任意多个节点。KaHyPar 的热点操作既需要“给定超边找全部 pin”，也需要“给定节点找全部关联超边”。所以容器同时维护两个方向。</p>
+          <figure class="figure"><svg viewBox="0 0 800 360" role="img" aria-labelledby="inc-title inc-desc"><title id="inc-title">超图双向关联示意</title><desc id="inc-desc">左侧为节点，右侧为超边，中间连线表示 pin 关系；下方展示两个查询方向。</desc><defs><style>.svgt{font:600 16px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#172126}.svgs{font:13px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#647178}.edge{stroke:#a9b8bc;stroke-width:2;fill:none}.node{fill:#e8f4f1;stroke:#0b6d70;stroke-width:2}.he{fill:#faeeeb;stroke:#b4473e;stroke-width:2}</style></defs><text x="115" y="35" class="svgt">Hypernodes</text><text x="605" y="35" class="svgt">Hyperedges</text><path class="edge" d="M174 88 C350 85 450 75 625 92M174 166 C340 145 470 115 625 92M174 166 C340 175 460 180 625 180M174 244 C340 220 470 192 625 180M174 244 C350 245 460 265 625 268"/><g><circle class="node" cx="145" cy="88" r="29"/><circle class="node" cx="145" cy="166" r="29"/><circle class="node" cx="145" cy="244" r="29"/><text class="svgt" x="137" y="94">0</text><text class="svgt" x="137" y="172">3</text><text class="svgt" x="137" y="250">6</text></g><g><rect class="he" x="625" y="66" width="62" height="52"/><rect class="he" x="625" y="154" width="62" height="52"/><rect class="he" x="625" y="242" width="62" height="52"/><text class="svgt" x="647" y="98">e1</text><text class="svgt" x="647" y="186">e2</text><text class="svgt" x="647" y="274">e3</text></g><rect x="95" y="311" width="270" height="36" fill="#f2f5f4"/><rect x="435" y="311" width="270" height="36" fill="#f2f5f4"/><text class="svgs" x="111" y="334">incidentEdges(3) → { e1, e2 }</text><text class="svgs" x="460" y="334">pins(e2) → { 3, 4, 6 }</text></svg><figcaption>两个接口描述同一组 incidence 关系，但底层并非一份完全对称的数据结构。</figcaption></figure>
+          <div class="formula">p ∈ e &nbsp;⇔&nbsp; e ∈ I(p)<small>任何修改都必须维持：pin 视角与 incident-net 视角一致。</small></div>
+          <div class="callout warn"><strong>先纠正一个容易产生的印象</strong><code>_incidence_array</code> 只连续存放各超边的 pins；每个节点的 incident nets 位于节点对象自己的 <code>std::vector</code>。源码注释把两者统称 incidence structure，但物理布局并不完全相同。</div>
+        </section>
+
+        <section id="storage"><div class="section-kicker">03 · Storage</div><h2 class="section-title">连续 pin 数组 + 每点 incident vector</h2><p class="lead">构造函数先按 hMetis 的 <code>index_vector / edge_vector</code> 建立超边侧的连续区间，再反向扫描 pins，为每个节点填充关联超边列表。</p>
+          <div class="memory"><div class="memory-col"><h4>超边视角：连续区间</h4><div class="memory-row"><code>e0</code><span><code>_begin=0, _size=2</code></span></div><div class="memory-row"><code>e1</code><span><code>_begin=2, _size=4</code></span></div><div class="memory-row"><code>e2</code><span><code>_begin=6, _size=3</code></span></div><div class="memory-row"><code>array</code><span>[0,2 | 0,1,3,4 | 3,4,6 | …]</span></div></div><div class="memory-arrow">⇄</div><div class="memory-col"><h4>节点视角：独立 vector</h4><div class="memory-row"><code>v0</code><span>incidentNets = [e0, e1]</span></div><div class="memory-row"><code>v1</code><span>incidentNets = [e1]</span></div><div class="memory-row"><code>v3</code><span>incidentNets = [e1, e2]</span></div><div class="memory-row"><code>v6</code><span>incidentNets = [e2, e3]</span></div></div></div>
+          <div class="code-block"><div class="code-head"><span>kahypar/datastructure/hypergraph.h · 查询接口</span><button class="copy-button" aria-label="复制代码"></button></div><pre><span class="kw">auto</span> <span class="fn">incidentEdges</span>(HypernodeID u) <span class="kw">const</span> {
+  <span class="kw">return</span> { hypernode(u).incidentNets().cbegin(),
+           hypernode(u).incidentNets().cend() };
+}
+
+<span class="kw">auto</span> <span class="fn">pins</span>(HyperedgeID e) <span class="kw">const</span> {
+  <span class="kw">return</span> { _incidence_array.cbegin() + hyperedge(e).firstEntry(),
+           _incidence_array.cbegin() + hyperedge(e).firstInvalidEntry() };
+}</pre></div>
+          <h3>为什么删除常用“交换到末尾 + size--”</h3><p>如果在 vector 中间做 erase，后续元素都要搬移。这里把目标项交换到有效区间末尾，再缩短 <code>_size</code>，有效数据立刻少一个，旧值仍留在边界后方，恢复时还有机会重新纳入有效区间。</p>
+          <div class="state-strip"><div class="state-cell"><strong>物理容量</strong><span>数组空间通常保留，ID 也不重新编号</span></div><div class="state-cell"><strong>逻辑有效区间</strong><span><code>[firstEntry, firstInvalidEntry)</code></span></div><div class="state-cell"><strong>元素有效性</strong><span><code>_valid=false</code> 后被全局迭代器跳过</span></div></div>
+          <h3><code>initial*</code> 与 <code>current*</code></h3><div class="table-scroll"><table><thead><tr><th>接口</th><th>含义</th><th>典型用途</th></tr></thead><tbody><tr><td><code>initialNumNodes/Edges/Pins</code></td><td>构造后确定的原始规模，修改过程不随之下降</td><td>分配按原始 ID 索引的数组、进度条、边界检查</td></tr><tr><td><code>currentNumNodes/Edges/Pins</code></td><td>当前仍有效的逻辑规模</td><td>停止粗化、统计当前密度、检查收缩进度</td></tr><tr><td><code>nodes() / edges()</code></td><td>扫描原始 ID 范围，但跳过 disabled 元素</td><td>遍历当前有效对象；代价仍与原始范围有关</td></tr></tbody></table></div>
+          <div class="callout blue"><strong>调试不变量</strong><code>currentNumPins()</code> 在 Debug 断言中会从节点度数之和、超边大小之和各算一遍。两边都必须等于 <code>_current_num_pins</code>。</div>
+        </section>
+
+        <section id="partition"><div class="section-kicker">04 · Partition State</div><h2 class="section-title">拓扑旁边，还有一组为了“快”而存在的缓存</h2><p>分区算法会反复询问：节点在哪个块？块有多重？某条超边在每个块有多少 pin？它连接几个块？若每次都扫描整条超边，局部搜索会非常昂贵，因此 <code>Hypergraph</code> 同时维护增量状态。</p>
+          <div class="table-scroll"><table><thead><tr><th>状态</th><th>存储位置</th><th>回答的问题</th></tr></thead><tbody><tr><td>节点所属块</td><td><code>Hypernode::part_id</code></td><td><code>partID(v)</code> 是多少？</td></tr><tr><td>块大小与重量</td><td><code>_part_info[k]</code></td><td>块是否超重？当前有多少节点？</td></tr><tr><td>每边每块 pin 数</td><td><code>_pins_in_part[e*k+b]</code></td><td>e 在块 b 中有几个 pin？</td></tr><tr><td>超边连通度</td><td><code>Hyperedge::connectivity</code></td><td>λ(e) 连接了几个非空块？</td></tr><tr><td>连通块集合</td><td><code>_connectivity_sets[e]</code></td><td>e 具体连接哪些块？</td></tr><tr><td>节点关联 cut 边数</td><td><code>num_incident_cut_hes</code></td><td>该节点是不是边界节点？</td></tr></tbody></table></div>
+          <div class="formula">λ(e) = | { b : pinCountInPart(e,b) &gt; 0 } |<small>当某块计数从 0→1，connectivity 增 1；从 1→0，connectivity 减 1。</small></div>
+          <p><code>incrementPinCountInPart</code> 与 <code>decrementPinCountInPart</code> 不只改一个整数，还同步更新 connectivity set 和 λ(e)。这类“派生状态缓存”是性能来源，也是最常见的一致性 bug 来源。</p>
+          <div class="callout red"><strong>收缩前置条件</strong><code>contract(u,v)</code> 断言 <code>partID(u) == partID(v)</code>。未划分时两者都是 <code>kInvalidPartition</code>；展开阶段则继承代表点的块，保证缓存可恢复。</div>
+        </section>
+
+        <section id="contract"><div class="section-kicker">05 · Contract</div><h2 class="section-title"><code>contract(u,v)</code>：保留 u，吸收 v</h2><p class="lead">函数先把 v 的重量加到 u，然后逐条遍历 <code>v.incidentNets()</code>。每条边只有两种可能：原来已经含 u，或原来不含 u。</p>
+          <div class="cases"><div class="case"><div class="tag">CASE 1 · e contains u and v</div><h4>共同超边：删除重复 pin v</h4><p>先把 v 交换到该超边有效区间末尾，再执行 <code>size--</code>。u 已经是 pin，无需给 u 新增 incident edge。</p><ul><li><code>edgeHash -= hash(v)</code></li><li><code>edgeSize(e)--</code></li><li>已划分时，同步减少 v 所在块 pin 数</li><li><code>currentNumPins--</code></li></ul></div><div class="case"><div class="tag">CASE 2 · e contains v only</div><h4>独占超边：把 v 的槽改写为 u</h4><p>pin 数不变；直接把 e 中的 v 改成 u，并向 <code>u.incidentNets</code> 追加 e。</p><ul><li><code>hash(v)</code> 替换成 <code>hash(u)</code></li><li>复用最后一个 pin slot</li><li><code>u.incidentNets.push_back(e)</code></li><li>块内 pin 数不变，因为 u、v 同块</li></ul></div></div>
+          <div class="code-block"><div class="code-head"><span>contract 的骨架（按真实源码压缩）</span><button class="copy-button" aria-label="复制代码"></button></div><pre>hypernode(u).<span class="fn">setWeight</span>(nodeWeight(u) + nodeWeight(v));
+
+<span class="kw">for</span> (HyperedgeID e : hypernode(v).incidentNets()) {
+  <span class="fn">move_v_to_last_pin_slot</span>(e);
+  <span class="kw">if</span> (e already contains u) {              <span class="cm">// Case 1</span>
+    hyperedge(e).<span class="fn">decrementSize</span>();
+    --_current_num_pins;
+  } <span class="kw">else</span> {                                  <span class="cm">// Case 2</span>
+    <span class="fn">connectHyperedgeToRepresentative</span>(e, u); <span class="cm">// v slot → u</span>
+  }
+}
+hypernode(v).<span class="fn">disable</span>();
+--_current_num_hypernodes;
+<span class="kw">return</span> Memento { u, v };</pre></div>
+          <div class="callout warn"><strong>Memento 为什么只有两个 ID？</strong>恢复需要的信息大多仍藏在原容器里：v 的 <code>incidentNets</code> 没被清空；Case 1 被截掉的 v 留在有效区间后一格；Case 2 的边可以通过“原本属于 v”这一事实识别。memento 只需记住谁吸收了谁。</div>
+        </section>
+
+        <section id="trace"><div class="section-kicker">06 · Worked Example</div><h2 class="section-title">手工追踪：在 7 节点实例中执行 <code>contract(4,6)</code></h2><p>测试夹具使用 0-based ID，四条超边如下。节点 4 与 6 同时属于 e2，但只有 6 属于 e3，因此一次收缩正好覆盖两种情况。</p>
+          <div class="code-block"><div class="code-head"><span>tests/datastructure/hypergraph_test_fixtures.h</span><button class="copy-button" aria-label="复制代码"></button></div><pre>e0 = { <span class="nu">0</span>, 2 }
+e1 = { 0, 1, 3, <span class="nu">4</span> }
+e2 = { 3, <span class="nu">4</span>, <span class="nu">6</span> }   <span class="cm">// Case 1: 同时含 u=4, v=6</span>
+e3 = { 2, 5, <span class="nu">6</span> }      <span class="cm">// Case 2: 只含 v=6</span></pre></div>
+          <figure class="figure"><svg viewBox="0 0 800 325" role="img" aria-labelledby="ct-title ct-desc"><title id="ct-title">contract(4,6) 前后状态</title><desc id="ct-desc">左侧为收缩前，右侧为收缩后；共同超边 e2 删除 6，e3 将 6 改为 4。</desc><defs><style>.t{font:600 15px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#172126}.s{font:13px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;fill:#647178}.a{stroke:#a8b6ba;stroke-width:2;fill:none}.n{fill:#e8f4f1;stroke:#0b6d70;stroke-width:2}.v{fill:#faeeeb;stroke:#b4473e;stroke-width:2}.h{fill:#fff4da;stroke:#9a6113;stroke-width:2}.dash{stroke-dasharray:6 5}</style></defs><text class="t" x="100" y="30">收缩前</text><text class="t" x="610" y="30">收缩后</text><path class="a" d="M120 100L265 85M120 100L265 205M120 220L265 85M120 220L265 205"/><circle class="n" cx="100" cy="100" r="27"/><circle class="v" cx="100" cy="220" r="27"/><text class="t" x="93" y="106">4</text><text class="t" x="93" y="226">6</text><rect class="h" x="265" y="60" width="58" height="50"/><rect class="h" x="265" y="180" width="58" height="50"/><text class="t" x="283" y="91">e2</text><text class="t" x="283" y="211">e3</text><text class="s" x="52" y="273">w(4)=1, w(6)=1</text><path class="a dash" d="M375 145H470"/><polygon points="470,145 458,138 458,152" fill="#b4473e"/><text class="s" x="383" y="130">u ← v</text><path class="a" d="M585 145L705 85M585 145L705 205"/><circle class="n" cx="560" cy="145" r="31"/><text class="t" x="553" y="151">4</text><rect class="h" x="705" y="60" width="58" height="50"/><rect class="h" x="705" y="180" width="58" height="50"/><text class="t" x="723" y="91">e2</text><text class="t" x="723" y="211">e3</text><text class="s" x="508" y="206">w(4)=2</text><text class="s" x="494" y="230">node 6 disabled</text><rect x="72" y="292" width="250" height="28" fill="#faeeeb"/><rect x="520" y="292" width="244" height="28" fill="#e8f4f1"/><text class="s" x="91" y="311">e2={3,4,6} · e3={2,5,6}</text><text class="s" x="542" y="311">e2={3,4} · e3={2,5,4}</text></svg><figcaption>Case 1 让 pin 总数减少 1；Case 2 只改 ID，不改变 pin 总数。</figcaption></figure>
+          <div class="trace"><div class="trace-row"><span class="step">S0</span><strong>初始计数</strong><span>nodes=7，edges=4，pins=12；w(4)=1，I(4)={e1,e2}，I(6)={e2,e3}</span></div><div class="trace-row"><span class="step">S1</span><strong>合并重量</strong><span>w(4) ← 1+1 = 2</span></div><div class="trace-row"><span class="step">S2</span><strong>处理 e2</strong><span>e2 同时含 4 和 6：删除 pin 6，e2.size 3→2，pins 12→11</span></div><div class="trace-row"><span class="step">S3</span><strong>处理 e3</strong><span>e3 不含 4：把 pin slot 6 改为 4，向 I(4) 追加 e3，pins 保持 11</span></div><div class="trace-row"><span class="step">S4</span><strong>禁用节点 6</strong><span>nodes 7→6；I(6) 仍保留 {e2,e3}，供恢复判断</span></div><div class="trace-row"><span class="step">S5</span><strong>返回记录</strong><span><code>Memento{u=4,v=6}</code></span></div></div>
+          <div class="state-strip"><div class="state-cell"><strong>currentNumNodes</strong><span>7 → 6</span></div><div class="state-cell"><strong>currentNumPins</strong><span>12 → 11</span></div><div class="state-cell"><strong>currentNumEdges</strong><span>仍为 4</span></div></div>
+          <div class="callout red"><strong>与测试用例对照</strong>仓库测试验证了 <code>nodeIsEnabled(6)==false</code>、代表点重量变 2、代表点度数从 2 变 3，并验证 e2/e3 中都不再出现 6。</div>
+        </section>
+
+        <section id="uncontract"><div class="section-kicker">07 · Uncontract</div><h2 class="section-title">恢复不是重建，而是识别旧痕迹</h2><p class="lead"><code>uncontract(memento)</code> 首先重新启用 v、继承 u 的 part ID，然后借助 v 保留下来的 incident list 标记“原本属于 v 的边”。接着扫描 u 当前的 incident list，判断每条标记边应逆转 Case 1 还是 Case 2。</p>
+          <div class="trace"><div class="trace-row"><span class="step">U1</span><strong><code>restoreMemento</code></strong><span>启用 v，current nodes +1，v.part_id ← u.part_id</span></div><div class="trace-row"><span class="step">U2</span><strong><code>markIncidentNetsOf(v)</code></strong><span>用 fast-reset flag 标记 v 原来的 e2、e3</span></div><div class="trace-row"><span class="step">U3</span><strong>识别 Case 1</strong><span>若超边有效区间后的下一格正是 v，则 size++，把该旧槽重新纳入</span></div><div class="trace-row"><span class="step">U4</span><strong>否则恢复 Case 2</strong><span>从 I(u) 移除这条新增边，把边中复用的 u 槽改回 v</span></div><div class="trace-row"><span class="step">U5</span><strong>恢复代表点</strong><span>w(u) ← w(u)-w(v)，并检查 cut-edge 缓存不变量</span></div></div>
+          <div class="callout warn"><strong>为什么强调逆序？</strong>收缩会把被截掉的 pin 留在边界后方，也可能连续复用同一批结构。后一次修改建立在前一次结果上，因此多次收缩必须像栈一样后进先出地展开。<code>CoarsenerBase::_history</code> 正是这条恢复栈。</div>
+          <div class="code-block"><div class="code-head"><span>粗化历史的核心形态</span><button class="copy-button" aria-label="复制代码"></button></div><pre><span class="cm">// coarsening</span>
+_history.<span class="fn">emplace_back</span>(_hg.<span class="fn">contract</span>(rep, contracted));
+
+<span class="cm">// uncoarsening: conceptual form</span>
+<span class="kw">while</span> (!_history.empty()) {
+  _hg.<span class="fn">uncontract</span>(_history.back().contraction_memento);
+  _history.<span class="fn">pop_back</span>();
+}</pre></div>
+          <h3>今天需要记住的五条不变量</h3><ul class="checklist"><li>每个有效 pin 关系必须同时出现在 <code>pins(e)</code> 与 <code>incidentEdges(v)</code> 两个视角。</li><li>节点度数之和 = 超边大小之和 = <code>currentNumPins()</code>。</li><li>disabled 对象仍占原 ID 槽位，但 <code>nodes()/edges()</code> 会跳过它。</li><li><code>pinCountInPart</code>、connectivity 和 connectivity set 必须同步变化。</li><li>连续修改的恢复顺序必须与修改顺序相反。</li></ul>
+        </section>
+
+        <section id="boundary"><div class="section-kicker">08 · Responsibility</div><h2 class="section-title">收缩原语不等于完整粗化步骤</h2><p><code>Hypergraph::contract</code> 的测试明确说明：它不会自行删除 size=1 的超边，也不会自行合并平行超边。真正的粗化入口 <code>CoarsenerBase::performContraction</code> 会在 contract 后追加两步清理。</p>
+          <div class="code-block"><div class="code-head"><span>kahypar/partition/coarsening/coarsener_base.h</span><button class="copy-button" aria-label="复制代码"></button></div><pre><span class="kw">void</span> <span class="fn">performContraction</span>(HypernodeID rep, HypernodeID v) {
+  _history.<span class="fn">emplace_back</span>(_hg.<span class="fn">contract</span>(rep, v));
+  <span class="fn">removeSingleNodeHyperedges</span>();
+  <span class="fn">removeParallelHyperedges</span>();
+}</pre></div>
+          <div class="table-scroll"><table><thead><tr><th>层次</th><th>职责</th><th>恢复信息</th></tr></thead><tbody><tr><td><code>Hypergraph</code></td><td>节点吸收、pin 截短/槽位复用、重量与局部缓存</td><td><code>Memento {u,v}</code> + 容器内保留痕迹</td></tr><tr><td><code>HypergraphPruner</code></td><td>删除单点超边、检测并合并平行超边</td><td>被移除边列表与代表边映射</td></tr><tr><td><code>CoarsenerBase</code></td><td>组织顺序、保存每层历史、在展开时协调恢复与 refinement</td><td><code>vector&lt;CoarseningMemento&gt;</code></td></tr></tbody></table></div>
+          <div class="callout"><strong>工程上的好处</strong>容器提供可测试的最小原语，算法层组合策略性清理。这样可以单独验证“收缩是否正确”，也能替换粗化策略而不重写底层拓扑操作。</div>
+        </section>
+
+        <section id="practice"><div class="section-kicker">09 · Practice</div><h2 class="section-title">源码阅读顺序与今日练习</h2><div class="source-line"><code>hypergraph.h:159–355</code><span>先看 Hypernode / Hyperedge 两种内部元素：valid、weight、begin、size。</span></div><div class="source-line"><code>hypergraph.h:616–741</code><span>看构造函数如何从 index/edge vector 生成双向关联。</span></div><div class="source-line"><code>hypergraph.h:894–927</code><span>看 <code>incidentEdges</code>、<code>pins</code>、<code>nodes</code>、<code>edges</code> 四种遍历。</span></div><div class="source-line"><code>hypergraph.h:963–1032</code><span>逐行注释 contract 的 Case 1 / Case 2。</span></div><div class="source-line"><code>hypergraph.h:1143–1223</code><span>看默认 uncontract 如何利用被保留的旧状态。</span></div><div class="source-line"><code>coarsener_base.h:76–105</code><span>确认 contract 与 pruner 的职责边界。</span></div><div class="source-line"><code>hypergraph_test.cc:163–358</code><span>用测试名称反推每个行为承诺。</span></div>
+          <h3>动手题</h3><ul class="checklist"><li>在纸上写出 <code>contract(0,2)</code> 后四条边、节点 0 的 incident list 和三组 current 计数。</li><li>解释为什么 <code>contract(3,4)</code> 会让 pin 数从 12 降到 10。</li><li>在源码中找到“全局遍历 coarsened graph 仍与原始规模线性相关”的注释。</li><li>给 <code>contract(4,6)</code> 的 Case 1 / Case 2 各指出一条现有单元测试。</li></ul>
+          <h3>先做，再展开答案</h3><details class="answer"><summary>题 1：<code>contract(0,2)</code> 的结果是什么？</summary><p>e0={0}（共同边删除 2），e1 不变，e2 不变，e3 的 2 改为 0。I(0) 从 {e0,e1} 变为 {e0,e1,e3}；nodes=6、edges=4、pins=11。</p></details><details class="answer"><summary>题 2：为什么 <code>contract(3,4)</code> 少两个 pin？</summary><p>3 与 4 同时出现在 e1 和 e2；两条边都走 Case 1，各删除一个重复 pin，所以 12→10。不存在仅含 4 而不含 3 的边。</p></details><details class="answer"><summary>题 3：为什么不在收缩时重新编号？</summary><p>稳定 ID 让按初始规模分配的缓存、memento、历史记录和外部映射持续有效；代价是全局迭代器要扫描原始 ID 范围并跳过 disabled 项。</p></details>
+          <h3>结束前的 90 秒口述</h3><p>不看笔记，尝试完整说出：存储布局 → current/initial 区别 → contract 两种情况 → memento 为何很小 → 为什么逆序 uncontract → pruner 在哪里接手。能顺畅讲完，就算真正掌握了第二天。</p>
+          <div class="closing"><strong>DAY 02 COMPLETE</strong><p>今天你建立的不是一张字段清单，而是一套判断状态是否一致的方法。第三天将沿着输入文件进入构造过程：hMetis 解析、Context 参数与工厂选择如何把这台状态机器启动起来。</p><div class="pager"><a href="day01-kahypar.html">← 返回 Day 01</a><a href="#top">回到顶部 ↑</a></div></div>
+        </section>
+      </div>
+      <footer class="footer">KaHyPar 学习笔记 · Day 02 · 基于仓库当前源码整理（核心文件：<code>kahypar/datastructure/hypergraph.h</code>）</footer>
+    </article></main>
+  </div>
+  <script>
+    const progress = document.getElementById('progress');
+    const links = [...document.querySelectorAll('.toc a')];
+    const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+    function update() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progress.style.width = (max > 0 ? scrollY / max * 100 : 0) + '%';
+      let active = sections[0];
+      for (const section of sections) if (section.getBoundingClientRect().top <= 120) active = section;
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + active.id));
+    }
+    addEventListener('scroll', update, {passive:true}); addEventListener('resize', update); update();
+    document.querySelectorAll('.copy-button').forEach(button => button.addEventListener('click', async () => {
+      const text = button.closest('.code-block').querySelector('pre').innerText;
+      try { await navigator.clipboard.writeText(text); button.setAttribute('aria-label','已复制'); }
+      catch (_) { button.setAttribute('aria-label','复制失败'); }
+      setTimeout(() => button.setAttribute('aria-label','复制代码'), 1200);
+    }));
+  </script>
+</body>
+</html>
